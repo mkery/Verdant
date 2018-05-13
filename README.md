@@ -1,6 +1,6 @@
 # Verdant
 
-a local versioning extool
+an experimental tool building local versioning into Jupyter Lab
 
 
 ## Prerequisites
@@ -29,4 +29,3 @@ To rebuild the package and the JupyterLab app:
 npm run build
 jupyter lab build
 ```
-
