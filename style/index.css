@@ -1,0 +1,87 @@
+
+/*-----------------------------------------------------------------------------
+| Variables
+|----------------------------------------------------------------------------*/
+
+:root {
+  --jp-private-verdant-manager-active-top-border: 2px;
+  --jp-private-verdant-manager-tab-height: 24px;
+  --jp-private-verdant-manager-tab-padding-top: 8px;
+}
+
+
+/*-----------------------------------------------------------------------------
+| Verdant in the dock panel, copied css from tabs-extension
+|----------------------------------------------------------------------------*/
+
+#verdant-manager {
+  background: var(--jp-layout-color1);
+  overflow: visible;
+  color: var(--jp-ui-font-color1);
+  /* This is needed so that all font sizing of children done in ems is
+   * relative to this base size */
+  font-size: var(--jp-ui-font-size1);
+}
+
+#verdant-manager-tabs .p-TabBar-content {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+}
+
+#verdant-manager  header {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+  flex: 0 0 auto;
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin: 0px;
+  padding: 12px 0 4px 12px;
+  text-transform: uppercase;
+}
+
+#verdant-manager .p-TabBar-tab {
+  height: var(--jp-private-verdant-manager-tab-height);
+  padding: 0px 12px;
+  border: none;
+  position: relative;
+  overflow: visible;
+}
+
+
+#verdant-manager .p-TabBar-tab:hover:not(.jp-mod-active) {
+  background: var(--jp-layout-color2);
+}
+
+
+#verdant-manager .p-TabBar-tab:first-child {
+  margin-left: 0;
+}
+
+
+#verdant-manager .p-TabBar-tab.jp-mod-active {
+  color: white;
+  background: var(--jp-brand-color1);
+}
+
+
+#verdant-manager .p-TabBar-tabIcon,
+#verdant-manager .p-TabBar-tabLabel {
+  display: inline-block;
+}
+
+#verdant-manager .p-TabBar-tabCloseIcon{
+  visibility: hidden;
+}
+
+
+#verdant-manager .p-TabBar-tabLabel {
+  line-height: var(--jp-private-verdant-manager-tab-height);
+  padding-left: 4px;
+}
+
+
+#verdant-manager .p-TabBar-tab .p-TabBar-tabIcon {
+  width: 14px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  margin-right: 2px;
+}
