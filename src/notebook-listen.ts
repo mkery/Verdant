@@ -3,6 +3,10 @@ import {
 } from '@jupyterlab/notebook';
 
 import {
+  Cell, CodeCell
+} from '@jupyterlab/cells';
+
+import {
   PromiseDelegate
 } from '@phosphor/coreutils';
 
@@ -21,7 +25,7 @@ class NotebookListen
   notebook : Notebook; //the currently active notebook Verdant is working on
   notebookPanel : NotebookPanel
   astUtils : ASTUtils
-  nodey: Nodey
+  cells: Nodey[]
 
 
   constructor(notebookPanel : NotebookPanel, astUtils : ASTUtils){
@@ -38,14 +42,25 @@ class NotebookListen
   {
     await this.notebookPanel.ready
     this.notebook = this.notebookPanel.notebook
-    
-    console.log("Notebook active", this.notebook)
     await this.astUtils.ready
+
+    var cells : Promise<Nodey>[] = []
     this.notebook.widgets.forEach( (item, index) => {
-      console.log("found cell", item)//TODO check if code cell
-      var text : string = item.editor.model.value.text
-      this.astUtils.generateAST(text)
+      if(item instanceof Cell)
+      {
+        if(item instanceof CodeCell)
+        {
+          var text : string = item.editor.model.value.text
+          var output = item.outputArea.model.toJSON()
+          var nodey = this.astUtils.generateCodeNodey(text, output)
+          if(nodey)
+            cells.push(nodey)
+        }
+        //TODO markdown and other cell types
+      }
     })
+    this.cells = await Promise.all(cells)
+    console.log("Loaded Notebook", this.cells)
     this._ready.resolve(undefined);
   }
 

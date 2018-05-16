@@ -7,6 +7,10 @@ import {
   PromiseDelegate
 } from '@phosphor/coreutils';
 
+import{
+  Nodey
+} from './nodey'
+
 
 export
 class ASTUtils {
@@ -84,19 +88,40 @@ def makeNodey(node):
   }
 
 
-  generateAST(code: string)
+  async generateCodeNodey(code: string, output: { [key : string] : any}) : Promise<Nodey>
   {
+    var jsn :string;
     let content: KernelMessage.IExecuteRequest = {
       code: 'json.dumps(makeNodey(ast.parse("""'+code+'""")))',
       stop_on_error: true
     };
     var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      console.log("R: ", msg.content)
+      //console.log("R: ", msg.content)
     }
     var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      console.log("IO: ", msg.content)
+      let msgType = msg.header.msg_type;
+      switch (msgType) {
+         case 'execute_result':
+         case 'display_data':
+         case 'stream':
+         case 'error':
+           jsn = (<any>msg.content.data)['text/plain']
+           break;
+         case 'clear_output':
+         case 'update_display_data':
+         default:
+           break;
+         }
     }
-    return this.runKernel(content, onReply, onIOPub)
+
+    await this.runKernel(content, onReply, onIOPub)
+    jsn = jsn.substr(1, jsn.length - 2)
+    if(jsn == 'null')
+      return
+    //console.log("attempting parse", jsn)
+    var dict = JSON.parse(jsn)
+    var nodey = Nodey.fromJSON(dict, output)
+    return nodey
   }
 
 
