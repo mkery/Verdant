@@ -3,7 +3,7 @@ import {
 } from '@jupyterlab/notebook';
 
 import {
-  Cell, CodeCell
+  Cell
 } from '@jupyterlab/cells';
 
 import {
@@ -15,8 +15,8 @@ import {
 } from './ast-utils';
 
 import{
-  Nodey
-} from './nodey'
+  CellListen
+} from './cell-listen'
 
 
 export
@@ -25,12 +25,13 @@ class NotebookListen
   notebook : Notebook; //the currently active notebook Verdant is working on
   notebookPanel : NotebookPanel
   astUtils : ASTUtils
-  cells: Nodey[]
+  cells: CellListen[]
 
 
   constructor(notebookPanel : NotebookPanel, astUtils : ASTUtils){
     this.notebookPanel = notebookPanel
     this.astUtils = astUtils
+    this.cells = []
     this.init()
   }
 
@@ -44,24 +45,24 @@ class NotebookListen
     this.notebook = this.notebookPanel.notebook
     await this.astUtils.ready
 
-    var cells : Promise<Nodey>[] = []
+    var cellsReady : Promise<void>[] = []
     this.notebook.widgets.forEach( (item, index) => {
       if(item instanceof Cell)
       {
-        if(item instanceof CodeCell)
-        {
-          var text : string = item.editor.model.value.text
-          var output = item.outputArea.model.toJSON()
-          var nodey = this.astUtils.generateCodeNodey(text, output)
-          if(nodey)
-            cells.push(nodey)
-        }
-        //TODO markdown and other cell types
+        var cell = new CellListen(item, this.astUtils)
+        this.cells.push(cell)
+        cellsReady.push(cell.ready)
       }
     })
-    this.cells = await Promise.all(cells)
+    await Promise.all(cellsReady)
     console.log("Loaded Notebook", this.cells)
+    this.listen()
     this._ready.resolve(undefined);
+  }
+
+  private listen()
+  {
+    this.notebook.activeCellChanged //TODO
   }
 
   private _ready = new PromiseDelegate<void>();
