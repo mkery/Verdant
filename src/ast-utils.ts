@@ -90,9 +90,8 @@ def zipTokAST(tk, node, nodeyList):
 
 def parseCode(code):
     #print("got code", str)
-    code = str.encode('utf-8')
     tree = ast.parse(code)
-    bytes = io.BytesIO(code)
+    bytes = io.BytesIO(code.encode('utf-8'))
     g = tokenize.tokenize(bytes.readline)
     tk = list(g)
     print(tokenASTCombine(tk, tree))
@@ -137,37 +136,50 @@ def parseCode(code):
 
   async generateCodeNodey(code: string, output: { [key : string] : any}) : Promise<Nodey>
   {
-    var jsn :string;
-    var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      console.log(code, "R: ", msg)
-    }
-    var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      console.log(code, "IO: ", msg)
-      let msgType = msg.header.msg_type;
-      switch (msgType) {
-         case 'execute_result':
-         case 'display_data':
-         case 'error':
-           jsn = (<any>msg.content.data)['text/plain']
-           break;
-         case 'stream':
-           jsn = (<any>msg.content)['text']
-           break;
-         case 'clear_output':
-         case 'update_display_data':
-         default:
-           break;
-         }
-    }
+    return new Promise<Nodey>((accept, reject) => {
+      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
+        //console.log(code, "R: ", msg)
+      }
+      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
+        console.log(code, "IO: ", msg)
+        let msgType = msg.header.msg_type;
+        switch (msgType) {
+           case 'execute_result':
+           case 'display_data':
+           case 'error':
+             //console.error(code, "IO: ", msg)
+             reject()
+             break;
+           case 'stream':
+             var jsn = (<any>msg.content)['text']
+             console.log("py 2 ast execution finished!", jsn)
+             accept(this.recieve_generateAST(jsn, output))
+             break;
+           case 'clear_output':
+           case 'update_display_data':
+           default:
+             break;
+           }
+      }
 
-    code = code.replace(/""".*"""/, (str) => {return "'"+str+"'"}) //try to cancel out docstrings
-    await this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
-    console.log("execution finished!")
+      // annoying but important: make sure docstrings do not interrupt the string literal
+      code = code.replace(/""".*"""/g, (str) => {return "'"+str+"'"})
+      // make sure newline inside strings doesn't cause an EOL error
+      code = code.replace(/".*\\n.*"/g, (str) => {
+        return str.replace(/\\n/g, "\\n")
+      })
+      this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
+    })
+  }
+
+
+  recieve_generateAST(jsn: string, output: { [key : string] : any}) : Nodey
+  {
     if(jsn == 'null')
       return
     if(jsn === "[]")
       return
-    //console.log("attempting parse", jsn)
+
     var dict = JSON.parse(jsn)
     var nodey = Nodey.fromJSON(dict[0], output)
     return nodey
@@ -187,13 +199,5 @@ def parseCode(code):
     return future.done
   }
 
-  str2ab(str: string) {
-    var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-    var bufView = new Uint8Array(buf);
-    for (var i=0, strLen=str.length; i < strLen; i++) {
-      bufView[i] = str.charCodeAt(i);
-    }
-    return bufView;
-  }
 
 }

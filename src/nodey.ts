@@ -7,14 +7,12 @@
 export
 abstract class Nodey
 {
-  uid : string //unique id
   number : number //chronological number
   run : string //id marking which run
   timestamp : Date //timestamp when created
 
   constructor(options: { [id: string] : any })
   {
-    this.uid = options.uid
     this.number = options.number
     this.run = options.run
     this.timestamp = options.timestamp
@@ -44,8 +42,8 @@ class NodeyCode extends Nodey
   type : string
   output: NodeyOutput[]
   content : Nodey[]
-  line: number
-  col: number
+  start: number
+  end: number
   literal: any
   //marker TODO
 
@@ -56,8 +54,8 @@ class NodeyCode extends Nodey
     this.content = options.content
     this.output = (<any> options)['output']
     this.literal = options.literal
-    this.line = options.line
-    this.col = options.col
+    this.start = options.start
+    this.end = options.end
   }
 }
 
