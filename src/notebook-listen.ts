@@ -22,6 +22,10 @@ import{
   KernelListen
 } from './kernel-listen'
 
+import{
+  Nodey
+} from './nodey'
+
 
 export
 class NotebookListen
@@ -44,6 +48,10 @@ class NotebookListen
     return this._ready.promise
   }
 
+  get nodey(): Nodey[] {
+    return this.cells.map( (cell) => cell.nodey )
+  }
+
   private async init()
   {
     await this.notebookPanel.ready
@@ -62,7 +70,7 @@ class NotebookListen
       }
     })
     await Promise.all(cellsReady)
-    console.log("Loaded Notebook", this.notebook, this.cells)
+    console.log("Loaded Notebook", this.nodey)
     this.listen()
     this._ready.resolve(undefined);
   }

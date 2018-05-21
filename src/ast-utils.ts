@@ -139,9 +139,9 @@ def parseCode(code):
   }
 
 
-  async generateCodeNodey(code: string, output: { [key : string] : any}) : Promise<Nodey>
+  async generateCodeNodey(code: string, options: { [key : string] : any}) : Promise<NodeyCode>
   {
-    return new Promise<Nodey>((accept, reject) => {
+    return new Promise<NodeyCode>((accept, reject) => {
       var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
         //console.log(code, "R: ", msg)
       }
@@ -158,7 +158,7 @@ def parseCode(code):
            case 'stream':
              var jsn = (<any>msg.content)['text']
              //console.log("py 2 ast execution finished!", jsn)
-             accept(this.recieve_generateAST(jsn, output))
+             accept(this.recieve_generateAST(jsn, options))
              break;
            case 'clear_output':
            case 'update_display_data':
@@ -178,7 +178,7 @@ def parseCode(code):
   }
 
 
-  recieve_generateAST(jsn: string, output: { [key : string] : any}) : Nodey
+  recieve_generateAST(jsn: string, options: { [key : string] : any}) : NodeyCode
   {
     if(jsn == 'null')
       return NodeyCode.EMPTY()
@@ -186,7 +186,7 @@ def parseCode(code):
       return NodeyCode.EMPTY()
 
     var dict = JSON.parse(jsn)
-    var nodey = Nodey.fromJSON(dict[0], output)
+    var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict[0], options))
     return nodey
   }
 

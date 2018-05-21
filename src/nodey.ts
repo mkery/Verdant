@@ -1,6 +1,10 @@
+import * as CodeMirror
+  from 'codemirror';
 
 
-
+import{
+  CodeMirrorEditor
+} from '@jupyterlab/codemirror';
 
 
 
@@ -47,10 +51,10 @@ class NodeyCode extends Nodey
   type : string
   output: NodeyOutput[]
   content : Nodey[]
-  start: number
-  end: number
+  start: {'line' : number, 'ch' : number}
+  end: {'line' : number, 'ch' : number}
   literal: any
-  //marker TODO
+  marker: CodeMirror.TextMarker
 
   constructor(options: { [id: string] : any })
   {
@@ -77,32 +81,25 @@ export
 namespace Nodey {
 
   export
-  function fromJSON(jsn: {[id: string] : any}, output: {[id: string] : any}) : Nodey
-  {
-    var outNode : NodeyOutput[] = []
-    if(output.length < 1)
-      outNode = undefined
-    else
-    {
-      for(var item in output)
-        outNode.push( new NodeyOutput(output[item]) )
-    }
-    return dictToNodeys(jsn, outNode);
-  }
-
-
-  function dictToNodeys(dict: { [id: string] : any }, output : NodeyOutput[]) : Nodey
+  function dictToCodeNodeys(dict: { [id: string] : any }) : NodeyCode
   {
     //console.log("DICT IS", dict)
-    dict.output = output
     var n = new NodeyCode(dict)
     n.content = []
     for(var item in dict.content)
     {
-      var child = dictToNodeys(dict.content[item], output)
+      var child = dictToCodeNodeys(dict.content[item])
       n.content.push(child)
     }
     return n
   }
 
+  export
+  function placeMarkers(nodey : NodeyCode, editor : CodeMirrorEditor) : void
+  {
+    if(nodey.literal) //if this node is has shown concrete text
+    {
+      nodey.marker = editor.doc.markText(nodey.start, nodey.end)
+    }
+  }
 }

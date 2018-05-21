@@ -12,8 +12,12 @@ import {
 } from './ast-utils';
 
 import{
-  Nodey
+  Nodey, NodeyOutput, NodeyCode
 } from './nodey'
+
+import{
+  CodeMirrorEditor
+} from '@jupyterlab/codemirror';
 
 
 export
@@ -21,7 +25,7 @@ class CellListen
 {
   cell : Cell
   astUtils : ASTUtils
-  nodey : Nodey
+  nodey : NodeyCode
 
 
   constructor(cell : Cell, astUtils : ASTUtils){
@@ -39,8 +43,10 @@ class CellListen
     if(this.cell instanceof CodeCell)
     {
       var text : string = this.cell.editor.model.value.text
-      var output = this.cell.outputArea.model.toJSON()
-      this.nodey = await this.astUtils.generateCodeNodey(text, output)
+      var outNode = this.outputToNodey()
+      this.nodey = await this.astUtils.generateCodeNodey(text, {'output' : outNode, 'run': 0})
+      if(this.cell.editor instanceof CodeMirrorEditor)
+        Nodey.placeMarkers(this.nodey, this.cell.editor)
     }
     //TODO markdown and other cell types
 
@@ -48,7 +54,26 @@ class CellListen
     this._ready.resolve(undefined);
   }
 
-  private listen()
+
+  private outputToNodey() : NodeyOutput[]
+  {
+    if(this.cell instanceof CodeCell)
+    {
+      var output = this.cell.outputArea.model.toJSON()
+      var outNode : NodeyOutput[] = []
+      if(output.length < 1)
+        outNode = undefined
+      else
+      {
+        for(var item in output)
+          outNode.push( new NodeyOutput(output[item]) )
+      }
+      return outNode
+    }
+  }
+
+
+  private listen() : void
   {
     this.cell.editor.model.value.changed //listen in
     this.cell.editor.model.selections.changed //listen in
