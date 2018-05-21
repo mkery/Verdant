@@ -8,7 +8,7 @@ import {
 } from '@phosphor/coreutils';
 
 import{
-  Nodey
+  Nodey, NodeyCode
 } from './nodey'
 
 import{
@@ -63,8 +63,13 @@ def zipTokAST(tk, node, nodeyList):
         if(len(cz) > 0):
             childrenZip += cz
 
+    list.sort(childrenZip, key = lambda x : x['start']['line']*10000+x['start']['col'] )
+
     marker = {'type': type(node).__name__, 'content': childrenZip}
     looseTokenList = []
+    if(len(childrenZip) > 0):
+        marker['start'] = childrenZip[0]['start']
+        marker['end'] = childrenZip[len(childrenZip) - 1]['end']
 
     if(hasattr(node, 'lineno')): #meaning it's a node that appears in the text
         line = node.lineno
@@ -141,18 +146,18 @@ def parseCode(code):
         //console.log(code, "R: ", msg)
       }
       var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log(code, "IO: ", msg)
+        //console.log(code, "IO: ", msg)
         let msgType = msg.header.msg_type;
         switch (msgType) {
            case 'execute_result':
            case 'display_data':
            case 'error':
-             //console.error(code, "IO: ", msg)
+             console.error(code, "IO: ", msg)
              reject()
              break;
            case 'stream':
              var jsn = (<any>msg.content)['text']
-             console.log("py 2 ast execution finished!", jsn)
+             //console.log("py 2 ast execution finished!", jsn)
              accept(this.recieve_generateAST(jsn, output))
              break;
            case 'clear_output':
@@ -166,7 +171,7 @@ def parseCode(code):
       code = code.replace(/""".*"""/g, (str) => {return "'"+str+"'"})
       // make sure newline inside strings doesn't cause an EOL error
       code = code.replace(/".*\\n.*"/g, (str) => {
-        return str.replace(/\\n/g, "\\n")
+        return str.replace(/\\n/g, "\\\n")
       })
       this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
     })
@@ -176,9 +181,9 @@ def parseCode(code):
   recieve_generateAST(jsn: string, output: { [key : string] : any}) : Nodey
   {
     if(jsn == 'null')
-      return
-    if(jsn === "[]")
-      return
+      return NodeyCode.EMPTY()
+    if(jsn === "[]\n")
+      return NodeyCode.EMPTY()
 
     var dict = JSON.parse(jsn)
     var nodey = Nodey.fromJSON(dict[0], output)

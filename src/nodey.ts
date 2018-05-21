@@ -33,6 +33,11 @@ class NodeyOutput extends Nodey
     this.raw = options // note for different output types, the data is all named differently
     this.dependsOn = (<any> options)['dependsOn']
   }
+
+  static EMPTY()
+  {
+    return new NodeyOutput({'raw': {}, 'dependsOn': []})
+  }
 }
 
 
@@ -56,6 +61,11 @@ class NodeyCode extends Nodey
     this.literal = options.literal
     this.start = options.start
     this.end = options.end
+  }
+
+  static EMPTY()
+  {
+    return new NodeyCode({'type': 'EMPTY', 'content': []})
   }
 }
 
