@@ -18,12 +18,17 @@ import{
   CellListen
 } from './cell-listen'
 
+import{
+  KernelListen
+} from './kernel-listen'
+
 
 export
 class NotebookListen
 {
   notebook : Notebook; //the currently active notebook Verdant is working on
   notebookPanel : NotebookPanel
+  kernUtil : KernelListen
   astUtils : ASTUtils
   cells: CellListen[]
 
@@ -43,6 +48,8 @@ class NotebookListen
   {
     await this.notebookPanel.ready
     this.notebook = this.notebookPanel.notebook
+    this.kernUtil = new KernelListen(this.notebookPanel.session)
+    this.astUtils.setKernUtil(this.kernUtil)
     await this.astUtils.ready
 
     var cellsReady : Promise<void>[] = []
@@ -55,7 +62,7 @@ class NotebookListen
       }
     })
     await Promise.all(cellsReady)
-    console.log("Loaded Notebook", this.cells)
+    console.log("Loaded Notebook", this.notebook, this.cells)
     this.listen()
     this._ready.resolve(undefined);
   }

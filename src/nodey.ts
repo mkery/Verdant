@@ -46,6 +46,7 @@ class NodeyCode extends Nodey
   content : Nodey[]
   line: number
   col: number
+  literal: any
   //marker TODO
 
   constructor(options: { [id: string] : any })
@@ -54,21 +55,9 @@ class NodeyCode extends Nodey
     this.type = options.type
     this.content = options.content
     this.output = (<any> options)['output']
+    this.literal = options.literal
     this.line = options.line
     this.col = options.col
-  }
-}
-
-
-export
-class NodeyLiteral extends NodeyCode
-{
-  literal: any
-
-  constructor(options: { [id: string] : any })
-  {
-    super(options)
-    this.literal = (<any> options)['literal']
   }
 }
 
@@ -96,20 +85,16 @@ namespace Nodey {
 
   function dictToNodeys(dict: { [id: string] : any }, output : NodeyOutput[]) : Nodey
   {
+    console.log("DICT IS", dict)
     dict.output = output
-    if(dict['literal'] !== undefined) //leaf node
-      return new NodeyLiteral(dict)
-    else
+    var n = new NodeyCode(dict)
+    n.content = []
+    for(var item in dict.content)
     {
-        var n = new NodeyCode(dict)
-        n.content = []
-        for(var item in dict.content)
-        {
-          var child = dictToNodeys(dict.content[item], output)
-          n.content.push(child)
-        }
-        return n
+      var child = dictToNodeys(dict.content[item], output)
+      n.content.push(child)
     }
+    return n
   }
 
 }
