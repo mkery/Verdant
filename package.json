@@ -30,7 +30,9 @@
   },
   "dependencies": {
     "@jupyterlab/application": "^0.16.3",
-    "@jupyterlab/notebook": "^0.16.3"
+    "@jupyterlab/notebook": "^0.16.3",
+    "@types/fs-extra": "^5.0.2",
+    "fs-extra": "^6.0.1"
   },
   "devDependencies": {
     "@types/node": "^10.0.10",

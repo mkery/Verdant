@@ -88,16 +88,16 @@ def zipTokAST(tk, node, nodeyList):
     return nodeyList, looseTokenList, tk
 
 
-
-
 def parseCode(code):
+    #print("got code", str)
+    code = str.encode('utf-8')
     tree = ast.parse(code)
-    code = code.encode("unicode_escape").decode("utf-8")
-    bytes = io.BytesIO(code.encode('utf-8'))
+    bytes = io.BytesIO(code)
     g = tokenize.tokenize(bytes.readline)
     tk = list(g)
     print(tokenASTCombine(tk, tree))
 `
+
   }
 
   get ready(): Promise<void> {
@@ -125,35 +125,24 @@ def parseCode(code):
   loadParserFunctions()
   {
     console.log("kernel ready to go", this.kernUtil.kernel)
-    let content: KernelMessage.IExecuteRequest = {
-      code: this.parserText,
-      stop_on_error: true
-    };
     var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
       console.log("R: ", msg.content)
     }
     var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
       console.log("IO: ", msg.content)
     }
-    return this.runKernel(content, onReply, onIOPub)
+    return this.runKernel(this.parserText, onReply, onIOPub)
   }
 
 
   async generateCodeNodey(code: string, output: { [key : string] : any}) : Promise<Nodey>
   {
-    // escape strings that will cause a syntax error
-    console.log("trying to encode" , encodeURI(code))
-    //console.log(code)
     var jsn :string;
-    let content: KernelMessage.IExecuteRequest = {
-      code: 'parseCode("""'+code+'""")',
-      stop_on_error: true
-    };
     var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      //console.log("R: ", msg)
+      console.log(code, "R: ", msg)
     }
     var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      //console.log("IO: ", msg)
+      console.log(code, "IO: ", msg)
       let msgType = msg.header.msg_type;
       switch (msgType) {
          case 'execute_result':
@@ -171,43 +160,40 @@ def parseCode(code):
          }
     }
 
-    await this.runKernel(content, onReply, onIOPub)
+    code = code.replace(/""".*"""/, (str) => {return "'"+str+"'"}) //try to cancel out docstrings
+    await this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
     console.log("execution finished!")
     if(jsn == 'null')
       return
-    // preserve newlines, etc - use valid JSON
-    jsn = jsn.replace(/\\n/g, "\\n")
-                   .replace(/\\'/g, "\\'")
-                   .replace(/\\"/g, '\\"')
-                   .replace(/\\&/g, "\\&")
-                   .replace(/\\r/g, "\\r")
-                   .replace(/\\t/g, "\\t")
-                   .replace(/\\b/g, "\\b")
-                   .replace(/\\f/g, "\\f");
-    // remove non-printable and other non-valid JSON chars
-    jsn = jsn.replace(/[\u0000-\u0019]+/g,"");
     if(jsn === "[]")
       return
-    console.log("attempting parse", jsn)
+    //console.log("attempting parse", jsn)
     var dict = JSON.parse(jsn)
     var nodey = Nodey.fromJSON(dict[0], output)
     return nodey
   }
 
 
-  runKernel(content: KernelMessage.IExecuteRequest, onReply: (msg: KernelMessage.IExecuteReplyMsg) => void , onIOPub: (msg: KernelMessage.IIOPubMessage) => void)
+  runKernel(code: string, onReply: (msg: KernelMessage.IExecuteReplyMsg) => void , onIOPub: (msg: KernelMessage.IIOPubMessage) => void)
   {
-    let future = this.kernUtil.kernel.requestExecute(content, false);
+    var request : KernelMessage.IExecuteRequest = {
+      silent: true,
+      user_expressions: {},
+      code: code
+    }
+    let future = this.kernUtil.kernel.requestExecute(request, false);
     future.onReply = onReply
     future.onIOPub = onIOPub
     return future.done
   }
 
-
-  stopVerdantKernel()
-  {
-
+  str2ab(str: string) {
+    var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+    var bufView = new Uint8Array(buf);
+    for (var i=0, strLen=str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return bufView;
   }
-
 
 }

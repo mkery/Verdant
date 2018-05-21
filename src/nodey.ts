@@ -85,7 +85,7 @@ namespace Nodey {
 
   function dictToNodeys(dict: { [id: string] : any }, output : NodeyOutput[]) : Nodey
   {
-    console.log("DICT IS", dict)
+    //console.log("DICT IS", dict)
     dict.output = output
     var n = new NodeyCode(dict)
     n.content = []
