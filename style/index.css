@@ -85,3 +85,34 @@
   background-repeat: no-repeat;
   margin-right: 2px;
 }
+
+.verd-marker{
+  background-color: pink;
+}
+
+.verdant-indicator{
+  visibility: hidden;
+  width: 2em;
+  height: 2em;
+  background: var(--jp-brand-color2);
+  color: white;
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+  letter-spacing: var(--jp-cell-prompt-letter-spacing);
+  font-family: var(--jp-cell-prompt-font-family);
+  text-align: center;
+  border-radius: 10px;
+  padding-top: 0.25em;
+  position: absolute;
+  left: calc(var(--jp-cell-prompt-width)/2 - 1em);
+  top: 50%;
+}
+.verdant-indicator.text-selected
+{
+  background: var(--jp-editor-selected-focused-background);
+  color: var(--jp-content-font-color1);
+}
+.verdant-indicator.focused
+{
+  visibility: visible;
+}

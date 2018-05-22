@@ -3,7 +3,7 @@ import {
 } from '@jupyterlab/notebook';
 
 import {
-  Cell
+  Cell, CodeCell
 } from '@jupyterlab/cells';
 
 import {
@@ -34,13 +34,14 @@ class NotebookListen
   notebookPanel : NotebookPanel
   kernUtil : KernelListen
   astUtils : ASTUtils
-  cells: CellListen[]
+  cells: Map<Cell, CellListen>
+  activeCell : Cell
 
 
   constructor(notebookPanel : NotebookPanel, astUtils : ASTUtils){
     this.notebookPanel = notebookPanel
     this.astUtils = astUtils
-    this.cells = []
+    this.cells = new Map<Cell, CellListen>()
     this.init()
   }
 
@@ -49,7 +50,9 @@ class NotebookListen
   }
 
   get nodey(): Nodey[] {
-    return this.cells.map( (cell) => cell.nodey )
+    var arr : Nodey[] = []
+    this.cells.forEach((value, key) => { arr.push(value.nodey) })
+    return arr
   }
 
   private async init()
@@ -65,19 +68,33 @@ class NotebookListen
       if(item instanceof Cell)
       {
         var cell = new CellListen(item, this.astUtils)
-        this.cells.push(cell)
+        this.cells.set(item, cell)
         cellsReady.push(cell.ready)
       }
     })
     await Promise.all(cellsReady)
     console.log("Loaded Notebook", this.nodey)
+    this.focusCell(this.notebook.activeCell)
     this.listen()
     this._ready.resolve(undefined);
   }
 
+
+  focusCell(cell : Cell) : void
+  {
+    if(cell instanceof CodeCell)
+      this.cells.get(cell).focus()
+    if(this.activeCell && this.activeCell instanceof CodeCell)
+      this.cells.get(this.activeCell).blur()
+    this.activeCell = cell
+  }
+
+
   private listen()
   {
-    this.notebook.activeCellChanged //TODO
+    this.notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
+      this.focusCell(cell)
+    })
   }
 
   private _ready = new PromiseDelegate<void>();

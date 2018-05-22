@@ -14,6 +14,7 @@ abstract class Nodey
   number : number //chronological number
   run : string //id marking which run
   timestamp : Date //timestamp when created
+  pendingUpdate : string
 
   constructor(options: { [id: string] : any })
   {
@@ -50,7 +51,7 @@ class NodeyCode extends Nodey
 {
   type : string
   output: NodeyOutput[]
-  content : Nodey[]
+  content : NodeyCode[]
   start: {'line' : number, 'ch' : number}
   end: {'line' : number, 'ch' : number}
   literal: any
@@ -88,6 +89,9 @@ namespace Nodey {
     n.content = []
     for(var item in dict.content)
     {
+      var content = dict.content[item] // convert the coordinates of the range to code mirror style
+      content.start = {'line': content.start.line - 1, 'ch': content.start.ch}
+      content.end = {'line': content.end.line - 1, 'ch': content.end.ch}
       var child = dictToCodeNodeys(dict.content[item])
       n.content.push(child)
     }
@@ -99,7 +103,11 @@ namespace Nodey {
   {
     if(nodey.literal) //if this node is has shown concrete text
     {
-      nodey.marker = editor.doc.markText(nodey.start, nodey.end)
+      var div = document.createElement('div')
+      div.classList.add('verd-marker')
+      nodey.marker = editor.doc.markText(nodey.start, nodey.end, {'css': 'background-color: pink'})
     }
+    for(var i in nodey.content)
+      this.placeMarkers(nodey.content[i], editor)
   }
 }

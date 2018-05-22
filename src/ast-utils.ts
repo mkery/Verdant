@@ -1,3 +1,11 @@
+import * as CodeMirror
+  from 'codemirror';
+
+import{
+  CodeMirrorEditor
+} from '@jupyterlab/codemirror';
+
+import * as crypto from 'crypto';
 
 import {
   Session, KernelMessage
@@ -46,7 +54,7 @@ def tokenASTCombine(tok, astNode):
 
 
 def formatToken(tk):
-    return {'type': token.tok_name[tk.type], 'start': {'line': tk.start[0], 'col': tk.start[1]}, 'end': {'line': tk.end[0], 'col': tk.end[1]}, 'literal': tk.string}
+    return {'type': token.tok_name[tk.type], 'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}, 'literal': tk.string}
 
 
 def zipTokAST(tk, node, nodeyList):
@@ -63,7 +71,7 @@ def zipTokAST(tk, node, nodeyList):
         if(len(cz) > 0):
             childrenZip += cz
 
-    list.sort(childrenZip, key = lambda x : x['start']['line']*10000+x['start']['col'] )
+    list.sort(childrenZip, key = lambda x : x['start']['line']*10000+x['start']['ch'] )
 
     marker = {'type': type(node).__name__, 'content': childrenZip}
     looseTokenList = []
@@ -73,14 +81,14 @@ def zipTokAST(tk, node, nodeyList):
 
     if(hasattr(node, 'lineno')): #meaning it's a node that appears in the text
         line = node.lineno
-        col = node.col_offset
-        #print("node is", type(node).__name__, line, col, tk[0])
+        ch = node.col_offset
+        #print("node is", type(node).__name__, line, ch, tk[0])
         # check for nodes that don't belong to anyone
-        while(len(tk) > 0 and (tk[0].start[0] < line or (tk[0].start[0] == line and tk[0].start[1] < col))): #actually starts before this node
+        while(len(tk) > 0 and (tk[0].start[0] < line or (tk[0].start[0] == line and tk[0].start[1] < ch))): #actually starts before this node
             if(tk[0].type != token.NEWLINE):
                 looseTokenList.append(formatToken(tk[0]))
             tk.pop(0)
-        if(len(tk) > 0 and tk[0].start[0] == line and tk[0].start[1] == col):
+        if(len(tk) > 0 and tk[0].start[0] == line and tk[0].start[1] == ch):
             if(tk[0].type != token.NEWLINE):
                 formatted = formatToken(tk[0])
                 marker['start'] = formatted['start']
@@ -167,14 +175,20 @@ def parseCode(code):
            }
       }
 
-      // annoying but important: make sure docstrings do not interrupt the string literal
-      code = code.replace(/""".*"""/g, (str) => {return "'"+str+"'"})
-      // make sure newline inside strings doesn't cause an EOL error
-      code = code.replace(/".*\\n.*"/g, (str) => {
-        return str.replace(/\\n/g, "\\\n")
-      })
-      this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
+      this.parseCode(code, onReply, onIOPub)
     })
+  }
+
+
+  private parseCode(code: string, onReply: (msg: KernelMessage.IExecuteReplyMsg) => void , onIOPub: (msg: KernelMessage.IIOPubMessage) => void)
+  {
+    // annoying but important: make sure docstrings do not interrupt the string literal
+    code = code.replace(/""".*"""/g, (str) => {return "'"+str+"'"})
+    // make sure newline inside strings doesn't cause an EOL error
+    code = code.replace(/".*\\n.*"/g, (str) => {
+      return str.replace(/\\n/g, "\\\n")
+    })
+    this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
   }
 
 
@@ -204,5 +218,119 @@ def parseCode(code):
     return future.done
   }
 
+
+
+  repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
+  {
+    //console.log("Time to repair", nodey)
+    var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), change)
+    this.updateNodeyPositions(affected, change)
+    var text = editor.doc.getRange(affected.start, affected.end)
+    console.log("The exact affected nodey is", affected, text)
+    this.resolveAST(affected, text)
+  }
+
+
+  updateNodeyPositions(affected : NodeyCode, change: CodeMirror.EditorChange)
+  {
+    var shift = this.calcShift(affected, change)
+    console.log("Following nodes, shift by", shift)
+    var ch = shift[shift.length - 1]
+    if(shift.length === 1) //we're still on the same line as we were before
+      ch += affected.end.ch
+    affected.end = {'line': shift.length - 1 + affected.end.line, 'ch': ch}
+  }
+
+  calcShift(nodey : NodeyCode, change: CodeMirror.EditorChange) : number[]
+  {
+    if(change.origin === "+input") //code was added
+    {
+      var lines = change.text[0].split('\n')
+      return lines.map((item) => item.length) // for each line, how many characters were added
+    }
+  }
+
+
+  findAffectedChild(list: NodeyCode[], min: number, max: number, change : CodeMirror.EditorChange) : NodeyCode
+  {
+    var mid = Math.round((max - min)/2) + min
+    var direction = this.inRange(list[mid], change)
+
+    if((min >= max || max <= min) && direction !== 0) //end condition no more to explore
+      return null
+
+    if(direction === 0) // it's in this node, check for children to be more specific
+    {
+      if(list[mid].content.length < 1)
+        return list[mid]
+      else
+        return this.findAffectedChild(list[mid].content, 0, Math.max(0, list[mid].content.length - 1), change) || list[mid]
+    }
+    else if(direction === 2)
+      return null // there is no match at this level
+    else if(direction === -1) // check the left
+      return this.findAffectedChild(list, min, mid - 1, change)
+    else if(direction === 1) // check the right
+      return this.findAffectedChild(list, mid + 1, max, change)
+  }
+
+
+  //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
+  inRange(nodey : NodeyCode, change : CodeMirror.EditorChange) : number
+  {
+    var val = 0
+    if(change.from.line < nodey.start.line)
+      val = -1
+    else if(change.from.line === nodey.start.line && change.from.ch < nodey.start.ch)
+      val = -1
+
+    if(change.to.line > nodey.end.line)
+    {
+      if(val === -1)
+        val = 2
+      else
+        val = 1
+    }
+    else if(change.to.line === nodey.end.line && change.to.ch > nodey.end.ch)
+    {
+      if(val === -1)
+        val = 2
+      else
+        val = 1
+    }
+    return val
+  }
+
+
+  async resolveAST(nodey : NodeyCode, newCode : string) : Promise<NodeyCode>
+  {
+    return new Promise<NodeyCode>((accept, reject) => {
+      var updateID = crypto.randomBytes(20).toString('hex');
+      nodey.pendingUpdate = updateID
+      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
+        //console.log(code, "R: ", msg)
+      }
+      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
+        //console.log(code, "IO: ", msg)
+        if(msg.header.msg_type === "stream")
+        {
+          var jsn = (<any>msg.content)['text']
+          //console.log("py 2 ast execution finished!", jsn)
+          accept(this.recieve_resolveAST(jsn, nodey, updateID))
+        }
+      }
+      this.parseCode(newCode, onReply, onIOPub)
+    })
+  }
+
+
+  recieve_resolveAST(jsn: string, node: NodeyCode, updateID: string) : NodeyCode
+  {
+    if(node.pendingUpdate && node.pendingUpdate === updateID)
+    {
+      console.log("Time to resolve", jsn, "with", node)
+    }
+    return node
+  }
 
 }
