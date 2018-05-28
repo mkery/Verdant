@@ -42,72 +42,188 @@ from numbers import Number
 import json
 import io
 
+def startsWith(start, tk):
+    if(start):
+        return start['line'] < tk.start[0] or (start['line'] == tk.start[0] and start['ch'] <= tk.start[1])
+    return False
 
-def tokenASTCombine(tok, astNode):
-    tok.pop(0)
-    nodeyList, looseTokenList, tk = zipTokAST(tok, astNode, []) #skip start marker token
-    while(len(tk) > 1): #skip the end maker
-        if(tk[0].type != token.NEWLINE):
-            nodeyList.append(formatToken(tk[0]))
-        tk.pop(0)
-    return json.dumps(nodeyList)
-
+def getStart(node):
+    if(hasattr(node, 'lineno')):
+        return {'line' : node.lineno, 'ch': node.col_offset }
+    else: # try to get to the first subnode that has a lineno
+        child = next(ast.iter_child_nodes(node), None)
+        loc = getStart(child) if child else None
+        return loc
 
 def formatToken(tk):
     return {'type': token.tok_name[tk.type], 'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}, 'literal': tk.string}
 
+def formatTokenList(tk_list):
+    formatted = []
+    for tk in tk_list:
+        formatted.append(formatToken(tk))
+    return formatted
 
-def zipTokAST(tk, node, nodeyList):
-    if(len(tk) < 1 or tk[0].type == token.ENDMARKER):
-        return nodeyList, [], [] #end of tokens
-    elif(node == None):
-        return nodeyList, [], [] #end of nodes
+def getNewBounty(bounty, tk):
+    target = bounty[-1] if len(bounty) > 0 else None
 
-    childrenZip = []
-    for child in ast.iter_child_nodes(node): #depth fist
-        cz, tz, tk = zipTokAST(tk, child, [])
-        if(len(tz) > 0):
-            childrenZip += tz
-        if(len(cz) > 0):
-            childrenZip += cz
+    if(target):
+        if(tk.string == '['): bounty.append('[')
 
-    list.sort(childrenZip, key = lambda x : x['start']['line']*10000+x['start']['ch'] )
+        elif(tk.string == '('): bounty.append('(')
 
-    marker = {'type': type(node).__name__, 'content': childrenZip}
-    looseTokenList = []
-    if(len(childrenZip) > 0):
-        marker['start'] = childrenZip[0]['start']
-        marker['end'] = childrenZip[len(childrenZip) - 1]['end']
+        elif(tk.string == '{'): bounty.append('{')
 
-    if(hasattr(node, 'lineno')): #meaning it's a node that appears in the text
-        line = node.lineno
-        ch = node.col_offset
-        #print("node is", type(node).__name__, line, ch, tk[0])
-        # check for nodes that don't belong to anyone
-        while(len(tk) > 0 and (tk[0].start[0] < line or (tk[0].start[0] == line and tk[0].start[1] < ch))): #actually starts before this node
-            if(tk[0].type != token.NEWLINE):
-                looseTokenList.append(formatToken(tk[0]))
-            tk.pop(0)
-        if(len(tk) > 0 and tk[0].start[0] == line and tk[0].start[1] == ch):
-            if(tk[0].type != token.NEWLINE):
-                formatted = formatToken(tk[0])
-                marker['start'] = formatted['start']
-                marker['end'] = formatted['end']
-                marker['literal'] = formatted['literal']
-            tk.pop(0)
+        match = fulfillBounty(bounty, tk)
+        if(match) : bounty.pop()
+        else: raise ValueError('Unmatched target '+str(target)+": "+str(bounty))
 
-    if('literal' in marker or len(childrenZip) > 0):
-        nodeyList.append(marker)
-    return nodeyList, looseTokenList, tk
+    return bounty
 
 
-def parseCode(code):
-    #print("got code", str)
-    tree = ast.parse(code)
-    bytes = io.BytesIO(code.encode('utf-8'))
+def fulfillBounty(bounty, tk):
+    target = bounty[-1] if len(bounty) > 0 else None
+    if(tk.string == ']'):
+        return True
+    if(tk.string == ')'):
+        return True
+    if(tk.string == '}'):
+        return True
+    return False
+
+
+def processTokenList(tk_list):
+    bounty = []
+    formatted = []
+    for tk in tk_list:
+        bounty = getNewBounty(bounty, tk)
+        formatted.append(formatToken(tk))
+    return bounty, formatted
+
+
+def splitBeforeTokens(content, nodey, before_tokens):
+    prevNodey = content[-1] if content != [] else None
+    middle = []
+    nodeyMatch = []
+    for tk in before_tokens:
+            if(nodey and tk['start']['line'] == nodey['start']['line']):
+                nodeyMatch.append(tk)
+            elif(prevNodey and tk['start']['line'] == prevNodey['start']['line']):
+                content += tk
+            else:
+                middle += tk
+    if nodeyMatch != []:
+        nodey['content'] = nodeyMatch + (nodey['content'] or [])
+    return content, middle, nodey
+
+
+def splitAfterTokens(prevStart, nodeStart, after_tokens):
+    middle = []
+    nodeyMatch = []
+    for tok in after_tokens:
+        if nodeStart and tok.start[0] == nodeStart['line'] and ((not prevStart) or tok.start[0] != prevStart['line']):
+            nodeyMatch.append(tok)
+        else:
+            middle.append(tok)
+    return middle, nodeyMatch
+
+
+
+
+def processTokens_before(node, tokenList):
+    chunkList = []
+    before = []
+    child = next(ast.iter_child_nodes(node), None)
+    if child:
+        start = getStart(child)
+        if(start):
+            for chunk in tokenList:
+                if(startsWith(start, chunk)): #start of child
+                    chunkList.append(chunk)
+                else:
+                    before.append(chunk)
+            newBounty, before_formatted = processTokenList(before)
+            return newBounty, before_formatted, chunkList
+
+    return [], [], tokenList
+
+
+
+def processTokens_middle(node, tokenList, bounty):
+    children = ast.iter_child_nodes(node)
+    child1 = next(children, None)
+    content = []
+
+    if child1:
+        chunkList = []
+        child2 = next(children, None)
+        child2_start = None
+        while(child2 and not child2_start):
+            child2_start = getStart(child2)
+            if(not child2_start):
+                child2 = next(children, None)
+        if(child2):
+            child1_start = getStart(child1)
+            for chunk in tokenList:
+                if(child2 and startsWith(child2_start, chunk)): #start of child 2
+                    #first, give all the tokens collected so far to child1. child2 starts with what remains
+                    before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1, bounty)
+                    content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
+                    content += before_tokens
+                    if child_nodey: content.append(child_nodey)
+                    chunkList = []
+                    if(after_tokens != []):
+                        after_tokens, chunkList = splitAfterTokens(child1_start, child2_start, after_tokens)
+                        content += formatTokenList(after_tokens)
+                    child1_start = child2_start
+                    child1 = child2
+                    child2 = next(children, None)
+                    child2_start = getStart(child2) if child2 else None
+
+                chunkList.append(chunk)
+        else:
+            chunkList = tokenList
+
+        before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1, bounty)
+        content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
+        content += before_tokens
+        if child_nodey: content.append(child_nodey)
+        chunkList = after_tokens
+        return bounty, content, chunkList
+    else:
+        # no children, but eat what can
+        start = getStart(node)
+        content = []
+        if(start):
+            if(tokenList[0].start[0] == start['line'] and tokenList[0].start[1] == start['ch']):
+                content.append(formatToken(tokenList.pop(0)))
+                end = content[-1]
+        return bounty, content, tokenList
+
+
+def zipTokensAST(tokens, node, parentBounty = []):
+    bounty = []
+
+    bounty, before_tokens, tokens = processTokens_before(node, tokens)
+
+    bounty, content, remainder = processTokens_middle(node, tokens, bounty)
+    if(content != []):
+        nodey = {'type': type(node).__name__, 'start': content[0]['start'], 'end': content[-1]['end'], 'content': content}
+    else:
+        nodey = None
+    return before_tokens, nodey, remainder
+
+
+def parseCode(text):
+    tree = ast.parse(text)
+    split = text.split('\\n')
+    bytes = io.BytesIO(text.encode())
     g = tokenize.tokenize(bytes.readline)
-    tk = list(g)
-    print(tokenASTCombine(tk, tree))
+    tokens = list(g)
+    tokens.pop(0) #get rid of encoding stuff
+    before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
+    nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
+    print (nodey)
 `
 
   }
