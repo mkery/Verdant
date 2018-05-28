@@ -243,11 +243,19 @@ def parseCode(code):
 
   calcShift(nodey : NodeyCode, change: CodeMirror.EditorChange) : number[]
   {
-    if(change.origin === "+input") //code was added
-    {
-      var lines = change.text[0].split('\n')
-      return lines.map((item) => item.length) // for each line, how many characters were added
-    }
+    //TODO figure out copy paste
+    var added : number[] = []
+    var removed : number[] = []
+
+    if(change.text.length > 0) //code was added
+      added = change.text.map((item) => item.length) // for each line, how many characters were added
+    if(change.removed.length > 0) // code was removed
+      removed = change.removed.map((item) => -1 * item.length) // for each line, how many characters were added
+
+    if(added.length >= removed.length)
+      return added.map((item, index) => item + (removed[index] || 0))
+    else
+      return removed.map((item, index) => item + (added[index] || 0))
   }
 
 
@@ -308,10 +316,10 @@ def parseCode(code):
       var updateID = crypto.randomBytes(20).toString('hex');
       nodey.pendingUpdate = updateID
       var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        //console.log(code, "R: ", msg)
+        console.log("R: ", msg)
       }
       var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        //console.log(code, "IO: ", msg)
+        console.log("IO: ", msg)
         if(msg.header.msg_type === "stream")
         {
           var jsn = (<any>msg.content)['text']
@@ -329,6 +337,7 @@ def parseCode(code):
     if(node.pendingUpdate && node.pendingUpdate === updateID)
     {
       console.log("Time to resolve", jsn, "with", node)
+
     }
     return node
   }

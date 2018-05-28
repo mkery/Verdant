@@ -15,6 +15,9 @@ abstract class Nodey
   run : string //id marking which run
   timestamp : Date //timestamp when created
   pendingUpdate : string
+  parent : Nodey
+  right : Nodey
+  left : Nodey
 
   constructor(options: { [id: string] : any })
   {
@@ -93,6 +96,10 @@ namespace Nodey {
       content.start = {'line': content.start.line - 1, 'ch': content.start.ch}
       content.end = {'line': content.end.line - 1, 'ch': content.end.ch}
       var child = dictToCodeNodeys(dict.content[item])
+      child.parent = n
+      child.left = n.content[Math.max(n.content.length - 1, 0)]
+      if(child.left)
+        child.left.right = child
       n.content.push(child)
     }
     return n
