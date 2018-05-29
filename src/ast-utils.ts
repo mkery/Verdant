@@ -325,7 +325,7 @@ def main(text):
     //console.log("trying to parse", jsn)
     var dict = JSON.parse(jsn)
     console.log(dict)
-    var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict[0], options))
+    var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict, options))
     return nodey
   }
 
@@ -348,26 +348,47 @@ def main(text):
   repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
     //console.log("Time to repair", nodey)
-    var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), change)
-    this.updateNodeyPositions(affected, change)
-    var text = editor.doc.getRange(affected.start, affected.end)
+
+    /* convert change range to whole lines only to increase likelihood python ast will be able to parse the
+    affected nodes */
+    var updateRange = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}}
+    updateRange.start.ch = 0
+    updateRange.end.ch = editor.doc.getLine(change.to.line).length
+    console.log("fixed range:", updateRange)
+
+    var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), updateRange)
+    var nodeToFix =  {'nodey':nodey, 'index': 0} // if there's no specific node broken, the whole cell node is broken
+    if(affected) nodeToFix = affected
+    this.updateNodeyPositions(nodeToFix.nodey, nodeToFix.index, change, editor)
+    //this.resolveAST(nodeToFix.nodey, text)
+  }
+
+
+  updateNodeyPositions(affected : NodeyCode, index: number, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
+  {
+    var nodeEnd = affected.end
+    var changeEnd = change.from
+    if(changeEnd.line === nodeEnd.line)
+    {
+      var added_ch = (change.text[Math.max(change.text.length - 1, 0)] || "").length
+      var removed_ch = (change.removed[Math.max(change.removed.length - 1, 0)] || "").length
+      nodeEnd.ch = nodeEnd.ch - removed_ch + added_ch
+    }
+    else
+    {
+      var added_line = Math.max(change.text.length - 1, 0)
+      var removed_line = Math.max(change.removed.length - 1, 0)
+      nodeEnd.line  = nodeEnd.line + added_line - removed_line
+    }
+
+    var text = editor.doc.getRange(affected.start, nodeEnd)
     console.log("The exact affected nodey is", affected, text)
-    this.resolveAST(affected, text)
-  }
+    return text
 
 
-  updateNodeyPositions(affected : NodeyCode, change: CodeMirror.EditorChange)
-  {
-    var shift = this.calcShift(affected, change)
-    console.log("Following nodes, shift by", shift)
-    var ch = shift[shift.length - 1]
-    if(shift.length === 1) //we're still on the same line as we were before
-      ch += affected.end.ch
-    affected.end = {'line': shift.length - 1 + affected.end.line, 'ch': ch}
-  }
+    /*var priorStart = affected.start
+    var priorEnd = affected.end
 
-  calcShift(nodey : NodeyCode, change: CodeMirror.EditorChange) : number[]
-  {
     //TODO figure out copy paste
     var added : number[] = []
     var removed : number[] = []
@@ -381,10 +402,11 @@ def main(text):
       return added.map((item, index) => item + (removed[index] || 0))
     else
       return removed.map((item, index) => item + (added[index] || 0))
+      */
+
   }
 
-
-  findAffectedChild(list: NodeyCode[], min: number, max: number, change : CodeMirror.EditorChange) : NodeyCode
+  findAffectedChild(list: NodeyCode[], min: number, max: number, change: {'start': any, 'end': any}) : {'nodey': NodeyCode, 'index': number}
   {
     var mid = Math.round((max - min)/2) + min
     var direction = this.inRange(list[mid], change)
@@ -395,9 +417,9 @@ def main(text):
     if(direction === 0) // it's in this node, check for children to be more specific
     {
       if(list[mid].content.length < 1)
-        return list[mid]
+        return {'nodey': list[mid], 'index': mid} // found!
       else
-        return this.findAffectedChild(list[mid].content, 0, Math.max(0, list[mid].content.length - 1), change) || list[mid]
+        return this.findAffectedChild(list[mid].content, 0, Math.max(0, list[mid].content.length - 1), change) || {'nodey': list[mid], 'index': mid} // found!
     }
     else if(direction === 2)
       return null // there is no match at this level
@@ -409,22 +431,22 @@ def main(text):
 
 
   //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
-  inRange(nodey : NodeyCode, change : CodeMirror.EditorChange) : number
+  inRange(nodey : NodeyCode, change: {'start': any, 'end': any}) : number
   {
     var val = 0
-    if(change.from.line < nodey.start.line)
+    if(change.start.line < nodey.start.line)
       val = -1
-    else if(change.from.line === nodey.start.line && change.from.ch < nodey.start.ch)
+    else if(change.start.line === nodey.start.line && change.start.ch < nodey.start.ch)
       val = -1
 
-    if(change.to.line > nodey.end.line)
+    if(change.end.line > nodey.end.line)
     {
       if(val === -1)
         val = 2
       else
         val = 1
     }
-    else if(change.to.line === nodey.end.line && change.to.ch > nodey.end.ch)
+    else if(change.end.line === nodey.end.line && change.end.ch > nodey.end.ch)
     {
       if(val === -1)
         val = 2

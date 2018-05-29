@@ -87,14 +87,13 @@ namespace Nodey {
   export
   function dictToCodeNodeys(dict: { [id: string] : any }) : NodeyCode
   {
+    dict.start.line -=1 // convert the coordinates of the range to code mirror style
+    dict.end.line -=1
     //console.log("DICT IS", dict)
     var n = new NodeyCode(dict)
     n.content = []
     for(var item in dict.content)
     {
-      var content = dict.content[item] // convert the coordinates of the range to code mirror style
-      content.start = {'line': content.start.line - 1, 'ch': content.start.ch}
-      content.end = {'line': content.end.line - 1, 'ch': content.end.ch}
       var child = dictToCodeNodeys(dict.content[item])
       child.parent = n
       child.left = n.content[Math.max(n.content.length - 1, 0)]
