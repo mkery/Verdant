@@ -55,6 +55,8 @@ def getStart(node):
         loc = getStart(child) if child else None
         return loc
 
+
+
 def formatToken(tk):
     return {'type': token.tok_name[tk.type], 'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}, 'literal': tk.string}
 
@@ -106,12 +108,12 @@ def splitBeforeTokens(content, nodey, before_tokens):
     middle = []
     nodeyMatch = []
     for tk in before_tokens:
-            if(nodey and tk['start']['line'] == nodey['start']['line']):
-                nodeyMatch.append(tk)
-            elif(prevNodey and tk['start']['line'] == prevNodey['start']['line']):
-                content += tk
-            else:
-                middle += tk
+        if(nodey and tk['start']['line'] == nodey['start']['line']):
+            nodeyMatch.append(tk)
+        elif(prevNodey and tk['start']['line'] == prevNodey['start']['line']):
+            content += tk
+        else:
+            middle += tk
     if nodeyMatch != []:
         nodey['content'] = nodeyMatch + (nodey['content'] or [])
     return content, middle, nodey
@@ -202,19 +204,23 @@ def processTokens_middle(node, tokenList, bounty):
 
 
 def zipTokensAST(tokens, node, parentBounty = []):
+
     bounty = []
 
     bounty, before_tokens, tokens = processTokens_before(node, tokens)
 
     bounty, content, remainder = processTokens_middle(node, tokens, bounty)
     if(content != []):
+        if(remainder != []):
+            remainder, chunkList = splitAfterTokens(None, content[-1]['start'], remainder)
+            content += formatTokenList(chunkList)
         nodey = {'type': type(node).__name__, 'start': content[0]['start'], 'end': content[-1]['end'], 'content': content}
     else:
         nodey = None
     return before_tokens, nodey, remainder
 
 
-def parseCode(text):
+def main(text):
     tree = ast.parse(text)
     split = text.split('\\n')
     bytes = io.BytesIO(text.encode())
@@ -223,7 +229,8 @@ def parseCode(text):
     tokens.pop(0) #get rid of encoding stuff
     before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
     nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
-    print (nodey)
+    nodey['content'].pop() #remove end marker
+    print (json.dumps(nodey))
 `
 
   }
@@ -304,7 +311,7 @@ def parseCode(text):
     code = code.replace(/".*\\n.*"/g, (str) => {
       return str.replace(/\\n/g, "\\\n")
     })
-    this.runKernel('parseCode("""'+code+'""")', onReply, onIOPub)
+    this.runKernel('main("""'+code+'""")', onReply, onIOPub)
   }
 
 
@@ -315,7 +322,9 @@ def parseCode(text):
     if(jsn === "[]\n")
       return NodeyCode.EMPTY()
 
+    //console.log("trying to parse", jsn)
     var dict = JSON.parse(jsn)
+    console.log(dict)
     var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict[0], options))
     return nodey
   }
