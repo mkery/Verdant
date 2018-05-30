@@ -348,6 +348,7 @@ def main(text):
   repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
     //console.log("Time to repair", nodey)
+    var range = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}}
 
     /* convert change range to whole lines only to increase likelihood python ast will be able to parse the
     affected nodes */
@@ -356,55 +357,107 @@ def main(text):
     updateRange.end.ch = editor.doc.getLine(change.to.line).length
     console.log("fixed range:", updateRange)
 
-    var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), updateRange)
+    var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), range)
     var nodeToFix =  {'nodey':nodey, 'index': 0} // if there's no specific node broken, the whole cell node is broken
     if(affected) nodeToFix = affected
     this.updateNodeyPositions(nodeToFix.nodey, nodeToFix.index, change, editor)
+    console.log("All are shifted?", nodey)
     //this.resolveAST(nodeToFix.nodey, text)
+  }
+
+
+  getRightSibling(nodey : NodeyCode, index: number) : {'nodey': NodeyCode, 'index': number}
+  {
+    var parent = <NodeyCode> nodey.parent
+    if(!parent)
+      return null
+    if(parent.content.length - 1 > index)
+      return {'nodey': parent.content[index + 1], 'index': index + 1}
+
+    var gran = <NodeyCode> parent.parent
+    if(gran)
+      return this.getRightSibling(parent, gran.content.indexOf(parent))
+    else
+      return null
   }
 
 
   updateNodeyPositions(affected : NodeyCode, index: number, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
     var nodeEnd = affected.end
-    var changeEnd = change.from
-    if(changeEnd.line === nodeEnd.line)
-    {
-      var added_ch = (change.text[Math.max(change.text.length - 1, 0)] || "").length
-      var removed_ch = (change.removed[Math.max(change.removed.length - 1, 0)] || "").length
-      nodeEnd.ch = nodeEnd.ch - removed_ch + added_ch
-    }
+
+    // calculate deltas
+    var deltaLine = 0
+    var deltaCh = 0
+
+    var added_line = change.text.length
+    var removed_line = change.removed.length
+    deltaLine = added_line - removed_line
+
+    var added_ch = (change.text[Math.max(change.text.length - 1, 0)] || "").length
+    var removed_ch = (change.removed[Math.max(change.removed.length - 1, 0)] || "").length
+    deltaCh = added_ch - removed_ch
+
+    // need to calculate: change 'to' line is not dependable because it is before coordinates only
+    var endLine = change.from.line + deltaLine
+
+    // update this node's coordinates
+    if(endLine === nodeEnd.line)
+      nodeEnd.ch = nodeEnd.ch + deltaCh
     else
+      nodeEnd.line  = nodeEnd.line + deltaLine
+
+    // shift all nodes after this changed node
+    var rightSibling = this.getRightSibling(affected, index)
+    if(rightSibling)
     {
-      var added_line = Math.max(change.text.length - 1, 0)
-      var removed_line = Math.max(change.removed.length - 1, 0)
-      nodeEnd.line  = nodeEnd.line + added_line - removed_line
+      if(rightSibling.nodey.start.line !== endLine)
+        deltaCh = 0
+      this.shiftAllAfter(rightSibling.nodey, deltaLine, deltaCh, rightSibling.index)
     }
 
+    // return the text from this node's new range
     var text = editor.doc.getRange(affected.start, nodeEnd)
     console.log("The exact affected nodey is", affected, text)
     return text
-
-
-    /*var priorStart = affected.start
-    var priorEnd = affected.end
-
-    //TODO figure out copy paste
-    var added : number[] = []
-    var removed : number[] = []
-
-    if(change.text.length > 0) //code was added
-      added = change.text.map((item) => item.length) // for each line, how many characters were added
-    if(change.removed.length > 0) // code was removed
-      removed = change.removed.map((item) => -1 * item.length) // for each line, how many characters were added
-
-    if(added.length >= removed.length)
-      return added.map((item, index) => item + (removed[index] || 0))
-    else
-      return removed.map((item, index) => item + (added[index] || 0))
-      */
-
   }
+
+
+  shiftAllAfter(nodey: NodeyCode, deltaLine: number, deltaCh: number, index: number) : void
+  {
+    if(deltaLine === 0 && deltaCh === 0)//no more shifting, stop
+      return
+
+    console.log("Shifting ", nodey, "by", deltaLine, " ", deltaCh, " before:"+nodey.start.line+" "+nodey.start.ch)
+    nodey.start.line += deltaLine
+    nodey.end.line += deltaLine
+    nodey.start.ch += deltaCh
+
+    //Now be sure to shift all children
+    this.shiftAllChildren(nodey, deltaLine, deltaCh)
+
+    var rightSibling = this.getRightSibling(nodey, index)
+    if(rightSibling)
+    {
+      if(rightSibling.nodey.start.line !== nodey.start.line)
+        deltaCh = 0
+      this.shiftAllAfter(rightSibling.nodey, deltaLine, deltaCh, rightSibling.index)
+    }
+  }
+
+
+  shiftAllChildren(nodey: NodeyCode, deltaLine: number, deltaCh: number) : void
+  {
+    for(var i in nodey.content)
+    {
+      var child = nodey.content[i]
+      child.start.line += deltaLine
+      child.end.line += deltaLine
+      child.start.ch += deltaCh
+      this.shiftAllChildren(child, deltaLine, deltaCh)
+    }
+  }
+
 
   findAffectedChild(list: NodeyCode[], min: number, max: number, change: {'start': any, 'end': any}) : {'nodey': NodeyCode, 'index': number}
   {
