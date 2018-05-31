@@ -11,8 +11,8 @@ import {
 } from '@phosphor/coreutils';
 
 import {
-  ASTUtils
-} from './ast-utils';
+  ASTGenerate
+} from './ast-generate';
 
 import{
   CellListen
@@ -33,12 +33,12 @@ class NotebookListen
   notebook : Notebook; //the currently active notebook Verdant is working on
   notebookPanel : NotebookPanel
   kernUtil : KernelListen
-  astUtils : ASTUtils
+  astUtils : ASTGenerate
   cells: Map<Cell, CellListen>
   activeCell : Cell
 
 
-  constructor(notebookPanel : NotebookPanel, astUtils : ASTUtils){
+  constructor(notebookPanel : NotebookPanel, astUtils : ASTGenerate){
     this.notebookPanel = notebookPanel
     this.astUtils = astUtils
     this.cells = new Map<Cell, CellListen>()
@@ -74,9 +74,22 @@ class NotebookListen
     })
     await Promise.all(cellsReady)
     console.log("Loaded Notebook", this.nodey)
+    console.log("TO JSON", this.toJSON())
     this.focusCell(this.notebook.activeCell)
     this.listen()
     this._ready.resolve(undefined);
+  }
+
+
+  toJSON() : {'runs': any[], 'cells': any[]}
+  {
+    var runList = <any>[] //TODO
+    var cells = this.nodey.map( (item : Nodey) => {
+      if(item)
+        return item.toJSON()
+      return []
+    })
+    return {'runs': runList, 'cells': cells}
   }
 
 

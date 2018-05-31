@@ -17,8 +17,8 @@ import {
 import '../style/index.css';
 
 import {
-  ASTUtils
-} from './ast-utils';
+  ASTGenerate
+} from './ast-generate';
 
 import {
   NotebookListen
@@ -37,7 +37,7 @@ const extension: JupyterLabPlugin<void> = {
     var activePanel: NotebookPanel;
 
     var notebook : NotebookListen;
-    const astUtils = new ASTUtils()
+    const astUtils = new ASTGenerate()
 
     restorer.add(panel, 'verdant-manager');
     panel.id = 'verdant-manager';

@@ -8,8 +8,8 @@ import {
 } from '@phosphor/coreutils';
 
 import {
-  ASTUtils
-} from './ast-utils';
+  ASTGenerate
+} from './ast-generate';
 
 import{
   NodeyOutput, NodeyCode
@@ -31,12 +31,12 @@ export
 class CellListen
 {
   cell : Cell
-  astUtils : ASTUtils
+  astUtils : ASTGenerate
   nodey : NodeyCode
   indicator : Indicator
 
 
-  constructor(cell : Cell, astUtils : ASTUtils){
+  constructor(cell : Cell, astUtils : ASTGenerate){
     this.cell = cell
     this.astUtils = astUtils
     this.init()

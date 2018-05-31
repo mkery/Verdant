@@ -1,6 +1,3 @@
-import * as CodeMirror
-  from 'codemirror';
-
 
 import{
   CodeMirrorEditor
@@ -15,17 +12,15 @@ abstract class Nodey
   run : string //id marking which run
   timestamp : Date //timestamp when created
   pendingUpdate : string
-  parent : Nodey
-  right : Nodey
-  left : Nodey
 
   constructor(options: { [id: string] : any })
   {
-    this.number = options.number
+    this.number = options.number || 0
     this.run = options.run
     this.timestamp = options.timestamp
   }
 
+  abstract toJSON(): { [id: string] : any }
 }
 
 
@@ -42,12 +37,39 @@ class NodeyOutput extends Nodey
     this.dependsOn = (<any> options)['dependsOn']
   }
 
+
   static EMPTY()
   {
     return new NodeyOutput({'raw': {}, 'dependsOn': []})
   }
+
+
+  toJSON(): serialized_NodeyOutput
+  {
+    return {'number': this.number, 'output': this.raw}//TODO
+  }
 }
 
+export
+interface serialized_Nodey {
+    number: number,
+    run?: number //TODO
+}
+
+export
+interface serialized_NodeyOutput extends serialized_Nodey{
+  output?: {[key: string]: any}
+}
+
+export
+interface serialized_NodeyCode extends serialized_Nodey{
+    type: string,
+    output?: serialized_NodeyOutput[],
+    literal?: any,
+    start?: {'line' : number, 'ch' : number},
+    end?: {'line' : number, 'ch' : number}
+    nodey?: serialized_NodeyCode[]
+}
 
 export
 class NodeyCode extends Nodey
@@ -58,7 +80,9 @@ class NodeyCode extends Nodey
   start: {'line' : number, 'ch' : number}
   end: {'line' : number, 'ch' : number}
   literal: any
-  marker: CodeMirror.TextMarker
+  parent : NodeyCode
+  right : NodeyCode
+  left : NodeyCode
 
   constructor(options: { [id: string] : any })
   {
@@ -70,6 +94,28 @@ class NodeyCode extends Nodey
     this.start = options.start
     this.end = options.end
   }
+
+
+  toJSON(): serialized_NodeyCode
+  {
+    var jsn : serialized_NodeyCode = {'type': this.type, 'number': this.number}
+    if(this.literal)
+      jsn.literal = this.literal
+    if(this.output)
+    {
+      var output = this.output.map((output) => output.toJSON())
+      if(this.output.length > 0)
+        jsn.output = output
+    }
+    if(this.content)
+    {
+      var content = this.content.map((nodey) => nodey.toJSON())
+      if(content.length > 0)
+        jsn.nodey = content
+    }
+    return jsn
+  }
+
 
   static EMPTY()
   {
@@ -111,7 +157,7 @@ namespace Nodey {
     {
       var div = document.createElement('div')
       div.classList.add('verd-marker')
-      nodey.marker = editor.doc.markText(nodey.start, nodey.end, {'css': 'background-color: pink'})
+      editor.doc.markText(nodey.start, nodey.end, {'css': 'background-color: pink'})
     }
     for(var i in nodey.content)
       this.placeMarkers(nodey.content[i], editor)
