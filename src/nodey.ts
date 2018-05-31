@@ -1,13 +1,21 @@
-
 import{
   CodeMirrorEditor
 } from '@jupyterlab/codemirror';
+
+import {
+  ASTGenerate
+} from './ast-generate';
+
+import {
+  Model
+} from './model'
 
 
 
 export
 abstract class Nodey
 {
+  node_id: number //id for this node
   number : number //chronological number
   run : string //id marking which run
   timestamp : Date //timestamp when created
@@ -15,6 +23,7 @@ abstract class Nodey
 
   constructor(options: { [id: string] : any })
   {
+    this.node_id = options.node_id
     this.number = options.number || 0
     this.run = options.run
     this.timestamp = options.timestamp
@@ -82,7 +91,6 @@ class NodeyCode extends Nodey
   literal: any
   parent : NodeyCode
   right : NodeyCode
-  left : NodeyCode
 
   constructor(options: { [id: string] : any })
   {
@@ -93,6 +101,8 @@ class NodeyCode extends Nodey
     this.literal = options.literal
     this.start = options.start
     this.end = options.end
+    this.parent = options.parent
+    this.right = options.right
   }
 
 
@@ -131,21 +141,26 @@ export
 namespace Nodey {
 
   export
-  function dictToCodeNodeys(dict: { [id: string] : any }) : NodeyCode
+  function dictToCodeNodeys(dict: { [id: string] : any }, historyModel: Model, prior: NodeyCode = null) : NodeyCode
   {
+    dict.node_id = astGen.newNodeyID()
     dict.start.line -=1 // convert the coordinates of the range to code mirror style
     dict.end.line -=1
-    //console.log("DICT IS", dict)
+    console.log("PRIOR IS", prior)
     var n = new NodeyCode(dict)
+    if(prior)
+      prior.right = n
+    prior = null
+
     n.content = []
     for(var item in dict.content)
     {
-      var child = dictToCodeNodeys(dict.content[item])
+      var child = dictToCodeNodeys(dict.content[item], astGen, prior)
       child.parent = n
-      child.left = n.content[Math.max(n.content.length - 1, 0)]
-      if(child.left)
-        child.left.right = child
+      if(prior)
+        prior.right = child
       n.content.push(child)
+      prior = child
     }
     return n
   }

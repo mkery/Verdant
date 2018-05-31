@@ -25,6 +25,11 @@ import {
   ASTResolve
 } from './ast-resolve'
 
+import {
+  Model
+} from './model'
+
+
 export
 class ASTGenerate{
 
@@ -33,8 +38,11 @@ class ASTGenerate{
   session: Session.ISession
   astResolve: ASTResolve
   parserText: string
+  historyModel: Model
 
-  constructor(){
+  constructor(historyModel : Model){
+    this.historyModel = historyModel
+    this.astResolve = new ASTResolve()
     this.parserText =`
 import sys
 import ast
@@ -235,12 +243,13 @@ def main(text):
     nodey['content'].pop() #remove end marker
     print (json.dumps(nodey))
 `
-    this.astResolve = new ASTResolve()
   }
+
 
   get ready(): Promise<void> {
     return this._ready.promise
   }
+  private _ready = new PromiseDelegate<void>();
 
   setKernUtil(kern : KernelListen)
   {
@@ -249,6 +258,7 @@ def main(text):
     this.init()
   }
 
+
   private async init()
   {
     await this.kernUtil.kernelReady
@@ -256,8 +266,6 @@ def main(text):
     console.log("loaded Parser!")
     this._ready.resolve(undefined);
   }
-
-  private _ready = new PromiseDelegate<void>();
 
 
   loadParserFunctions()
@@ -328,7 +336,7 @@ def main(text):
     //console.log("trying to parse", jsn)
     var dict = JSON.parse(jsn)
     console.log(dict)
-    var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict, options))
+    var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict, options), this.historyModel)
     return nodey
   }
 

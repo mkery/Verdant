@@ -26,6 +26,10 @@ import{
   Nodey
 } from './nodey'
 
+import {
+  Model
+} from './model'
+
 
 export
 class NotebookListen
@@ -36,11 +40,13 @@ class NotebookListen
   astUtils : ASTGenerate
   cells: Map<Cell, CellListen>
   activeCell : Cell
+  historyModel : Model
 
 
-  constructor(notebookPanel : NotebookPanel, astUtils : ASTGenerate){
+  constructor(notebookPanel : NotebookPanel, astUtils : ASTGenerate, historyModel : Model){
     this.notebookPanel = notebookPanel
     this.astUtils = astUtils
+    this.historyModel = historyModel
     this.cells = new Map<Cell, CellListen>()
     this.init()
   }
@@ -67,7 +73,7 @@ class NotebookListen
     this.notebook.widgets.forEach( (item, index) => {
       if(item instanceof Cell)
       {
-        var cell = new CellListen(item, this.astUtils)
+        var cell = new CellListen(item, this.astUtils, this.historyModel)
         this.cells.set(item, cell)
         cellsReady.push(cell.ready)
       }

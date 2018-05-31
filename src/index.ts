@@ -24,6 +24,10 @@ import {
   NotebookListen
 } from './notebook-listen'
 
+import {
+  Model
+} from './model'
+
 /**
  * Initialization data for the Verdant extension.
  */
@@ -37,7 +41,8 @@ const extension: JupyterLabPlugin<void> = {
     var activePanel: NotebookPanel;
 
     var notebook : NotebookListen;
-    const astUtils = new ASTGenerate()
+    const model = new Model()
+    const astUtils = new ASTGenerate(model)
 
     restorer.add(panel, 'verdant-manager');
     panel.id = 'verdant-manager';
@@ -61,7 +66,7 @@ const extension: JupyterLabPlugin<void> = {
           if(!activePanel || activePanel !== widg)
           {
             activePanel = widg
-            notebook = new NotebookListen(activePanel, astUtils)
+            notebook = new NotebookListen(activePanel, astUtils, model)
             notebook.ready.then(() => {'Notebook is ready'})
           }
         each(shell.widgets('main'), widget => {

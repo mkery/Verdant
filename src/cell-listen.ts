@@ -24,7 +24,12 @@ import{
 
 import{
   Indicator
-} from './indicator'
+} from './widgets/indicator'
+
+import {
+  Model
+} from './model'
+
 
 
 export
@@ -34,11 +39,13 @@ class CellListen
   astUtils : ASTGenerate
   nodey : NodeyCode
   indicator : Indicator
+  historyModel : Model
 
 
-  constructor(cell : Cell, astUtils : ASTGenerate){
+  constructor(cell : Cell, astUtils : ASTGenerate, historyModel : Model){
     this.cell = cell
     this.astUtils = astUtils
+    this.historyModel = historyModel
     this.init()
   }
 
