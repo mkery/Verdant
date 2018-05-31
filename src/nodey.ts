@@ -3,10 +3,6 @@ import{
 } from '@jupyterlab/codemirror';
 
 import {
-  ASTGenerate
-} from './ast-generate';
-
-import {
   Model
 } from './model'
 
@@ -15,7 +11,7 @@ import {
 export
 abstract class Nodey
 {
-  node_id: number //id for this node
+  private node_id: number //id for this node
   number : number //chronological number
   run : string //id marking which run
   timestamp : Date //timestamp when created
@@ -23,13 +19,18 @@ abstract class Nodey
 
   constructor(options: { [id: string] : any })
   {
-    this.node_id = options.node_id
+    this.node_id = options.id
     this.number = options.number || 0
     this.run = options.run
     this.timestamp = options.timestamp
   }
 
-  abstract toJSON(): { [id: string] : any }
+  get id() : number
+  {
+    return this.node_id
+  }
+
+  abstract toJSON(): serialized_Nodey
 }
 
 
@@ -77,7 +78,7 @@ interface serialized_NodeyCode extends serialized_Nodey{
     literal?: any,
     start?: {'line' : number, 'ch' : number},
     end?: {'line' : number, 'ch' : number}
-    nodey?: serialized_NodeyCode[]
+    content?: number[]
 }
 
 export
@@ -85,7 +86,7 @@ class NodeyCode extends Nodey
 {
   type : string
   output: NodeyOutput[]
-  content : NodeyCode[]
+  content : number[]
   start: {'line' : number, 'ch' : number}
   end: {'line' : number, 'ch' : number}
   literal: any
@@ -117,12 +118,9 @@ class NodeyCode extends Nodey
       if(this.output.length > 0)
         jsn.output = output
     }
-    if(this.content)
-    {
-      var content = this.content.map((nodey) => nodey.toJSON())
-      if(content.length > 0)
-        jsn.nodey = content
-    }
+    if(this.content && this.content.length > 0)
+        jsn.content = this.content
+
     return jsn
   }
 
@@ -143,10 +141,11 @@ namespace Nodey {
   export
   function dictToCodeNodeys(dict: { [id: string] : any }, historyModel: Model, prior: NodeyCode = null) : NodeyCode
   {
-    dict.node_id = astGen.newNodeyID()
+    dict.id = historyModel.dispenseNodeyID()
     dict.start.line -=1 // convert the coordinates of the range to code mirror style
     dict.end.line -=1
-    console.log("PRIOR IS", prior)
+
+    // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict)
     if(prior)
       prior.right = n
@@ -155,13 +154,15 @@ namespace Nodey {
     n.content = []
     for(var item in dict.content)
     {
-      var child = dictToCodeNodeys(dict.content[item], astGen, prior)
+      var child = dictToCodeNodeys(dict.content[item], historyModel, prior)
       child.parent = n
       if(prior)
         prior.right = child
-      n.content.push(child)
+      n.content.push(child.id)
       prior = child
     }
+
+    historyModel.registerNodey(n)
     return n
   }
 

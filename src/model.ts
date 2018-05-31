@@ -1,6 +1,6 @@
-
-
-
+import{
+  Nodey, serialized_Nodey
+} from './nodey'
 
 
 
@@ -13,11 +13,32 @@ class Model
     this._nodeyCounter = startCount
   }
 
+  private _nodeyCounter = 0
+  private _nodeyStore : Nodey[] = []
 
   dispenseNodeyID(): number{
     var id = this._nodeyCounter
     this._nodeyCounter ++
     return id
   }
-  private _nodeyCounter = 0
+
+
+  registerNodey(nodey : Nodey) :void{
+    this._nodeyStore[nodey.id] = nodey
+  }
+
+
+  toJSON() : serialized_Nodey[]
+  {
+    return this._nodeyStore.map( (item : Nodey) => {
+      if(item)
+        return item.toJSON()
+    })
+  }
+
+
+  dump() : void //for debugging only
+  {
+    console.log(this._nodeyStore)
+  }
 }

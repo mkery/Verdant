@@ -87,15 +87,16 @@ class NotebookListen
   }
 
 
-  toJSON() : {'runs': any[], 'cells': any[]}
+  toJSON() : {'runs': any[], 'cells': any[], 'nodey': any[]}
   {
     var runList = <any>[] //TODO
     var cells = this.nodey.map( (item : Nodey) => {
       if(item)
-        return item.toJSON()
-      return []
+        return item.id
+      return undefined
     })
-    return {'runs': runList, 'cells': cells}
+    var nodey = this.historyModel.toJSON()
+    return {'runs': runList, 'cells': cells, 'nodey': nodey}
   }
 
 

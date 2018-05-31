@@ -47,9 +47,9 @@ class ASTResolve{
   }
 
 
-  findAffectedChild(list: NodeyCode[], min: number, max: number, change: {'start': any, 'end': any}) :  NodeyCode
+  findAffectedChild(list: number[], min: number, max: number, change: {'start': any, 'end': any}) :  NodeyCode
   {
-    var mid = Math.round((max - min)/2) + min
+    /*var mid = Math.round((max - min)/2) + min
     var direction = this.inRange(list[mid], change)
 
     if((min >= max || max <= min) && direction !== 0) //end condition no more to explore
@@ -67,7 +67,8 @@ class ASTResolve{
     else if(direction === -1) // check the left
       return this.findAffectedChild(list, min, mid - 1, change)
     else if(direction === 1) // check the right
-      return this.findAffectedChild(list, mid + 1, max, change)
+      return this.findAffectedChild(list, mid + 1, max, change)*/
+      return null
   }
 
 
@@ -139,14 +140,14 @@ class ASTResolve{
 
   shiftAllChildren(nodey: NodeyCode, deltaLine: number, deltaCh: number) : void
   {
-    for(var i in nodey.content)
+    /*for(var i in nodey.content)
     {
       var child = nodey.content[i]
       child.start.line += deltaLine
       child.end.line += deltaLine
       child.start.ch += deltaCh
       this.shiftAllChildren(child, deltaLine, deltaCh)
-    }
+    }*/
   }
 
 
