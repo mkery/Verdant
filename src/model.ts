@@ -1,5 +1,5 @@
 import{
-  Nodey, serialized_Nodey
+  Nodey, NodeyCode, serialized_Nodey
 } from './nodey'
 
 
@@ -20,6 +20,11 @@ class Model
     var id = this._nodeyCounter
     this._nodeyCounter ++
     return id
+  }
+
+
+  getCodeNodey(id: number) : NodeyCode { //TODO seperate list for markdown and output
+    return <NodeyCode> this._nodeyStore[id]
   }
 
 

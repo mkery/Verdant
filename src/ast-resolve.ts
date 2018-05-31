@@ -9,11 +9,23 @@ import{
   CodeMirrorEditor
 } from '@jupyterlab/codemirror';
 
+import {
+  Model
+} from './model'
+
 import * as crypto from 'crypto';
 
 
 export
 class ASTResolve{
+
+  historyModel : Model
+
+  constructor(historyModel : Model)
+  {
+    this.historyModel = historyModel
+  }
+
 
   repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
@@ -34,6 +46,7 @@ class ASTResolve{
     return [kernel_reply, text]
   }
 
+
   /*
   * Convert into full line ranges, to increase the likelihood that we get a nodey that the python
   * parser can parse (it fails on random little snippets)
@@ -42,32 +55,33 @@ class ASTResolve{
   {
     var lineRange = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}}
     lineRange.start.ch = 0
-    lineRange.end.ch = editor.doc.getLine(change.to.line).length
+    lineRange.end.ch = editor.doc.getLine(change.to.line).length - 1 // -1 because we're ignoring OPs like )
     return lineRange
   }
 
 
-  findAffectedChild(list: number[], min: number, max: number, change: {'start': any, 'end': any}) :  NodeyCode
+  findAffectedChild(content: number[], min: number, max: number, change: {'start': any, 'end': any}) :  NodeyCode
   {
-    /*var mid = Math.round((max - min)/2) + min
-    var direction = this.inRange(list[mid], change)
+    var mid = Math.round((max - min)/2) + min
+    var midNodey = <NodeyCode> this.historyModel.getCodeNodey(content[mid])
+    var direction = this.inRange(midNodey, change)
 
     if((min >= max || max <= min) && direction !== 0) //end condition no more to explore
       return null
 
     if(direction === 0) // it's in this node, check for children to be more specific
     {
-      if(list[mid].content.length < 1)
-        return list[mid] // found!
+      if(midNodey.content.length < 1)
+        return midNodey // found!
       else
-        return this.findAffectedChild(list[mid].content, 0, Math.max(0, list[mid].content.length - 1), change) || list[mid] // found!
+        return this.findAffectedChild(midNodey.content, 0, Math.max(0, midNodey.content.length - 1), change) || midNodey // found!
     }
     else if(direction === 2)
       return null // there is no match at this level
     else if(direction === -1) // check the left
-      return this.findAffectedChild(list, min, mid - 1, change)
+      return this.findAffectedChild(content, min, mid - 1, change)
     else if(direction === 1) // check the right
-      return this.findAffectedChild(list, mid + 1, max, change)*/
+      return this.findAffectedChild(content, mid + 1, max, change)
       return null
   }
 
@@ -140,14 +154,14 @@ class ASTResolve{
 
   shiftAllChildren(nodey: NodeyCode, deltaLine: number, deltaCh: number) : void
   {
-    /*for(var i in nodey.content)
+    for(var i in nodey.content)
     {
-      var child = nodey.content[i]
+      var child = this.historyModel.getCodeNodey(nodey.content[i])
       child.start.line += deltaLine
       child.end.line += deltaLine
       child.start.ch += deltaCh
       this.shiftAllChildren(child, deltaLine, deltaCh)
-    }*/
+    }
   }
 
 

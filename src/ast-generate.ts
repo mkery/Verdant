@@ -42,7 +42,7 @@ class ASTGenerate{
 
   constructor(historyModel : Model){
     this.historyModel = historyModel
-    this.astResolve = new ASTResolve()
+    this.astResolve = new ASTResolve(historyModel)
     this.parserText =`
 import sys
 import ast
