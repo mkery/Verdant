@@ -67,15 +67,21 @@ def getStart(node):
         return loc
 
 
-
 def formatToken(tk):
+    ban = [token.NEWLINE, token.DEDENT, token.INDENT, token.OP]
+    if(tk.type in ban):
+        return None
+    if(token.tok_name[tk.type] == 'NL'):
+        return None
     return {'type': token.tok_name[tk.type], 'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}, 'literal': tk.string}
 
 def formatTokenList(tk_list):
     formatted = []
     for tk in tk_list:
-        formatted.append(formatToken(tk))
+        fm = formatToken(tk)
+        if fm: formatted.append(fm)
     return formatted
+
 
 def getNewBounty(bounty, tk):
     target = bounty[-1] if len(bounty) > 0 else None
@@ -110,7 +116,7 @@ def processTokenList(tk_list):
     formatted = []
     for tk in tk_list:
         bounty = getNewBounty(bounty, tk)
-        formatted.append(formatToken(tk))
+        formatted += formatTokenList([tk])
     return bounty, formatted
 
 
@@ -209,7 +215,7 @@ def processTokens_middle(node, tokenList, bounty):
         content = []
         if(start):
             if(tokenList[0].start[0] == start['line'] and tokenList[0].start[1] == start['ch']):
-                content.append(formatToken(tokenList.pop(0)))
+                content += formatTokenList([tokenList.pop(0)])
                 end = content[-1]
         return bounty, content, tokenList
 
