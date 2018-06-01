@@ -69,17 +69,28 @@ def getStart(node):
 
 def formatToken(tk):
     ban = [token.NEWLINE, token.DEDENT, token.INDENT, token.OP]
+    range = {'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}}
     if(tk.type in ban):
-        return None
+        return range
     if(token.tok_name[tk.type] == 'NL'):
-        return None
-    return {'type': token.tok_name[tk.type], 'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}, 'literal': tk.string}
+        return range
+    range['type'] = token.tok_name[tk.type]
+    range['literal'] = tk.string
+    return range
 
 def formatTokenList(tk_list):
     formatted = []
+    end = None
     for tk in tk_list:
         fm = formatToken(tk)
-        if fm: formatted.append(fm)
+        if('type' in fm):
+            formatted.append(fm)
+            end = None
+        else: # we're ignoring this token, but make sure we count it's range if it's at the end!
+            end = fm['end']
+
+    if end and formatted!=[]:
+        formatted[-1]['end'] = end
     return formatted
 
 

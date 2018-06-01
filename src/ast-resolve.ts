@@ -14,6 +14,7 @@ import {
 } from './model'
 
 import * as crypto from 'crypto';
+import * as levenshtein from 'fast-levenshtein';
 
 
 export
@@ -30,6 +31,7 @@ class ASTResolve{
   repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
     var range = this.solveRange(change, editor) // first convert code mirror coordinates to our coordinates
+    console.log("updated range is", range)
     var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), range)
     affected = affected || nodey // if there's no specific node broken, the whole cell node is broken
 
@@ -55,7 +57,7 @@ class ASTResolve{
   {
     var lineRange = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}}
     lineRange.start.ch = 0
-    lineRange.end.ch = editor.doc.getLine(change.to.line).length - 1 // -1 because we're ignoring OPs like )
+    //lineRange.end.ch = editor.doc.getLine(change.to.line).length
     return lineRange
   }
 
@@ -192,13 +194,112 @@ class ASTResolve{
   }
 
 
-  recieve_newVersion(node: NodeyCode, updateID: string, jsn: string) : NodeyCode
+  recieve_newVersion(nodey: NodeyCode, updateID: string, jsn: string) : NodeyCode
   {
-    if(node.pendingUpdate && node.pendingUpdate === updateID)
+    if(nodey.pendingUpdate && nodey.pendingUpdate === updateID)
     {
-      console.log("Time to resolve", jsn, "with", node)
-
+      console.log("Time to resolve", jsn, "with", nodey)
+      var dict = JSON.parse(jsn)
+      if(dict.literal && nodey.literal)//leaf node
+        console.log("MATCH?", this.matchLiterals(dict.literal, nodey.literal))
+      else
+      {
+        var candidateList = nodey.content
+        var matches: any[]= []
+        console.log("Match?", this.match(dict.content, candidateList, matches))
+      }
     }
-    return node
+    return nodey
   }
+
+
+  match(nodeList : {[key:string]: any}[], candidateList : number[], updates : any[]) : [number, any[]]
+  {
+    var totalScore = 0
+    var canIndex = 0
+    var retry = null
+    for(var i = 0; i < nodeList.length; i++)
+    {
+      var matchDone = false
+      var node = nodeList[i]
+
+      //first, try to beat a retry match. If new score is worse, concede win to former node
+      if(retry)
+      {
+        var [rematchScore, updatesB] = this.matchNode(node, retry.potentialMatch, updates)
+        if(rematchScore < retry.score)
+        {
+          updates.push("add a new nodey "+JSON.stringify(retry.contenter))
+          if(rematchScore === 0)//be greedy and call it a match for this new node
+          {
+            retry = null
+            matchDone = true
+            updates = updatesB
+          }
+          else
+            retry = {'contenter': node, 'potentialMatch': retry.potentialMatch, 'score': rematchScore, 'updates': updatesB}
+        }
+        else
+        {
+          updates = retry.updates
+          updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(retry.contenter))
+          retry = null
+        }
+      }
+
+      //we haven't yet found a match, so don't move on yet
+      if(!matchDone)
+      {
+        var potentialMatch = this.historyModel.getCodeNodey(candidateList[canIndex])
+        var [matchScore, updatesC] = this.matchNode(node, potentialMatch, updates)
+
+        if(retry) //if the current node has 2 possibilities
+        {
+          if(matchScore < retry.score) // it's a better match
+            updates.push("remove a nodey "+retry.potentialMatch.id)
+
+          else // former retry node is a better match
+          {
+            matchDone = true
+            updates = retry.updates
+            updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(node))
+          }
+          retry = null
+        }
+
+        if(!matchDone)
+        {
+          if(matchScore === 0)//be greedy and call it a match
+          {
+            canIndex ++ //okay good, go to the next candidate we need to match
+            updates = updatesC
+          }
+
+          else // match is not perfect
+          {
+            retry = {'contenter': node, 'potentialMatch': potentialMatch, 'score': matchScore, 'updates': updatesC}
+            canIndex ++
+          }
+        }
+      }
+    }
+
+    return [totalScore, updates]
+  }
+
+
+  matchNode(node : {[key:string]: any}, potentialMatch : NodeyCode, updates : any[]) : [number, any[]]
+  {
+    if(node.literal && potentialMatch.literal) //leaf nodes
+      return [this.matchLiterals(node.literal+"", potentialMatch.literal+""), updates]
+    else
+      return this.match(node.content, potentialMatch.content, updates)
+  }
+
+
+  matchLiterals(val1 : string, val2 : string) : number
+  {
+    return levenshtein.get(val1, val2)
+  }
+
 }
