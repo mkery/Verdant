@@ -206,7 +206,7 @@ class ASTResolve{
       {
         var candidateList = nodey.content
         var matches: any[]= []
-        console.log("Match?", this.match(dict.content, candidateList, matches))
+        console.log("Match?", this.match(dict.content[0].content, candidateList, matches))
       }
     }
     return nodey
@@ -218,8 +218,10 @@ class ASTResolve{
     var totalScore = 0
     var canIndex = 0
     var retry = null
+    console.log("NODE LIST", nodeList, candidateList)
     for(var i = 0; i < nodeList.length; i++)
     {
+      console.log("RETRY", retry)
       var matchDone = false
       var node = nodeList[i]
 
@@ -234,21 +236,21 @@ class ASTResolve{
           {
             retry = null
             matchDone = true
-            updates = updatesB
+            updates.concat(updates)
           }
           else
             retry = {'contenter': node, 'potentialMatch': retry.potentialMatch, 'score': rematchScore, 'updates': updatesB}
         }
         else
         {
-          updates = retry.updates
+          updates.concat(retry.updates)
           updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(retry.contenter))
           retry = null
         }
       }
 
       //we haven't yet found a match, so don't move on yet
-      if(!matchDone)
+      if(!matchDone && candidateList[canIndex])
       {
         var potentialMatch = this.historyModel.getCodeNodey(candidateList[canIndex])
         var [matchScore, updatesC] = this.matchNode(node, potentialMatch, updates)
@@ -261,7 +263,7 @@ class ASTResolve{
           else // former retry node is a better match
           {
             matchDone = true
-            updates = retry.updates
+            updates.concat(retry.updates)
             updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(node))
           }
           retry = null
@@ -272,7 +274,7 @@ class ASTResolve{
           if(matchScore === 0)//be greedy and call it a match
           {
             canIndex ++ //okay good, go to the next candidate we need to match
-            updates = updatesC
+            updates.concat(updatesC)
           }
 
           else // match is not perfect
@@ -283,6 +285,15 @@ class ASTResolve{
         }
       }
     }
+
+    if(retry)// match is not perfect but it's all we have
+    {
+      updates.concat(retry.updates)
+      updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(retry.contenter))
+    }
+
+    if(updates.length > 0)
+      console.log("UPDATES", updates)
 
     return [totalScore, updates]
   }
