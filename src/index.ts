@@ -41,7 +41,7 @@ const extension: JupyterLabPlugin<void> = {
     var activePanel: NotebookPanel;
 
     var notebook : NotebookListen;
-    const model = new Model()
+    const model = new Model(0)
     const astUtils = new ASTGenerate(model)
 
     restorer.add(panel, 'verdant-manager');
@@ -67,7 +67,9 @@ const extension: JupyterLabPlugin<void> = {
           {
             activePanel = widg
             notebook = new NotebookListen(activePanel, astUtils, model)
-            notebook.ready.then(() => {'Notebook is ready'})
+            notebook.ready.then(() => {
+              console.log('Notebook is ready')
+            })
           }
         each(shell.widgets('main'), widget => {
           if(widget instanceof NotebookPanel)

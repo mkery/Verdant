@@ -26,6 +26,13 @@ class KernelListen
     return this.ready()
   }
 
+
+  get path(): string
+  {
+    return this.session.path
+  }
+
+
   async ready(): Promise<void>
   {
     await this.session.ready

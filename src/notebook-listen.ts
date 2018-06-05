@@ -61,6 +61,12 @@ class NotebookListen
     return arr
   }
 
+  get path(): string
+  {
+    return this.kernUtil.path
+  }
+
+
   private async init()
   {
     await this.notebookPanel.ready
@@ -79,8 +85,10 @@ class NotebookListen
       }
     })
     await Promise.all(cellsReady)
-    console.log("Loaded Notebook", this.nodey)
+    console.log("Loaded Notebook", this.notebook, this.nodey)
+    this.historyModel.notebook = this
     console.log("TO JSON", this.toJSON())
+    this.historyModel.writeToFile()
     this.focusCell(this.notebook.activeCell)
     this.listen()
     this._ready.resolve(undefined);
