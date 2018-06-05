@@ -18,6 +18,7 @@
 ## A bunch of hooks into the Jupyterlab environement:
 - ### notebook-listen.ts
   - (TODO) listens for cells being added, removed, or focused in the user's notebook, updates model accordingly
+  - (TODO) does not yet work for any cells that aren't code cells. Must also work for markdown
   - contains a list of `CellListen`, one per each cell present in the notebook
 
 - ### cell-listen.ts
