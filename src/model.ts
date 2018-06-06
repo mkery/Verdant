@@ -25,7 +25,7 @@ class Model
 
   private _notebook : NotebookListen
   private _nodeyCounter = 0
-  private _nodeyStore : Nodey[] = []
+  private _nodeyStore : NodeyVersionList[] = []
 
 
   set notebook(notebook : NotebookListen)
@@ -41,19 +41,23 @@ class Model
   }
 
 
-  getCodeNodey(id: number) : NodeyCode { //TODO seperate list for markdown and output
-    return <NodeyCode> this._nodeyStore[id]
+  getCodeNodey(name: string) : NodeyCode { //TODO seperate list for markdown and output
+    var [id, ver] = name.split('.').map(x => parseInt(x))
+    return <NodeyCode> this._nodeyStore[id].getNodey(ver)
   }
 
 
-  registerNodey(nodey : Nodey) :void{
-    this._nodeyStore[nodey.id] = nodey
-  }
-
-
-  toJSON() : serialized_Nodey[]
+  registerNodey(nodey : Nodey) : number
   {
-    return this._nodeyStore.map( (item : Nodey) => {
+    this._nodeyStore[nodey.id] = new NodeyVersionList(nodey.id)
+    var version = this._nodeyStore[nodey.id].addNodey(nodey)
+    return version
+  }
+
+
+  toJSON() : serialized_NodeyList[]
+  {
+    return this._nodeyStore.map( (item : NodeyVersionList) => {
       if(item)
         return item.toJSON()
     })
@@ -94,6 +98,75 @@ class Model
     })
   }
 
+
+  loadFromFile() : Promise<void>
+  {
+    return new Promise((accept, reject) => {
+      var notebookPath = this._notebook.path
+      //console.log("notebook path is", notebookPath)
+      var name = PathExt.basename(notebookPath)
+      name = name.substring(0, name.indexOf('.')) + ".ipyhistory"
+      //console.log("name is", name)
+      var path = "/" + notebookPath.substring(0, notebookPath.lastIndexOf('/') + 1) + name
+      let contents = new ContentsManager()
+      contents.get(path)
+      .then((res) => {
+        console.log("Found a model ", res)
+        accept()
+      })
+      .catch((rej) => {
+        //here when you reject the promise if the filesave fails
+        console.error(rej)
+        reject()
+      })
+    })
+  }
+
+}
+
+
+export
+class NodeyVersionList
+{
+
+  private _verList : Nodey[]
+  private _number : number
+
+  constructor(index : number)
+  {
+    this._verList = []
+    this._number = index
+  }
+
+  addNodey(nodey : Nodey) : number
+  {
+    this._verList.push(nodey)
+    return this._verList.length - 1
+  }
+
+  get history() : Nodey[]
+  {
+    return this._verList
+  }
+
+  getNodey(index : number) : Nodey
+  {
+    return this._verList[index]
+  }
+
+  toJSON() : serialized_NodeyList
+  {
+    var versions = this._verList.map(item => item.toJSON())
+    var jsn : serialized_NodeyList = {'nodey': this._number, 'versions': versions}
+    return jsn
+  }
+}
+
+
+export
+interface serialized_NodeyList {
+    nodey: number,
+    versions: serialized_Nodey[]
 }
 
 

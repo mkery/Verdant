@@ -12,7 +12,7 @@ export
 abstract class Nodey
 {
   private node_id: number //id for this node
-  number : number //chronological number
+  private version_id : number //chronological number
   run : string //id marking which run
   timestamp : Date //timestamp when created
   pendingUpdate : string
@@ -20,7 +20,6 @@ abstract class Nodey
   constructor(options: { [id: string] : any })
   {
     this.node_id = options.id
-    this.number = options.number || 0
     this.run = options.run
     this.timestamp = options.timestamp
   }
@@ -28,6 +27,16 @@ abstract class Nodey
   get id() : number
   {
     return this.node_id
+  }
+
+  get version() : number
+  {
+    return this.version_id
+  }
+
+  set version(verNum : number)
+  {
+    this.version_id = verNum
   }
 
   abstract toJSON(): serialized_Nodey
@@ -56,13 +65,12 @@ class NodeyOutput extends Nodey
 
   toJSON(): serialized_NodeyOutput
   {
-    return {'number': this.number, 'output': this.raw}//TODO
+    return {'output': this.raw}//TODO
   }
 }
 
 export
 interface serialized_Nodey {
-    number: number,
     run?: number //TODO
 }
 
@@ -78,7 +86,7 @@ interface serialized_NodeyCode extends serialized_Nodey{
     literal?: any,
     start?: {'line' : number, 'ch' : number},
     end?: {'line' : number, 'ch' : number}
-    content?: number[]
+    content?: string[]
 }
 
 export
@@ -86,7 +94,7 @@ class NodeyCode extends Nodey
 {
   type : string
   output: NodeyOutput[]
-  content : number[]
+  content : string[]
   start: {'line' : number, 'ch' : number}
   end: {'line' : number, 'ch' : number}
   literal: any
@@ -109,7 +117,7 @@ class NodeyCode extends Nodey
 
   toJSON(): serialized_NodeyCode
   {
-    var jsn : serialized_NodeyCode = {'type': this.type, 'number': this.number}
+    var jsn : serialized_NodeyCode = {'type': this.type}
     if(this.literal)
       jsn.literal = this.literal
     if(this.output)
@@ -158,11 +166,12 @@ namespace Nodey {
       child.parent = n
       if(prior)
         prior.right = child
-      n.content.push(child.id)
+      n.content.push(child.id+"."+child.version)
       prior = child
     }
 
-    historyModel.registerNodey(n)
+    var verNum = historyModel.registerNodey(n)
+    n.version = verNum
     return n
   }
 

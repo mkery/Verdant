@@ -30,19 +30,20 @@ class ASTResolve{
 
   repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
-    var range = this.solveRange(change, editor) // first convert code mirror coordinates to our coordinates
-    console.log("updated range is", range)
-    var affected = this.findAffectedChild(nodey.content, 0, Math.max(0, nodey.content.length - 1), range)
+    var range = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}} // first convert code mirror coordinates to our coordinates
+    var affected = this.findAffectedChild(nodey, 0, Math.max(0, nodey.content.length - 1), range)
     affected = affected || nodey // if there's no specific node broken, the whole cell node is broken
 
     // shift all nodey positions after affected
     var newEnd = this.repairPositions(affected, change)
 
     // return the text from this node's new range
+    if(affected.literal)
+
     var text = editor.doc.getRange(affected.start, newEnd)
     var updateID = crypto.randomBytes(20).toString('hex');
     affected.pendingUpdate = updateID
-    console.log("The exact affected nodey is", affected, text)
+    console.log("The exact affected nodey is", affected, text, range.start, newEnd)
 
     var kernel_reply = this.recieve_newVersion.bind(this, affected, updateID)
     return [kernel_reply, text]
@@ -57,13 +58,23 @@ class ASTResolve{
   {
     var lineRange = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}}
     lineRange.start.ch = 0
-    //lineRange.end.ch = editor.doc.getLine(change.to.line).length
     return lineRange
   }
 
 
-  findAffectedChild(content: number[], min: number, max: number, change: {'start': any, 'end': any}) :  NodeyCode
+  fullLinesRange(change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
   {
+    var lineRange = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}}
+    lineRange.start.ch = 0
+    lineRange.end.ch = editor.doc.getLine(change.to.line).length
+    return lineRange
+  }
+
+
+  findAffectedChild(node: NodeyCode, min: number, max: number, change: {'start': any, 'end': any}) :  NodeyCode
+  {
+    var content : string[] = node.content
+    var match = null
     var mid = Math.round((max - min)/2) + min
     var midNodey = <NodeyCode> this.historyModel.getCodeNodey(content[mid])
     var direction = this.inRange(midNodey, change)
@@ -74,17 +85,22 @@ class ASTResolve{
     if(direction === 0) // it's in this node, check for children to be more specific
     {
       if(midNodey.content.length < 1)
-        return midNodey // found!
+        match = midNodey // found!
       else
-        return this.findAffectedChild(midNodey.content, 0, Math.max(0, midNodey.content.length - 1), change) || midNodey // found!
+        match = this.findAffectedChild(midNodey, 0, Math.max(0, midNodey.content.length - 1), change) || midNodey // found!
     }
     else if(direction === 2)
       return null // there is no match at this level
     else if(direction === -1) // check the left
-      return this.findAffectedChild(content, min, mid - 1, change)
+      match = this.findAffectedChild(node, min, mid - 1, change)
     else if(direction === 1) // check the right
-      return this.findAffectedChild(content, mid + 1, max, change)
-      return null
+      match = this.findAffectedChild(node, mid + 1, max, change)
+
+    if(match) // if there's a match, now find it's closest parsable parent
+    {
+      return match //TODO
+    }
+    return null
   }
 
 
@@ -199,7 +215,8 @@ class ASTResolve{
     if(nodey.pendingUpdate && nodey.pendingUpdate === updateID)
     {
       console.log("Time to resolve", jsn, "with", nodey)
-      var dict = JSON.parse(jsn)
+      var dict = this.reduceAST(JSON.parse(jsn))
+      console.log("Reduced AST", dict)
       if(dict.literal && nodey.literal)//leaf node
         console.log("MATCH?", this.matchLiterals(dict.literal, nodey.literal))
       else
@@ -213,7 +230,19 @@ class ASTResolve{
   }
 
 
-  match(nodeList : {[key:string]: any}[], candidateList : number[], updates : any[]) : [number, any[]]
+  reduceAST(ast : {[key:string]: any}) : {[key:string]: any}
+  {
+    if(ast.content && ast.content.length === 1) // check if this node is a wrapper or not
+    {
+      var child = ast.content[0]
+      if(child.start.line === ast.start.line && child.start.ch === ast.start.ch && child.end.line === ast.end.line && child.end.ch === ast.end.ch)
+        return this.reduceAST(child)
+    }
+    return ast
+  }
+
+
+  match(nodeList : {[key:string]: any}[], candidateList : string[], updates : any[]) : [number, any[]]
   {
     var totalScore = 0
     var canIndex = 0
