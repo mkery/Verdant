@@ -41,10 +41,7 @@ abstract class Nodey
     this.version_id = verNum
   }
 
-  clone() : Nodey
-  {
-    return Object.assign({}, this)
-  }
+  abstract clone() : Nodey
 
   abstract toJSON(): serialized_Nodey
 }
@@ -67,6 +64,12 @@ class NodeyOutput extends Nodey
   static EMPTY()
   {
     return new NodeyOutput({'raw': {}, 'dependsOn': []})
+  }
+
+
+  clone() : Nodey
+  {
+    return new NodeyOutput({'dependsOn': this.dependsOn, 'raw': this.raw, 'id': this.id, 'parent': this.parent})
   }
 
 
@@ -136,6 +139,13 @@ class NodeyCode extends Nodey
         jsn.content = this.content
 
     return jsn
+  }
+
+
+  clone() : Nodey
+  {
+    //really important to slice the content array or it references, instead of copies, the list
+    return new NodeyCode({'type': this.type, 'content': this.content.slice(0), 'literal': this.literal, 'start': this.start, 'end': this.end, 'right': this.right, 'id': this.id, 'parent': this.parent})
   }
 
 

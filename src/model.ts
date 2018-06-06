@@ -178,8 +178,7 @@ class NodeyVersionList
       if(this._starState.parent) // star all the way up the chain
       {
         var formerName = nodey.id+"."+nodey.version
-        var starName = nodey.id+".*"
-        var transforms = [(x : NodeyCode) => x.content[x.content.indexOf(formerName)] = starName]
+        var transforms = [(x : NodeyCode) => x.content[x.content.indexOf(formerName)] = nodey.id+".*"]
         var parent = this.historyModel.getCodeNodey(this._starState.parent)
         this.historyModel.starNodey(transforms, parent)
       }
