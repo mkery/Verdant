@@ -12,16 +12,18 @@ export
 abstract class Nodey
 {
   private node_id: number //id for this node
-  private version_id : number //chronological number
+  private version_id : any //chronological number
   run : string //id marking which run
   timestamp : Date //timestamp when created
   pendingUpdate : string
+  parent : string //lookup id for the parent Nodey of this Nodey
 
   constructor(options: { [id: string] : any })
   {
     this.node_id = options.id
     this.run = options.run
     this.timestamp = options.timestamp
+    this.parent = options.parent
   }
 
   get id() : number
@@ -29,14 +31,19 @@ abstract class Nodey
     return this.node_id
   }
 
-  get version() : number
+  get version() : any
   {
     return this.version_id
   }
 
-  set version(verNum : number)
+  set version(verNum : any)
   {
     this.version_id = verNum
+  }
+
+  clone() : Nodey
+  {
+    return Object.assign({}, this)
   }
 
   abstract toJSON(): serialized_Nodey
@@ -67,6 +74,7 @@ class NodeyOutput extends Nodey
   {
     return {'output': this.raw}//TODO
   }
+
 }
 
 export
@@ -98,8 +106,7 @@ class NodeyCode extends Nodey
   start: {'line' : number, 'ch' : number}
   end: {'line' : number, 'ch' : number}
   literal: any
-  parent : NodeyCode
-  right : NodeyCode
+  right : string // lookup id for the next Nodey to the right of this one
 
   constructor(options: { [id: string] : any })
   {
@@ -110,7 +117,6 @@ class NodeyCode extends Nodey
     this.literal = options.literal
     this.start = options.start
     this.end = options.end
-    this.parent = options.parent
     this.right = options.right
   }
 
@@ -155,23 +161,24 @@ namespace Nodey {
 
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict)
+    var verNum = historyModel.registerNodey(n)
+    n.version = verNum
+
     if(prior)
-      prior.right = n
+      prior.right = n.id+"."+n.version
     prior = null
 
     n.content = []
     for(var item in dict.content)
     {
       var child = dictToCodeNodeys(dict.content[item], historyModel, prior)
-      child.parent = n
+      child.parent = n.id+"."+n.version
       if(prior)
-        prior.right = child
+        prior.right = child.id+"."+child.version
       n.content.push(child.id+"."+child.version)
       prior = child
     }
 
-    var verNum = historyModel.registerNodey(n)
-    n.version = verNum
     return n
   }
 

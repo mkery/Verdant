@@ -110,9 +110,10 @@ class ASTResolve{
     var [nodeEnd , deltaLine, deltaCh] = this.calcShift(affected, change)
     if(affected.right)
     {
-      if(affected.right.start.line !== nodeEnd.line)
+      var right = this.historyModel.getCodeNodey(affected.right)
+      if(right.start.line !== nodeEnd.line)
         deltaCh = 0
-      this.shiftAllAfter(affected.right, deltaLine, deltaCh)
+      this.shiftAllAfter(right, deltaLine, deltaCh)
     }
     return nodeEnd
   }
@@ -160,9 +161,9 @@ class ASTResolve{
     //Now be sure to shift all children
     this.shiftAllChildren(nodey, deltaLine, deltaCh)
 
-    var rightSibling = nodey.right
-    if(rightSibling)
+    if(nodey.right)
     {
+      var rightSibling = this.historyModel.getCodeNodey(nodey.right)
       if(rightSibling.start.line !== nodey.start.line)
         deltaCh = 0
       this.shiftAllAfter(rightSibling, deltaLine, deltaCh)
@@ -218,12 +219,17 @@ class ASTResolve{
       var dict = this.reduceAST(JSON.parse(jsn))
       console.log("Reduced AST", dict)
       if(dict.literal && nodey.literal)//leaf node
-        console.log("MATCH?", this.matchLiterals(dict.literal, nodey.literal))
+      {
+        var score = this.matchLiterals(dict.literal, nodey.literal)
+        //TODO what if not a match??? better scoring mechanism
+        console.log("Match?", score)
+        var transforms = [(n : NodeyCode) => n.literal = dict.literal]
+        this.historyModel.starNodey(transforms, nodey)
+      }
       else
       {
         var candidateList = nodey.content
-        var matches: any[]= []
-        console.log("Match?", this.match(dict.content[0].content, candidateList, matches))
+        console.log("Match?", this.match(dict.content[0].content, candidateList, []))
       }
     }
     return nodey

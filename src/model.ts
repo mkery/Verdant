@@ -42,14 +42,19 @@ class Model
 
 
   getCodeNodey(name: string) : NodeyCode { //TODO seperate list for markdown and output
-    var [id, ver] = name.split('.').map(x => parseInt(x))
-    return <NodeyCode> this._nodeyStore[id].getNodey(ver)
+    var [id, ver] = name.split('.')
+    return <NodeyCode> this._nodeyStore[parseInt(id)].getNodey(ver)
   }
 
 
+  starNodey(changes : ((x:Nodey)=>void)[], nodey : Nodey) // if a Node is in star state, it's got changes that have not been commited
+  {
+    this._nodeyStore[nodey.id].starNodey(changes, nodey)
+  }
+
   registerNodey(nodey : Nodey) : number
   {
-    this._nodeyStore[nodey.id] = new NodeyVersionList(nodey.id)
+    this._nodeyStore[nodey.id] = new NodeyVersionList(this, nodey.id)
     var version = this._nodeyStore[nodey.id].addNodey(nodey)
     return version
   }
@@ -128,15 +133,19 @@ class Model
 export
 class NodeyVersionList
 {
+  historyModel :Model
 
   private _verList : Nodey[]
   private _number : number
+  private _starState : Nodey
 
-  constructor(index : number)
+  constructor(historyModel : Model, index : number)
   {
+    this.historyModel = historyModel
     this._verList = []
     this._number = index
   }
+
 
   addNodey(nodey : Nodey) : number
   {
@@ -144,15 +153,40 @@ class NodeyVersionList
     return this._verList.length - 1
   }
 
+
   get history() : Nodey[]
   {
     return this._verList
   }
 
-  getNodey(index : number) : Nodey
+
+  getNodey(index : any) : Nodey
   {
-    return this._verList[index]
+    if(index === '*')
+      return this._starState
+
+    return this._verList[parseInt(index)]
   }
+
+
+  starNodey(changes: ((x: Nodey) => void)[] , nodey : Nodey = this._verList[this._verList.length - 1])
+  {
+    if(!this._starState) //newly entering star state!
+    {
+      this._starState = nodey.clone()
+      this._starState.version = '*'
+      if(this._starState.parent) // star all the way up the chain
+      {
+        var formerName = nodey.id+"."+nodey.version
+        var starName = nodey.id+".*"
+        var transforms = [(x : NodeyCode) => x.content[x.content.indexOf(formerName)] = starName]
+        var parent = this.historyModel.getCodeNodey(this._starState.parent)
+        this.historyModel.starNodey(transforms, parent)
+      }
+    }
+    changes.forEach( (fun: (x: Nodey) => void) => fun(this._starState))
+  }
+
 
   toJSON() : serialized_NodeyList
   {
