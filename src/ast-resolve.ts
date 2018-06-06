@@ -32,18 +32,25 @@ class ASTResolve{
   {
     var range = {'start': {'line': change.from.line, 'ch': change.from.ch}, 'end': {'line': change.to.line, 'ch': change.to.ch}} // first convert code mirror coordinates to our coordinates
     var affected = this.findAffectedChild(nodey, 0, Math.max(0, nodey.content.length - 1), range)
-    affected = affected || nodey // if there's no specific node broken, the whole cell node is broken
 
-    // shift all nodey positions after affected
-    var newEnd = this.repairPositions(affected, change)
+    if(affected)
+    {
+      // shift all nodey positions after affected
+      var newEnd = this.repairPositions(affected, change)
+      // return the text from this node's new range
+      var text = editor.doc.getRange(affected.start, newEnd)
+      console.log("The exact affected nodey is", affected, text, range.start, newEnd)
+    }
+    else // if there's no specific node broken, the whole cell node is broken
+    {
+      affected = nodey
+      // return the text from this node's new range
+      var text = editor.doc.getValue()
+      console.log("The exact affected nodey is", affected, text, range)
+    }
 
-    // return the text from this node's new range
-    if(affected.literal)
-
-    var text = editor.doc.getRange(affected.start, newEnd)
     var updateID = crypto.randomBytes(20).toString('hex');
     affected.pendingUpdate = updateID
-    console.log("The exact affected nodey is", affected, text, range.start, newEnd)
 
     var kernel_reply = this.recieve_newVersion.bind(this, affected, updateID)
     return [kernel_reply, text]
@@ -231,6 +238,10 @@ class ASTResolve{
         var candidateList = nodey.content
         console.log("Match?", this.match(dict.content[0].content, candidateList, []))
       }
+
+      //resolved
+      if(nodey.pendingUpdate === updateID)
+        nodey.pendingUpdate = null
     }
     return nodey
   }
