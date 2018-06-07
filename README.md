@@ -1,17 +1,10 @@
-# Verdant
+# Verdant (still cooking :cake: dev version)
 
-an experimental tool building local versioning into Jupyter Lab
-
+An experimental tool building local versioning into Jupyter Lab. Verdant is in active development and we're expecting the initial beta release for everyone to use in September 2018. 
 
 ## Prerequisites
 
 * JupyterLab
-
-## Installation
-
-```bash
-jupyter labextension install Verdant
-```
 
 ## Development
 
