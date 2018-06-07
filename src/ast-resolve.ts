@@ -236,7 +236,7 @@ class ASTResolve{
       else
       {
         var candidateList = nodey.content
-        console.log("Match?", this.match(dict.content[0].content, candidateList, []))
+        console.log("Match?", this.match(dict.content, candidateList, []))
       }
 
       //resolved
@@ -267,7 +267,8 @@ class ASTResolve{
     console.log("NODE LIST", nodeList, candidateList)
     for(var i = 0; i < nodeList.length; i++)
     {
-      console.log("RETRY", retry)
+      if(retry)
+        console.log("RETRY", retry)
       var matchDone = false
       var node = nodeList[i]
 
@@ -300,6 +301,7 @@ class ASTResolve{
       {
         var potentialMatch = this.historyModel.getCodeNodey(candidateList[canIndex])
         var [matchScore, updatesC] = this.matchNode(node, potentialMatch, updates)
+        console.log("MATCH?", matchScore, updatesC, potentialMatch, node)
 
         if(retry) //if the current node has 2 possibilities
         {
