@@ -235,8 +235,7 @@ class ASTResolve{
       }
       else
       {
-        var candidateList = nodey.content
-        console.log("Match?", this.match(dict.content, candidateList, []))
+        console.log("Match?", this.matchNode(dict, nodey))
       }
 
       //resolved
@@ -259,100 +258,78 @@ class ASTResolve{
   }
 
 
-  match(nodeList : {[key:string]: any}[], candidateList : string[], updates : any[]) : [number, any[]]
+
+  match(nodeIndex: number, nodeList : {[key:string]: any}[], oldNodeyList : string[], candidateList : any[]) : [number, any[], any[]]
   {
+    var nodeToMatch = nodeList[nodeIndex]
+    var options = []
     var totalScore = 0
-    var canIndex = 0
-    var retry = null
-    console.log("NODE LIST", nodeList, candidateList)
-    for(var i = 0; i < nodeList.length; i++)
-    {
-      if(retry)
-        console.log("RETRY", retry)
-      var matchDone = false
-      var node = nodeList[i]
+    console.log("Attempting to match", nodeToMatch)
 
-      //first, try to beat a retry match. If new score is worse, concede win to former node
-      if(retry)
+    for(var i = 0; i < candidateList.length; i++)
+    {
+      var candidate = this.historyModel.getCodeNodey(candidateList[i])
+      var [score, updates] = this.matchNode(nodeToMatch, candidate)
+
+      if(score === 0) // perfect match
       {
-        var [rematchScore, updatesB] = this.matchNode(node, retry.potentialMatch, updates)
-        if(rematchScore < retry.score)
-        {
-          updates.push("add a new nodey "+JSON.stringify(retry.contenter))
-          if(rematchScore === 0)//be greedy and call it a match for this new node
-          {
-            retry = null
-            matchDone = true
-            updates.concat(updates)
-          }
-          else
-            retry = {'contenter': node, 'potentialMatch': retry.potentialMatch, 'score': rematchScore, 'updates': updatesB}
-        }
+        candidateList.splice(i, 1) // remove from candidate list
+        if(nodeIndex < nodeList.length - 1)
+          return this.match(nodeIndex + 1, nodeList, oldNodeyList, candidateList)
         else
-        {
-          updates.concat(retry.updates)
-          updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(retry.contenter))
-          retry = null
-        }
+          return [0, candidateList, []]
       }
 
-      //we haven't yet found a match, so don't move on yet
-      if(!matchDone && candidateList[canIndex])
-      {
-        var potentialMatch = this.historyModel.getCodeNodey(candidateList[canIndex])
-        var [matchScore, updatesC] = this.matchNode(node, potentialMatch, updates)
-        console.log("MATCH?", matchScore, updatesC, potentialMatch, node)
-
-        if(retry) //if the current node has 2 possibilities
-        {
-          if(matchScore < retry.score) // it's a better match
-            updates.push("remove a nodey "+retry.potentialMatch.id)
-
-          else // former retry node is a better match
-          {
-            matchDone = true
-            updates.concat(retry.updates)
-            updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(node))
-          }
-          retry = null
-        }
-
-        if(!matchDone)
-        {
-          if(matchScore === 0)//be greedy and call it a match
-          {
-            canIndex ++ //okay good, go to the next candidate we need to match
-            updates.concat(updatesC)
-          }
-
-          else // match is not perfect
-          {
-            retry = {'contenter': node, 'potentialMatch': potentialMatch, 'score': matchScore, 'updates': updatesC}
-            canIndex ++
-          }
-        }
-      }
+      if(score != -1)
+        options[i] = {'score': score, 'transforms': updates}
     }
 
-    if(retry)// match is not perfect but it's all we have
+    // if we've gotten here, an exact match was NOT found
+    if(nodeIndex < nodeList.length - 1)
+      var [totalScore, candidateList, updates] = this.match(nodeIndex + 1, nodeList, oldNodeyList, candidateList)
+
+    console.log(nodeToMatch," now options are ", options, candidateList)
+    var bestMatch
+    var matchIndex
+    for(var j = 0; j < candidateList.length; j++)
     {
-      updates.concat(retry.updates)
-      updates.push("update the node "+retry.potentialMatch.id+" with "+JSON.stringify(retry.contenter))
+      if(options[j]) //can use this one
+      {
+        if(!bestMatch || bestMatch.score > options[j].score)
+        {
+          bestMatch = options[j]
+          matchIndex = j
+        }
+      }
     }
 
-    if(updates.length > 0)
-      console.log("UPDATES", updates)
+    if(bestMatch)
+    {
+      totalScore = bestMatch.score
+      candidateList.splice(matchIndex, 1)
+      updates.concat(bestMatch.transforms)
+    }
+    else
+      updates.push('Added new node '+nodeToMatch)
 
-    return [totalScore, updates]
+    return [totalScore, candidateList, updates]
   }
 
 
-  matchNode(node : {[key:string]: any}, potentialMatch : NodeyCode, updates : any[]) : [number, any[]]
+  matchNode(node : {[key:string]: any}, potentialMatch : NodeyCode) : [number, any[]]
   {
+    if(node.type !== potentialMatch.type)
+      return [-1, []]
     if(node.literal && potentialMatch.literal) //leaf nodes
-      return [this.matchLiterals(node.literal+"", potentialMatch.literal+""), updates]
+      return [this.matchLiterals(node.literal+"", potentialMatch.literal+""), ['change literal from '+potentialMatch.literal+' to '+node.literal]]
     else
-      return this.match(node.content, potentialMatch.content, updates)
+    {
+      var [totalScore, candidateList, updates] =  this.match(0, node.content, potentialMatch.content, potentialMatch.content.slice(0))
+      candidateList.map((x) => {
+         updates.push('removed node '+x)
+      })
+      return [totalScore, updates]
+    }
   }
 
 
