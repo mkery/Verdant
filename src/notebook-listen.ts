@@ -22,10 +22,6 @@ import{
   KernelListen
 } from './kernel-listen'
 
-import{
-  Nodey
-} from './nodey'
-
 import {
   Model
 } from './model'
@@ -55,8 +51,8 @@ class NotebookListen
     return this._ready.promise
   }
 
-  get nodey(): Nodey[] {
-    var arr : Nodey[] = []
+  get nodey(): string[] {
+    var arr : string[] = []
     this.cells.forEach((value, key) => { arr.push(value.nodey) })
     return arr
   }
@@ -100,11 +96,7 @@ class NotebookListen
   toJSON() : {'runs': any[], 'cells': any[], 'nodey': any[]}
   {
     var runList = <any>[] //TODO
-    var cells = this.nodey.map( (item : Nodey) => {
-      if(item)
-        return item.id
-      return undefined
-    })
+    var cells = this.nodey
     var nodey = this.historyModel.toJSON()
     return {'runs': runList, 'cells': cells, 'nodey': nodey}
   }

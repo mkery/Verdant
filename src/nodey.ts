@@ -26,7 +26,12 @@ abstract class Nodey
     this.parent = options.parent
   }
 
-  get id() : number
+  get name() : string
+  {
+    return this.node_id+"."+this.version_id
+  }
+
+  get id() : any
   {
     return this.node_id
   }
@@ -124,6 +129,15 @@ class NodeyCode extends Nodey
   }
 
 
+  positionRelativeTo(target : NodeyCode)
+  {
+    var deltaLine = target.start.line
+    var deltaCh = target.start.ch
+    this.start = {'line': deltaLine + this.start.line, 'ch': deltaCh + this.start.ch}
+    this.end = {'line': deltaLine + this.end.line, 'ch': deltaCh + this.end.ch}
+  }
+
+
   toJSON(): serialized_NodeyCode
   {
     var jsn : serialized_NodeyCode = {'type': this.type}
@@ -175,17 +189,17 @@ namespace Nodey {
     n.version = verNum
 
     if(prior)
-      prior.right = n.id+"."+n.version
+      prior.right = n.name
     prior = null
 
     n.content = []
     for(var item in dict.content)
     {
       var child = dictToCodeNodeys(dict.content[item], historyModel, prior)
-      child.parent = n.id+"."+n.version
+      child.parent = n.name
       if(prior)
-        prior.right = child.id+"."+child.version
-      n.content.push(child.id+"."+child.version)
+        prior.right = child.name
+      n.content.push(child.name)
       prior = child
     }
 

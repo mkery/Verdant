@@ -298,9 +298,9 @@ def main(text):
   }
 
 
-  async generateCodeNodey(code: string, options: { [key : string] : any}) : Promise<NodeyCode>
+  async generateCodeNodey(code: string, options: { [key : string] : any}) : Promise<string>
   {
-    return new Promise<NodeyCode>((accept, reject) => {
+    return new Promise<string>((accept, reject) => {
       var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
         //console.log(code, "R: ", msg)
       }
@@ -343,18 +343,18 @@ def main(text):
   }
 
 
-  recieve_generateAST(jsn: string, options: { [key : string] : any}) : NodeyCode
+  recieve_generateAST(jsn: string, options: { [key : string] : any}) : string
   {
     if(jsn == 'null')
-      return NodeyCode.EMPTY()
+      return null//NodeyCode.EMPTY()
     if(jsn === "[]\n")
-      return NodeyCode.EMPTY()
+      return null//NodeyCode.EMPTY()
 
     //console.log("trying to parse", jsn)
     var dict = JSON.parse(jsn)
     console.log(dict)
     var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict, options), this.historyModel)
-    return nodey
+    return nodey.name
   }
 
 

@@ -26,6 +26,7 @@ class Model
   private _notebook : NotebookListen
   private _nodeyCounter = 0
   private _nodeyStore : NodeyVersionList[] = []
+  private _starNodes : Nodey[] = [] // new nodes that haven't been commited & subsequently indexed yet
 
 
   set notebook(notebook : NotebookListen)
@@ -34,28 +35,47 @@ class Model
   }
 
 
-  dispenseNodeyID(): number{
+  dispenseNodeyID(): number
+  {
     var id = this._nodeyCounter
     this._nodeyCounter ++
     return id
   }
 
 
-  getCodeNodey(name: string) : NodeyCode { //TODO seperate list for markdown and output
+  getNodeyHead(name: string) : NodeyCode
+  { //TODO seperate list for markdown and output
     var [id, ver] = name.split('.')
-    return <NodeyCode> this._nodeyStore[parseInt(id)].getNodey(ver)
+    if(id === "*") // its not a committed node yet
+      return <NodeyCode> this._starNodes[parseInt(ver)]
+
+    return <NodeyCode> this._nodeyStore[parseInt(id)].getNodeyHead()
   }
 
 
   starNodey(changes : ((x:Nodey)=>void)[], nodey : Nodey) // if a Node is in star state, it's got changes that have not been commited
   {
-    this._nodeyStore[nodey.id].starNodey(changes, nodey)
+    if(nodey.id === "*") // its not a committed node yet so we can directly apply the changes
+    {
+      changes.forEach( (fun: (x: Nodey) => void) => fun(nodey))
+    }
+    else
+      this._nodeyStore[nodey.id].starNodey(changes, nodey)
   }
+
 
   registerNodey(nodey : Nodey) : number
   {
     this._nodeyStore[nodey.id] = new NodeyVersionList(this, nodey.id)
     var version = this._nodeyStore[nodey.id].addNodey(nodey)
+    return version
+  }
+
+
+  registerStarNodey(nodey : Nodey) : number
+  {
+    this._starNodes.push(nodey)
+    var version = this._starNodes.length - 1
     return version
   }
 
@@ -71,7 +91,7 @@ class Model
 
   dump() : void //for debugging only
   {
-    console.log(this._nodeyStore)
+    console.log(this._starNodes, this._nodeyStore)
   }
 
 
@@ -160,6 +180,15 @@ class NodeyVersionList
   }
 
 
+  getNodeyHead() : Nodey
+  {
+    if(this._starState)
+      return this._starState
+    else
+      return this.getNodey(this._verList.length - 1)
+  }
+
+
   getNodey(index : any) : Nodey
   {
     if(index === '*')
@@ -179,7 +208,7 @@ class NodeyVersionList
       {
         var formerName = nodey.id+"."+nodey.version
         var transforms = [(x : NodeyCode) => x.content[x.content.indexOf(formerName)] = nodey.id+".*"]
-        var parent = this.historyModel.getCodeNodey(this._starState.parent)
+        var parent = this.historyModel.getNodeyHead(this._starState.parent)
         this.historyModel.starNodey(transforms, parent)
       }
     }

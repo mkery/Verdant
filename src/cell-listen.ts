@@ -12,7 +12,7 @@ import {
 } from './ast-generate';
 
 import{
-  NodeyOutput, NodeyCode
+  NodeyOutput
 } from './nodey'
 
 import * as CodeMirror
@@ -37,7 +37,7 @@ class CellListen
 {
   cell : Cell
   astUtils : ASTGenerate
-  nodey : NodeyCode
+  nodey : string
   indicator : Indicator
   historyModel : Model
 
@@ -114,7 +114,8 @@ class CellListen
 
       CodeMirror.on(editor.doc, 'change', (instance : CodeMirror.Editor, change : CodeMirror.EditorChange) => {
         console.log("there was a change!", change)
-        this.astUtils.repairAST(this.nodey, change, editor)
+        var node = this.historyModel.getNodeyHead(this.nodey)
+        this.astUtils.repairAST(node, change, editor)
       })
     }
 

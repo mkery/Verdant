@@ -83,7 +83,7 @@ class ASTResolve{
     var content : string[] = node.content
     var match = null
     var mid = Math.round((max - min)/2) + min
-    var midNodey = <NodeyCode> this.historyModel.getCodeNodey(content[mid])
+    var midNodey = <NodeyCode> this.historyModel.getNodeyHead(content[mid])
     var direction = this.inRange(midNodey, change)
 
     if((min >= max || max <= min) && direction !== 0) //end condition no more to explore
@@ -117,7 +117,7 @@ class ASTResolve{
     var [nodeEnd , deltaLine, deltaCh] = this.calcShift(affected, change)
     if(affected.right)
     {
-      var right = this.historyModel.getCodeNodey(affected.right)
+      var right = this.historyModel.getNodeyHead(affected.right)
       if(right.start.line !== nodeEnd.line)
         deltaCh = 0
       this.shiftAllAfter(right, deltaLine, deltaCh)
@@ -170,7 +170,7 @@ class ASTResolve{
 
     if(nodey.right)
     {
-      var rightSibling = this.historyModel.getCodeNodey(nodey.right)
+      var rightSibling = this.historyModel.getNodeyHead(nodey.right)
       if(rightSibling.start.line !== nodey.start.line)
         deltaCh = 0
       this.shiftAllAfter(rightSibling, deltaLine, deltaCh)
@@ -182,7 +182,7 @@ class ASTResolve{
   {
     for(var i in nodey.content)
     {
-      var child = this.historyModel.getCodeNodey(nodey.content[i])
+      var child = this.historyModel.getNodeyHead(nodey.content[i])
       child.start.line += deltaLine
       child.end.line += deltaLine
       child.start.ch += deltaCh
@@ -225,18 +225,10 @@ class ASTResolve{
       console.log("Time to resolve", jsn, "with", nodey)
       var dict = this.reduceAST(JSON.parse(jsn))
       console.log("Reduced AST", dict)
-      if(dict.literal && nodey.literal)//leaf node
-      {
-        var score = this.matchLiterals(dict.literal, nodey.literal)
-        //TODO what if not a match??? better scoring mechanism
-        console.log("Match?", score)
-        var transforms = [(n : NodeyCode) => n.literal = dict.literal]
-        this.historyModel.starNodey(transforms, nodey)
-      }
-      else
-      {
-        console.log("Match?", this.matchNode(dict, nodey))
-      }
+
+      var [score, transforms] =  this.matchNode(dict, nodey)
+      console.log("Match?", score, transforms)
+      this.historyModel.starNodey(transforms, nodey)
 
       //resolved
       if(nodey.pendingUpdate === updateID)
@@ -268,7 +260,7 @@ class ASTResolve{
 
     for(var i = 0; i < candidateList.length; i++)
     {
-      var candidate = this.historyModel.getCodeNodey(candidateList[i])
+      var candidate = this.historyModel.getNodeyHead(candidateList[i])
       var [score, updates] = this.matchNode(nodeToMatch, candidate)
 
       if(score === 0) // perfect match
@@ -310,7 +302,7 @@ class ASTResolve{
       updates.concat(bestMatch.transforms)
     }
     else
-      updates.push('Added new node '+nodeToMatch)
+      updates.push(this.addNewNode.bind(this, nodeToMatch, nodeIndex))
 
     return [totalScore, candidateList, updates]
   }
@@ -321,15 +313,69 @@ class ASTResolve{
     if(node.type !== potentialMatch.type)
       return [-1, []]
     if(node.literal && potentialMatch.literal) //leaf nodes
-      return [this.matchLiterals(node.literal+"", potentialMatch.literal+""), ['change literal from '+potentialMatch.literal+' to '+node.literal]]
+      return [this.matchLiterals(node.literal+"", potentialMatch.literal+""), [this.changeLiteral.bind(this, node)]]
     else
     {
       var [totalScore, candidateList, updates] =  this.match(0, node.content, potentialMatch.content, potentialMatch.content.slice(0))
       candidateList.map((x) => {
-         updates.push('removed node '+x)
+         updates.push(this.removeOldNode.bind(this, this.historyModel.getNodeyHead(x)))
       })
       return [totalScore, updates]
     }
+  }
+
+
+  changeLiteral(node : {[key:string]: any}, target: NodeyCode)
+  {
+    console.log("Changing literal from "+target.literal+" to "+node.literal)
+    target.literal = node.literal
+  }
+
+
+  addNewNode(node : {[key:string]: any}, at : number, target : NodeyCode)
+  {
+    var nodey = this.buildStarNode(node, target)
+    nodey.parent = target.name
+    console.log("Added a new node "+nodey+" to ", target)
+    target.content.splice(at, 0, nodey.name)
+  }
+
+
+
+  buildStarNode(node : {[key:string]: any}, target : NodeyCode, prior: NodeyCode = null) : NodeyCode
+  {
+    node.id = "*"
+    var n = new NodeyCode(node)
+    n.start.line -=1 // convert the coordinates of the range to code mirror style
+    n.end.line -=1
+    n.positionRelativeTo(target)
+    var num = this.historyModel.registerStarNodey(n)
+    n.version = num
+
+    if(prior)
+      prior.right = n.name
+    prior = null
+
+    n.content = []
+    for(var item in node.content)
+    {
+      var child = this.buildStarNode(node.content[item], target, prior)
+      child.parent = n.name
+      if(prior)
+        prior.right = child.name
+      n.content.push(child.name)
+      prior = child
+    }
+
+    return n
+  }
+
+
+  removeOldNode(node : NodeyCode, target : NodeyCode)
+  {
+    var index = target.content.indexOf(node.name)
+    console.log("Removing old node", node, "from", target)
+    target.content.splice(index, 1)
   }
 
 
