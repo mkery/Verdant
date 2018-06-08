@@ -53,6 +53,15 @@ class Model
   }
 
 
+  getNodey(name : string) : NodeyCode
+  {
+    var [id, ver] = name.split('.')
+    if(id === "*") // its not a committed node yet
+      return <NodeyCode> this._starNodes[parseInt(ver)]
+    return <NodeyCode> this._nodeyStore[parseInt(id)].getNodey(ver)
+  }
+
+
   starNodey(changes : ((x:Nodey)=>void)[], nodey : Nodey) // if a Node is in star state, it's got changes that have not been commited
   {
     if(nodey.id === "*") // its not a committed node yet so we can directly apply the changes
@@ -77,6 +86,88 @@ class Model
     this._starNodes.push(nodey)
     var version = this._starNodes.length - 1
     return version
+  }
+
+
+  cellRun(execCount : number, name : string)
+  {
+    console.log("Cell run!", execCount, name)
+    if(execCount !== null)
+    {
+      var nodey = this.getNodeyHead(name)
+      this.commitChanges(nodey)
+      this.pruneStarList()
+      console.log("Save complete", this.dump())
+    }
+  }
+
+
+  commitChanges(nodey : Nodey, prior: NodeyCode = null) : Nodey
+  {
+    console.log("commiting ", nodey)
+    if(nodey.id === '*')
+      var newNodey = this.clearStar(nodey)
+    else
+      var newNodey =  this._nodeyStore[parseInt(nodey.id)].commitChanges()
+
+
+    if(newNodey instanceof NodeyCode)
+    {
+      var codey : NodeyCode = newNodey
+      if(prior)
+        prior.right = codey.name
+      prior = null
+
+      codey.content.forEach((childName, index) => {
+        var [id, ver] = childName.split('.')
+        if(id === "*" || ver === "*") // only update children that are changed
+        {
+          var child = this.getNodey(childName)
+          child = <NodeyCode> this.commitChanges(child, prior)
+          codey.content[index] = child.name
+          child.parent = codey.name
+          if(prior)
+            prior.right = child.name
+          prior = child
+        }
+      })
+    }
+
+    console.log("Now", newNodey)
+    return newNodey
+  }
+
+
+  clearStar(nodey : Nodey)
+  {
+    var starIndex = nodey.version
+    nodey = this._starNodes[starIndex].clone()
+    this._starNodes[starIndex] = undefined
+    var newID = this.dispenseNodeyID()
+    nodey.id = newID
+    nodey.version = this.registerNodey(nodey)
+    return nodey
+  }
+
+
+  pruneStarList()
+  {
+    var acc : Nodey[] = []
+    this._starNodes.map((n) => {
+      if(n)
+      {
+        acc.push(n)
+        var oldName = n.name
+        n.version = acc.length - 1
+        if(n.parent)
+        {
+          var parent = this.getNodeyHead(n.parent)
+          parent.content[parent.content.indexOf(oldName)] = n.name
+        }
+      }
+    })
+
+    this._starNodes = acc
   }
 
 
@@ -206,13 +297,25 @@ class NodeyVersionList
       this._starState.version = '*'
       if(this._starState.parent) // star all the way up the chain
       {
-        var formerName = nodey.id+"."+nodey.version
-        var transforms = [(x : NodeyCode) => x.content[x.content.indexOf(formerName)] = nodey.id+".*"]
+        var transforms = [(x : NodeyCode) => x.content[x.content.indexOf(nodey.name)] = this._starState.name]
         var parent = this.historyModel.getNodeyHead(this._starState.parent)
         this.historyModel.starNodey(transforms, parent)
       }
     }
     changes.forEach( (fun: (x: Nodey) => void) => fun(this._starState))
+  }
+
+
+  commitChanges() : Nodey
+  {
+    if(this._starState)
+    {
+      var nodey = this._starState.clone()
+      this._starState = null
+      var newVersion = this.addNodey(nodey)
+      nodey.version = newVersion
+      return nodey
+    }
   }
 
 

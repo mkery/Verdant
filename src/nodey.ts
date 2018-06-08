@@ -36,6 +36,11 @@ abstract class Nodey
     return this.node_id
   }
 
+  set id(val : any)
+  {
+    this.node_id = val
+  }
+
   get version() : any
   {
     return this.version_id

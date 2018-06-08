@@ -1,6 +1,6 @@
 
 import {
-  Cell, CodeCell
+  Cell, CodeCell, ICellModel
 } from '@jupyterlab/cells';
 
 import {
@@ -29,6 +29,10 @@ import{
 import {
   Model
 } from './model'
+
+import {
+  IChangedArgs
+} from '@jupyterlab/coreutils';
 
 
 
@@ -106,6 +110,11 @@ class CellListen
 
   private listen() : void
   {
+    this.cell.model.stateChanged.connect((model : ICellModel, change: IChangedArgs<any>) => {
+      if(change.name === "executionCount")
+        this.handleCellRun(change.newValue)
+    }, this)
+
     if(this.cell.editor instanceof CodeMirrorEditor)
     {
       var editor = <CodeMirrorEditor> this.cell.editor
@@ -120,6 +129,13 @@ class CellListen
     }
 
   }
+
+
+  private handleCellRun(execCount : number) : void
+  {
+    this.historyModel.cellRun(execCount, this.nodey)
+  }
+
 
   private _ready = new PromiseDelegate<void>();
 }
