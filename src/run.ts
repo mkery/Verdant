@@ -1,10 +1,5 @@
 
 
-const CELL_CHANGED = 2
-const CELL_REMOVED = -1
-const CELL_ADDED = 1
-const CELL_SAME = 0
-
 export
 class RunRecord
 {
@@ -37,15 +32,30 @@ class RunRecord
     var y2 = new Date()
     y2.setDate(yesterday.getDate() - 1)
 
-    var cells = [{'node': '1.4', 'change_type': CELL_SAME}, {'node': '1.4', 'change_type': CELL_SAME}, {'node': '1.4', 'change_type': CELL_CHANGED}, {'node': '1.4', 'change_type': CELL_ADDED}, {'node': '1.4', 'change_type': CELL_SAME}, {'node': '1.4', 'change_type': CELL_SAME}, {'node': '1.4', 'change_type': CELL_REMOVED}]
+    var cells = [{'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_CHANGED}, {'node': '1.4', 'change_type': ChangeType.CELL_ADDED}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_REMOVED}]
     var run1 = new Run(Date.now(), cells, 1)
     var runs = []
     runs.push(run1)
+    var cells = [{'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_CHANGED}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_CHANGED}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}]
+    var run2 = new Run(Date.now(), cells, 2)
+    runs.push(run2)
 
     this._runList.push({'date': yesterday.getTime(), 'runs': runs})
   }
 
 }
+
+
+export
+namespace ChangeType
+{
+  export const CELL_CHANGED = 2
+  export const CELL_REMOVED = -1
+  export const CELL_ADDED = 1
+  export const CELL_SAME = 0
+}
+
+
 
 export
 class Run
