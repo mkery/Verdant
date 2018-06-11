@@ -26,7 +26,7 @@ import {
 
 import {
   VerdantPanel
-} from './widgets/verdantpanel'
+} from './widgets/verdant-panel'
 
 /**
  * Initialization data for the Verdant extension.

@@ -122,26 +122,46 @@
   margin-bottom: 5px;
 }
 
+.v-VerdantPanel-runList-header:hover:not(.jp-mod-active) {
+  background: var(--jp-layout-color2);
+}
+
 .v-VerdantPanel-runList-ul{
   -webkit-margin-before: 5px;
   -webkit-margin-after: 0px;
   -webkit-margin-start: 0px;
   -webkit-margin-end: 0px;
-  -webkit-padding-start: 10px;
+  -webkit-padding-start: 0px;
 }
 
 .v-VerdantPanel-runItem{
-  margin-bottom: 5px;
+  padding-bottom: 2px;
+  padding-top: 2px;
+}
+
+.v-VerdantPanel-runItem:hover:not(.jp-mod-active) {
+  background: var(--jp-layout-color2);
+}
+
+.v-VerdantPanel-runItem.jp-mod-active {
+  color: white;
+  background: var(--jp-brand-color1);
 }
 
 .v-VerdantPanel-runItem-caret{
   height: var(--jp-ui-font-size2);
   width: var(--jp-ui-font-size2);
-  background-image: var(--jp-icon-expand-more);
+  background-image: var(--jp-icon-caretdown);
   display: inline-block;
   float: right;
   margin-bottom: -2px;
   margin-right: 10px;
+  background-position: center;
+  border: 1px solid transparent;
+}
+
+.v-VerdantPanel-runItem-caret:hover{
+  border: 1px solid;
 }
 
 .v-VerdantPanel-runItem-number{
@@ -150,6 +170,7 @@
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
+  margin-left: 10px;
 }
 
 .v-VerdantPanel-runItem-time{
