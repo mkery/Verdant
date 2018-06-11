@@ -7,11 +7,7 @@ import {
 } from '@jupyterlab/notebook';
 
 import {
-  each
-} from '@phosphor/algorithm';
-
-import {
-  TabBar, Widget, StackedPanel
+  StackedPanel
 } from '@phosphor/widgets';
 
 import '../style/index.css';
@@ -28,6 +24,10 @@ import {
   Model
 } from './model'
 
+import {
+  VerdantPanel
+} from './widgets/verdantpanel'
+
 /**
  * Initialization data for the Verdant extension.
  */
@@ -36,23 +36,17 @@ const extension: JupyterLabPlugin<void> = {
   activate: (app: JupyterLab, restorer: ILayoutRestorer) => {
     const { shell } = app;
     const panel = new StackedPanel();
-    const tabs = new TabBar<Widget>({ orientation: 'vertical' });
-    const header = document.createElement('header');
     var activePanel: NotebookPanel;
 
     var notebook : NotebookListen;
     const model = new Model(0)
     const astUtils = new ASTGenerate(model)
 
-    restorer.add(panel, 'verdant-manager');
-    panel.id = 'verdant-manager';
+    restorer.add(panel, 'v-VerdantPanel');
+    panel.id = 'v-VerdantPanel';
     panel.title.label = 'Verdant';
-
-    tabs.id = 'verdant-manager-tabs';
-    tabs.title.label = 'Verdant';
-    header.textContent = 'History of notebook';
-    tabs.node.insertBefore(header, tabs.contentNode);
-    panel.addWidget(tabs)
+    const verdantPanel = new VerdantPanel(model)
+    panel.addWidget(verdantPanel)
 
 
     shell.addToLeftArea(panel, { rank: 600 });
@@ -60,9 +54,10 @@ const extension: JupyterLabPlugin<void> = {
     app.restored.then(() => {
 
       const populate = () => {
-        tabs.clearTabs();
         var widg = shell.currentWidget
         if(widg instanceof NotebookPanel)
+        {
+          verdantPanel.onNotebookSwitch(widg)
           if(!activePanel || activePanel !== widg)
           {
             activePanel = widg
@@ -71,30 +66,20 @@ const extension: JupyterLabPlugin<void> = {
               console.log('Notebook is ready')
             })
           }
-        each(shell.widgets('main'), widget => {
-          if(widget instanceof NotebookPanel)
-            tabs.addTab(widget.title);
-        });
+        }
       };
 
       // Connect signal handlers.
-      shell.layoutModified.connect(() => { populate(); });
-
-      tabs.tabActivateRequested.connect((sender, tab) => {
-        shell.activateById(tab.title.owner.id);
-      });
-      tabs.tabCloseRequested.connect((sender, tab) => {
-        tab.title.owner.close();
-      });
+      shell.layoutModified.connect(() => { populate(); })
 
       // Populate the tab manager.
-      populate();
+      populate()
 
-    });
+    })
 
   },
   autoStart: true,
   requires: [ILayoutRestorer]
-};
+}
 
 export default extension;

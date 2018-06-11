@@ -255,6 +255,7 @@ class ASTResolve{
   {
     var nodeToMatch = nodeList[nodeIndex]
     var options = []
+    var updates = []
     var totalScore = 0
     console.log("Attempting to match", nodeToMatch)
 

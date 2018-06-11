@@ -14,6 +14,10 @@ import {
   Contents, ContentsManager
 } from '@jupyterlab/services'
 
+import {
+  RunRecord, Run
+} from './run'
+
 export
 class Model
 {
@@ -21,17 +25,25 @@ class Model
   constructor(startCount: number = 0)
   {
     this._nodeyCounter = startCount
+    this._runStore = new RunRecord()
   }
 
   private _notebook : NotebookListen
   private _nodeyCounter = 0
   private _nodeyStore : NodeyVersionList[] = []
+  private _runStore : RunRecord
   private _starNodes : Nodey[] = [] // new nodes that haven't been commited & subsequently indexed yet
 
 
   set notebook(notebook : NotebookListen)
   {
     this._notebook = notebook
+  }
+
+
+  get runs() : { 'date': number, 'runs' : Run[] }[]
+  {
+    return this._runStore.runs
   }
 
 
@@ -104,12 +116,11 @@ class Model
 
   commitChanges(nodey : Nodey, prior: NodeyCode = null) : Nodey
   {
-    console.log("commiting ", nodey)
+    //console.log("commiting ", nodey)
     if(nodey.id === '*')
       var newNodey = this.clearStar(nodey)
-    else
+    else if(nodey.version === '*')
       var newNodey =  this._nodeyStore[parseInt(nodey.id)].commitChanges()
-
 
     if(newNodey instanceof NodeyCode)
     {
@@ -133,7 +144,7 @@ class Model
       })
     }
 
-    console.log("Now", newNodey)
+    //console.log("Now", newNodey)
     return newNodey
   }
 

@@ -122,7 +122,7 @@ class CellListen
       //editor.model.selections.changed //listen in
 
       CodeMirror.on(editor.doc, 'change', (instance : CodeMirror.Editor, change : CodeMirror.EditorChange) => {
-        console.log("there was a change!", change)
+        console.log("there was a change!", change, this.nodey)
         var node = this.historyModel.getNodeyHead(this.nodey)
         this.astUtils.repairAST(node, change, editor)
       })
