@@ -66,6 +66,14 @@ export class RunList extends Widget {
       this.node.appendChild(dateHeader)
       this.node.appendChild(runItemList)
     })
+
+    this.historyModel.newRun.connect(this.addNewRun.bind(this))
+  }
+
+
+  get runItemList() : Element
+  {
+    return this.node.getElementsByClassName(RUNLIST_UL)[0]
   }
 
 
@@ -113,6 +121,16 @@ export class RunList extends Widget {
       runItem.node.addEventListener("click", this.onClick.bind(this, runItem))
     }
     return runItemList
+  }
+
+
+  private addNewRun(sender: any, run: Run)
+  {
+    console.log("adding new run Widget!", run)
+    let runItemData = run
+    let runItem = new RunItem(runItemData)
+    runItem.node.addEventListener("click", this.onClick.bind(this, runItem))
+    this.runItemList.insertBefore(runItem.node, this.runItemList.firstChild)
   }
 
 

@@ -18,6 +18,11 @@ import {
   RunRecord, Run, CellRunData
 } from './run'
 
+import {
+  Signal
+} from '@phosphor/signaling';
+
+
 export
 class Model
 {
@@ -33,6 +38,7 @@ class Model
   private _nodeyStore : NodeyVersionList[] = []
   private _runStore : RunRecord
   private _starNodes : Nodey[] = [] // new nodes that haven't been commited & subsequently indexed yet
+  private _newRun = new Signal<this, Run>(this)
 
 
   set notebook(notebook : NotebookListen)
@@ -45,6 +51,12 @@ class Model
   get runs() : { 'date': number, 'runs' : Run[] }[]
   {
     return this._runStore.runs
+  }
+
+
+  get newRun() : Signal<Model, Run>
+  {
+    return this._newRun
   }
 
 
@@ -123,7 +135,8 @@ class Model
         cell.clearStatus()
       })
       var run = this.registerRun(timestamp, cellDat)
-      console.log("Save complete ", run)
+      console.log("Run committed ", run)
+      this._newRun.emit(run)
     }
   }
 
