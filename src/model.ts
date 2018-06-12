@@ -15,7 +15,7 @@ import {
 } from '@jupyterlab/services'
 
 import {
-  RunRecord, Run
+  RunRecord, Run, CellRunData
 } from './run'
 
 export
@@ -37,6 +37,7 @@ class Model
 
   set notebook(notebook : NotebookListen)
   {
+    console.log("NOTEBOOK SET TO", notebook)
     this._notebook = notebook
   }
 
@@ -101,15 +102,28 @@ class Model
   }
 
 
-  cellRun(execCount : number, name : string)
+  registerRun(time : number, cells : CellRunData[]) : Run
   {
-    console.log("Cell run!", execCount, name)
+    return this._runStore.addNewRun(time, cells)
+  }
+
+
+  cellRun(execCount : number, nodey : NodeyCode)
+  {
+    console.log("Cell run!", execCount, nodey)
+    var timestamp = Date.now()
     if(execCount !== null)
     {
-      var nodey = this.getNodeyHead(name)
       this.commitChanges(nodey)
       this.pruneStarList()
-      console.log("Save complete", this.dump())
+      this.dump()
+      var cellDat : CellRunData[] = []
+      this._notebook.cells.forEach((cell) => {
+        cellDat.push({'node': cell.nodeyName, 'changeType': cell.status})
+        cell.clearStatus()
+      })
+      var run = this.registerRun(timestamp, cellDat)
+      console.log("Save complete ", run)
     }
   }
 

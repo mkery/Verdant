@@ -18,7 +18,35 @@ class RunRecord
     return this._runList
   }
 
-  countNewRun()
+
+  public addNewRun(timestamp: number, cells: CellRunData[])
+  {
+    var today = this.dateNow()
+    var latestDate = this._runList[Math.max(this._runList.length - 1, 0)]
+    if(!latestDate || latestDate.date !== today)
+    {
+      var todaysRuns = {'date': today, 'runs' : <Run[]>[]}
+      this._runList.push(todaysRuns)
+    }
+    else
+      var todaysRuns = latestDate
+
+    var run = new Run(timestamp, cells, this.countNewRun())
+    todaysRuns.runs.push(run)
+
+    return run
+  }
+
+
+  private dateNow() : number
+  {
+    var d = new Date()
+    d.setHours(12,0,0) // set to default time since we only want the day
+    return d.getTime()
+  }
+
+
+  private countNewRun()
   {
     this._runCounter ++
     return this._runCounter
@@ -32,11 +60,11 @@ class RunRecord
     var y2 = new Date()
     y2.setDate(yesterday.getDate() - 1)
 
-    var cells = [{'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_CHANGED}, {'node': '1.4', 'change_type': ChangeType.CELL_ADDED}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_REMOVED}]
+    var cells = [{'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_ADDED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_REMOVED}]
     var run1 = new Run(Date.now(), cells, 1)
     var runs = []
     runs.push(run1)
-    var cells = [{'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_CHANGED}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}, {'node': '1.4', 'change_type': ChangeType.CELL_CHANGED}, {'node': '1.4', 'change_type': ChangeType.CELL_SAME}]
+    var cells : CellRunData[] = [{'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}]
     var run2 = new Run(Date.now(), cells, 2)
     runs.push(run2)
 
@@ -56,15 +84,23 @@ namespace ChangeType
 }
 
 
+export
+interface CellRunData
+{
+  node : string
+  changeType : number
+}
+
+
 
 export
 class Run
 {
   readonly timestamp : number
   readonly id : number
-  readonly cells : {'node': string, 'change_type' : number}[]
+  readonly cells : CellRunData[]
 
-  constructor( timestamp : number, cells : {'node': string, 'change_type' : number}[], id : number )
+  constructor( timestamp : number, cells : CellRunData[], id : number )
   {
     this.timestamp = timestamp
     this.cells = cells

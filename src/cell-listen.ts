@@ -12,7 +12,7 @@ import {
 } from './ast-generate';
 
 import{
-  NodeyOutput
+  NodeyOutput, NodeyCode
 } from './nodey'
 
 import * as CodeMirror
@@ -34,6 +34,9 @@ import {
   IChangedArgs
 } from '@jupyterlab/coreutils';
 
+import {
+  ChangeType
+} from './run'
 
 
 export
@@ -41,20 +44,37 @@ class CellListen
 {
   cell : Cell
   astUtils : ASTGenerate
-  nodey : string
+  private _nodey : string
   indicator : Indicator
   historyModel : Model
+  status : number
 
 
   constructor(cell : Cell, astUtils : ASTGenerate, historyModel : Model){
     this.cell = cell
     this.astUtils = astUtils
     this.historyModel = historyModel
+    this.status = ChangeType.CELL_SAME
     this.init()
   }
 
   get ready(): Promise<void> {
     return this._ready.promise
+  }
+
+  get nodey(): NodeyCode
+  {
+    return this.historyModel.getNodeyHead(this._nodey)
+  }
+
+  get nodeyName(): string
+  {
+    return this._nodey
+  }
+
+  public clearStatus() : void
+  {
+    this.status = ChangeType.CELL_SAME
   }
 
   public focus() : void
@@ -75,7 +95,7 @@ class CellListen
     {
       var text : string = this.cell.editor.model.value.text
       var outNode = this.outputToNodey()
-      this.nodey = await this.astUtils.generateCodeNodey(text, {'output' : outNode, 'run': 0})
+      this._nodey = await this.astUtils.generateCodeNodey(text, {'output' : outNode, 'run': 0})
       //if(this.cell.editor instanceof CodeMirrorEditor)
       //  Nodey.placeMarkers(this.nodey, this.cell.editor)
     }
@@ -123,8 +143,7 @@ class CellListen
 
       CodeMirror.on(editor.doc, 'change', (instance : CodeMirror.Editor, change : CodeMirror.EditorChange) => {
         console.log("there was a change!", change, this.nodey)
-        var node = this.historyModel.getNodeyHead(this.nodey)
-        this.astUtils.repairAST(node, change, editor)
+        this.astUtils.repairAST(this.nodey, change, editor)
       })
     }
 
@@ -133,7 +152,11 @@ class CellListen
 
   private handleCellRun(execCount : number) : void
   {
-    this.historyModel.cellRun(execCount, this.nodey)
+    var node = this.nodey
+    if(node.id === '*' || node.version === "*")
+      this.status = ChangeType.CELL_CHANGED
+
+    this.historyModel.cellRun(execCount, node)
   }
 
 

@@ -53,7 +53,7 @@ class NotebookListen
 
   get nodey(): string[] {
     var arr : string[] = []
-    this.cells.forEach((value, key) => { arr.push(value.nodey) })
+    this.cells.forEach((value, key) => { arr.push(value.nodeyName) })
     return arr
   }
 

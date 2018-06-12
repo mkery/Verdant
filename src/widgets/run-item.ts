@@ -58,7 +58,7 @@ export class RunItem extends Widget {
     this.run.cells.forEach((cell) => {
       let div = document.createElement('div')
       div.classList.add(RUN_CELL_MAP_CELL)
-      switch(cell.change_type)
+      switch(cell.changeType)
       {
         case ChangeType.CELL_CHANGED:
           div.classList.add(RUN_CELL_MAP_CHANGED)
