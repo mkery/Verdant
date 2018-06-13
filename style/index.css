@@ -107,6 +107,9 @@
   float: right;
   margin-top: -2px;
 }
+.v-VerdantPanel-runList-caret.closed {
+  background-image: var(--jp-icon-expand-more);
+}
 
 .v-VerdantPanel-runList-header {
   padding: 10px;

@@ -8,54 +8,37 @@ import { Run } from "../run";
 
 import { RunItem } from "./run-item";
 
-const RUNLIST_CLASS = "v-VerdantPanel-runList";
-const RUNLIST_UL = "v-VerdantPanel-runList-ul";
-const DATEHEADER_CLASS = "v-VerdantPanel-runList-header";
-const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
-const DATE_LABEL = "v-VerdantPanel-runList-dateLabel";
-const DATEHEADER_CARET = "v-VerdantPanel-runList-caret";
+import { RunSection } from "./run-section";
+
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 
 export class RunList extends Widget {
   readonly historyModel: Model;
   selectedRun: RunItem;
+  sections: { date: number; section: RunSection }[];
 
   constructor(historyModel: Model) {
     super();
     this.historyModel = historyModel;
-    this.addClass(RUNLIST_CLASS);
+    this.sections = [];
 
     var runDataList = this.historyModel.runs;
 
     runDataList.forEach(runData => {
-      let dateHeader = document.createElement("div");
-      dateHeader.classList.add(DATEHEADER_CLASS);
+      var date = this.formatDate(runData.date);
+      var dateSection = new RunSection(
+        this.historyModel,
+        "runs",
+        date,
+        this.onClick.bind(this),
+        runData.runs
+      );
 
-      let runs = document.createElement("div");
-      runs.textContent = "runs";
-      runs.classList.add(RUN_LABEL);
-
-      let date = document.createElement("div");
-      date.textContent = this.formatDate(runData.date);
-      date.classList.add(DATE_LABEL);
-
-      let caret = document.createElement("div");
-      caret.classList.add(DATEHEADER_CARET);
-
-      let runItemList = this.buildRunItemList(runData.runs);
-
-      dateHeader.appendChild(runs);
-      dateHeader.appendChild(date);
-      dateHeader.appendChild(caret);
-      this.node.appendChild(dateHeader);
-      this.node.appendChild(runItemList);
+      this.sections.push({ date: runData.date, section: dateSection });
+      this.node.appendChild(dateSection.node);
     });
 
     this.historyModel.newRun.connect(this.addNewRun.bind(this));
-  }
-
-  get runItemList(): Element {
-    return this.node.getElementsByClassName(RUNLIST_UL)[0];
   }
 
   private formatDate(timestamp: number): string {
@@ -101,27 +84,6 @@ export class RunList extends Widget {
     );
   }
 
-  private buildRunItemList(runList: Run[]): HTMLElement {
-    let runItemList = document.createElement("ul");
-    runItemList.classList.add(RUNLIST_UL);
-    for (var i = runList.length - 1; i > -1; i--) {
-      let runItemData = runList[i];
-      let runItem = new RunItem(runItemData);
-      runItemList.appendChild(runItem.node);
-
-      runItem.node.addEventListener("click", this.onClick.bind(this, runItem));
-    }
-    return runItemList;
-  }
-
-  private addNewRun(sender: any, run: Run) {
-    console.log("adding new run Widget!", run);
-    let runItemData = run;
-    let runItem = new RunItem(runItemData);
-    runItem.node.addEventListener("click", this.onClick.bind(this, runItem));
-    this.runItemList.insertBefore(runItem.node, this.runItemList.firstChild);
-  }
-
   /**
    * Handle the `'click'` event for the widget.
    */
@@ -136,5 +98,31 @@ export class RunList extends Widget {
     if (target.classList.contains("v-VerdantPanel-runItem-caret"))
       runItem.caretClicked();
     else console.log("Open old version of notebook");
+  }
+
+  private addNewRun(sender: any, run: Run) {
+    var date = new Date(run.timestamp);
+    var section = this.sections.find(elem =>
+      this.sameDay(new Date(elem.date), date)
+    );
+
+    if (!section) {
+      var dateSection = new RunSection(
+        this.historyModel,
+        "runs",
+        this.formatDate(run.timestamp),
+        this.onClick.bind(this),
+        [run]
+      );
+
+      this.sections.push({ date: run.timestamp, section: dateSection });
+    } else {
+      dateSection = section.section;
+      dateSection.addNewRun(run, this.onClick.bind(this));
+    }
+
+    if (this.node.firstChild)
+      this.node.insertBefore(dateSection.node, this.node.firstChild);
+    else this.node.appendChild(dateSection.node);
   }
 }
