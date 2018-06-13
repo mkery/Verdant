@@ -1,4 +1,3 @@
-
 /*-----------------------------------------------------------------------------
 | Variables
 |----------------------------------------------------------------------------*/
@@ -7,14 +6,16 @@
   --jp-private-verdant-manager-active-top-border: 2px;
   --jp-private-verdant-manager-tab-height: 24px;
   --jp-private-verdant-manager-tab-padding-top: 8px;
+  --verdant-icon-caretdown: url("img/chevron-more.svg");
+  --verdant-icon-cellrun: url("img/cell-run.svg");
 }
-
 
 /*-----------------------------------------------------------------------------
 | Verdant in the dock panel, copied css from tabs-extension
 |----------------------------------------------------------------------------*/
 
-#v-VerdantPanel, #v-VerdantPanel-tabs{
+#v-VerdantPanel,
+#v-VerdantPanel-tabs {
   background: var(--jp-layout-color1);
   overflow: visible;
   color: var(--jp-ui-font-color1);
@@ -46,38 +47,32 @@
   overflow: visible;
 }
 
-
 #v-VerdantPanel-tabs .p-TabBar-tab:hover:not(.jp-mod-active) {
   background: var(--jp-layout-color2);
 }
 
-
 #v-VerdantPanel-tabs .p-TabBar-tab:first-child {
   margin-left: 0;
 }
-
 
 #v-VerdantPanel-tabs .p-TabBar-tab.jp-mod-active {
   color: white;
   background: var(--jp-brand-color1);
 }
 
-
 #v-VerdantPanel-tabs .p-TabBar-tabIcon,
 #v-VerdantPanel-tabs .p-TabBar-tabLabel {
   display: inline-block;
 }
 
-#v-VerdantPanel-tabs .p-TabBar-tabCloseIcon{
+#v-VerdantPanel-tabs .p-TabBar-tabCloseIcon {
   visibility: hidden;
 }
-
 
 #v-VerdantPanel-tabs .p-TabBar-tabLabel {
   line-height: var(--jp-private-verdant-manager-tab-height);
   padding-left: 4px;
 }
-
 
 #v-VerdantPanel-tabs .p-TabBar-tab .p-TabBar-tabIcon {
   width: 14px;
@@ -85,7 +80,6 @@
   background-repeat: no-repeat;
   margin-right: 2px;
 }
-
 
 .v-VerdantPanel-runList-runDateTotal {
   font-size: var(--jp-ui-font-size0);
@@ -114,7 +108,7 @@
   margin-top: -2px;
 }
 
-.v-VerdantPanel-runList-header{
+.v-VerdantPanel-runList-header {
   padding: 10px;
   padding-top: 15px;
   padding-bottom: 2px;
@@ -126,7 +120,7 @@
   background: var(--jp-layout-color2);
 }
 
-.v-VerdantPanel-runList-ul{
+.v-VerdantPanel-runList-ul {
   -webkit-margin-before: 5px;
   -webkit-margin-after: 0px;
   -webkit-margin-start: 0px;
@@ -134,7 +128,7 @@
   -webkit-padding-start: 0px;
 }
 
-.v-VerdantPanel-runItem{
+.v-VerdantPanel-runItem {
   padding-bottom: 2px;
   padding-top: 2px;
 }
@@ -148,32 +142,33 @@
   background: var(--jp-brand-color1);
 }
 
-.v-VerdantPanel-runItem-caret{
-  height: var(--jp-ui-font-size2);
-  width: var(--jp-ui-font-size2);
-  background-image: var(--jp-icon-caretdown);
+.v-VerdantPanel-runItem-caret {
+  height: var(--jp-ui-font-size1);
+  width: calc(var(--jp-ui-font-size1) * 0.8);
+  background-image: var(--verdant-icon-caretdown);
+  background-repeat: no-repeat;
   display: inline-block;
-  float: right;
-  margin-bottom: -2px;
-  margin-right: 10px;
+  float: left;
+  margin-top: 0.5em;
+  margin-left: 10px;
   background-position: center;
   border: 1px solid transparent;
 }
 
-.v-VerdantPanel-runItem-caret:hover{
+.v-VerdantPanel-runItem-caret:hover {
   border: 1px solid;
 }
 
-.v-VerdantPanel-runItem-number{
-  width: calc(var(--jp-ui-font-size1) * 2);
+.v-VerdantPanel-runItem-number {
+  width: calc(var(--jp-ui-font-size1) * 2.5);
   font-size: var(--jp-ui-font-size1);
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
-  margin-left: 10px;
+  margin-left: 5px;
 }
 
-.v-VerdantPanel-runItem-time{
+.v-VerdantPanel-runItem-time {
   width: calc(var(--jp-ui-font-size1) * 5);
   font-size: var(--jp-ui-font-size1);
   font-weight: 400;
@@ -182,13 +177,13 @@
   padding-left: 5px;
 }
 
-.v-VerdantPanel-runCellMap{
+.v-VerdantPanel-runCellMap {
   display: inline-block;
   text-align: left;
   padding-left: 5px;
 }
 
-.v-VerdantPanel-runCellMap-cell{
+.v-VerdantPanel-runCellMap-cell {
   display: inline-block;
   height: var(--jp-ui-font-size1);
   width: calc(var(--jp-ui-font-size1) * 0.75);
@@ -196,34 +191,28 @@
   margin-left: 2px;
 }
 
-.v-VerdantPanel-runCellMap-cell-changed{
+.v-VerdantPanel-runCellMap-cell-changed {
   background-color: #92cbef;
   border-bottom: 2px solid #2199f1;
 }
 
-.v-VerdantPanel-runCellMap-cell-removed{
+.v-VerdantPanel-runCellMap-cell-removed {
   background-color: #ff7d7d;
   border-bottom: 2px solid #ce1d1d;
 }
 
-.v-VerdantPanel-runCellMap-cell-added{
+.v-VerdantPanel-runCellMap-cell-added {
   background-color: #9dfcb6;
   border-bottom: 2px solid #107e5a;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+.v-VerdantPanel-runCellMap-runSymbol {
+  width: calc(100%);
+  height: calc(var(--jp-ui-font-size1) * 1 / 2 + 1px);
+  margin-top: calc(var(--jp-ui-font-size1) * 1 / 2 + 1px);
+  display: inline-block;
+  text-align: center;
+}
 
 .v-VerdantPanel-input {
   width: 100%;
@@ -232,11 +221,7 @@
   font-size: 16px;
 }
 
-
-
-
-
-.verdant-indicator{
+.verdant-indicator {
   visibility: hidden;
   width: 2em;
   height: 2em;
@@ -250,15 +235,13 @@
   border-radius: 10px;
   padding-top: 0.25em;
   position: absolute;
-  left: calc(var(--jp-cell-prompt-width)/2 - 1em);
+  left: calc(var(--jp-cell-prompt-width) / 2 - 1em);
   top: 50%;
 }
-.verdant-indicator.text-selected
-{
+.verdant-indicator.text-selected {
   background: var(--jp-editor-selected-focused-background);
   color: var(--jp-content-font-color1);
 }
-.verdant-indicator.focused
-{
+.verdant-indicator.focused {
   visibility: visible;
 }

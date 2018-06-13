@@ -1,164 +1,121 @@
+import { Cell, CodeCell, ICellModel } from "@jupyterlab/cells";
 
-import {
-  Cell, CodeCell, ICellModel
-} from '@jupyterlab/cells';
+import { PromiseDelegate } from "@phosphor/coreutils";
 
-import {
-  PromiseDelegate
-} from '@phosphor/coreutils';
+import { ASTGenerate } from "./ast-generate";
 
-import {
-  ASTGenerate
-} from './ast-generate';
+import { NodeyOutput, NodeyCode } from "./nodey";
 
-import{
-  NodeyOutput, NodeyCode
-} from './nodey'
+import * as CodeMirror from "codemirror";
 
-import * as CodeMirror
-  from 'codemirror';
+import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import{
-  CodeMirrorEditor
-} from '@jupyterlab/codemirror';
+import { Model } from "./model";
 
-import{
-  Indicator
-} from './widgets/indicator'
+import { IChangedArgs } from "@jupyterlab/coreutils";
 
-import {
-  Model
-} from './model'
+import { ChangeType } from "./run";
 
-import {
-  IChangedArgs
-} from '@jupyterlab/coreutils';
+export class CellListen {
+  cell: Cell;
+  astUtils: ASTGenerate;
+  private _nodey: string;
+  historyModel: Model;
+  status: number;
 
-import {
-  ChangeType
-} from './run'
-
-
-export
-class CellListen
-{
-  cell : Cell
-  astUtils : ASTGenerate
-  private _nodey : string
-  indicator : Indicator
-  historyModel : Model
-  status : number
-
-
-  constructor(cell : Cell, astUtils : ASTGenerate, historyModel : Model){
-    this.cell = cell
-    this.astUtils = astUtils
-    this.historyModel = historyModel
-    this.status = ChangeType.CELL_SAME
-    this.init()
+  constructor(cell: Cell, astUtils: ASTGenerate, historyModel: Model) {
+    this.cell = cell;
+    this.astUtils = astUtils;
+    this.historyModel = historyModel;
+    this.status = ChangeType.CELL_SAME;
+    this.init();
   }
 
   get ready(): Promise<void> {
-    return this._ready.promise
+    return this._ready.promise;
   }
 
-  get nodey(): NodeyCode
-  {
-    return this.historyModel.getNodeyHead(this._nodey)
+  get nodey(): NodeyCode {
+    return this.historyModel.getNodeyHead(this._nodey);
   }
 
-  get nodeyName(): string
-  {
-    return this._nodey
+  get nodeyName(): string {
+    return this._nodey;
   }
 
-  public clearStatus() : void
-  {
-    this.status = ChangeType.CELL_SAME
+  public clearStatus(): void {
+    this.status = ChangeType.CELL_SAME;
   }
 
-  public focus() : void
-  {
-    console.log("Active!", this.cell, this.cell.inputArea.promptNode)
-    this.indicator.versionNum = 0
-    this.indicator.focus()
+  public focus(): void {
+    console.log("Active!", this.cell, this.cell.inputArea.promptNode);
   }
 
-  public blur() : void
-  {
-    this.indicator.blur()
-  }
+  public blur(): void {}
 
-  private async init()
-  {
-    if(this.cell instanceof CodeCell)
-    {
-      var text : string = this.cell.editor.model.value.text
-      var outNode = this.outputToNodey()
-      this._nodey = await this.astUtils.generateCodeNodey(text, {'output' : outNode, 'run': 0})
+  private async init() {
+    if (this.cell instanceof CodeCell) {
+      var text: string = this.cell.editor.model.value.text;
+      var outNode = this.outputToNodey();
+      this._nodey = await this.astUtils.generateCodeNodey(text, {
+        output: outNode,
+        run: 0
+      });
+      console.log("Nodey initialized to ", this._nodey, typeof this._nodey);
       //if(this.cell.editor instanceof CodeMirrorEditor)
       //  Nodey.placeMarkers(this.nodey, this.cell.editor)
     }
     //TODO markdown and other cell types
 
-    this.indicator = new Indicator()
-    var node = this.cell.inputArea.promptNode
-    node.parentNode.insertBefore(this.indicator.node, node.nextSibling)
-
-    this.listen()
+    this.listen();
     this._ready.resolve(undefined);
   }
 
-
-  private outputToNodey() : NodeyOutput[]
-  {
-    if(this.cell instanceof CodeCell)
-    {
-      var output = this.cell.outputArea.model.toJSON()
-      var outNode : NodeyOutput[] = []
-      if(output.length < 1)
-        outNode = undefined
-      else
-      {
-        for(var item in output)
-          outNode.push( new NodeyOutput(output[item]) )
+  private outputToNodey(): NodeyOutput[] {
+    if (this.cell instanceof CodeCell) {
+      var output = this.cell.outputArea.model.toJSON();
+      var outNode: NodeyOutput[] = [];
+      if (output.length < 1) outNode = undefined;
+      else {
+        for (var item in output) outNode.push(new NodeyOutput(output[item]));
       }
-      return outNode
+      return outNode;
     }
   }
 
+  private listen(): void {
+    this.cell.model.stateChanged.connect(
+      (model: ICellModel, change: IChangedArgs<any>) => {
+        if (change.name === "executionCount")
+          this.handleCellRun(change.newValue);
+      },
+      this
+    );
 
-  private listen() : void
-  {
-    this.cell.model.stateChanged.connect((model : ICellModel, change: IChangedArgs<any>) => {
-      if(change.name === "executionCount")
-        this.handleCellRun(change.newValue)
-    }, this)
-
-    if(this.cell.editor instanceof CodeMirrorEditor)
-    {
-      var editor = <CodeMirrorEditor> this.cell.editor
+    if (this.cell.editor instanceof CodeMirrorEditor) {
+      var editor = <CodeMirrorEditor>this.cell.editor;
       //editor.model.value.changed //listen in
       //editor.model.selections.changed //listen in
 
-      CodeMirror.on(editor.doc, 'change', (instance : CodeMirror.Editor, change : CodeMirror.EditorChange) => {
-        console.log("there was a change!", change, this.nodey)
-        this.astUtils.repairAST(this.nodey, change, editor)
-      })
+      CodeMirror.on(
+        editor.doc,
+        "change",
+        (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
+          console.log("there was a change!", change, this.nodey);
+          this.astUtils.repairAST(this.nodey, change, editor);
+        }
+      );
     }
-
   }
 
+  private handleCellRun(execCount: number): void {
+    var node = this.nodey;
+    if (node.id === "*" || node.version === "*")
+      this.status = ChangeType.CELL_CHANGED;
 
-  private handleCellRun(execCount : number) : void
-  {
-    var node = this.nodey
-    if(node.id === '*' || node.version === "*")
-      this.status = ChangeType.CELL_CHANGED
-
-    this.historyModel.cellRun(execCount, node)
+    this.historyModel.cellRun(execCount, node);
+    this._nodey = this.historyModel.getNodeyHead(this._nodey).name; //update to latest version
   }
-
 
   private _ready = new PromiseDelegate<void>();
 }

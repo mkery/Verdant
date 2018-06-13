@@ -60,11 +60,11 @@ class RunRecord
     var y2 = new Date()
     y2.setDate(yesterday.getDate() - 1)
 
-    var cells = [{'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_ADDED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_REMOVED}]
+    var cells = [{'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED, 'run': true}, {'node': '1.4', 'changeType': ChangeType.CELL_ADDED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_REMOVED}]
     var run1 = new Run(Date.now(), cells, 1)
     var runs = []
     runs.push(run1)
-    var cells : CellRunData[] = [{'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}]
+    var cells = [{'node': '1.4', 'changeType': ChangeType.CELL_SAME, 'run': true}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}, {'node': '1.4', 'changeType': ChangeType.CELL_CHANGED}, {'node': '1.4', 'changeType': ChangeType.CELL_SAME}]
     var run2 = new Run(Date.now(), cells, 2)
     runs.push(run2)
 
@@ -89,6 +89,7 @@ interface CellRunData
 {
   node : string
   changeType : number
+  run?: boolean
 }
 
 

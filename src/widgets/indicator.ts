@@ -1,22 +1,17 @@
-import {
-  Widget
-} from '@phosphor/widgets';
+import { Widget } from "@phosphor/widgets";
 
-
-export
-class Indicator extends Widget {
-
+export class Indicator extends Widget {
   constructor() {
     super();
-    this.addClass('verdant-indicator');
+    this.addClass("verdant-indicator");
   }
 
   focus() {
-    this.addClass('focused')
+    this.addClass("focused");
   }
 
   blur() {
-    this.removeClass('focused')
+    this.removeClass("focused");
   }
 
   get versionNum(): number {
@@ -25,9 +20,9 @@ class Indicator extends Widget {
   set versionNum(value: number) {
     this._versionNum = value;
     if (value === null) {
-      this.node.textContent = 'v-1';
+      this.node.textContent = "v-1";
     } else {
-        this.node.textContent = `v${value}`;
+      this.node.textContent = `v${value}`;
     }
   }
 

@@ -1,49 +1,31 @@
-import * as CodeMirror
-  from 'codemirror';
+import * as CodeMirror from "codemirror";
 
-import{
-  CodeMirrorEditor
-} from '@jupyterlab/codemirror';
+import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import {
-  Session, KernelMessage
-} from '@jupyterlab/services';
+import { Session, KernelMessage } from "@jupyterlab/services";
 
-import {
-  PromiseDelegate
-} from '@phosphor/coreutils';
+import { PromiseDelegate } from "@phosphor/coreutils";
 
-import{
-  Nodey, NodeyCode
-} from './nodey'
+import { Nodey, NodeyCode } from "./nodey";
 
-import{
-  KernelListen
-} from './kernel-listen'
+import { KernelListen } from "./kernel-listen";
 
-import {
-  ASTResolve
-} from './ast-resolve'
+import { ASTResolve } from "./ast-resolve";
 
-import {
-  Model
-} from './model'
+import { Model } from "./model";
 
-
-export
-class ASTGenerate{
-
+export class ASTGenerate {
   //Properties
-  kernUtil: KernelListen
-  session: Session.ISession
-  astResolve: ASTResolve
-  parserText: string
-  historyModel: Model
+  kernUtil: KernelListen;
+  session: Session.ISession;
+  astResolve: ASTResolve;
+  parserText: string;
+  historyModel: Model;
 
-  constructor(historyModel : Model){
-    this.historyModel = historyModel
-    this.astResolve = new ASTResolve(historyModel)
-    this.parserText =`
+  constructor(historyModel: Model) {
+    this.historyModel = historyModel;
+    this.astResolve = new ASTResolve(historyModel);
+    this.parserText = `
 import sys
 import ast
 from ast import AST
@@ -259,139 +241,142 @@ def main(text):
     nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
     nodey['content'].pop() #remove end marker
     print (json.dumps(nodey))
-`
+`;
   }
 
-
   get ready(): Promise<void> {
-    return this._ready.promise
+    return this._ready.promise;
   }
   private _ready = new PromiseDelegate<void>();
 
-  setKernUtil(kern : KernelListen)
-  {
-    this.kernUtil = kern
-    this._ready = new PromiseDelegate<void>()
-    this.init()
+  setKernUtil(kern: KernelListen) {
+    this.kernUtil = kern;
+    this._ready = new PromiseDelegate<void>();
+    this.init();
   }
 
-
-  private async init()
-  {
-    await this.kernUtil.kernelReady
-    await this.loadParserFunctions()
-    console.log("loaded Parser!")
+  private async init() {
+    await this.kernUtil.kernelReady;
+    await this.loadParserFunctions();
+    console.log("loaded Parser!");
     this._ready.resolve(undefined);
   }
 
-
-  loadParserFunctions()
-  {
-    console.log("kernel ready to go", this.kernUtil.kernel)
+  loadParserFunctions() {
+    console.log("kernel ready to go", this.kernUtil.kernel);
     var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      console.log("R: ", msg.content)
-    }
+      console.log("R: ", msg.content);
+    };
     var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      console.log("IO: ", msg.content)
-    }
-    return this.runKernel(this.parserText, onReply, onIOPub)
+      console.log("IO: ", msg.content);
+    };
+    return this.runKernel(this.parserText, onReply, onIOPub);
   }
 
-
-  async generateCodeNodey(code: string, options: { [key : string] : any}) : Promise<string>
-  {
+  async generateCodeNodey(
+    code: string,
+    options: { [key: string]: any }
+  ): Promise<string> {
     return new Promise<string>((accept, reject) => {
       var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
         //console.log(code, "R: ", msg)
-      }
+      };
       var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
         //console.log(code, "IO: ", msg)
         let msgType = msg.header.msg_type;
         switch (msgType) {
-           case 'execute_result':
-           case 'display_data':
-           case 'error':
-             console.error(code, "IO: ", msg)
-             reject()
-             break;
-           case 'stream':
-             var jsn = (<any>msg.content)['text']
-             //console.log("py 2 ast execution finished!", jsn)
-             accept(this.recieve_generateAST(jsn, options))
-             break;
-           case 'clear_output':
-           case 'update_display_data':
-           default:
-             break;
-           }
-      }
+          case "execute_result":
+          case "display_data":
+          case "error":
+            console.error(code, "IO: ", msg);
+            reject();
+            break;
+          case "stream":
+            var jsn = (<any>msg.content)["text"];
+            //console.log("py 2 ast execution finished!", jsn)
+            accept(this.recieve_generateAST(jsn, options));
+            break;
+          case "clear_output":
+          case "update_display_data":
+          default:
+            break;
+        }
+      };
 
-      this.parseCode(code, onReply, onIOPub)
-    })
+      this.parseCode(code, onReply, onIOPub);
+    });
   }
 
-
-  private parseCode(code: string, onReply: (msg: KernelMessage.IExecuteReplyMsg) => void , onIOPub: (msg: KernelMessage.IIOPubMessage) => void)
-  {
+  private parseCode(
+    code: string,
+    onReply: (msg: KernelMessage.IExecuteReplyMsg) => void,
+    onIOPub: (msg: KernelMessage.IIOPubMessage) => void
+  ) {
     // annoying but important: make sure docstrings do not interrupt the string literal
-    code = code.replace(/""".*"""/g, (str) => {return "'"+str+"'"})
+    code = code.replace(/""".*"""/g, str => {
+      return "'" + str + "'";
+    });
     // make sure newline inside strings doesn't cause an EOL error
-    code = code.replace(/".*\\n.*"/g, (str) => {
-      return str.replace(/\\n/g, "\\\n")
-    })
-    this.runKernel('main("""'+code+'""")', onReply, onIOPub)
+    code = code.replace(/".*\\n.*"/g, str => {
+      return str.replace(/\\n/g, "\\\n");
+    });
+    this.runKernel('main("""' + code + '""")', onReply, onIOPub);
   }
 
-
-  recieve_generateAST(jsn: string, options: { [key : string] : any}) : string
-  {
-    if(jsn == 'null')
-      return null//NodeyCode.EMPTY()
-    if(jsn === "[]\n")
-      return null//NodeyCode.EMPTY()
+  recieve_generateAST(jsn: string, options: { [key: string]: any }): string {
+    if (jsn == "null") return null; //NodeyCode.EMPTY()
+    if (jsn === "[]\n") return null; //NodeyCode.EMPTY()
 
     //console.log("trying to parse", jsn)
-    var dict = JSON.parse(jsn)
-    console.log(dict)
-    var nodey = Nodey.dictToCodeNodeys(Object.assign({}, dict, options), this.historyModel)
-    return nodey.name
+    var dict = JSON.parse(jsn);
+    console.log(dict);
+    var nodey = Nodey.dictToCodeNodeys(
+      Object.assign({}, dict, options),
+      this.historyModel
+    );
+    return nodey.name;
   }
 
-
-  runKernel(code: string, onReply: (msg: KernelMessage.IExecuteReplyMsg) => void , onIOPub: (msg: KernelMessage.IIOPubMessage) => void)
-  {
-    var request : KernelMessage.IExecuteRequest = {
+  runKernel(
+    code: string,
+    onReply: (msg: KernelMessage.IExecuteReplyMsg) => void,
+    onIOPub: (msg: KernelMessage.IIOPubMessage) => void
+  ) {
+    var request: KernelMessage.IExecuteRequest = {
       silent: true,
       user_expressions: {},
       code: code
-    }
+    };
     let future = this.kernUtil.kernel.requestExecute(request, false);
-    future.onReply = onReply
-    future.onIOPub = onIOPub
-    return future.done
+    future.onReply = onReply;
+    future.onIOPub = onIOPub;
+    return future.done;
   }
 
-
-  async repairAST(nodey : NodeyCode, change : CodeMirror.EditorChange, editor : CodeMirrorEditor)
-  {
+  async repairAST(
+    nodey: NodeyCode,
+    change: CodeMirror.EditorChange,
+    editor: CodeMirrorEditor
+  ) {
     return new Promise<NodeyCode>((accept, reject) => {
-      var [recieve_reply, newCode] = this.astResolve.repairAST(nodey, change, editor)
+      var [recieve_reply, newCode] = this.astResolve.repairAST(
+        nodey,
+        change,
+        editor
+      );
 
       var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg)
-      }
+        console.log("R: ", msg);
+      };
       var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg)
-        if(msg.header.msg_type === "stream")
-        {
-          var jsn = (<any>msg.content)['text']
+        console.log("IO: ", msg);
+        if (msg.header.msg_type === "stream") {
+          var jsn = (<any>msg.content)["text"];
           //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn))
+          accept(recieve_reply(jsn));
         }
-      }
-      this.parseCode(newCode, onReply, onIOPub)
-    })
+      };
+      this.parseCode(newCode, onReply, onIOPub);
+    });
   }
-
-
 }
