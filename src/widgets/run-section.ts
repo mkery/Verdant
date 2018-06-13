@@ -78,7 +78,6 @@ export class RunSection extends Widget {
   }
 
   private toggleSection(sectionDiv: HTMLElement, caret: HTMLElement) {
-    console.log("Collapse", sectionDiv);
     if (sectionDiv.style.display === "none") {
       sectionDiv.style.display = "block";
       caret.classList.remove("closed");

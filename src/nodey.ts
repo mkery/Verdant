@@ -40,6 +40,8 @@ export abstract class Nodey {
   abstract clone(): Nodey;
 
   abstract toJSON(): serialized_Nodey;
+
+  abstract typeName(): string;
 }
 
 export class NodeyOutput extends Nodey {
@@ -67,6 +69,10 @@ export class NodeyOutput extends Nodey {
 
   toJSON(): serialized_NodeyOutput {
     return { output: this.raw }; //TODO
+  }
+
+  typeName(): string {
+    return "output";
   }
 }
 
@@ -141,6 +147,10 @@ export class NodeyCode extends Nodey {
       id: this.id,
       parent: this.parent
     });
+  }
+
+  typeName(): string {
+    return "code";
   }
 
   static EMPTY() {

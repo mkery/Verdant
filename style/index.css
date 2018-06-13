@@ -8,6 +8,7 @@
   --jp-private-verdant-manager-tab-padding-top: 8px;
   --verdant-icon-caretdown: url("img/chevron-more.svg");
   --verdant-icon-cellrun: url("img/cell-run.svg");
+  --verdant-icon-timeinspect: url("img/time-inspect.svg");
 }
 
 /*-----------------------------------------------------------------------------
@@ -35,8 +36,12 @@
   font-weight: 600;
   letter-spacing: 1px;
   margin: 0px;
-  padding: 12px 0 4px 12px;
+  padding-bottom: 4px;
+  padding-top: 4px;
+  padding-left: 12px;
   text-transform: uppercase;
+  display: inline-flex;
+  flex-direction: row;
 }
 
 #v-VerdantPanel-tabs .p-TabBar-tab {
@@ -79,6 +84,38 @@
   background-position: left center;
   background-repeat: no-repeat;
   margin-right: 2px;
+}
+
+.v-VerdantPanel-header-title {
+  padding-top: 8px;
+}
+
+.v-VerdantPanel-header-notebookLabel {
+  display: inline-flex;
+  padding-top: 8px;
+  flex: 1 1 auto;
+  padding-left: 0.75em;
+}
+.v-VerdantPanel-header-notebookLabel:hover {
+  background: var(--jp-layout-color2);
+}
+.v-VerdantPanel-header-notebookLabel.closed {
+  color: var(--jp-ui-font-color3);
+}
+
+.v-VerdantPanel-header-cellLabel {
+  display: inline-flex;
+  border-left: var(--jp-border-width) solid var(--jp-border-color0);
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 8px;
+  flex: 1 1 auto;
+}
+.v-VerdantPanel-header-cellLabel:hover {
+  background: var(--jp-layout-color2);
+}
+.v-VerdantPanel-header-cellLabel.closed {
+  color: var(--jp-ui-font-color3);
 }
 
 .v-VerdantPanel-runList-runDateTotal {
@@ -247,4 +284,30 @@
 }
 .verdant-indicator.focused {
   visibility: visible;
+}
+
+.v-VerdantPanel-cellPanel {
+  padding: 10px;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color1);
+}
+
+.v-VerdantPanel-inspect-icon {
+  padding: 5px;
+  margin: 5px;
+  background-image: var(--verdant-icon-timeinspect);
+  background-repeat: no-repeat;
+  border: 1px solid #c5e5fc;
+  border-radius: 5px;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+}
+
+.v-VerdantPanel-inspect-title {
+  display: inline-block;
+  margin-left: 5px;
+  font-style: italic;
+  vertical-align: top;
+  margin-top: 10px;
 }

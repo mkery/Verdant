@@ -10,13 +10,18 @@ import { RunRecord, Run, CellRunData } from "./run";
 
 import { Signal } from "@phosphor/signaling";
 
+import { Inspect } from "./inspect";
+
 export class Model {
   constructor(startCount: number = 0) {
     this._nodeyCounter = startCount;
     this._runStore = new RunRecord();
+    this._inspector = new Inspect(this);
   }
 
   private _notebook: NotebookListen;
+  private _inspector: Inspect;
+
   private _nodeyCounter = 0;
   private _nodeyStore: NodeyVersionList[] = [];
   private _runStore: RunRecord;
@@ -26,6 +31,11 @@ export class Model {
   set notebook(notebook: NotebookListen) {
     console.log("NOTEBOOK SET TO", notebook);
     this._notebook = notebook;
+    this._inspector.notebook = notebook;
+  }
+
+  get inspector(): Inspect {
+    return this._inspector;
   }
 
   get runs(): { date: number; runs: Run[] }[] {
@@ -171,7 +181,8 @@ export class Model {
     });
   }
 
-  dump(): void { //for debugging only
+  dump(): void {
+    //for debugging only
     console.log(this._starNodes, this._nodeyStore);
   }
 

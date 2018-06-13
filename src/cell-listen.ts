@@ -36,7 +36,7 @@ export class CellListen {
   }
 
   get nodey(): NodeyCode {
-    return this.historyModel.getNodeyHead(this._nodey);
+    if (this._nodey) return this.historyModel.getNodeyHead(this._nodey);
   }
 
   get nodeyName(): string {

@@ -4,6 +4,8 @@ import { Cell, CodeCell } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
+import { Signal } from "@phosphor/signaling";
+
 import { ASTGenerate } from "./ast-generate";
 
 import { CellListen } from "./cell-listen";
@@ -13,8 +15,9 @@ import { KernelListen } from "./kernel-listen";
 import { Model } from "./model";
 
 export class NotebookListen {
-  notebook: Notebook; //the currently active notebook Verdant is working on
-  notebookPanel: NotebookPanel;
+  private _notebook: Notebook; //the currently active notebook Verdant is working on
+  private _notebookPanel: NotebookPanel;
+  private _activeCellChanged = new Signal<this, CellListen>(this);
   kernUtil: KernelListen;
   astUtils: ASTGenerate;
   cells: Map<Cell, CellListen>;
@@ -26,7 +29,7 @@ export class NotebookListen {
     astUtils: ASTGenerate,
     historyModel: Model
   ) {
-    this.notebookPanel = notebookPanel;
+    this._notebookPanel = notebookPanel;
     this.astUtils = astUtils;
     this.historyModel = historyModel;
     this.cells = new Map<Cell, CellListen>();
@@ -45,19 +48,23 @@ export class NotebookListen {
     return arr;
   }
 
+  get activeCellChanged(): Signal<this, CellListen> {
+    return this._activeCellChanged;
+  }
+
   get path(): string {
     return this.kernUtil.path;
   }
 
   private async init() {
-    await this.notebookPanel.ready;
-    this.notebook = this.notebookPanel.notebook;
-    this.kernUtil = new KernelListen(this.notebookPanel.session);
+    await this._notebookPanel.ready;
+    this._notebook = this._notebookPanel.notebook;
+    this.kernUtil = new KernelListen(this._notebookPanel.session);
     this.astUtils.setKernUtil(this.kernUtil);
     await this.astUtils.ready;
 
     var cellsReady: Promise<void>[] = [];
-    this.notebook.widgets.forEach((item, index) => {
+    this._notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
         var cell = new CellListen(item, this.astUtils, this.historyModel);
         this.cells.set(item, cell);
@@ -65,13 +72,13 @@ export class NotebookListen {
       }
     });
     await Promise.all(cellsReady);
-    console.log("Loaded Notebook", this.notebook, this.nodey);
+    console.log("Loaded Notebook", this._notebook, this.nodey);
     this.historyModel.notebook = this;
     //console.log("TO JSON", this.toJSON())
     this.historyModel.dump();
     this.historyModel.loadFromFile();
     this.historyModel.writeToFile();
-    this.focusCell(this.notebook.activeCell);
+    this.focusCell(this._notebook.activeCell);
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -84,14 +91,17 @@ export class NotebookListen {
   }
 
   focusCell(cell: Cell): void {
-    if (cell instanceof CodeCell) this.cells.get(cell).focus();
+    if (cell instanceof CodeCell) {
+      this._activeCellChanged.emit(this.cells.get(cell)); //TODO markdown
+      this.cells.get(cell).focus();
+    }
     if (this.activeCell && this.activeCell instanceof CodeCell)
       this.cells.get(this.activeCell).blur();
     this.activeCell = cell;
   }
 
   private listen() {
-    this.notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
+    this._notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
       this.focusCell(cell);
     });
   }
