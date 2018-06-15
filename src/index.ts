@@ -4,6 +4,8 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
+import { ILatexTypesetter } from "@jupyterlab/rendermime";
+
 import { NotebookPanel } from "@jupyterlab/notebook";
 
 import { StackedPanel } from "@phosphor/widgets";
@@ -23,13 +25,21 @@ import { VerdantPanel } from "./widgets/verdant-panel";
  */
 const extension: JupyterLabPlugin<void> = {
   id: "Verdant",
-  activate: (app: JupyterLab, restorer: ILayoutRestorer) => {
+  activate: (
+    app: JupyterLab,
+    restorer: ILayoutRestorer,
+    latexTypesetter: ILatexTypesetter
+  ) => {
     const { shell } = app;
     const panel = new StackedPanel();
     var activePanel: NotebookPanel;
-
+    const linkHandler = {
+      handleLink: (node: HTMLElement, path: string) => {
+        app.commandLinker.connectNode(node, "docmanager:open", { path: path });
+      }
+    };
     var notebook: NotebookListen;
-    const model = new HistoryModel(0);
+    const model = new HistoryModel(0, latexTypesetter, linkHandler);
     const astUtils = new ASTGenerate(model);
 
     restorer.add(panel, "v-VerdantPanel");
@@ -65,7 +75,7 @@ const extension: JupyterLabPlugin<void> = {
     });
   },
   autoStart: true,
-  requires: [ILayoutRestorer]
+  requires: [ILayoutRestorer, ILatexTypesetter]
 };
 
 export default extension;

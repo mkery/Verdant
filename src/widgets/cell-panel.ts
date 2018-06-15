@@ -2,7 +2,9 @@ import { Widget } from "@phosphor/widgets";
 
 import { HistoryModel } from "../history-model";
 
-import { Nodey } from "../nodey";
+import { Nodey, NodeyMarkdown } from "../nodey";
+
+import * as renderers from "@jupyterlab/rendermime";
 
 import "../../style/index.css";
 
@@ -58,16 +60,31 @@ export class CellPanel extends Widget {
   public changeTarget(sender: any, target: Nodey) {
     this.header.textContent = target.typeName() + " node " + target.name;
     this.content.innerHTML = "";
-    this.fillContent(this._historyModel.inspector.versionsOfTarget);
+    this.fillContent(target, this._historyModel.inspector.versionsOfTarget);
   }
 
-  private fillContent(verList: any[]) {
+  private fillContent(target: Nodey, verList: any[]) {
     var contentDiv = this.content;
     verList.map(item => {
       var text = item as string;
-      var li = document.createElement("li");
+      var li = document.createElement("div");
       li.classList.add(CELL_PANEL_INSPECT_VERSION);
       li.textContent = text;
+
+      if (target instanceof NodeyMarkdown) {
+        li.classList.add("markdown");
+        renderers.renderMarkdown({
+          host: li as HTMLElement,
+          source: text,
+          shouldTypeset: true,
+          trusted: true,
+          sanitizer: null,
+          resolver: null,
+          linkHandler: this._historyModel.inspector.linkHandler,
+          latexTypesetter: this._historyModel.inspector.latexTypesetter
+        });
+      }
+
       contentDiv.appendChild(li);
     });
   }

@@ -62,11 +62,7 @@ export class RunModel {
       cell.cell.clearStatus();
     });
 
-    var run = new Run(
-      timestamp,
-      cellDat,
-      Math.max(this._runList.length - 1, 0)
-    );
+    var run = new Run(timestamp, cellDat, Math.max(this._runList.length, 0));
     this._runList.push(run);
     this.categorizeRun(run);
     return run;

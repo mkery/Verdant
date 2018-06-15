@@ -328,3 +328,8 @@
   margin-top: 10px;
   text-align: left;
 }
+.v-VerdantPanel-inspect-version.markdown {
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color1);
+  font-family: var(--jp-ui-font-family);
+}

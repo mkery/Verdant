@@ -1,5 +1,7 @@
 import { NotebookListen } from "./notebook-listen";
 
+import { ILatexTypesetter } from "@jupyterlab/rendermime";
+
 import { Nodey, NodeyCode, NodeyMarkdown } from "./nodey";
 
 import { HistoryModel } from "./history-model";
@@ -13,9 +15,17 @@ export class Inspect {
   private _historyModel: HistoryModel;
   private _targetChanged = new Signal<this, Nodey>(this);
   private _target: Nodey;
+  latexTypesetter: ILatexTypesetter;
+  linkHandler: any;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(
+    historyModel: HistoryModel,
+    latexTypesetter: ILatexTypesetter,
+    linkHandler: any
+  ) {
     this._historyModel = historyModel;
+    this.latexTypesetter = latexTypesetter;
+    this.linkHandler = linkHandler;
   }
 
   set notebook(notebook: NotebookListen) {
