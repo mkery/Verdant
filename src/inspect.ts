@@ -1,6 +1,6 @@
 import { NotebookListen } from "./notebook-listen";
 
-import { Nodey, NodeyCode } from "./nodey";
+import { Nodey, NodeyCode, NodeyMarkdown } from "./nodey";
 
 import { HistoryModel } from "./history-model";
 
@@ -40,13 +40,14 @@ export class Inspect {
   }
 
   changeTarget(nodey: Nodey) {
-    this._historyModel.dump();
+    //this._historyModel.dump();
     this._target = nodey;
     this._targetChanged.emit(this._target);
   }
 
   public renderNode(nodey: Nodey): any {
     if (nodey instanceof NodeyCode) return this.renderCodeNode(nodey);
+    if (nodey instanceof NodeyMarkdown) return this.renderMarkdownNode(nodey);
   }
 
   private renderCodeNode(nodey: NodeyCode): string {
@@ -58,5 +59,9 @@ export class Inspect {
       });
     }
     return literal;
+  }
+
+  private renderMarkdownNode(nodey: NodeyMarkdown): string {
+    return nodey.markdown;
   }
 }

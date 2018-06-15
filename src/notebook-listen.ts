@@ -105,6 +105,13 @@ export class NotebookListen {
     this._notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
       this.focusCell(cell);
     });
+
+    var runButton = this._notebookPanel.toolbar.node.getElementsByClassName(
+      "p-Widget jp-mod-styled jp-Toolbar-button jp-RunIcon jp-Toolbar-item"
+    )[0];
+    runButton.addEventListener("mousedown", ev => {
+      if (this.activeCell) this.cells.get(this.activeCell).cellRun();
+    });
   }
 
   private _ready = new PromiseDelegate<void>();

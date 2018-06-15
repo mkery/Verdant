@@ -162,6 +162,12 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
     super(options);
     this.cell = options.cell;
   }
+
+  clone(): Nodey {
+    var node = super.clone() as NodeyCodeCell;
+    node.cell = this.cell;
+    return node;
+  }
 }
 
 export class NodeyMarkdown extends Nodey implements NodeyCell {
@@ -178,7 +184,8 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
     return new NodeyMarkdown({
       markdown: this.markdown,
       id: this.id,
-      parent: this.parent
+      parent: this.parent,
+      cell: this.cell
     });
   }
 
@@ -255,11 +262,8 @@ export namespace Nodey {
     cell: CellListen
   ) {
     var id = historyModel.dispenseNodeyID();
-    console.log("ID IS", id);
     var n = new NodeyMarkdown({ id: id, markdown: text, cell: cell });
-    console.log("NODE IS", n);
     var verNum = historyModel.registerCellNodey(n);
-    console.log("Version IS", verNum);
     n.version = verNum;
 
     return n;

@@ -4,7 +4,13 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { ASTGenerate } from "./ast-generate";
 
-import { Nodey, NodeyOutput, NodeyCell, NodeyCodeCell } from "./nodey";
+import {
+  Nodey,
+  NodeyOutput,
+  NodeyCell,
+  NodeyCodeCell,
+  NodeyMarkdown
+} from "./nodey";
 
 import * as CodeMirror from "codemirror";
 
@@ -56,14 +62,19 @@ export abstract class CellListen {
     this._ready.resolve(undefined);
   }
 
+  public cellRun(exec: number = 0) {
+    console.log("Running cell!", this.cell);
+    var node = this.nodey;
+    if (node.id === "*" || node.version === "*")
+      this.status = ChangeType.CELL_CHANGED;
+    this.historyModel.handleCellRun(exec, node);
+  }
+
   protected listen(): void {
     this.cell.model.stateChanged.connect(
       (model: ICellModel, change: IChangedArgs<any>) => {
         if (change.name === "executionCount") {
-          var node = this.nodey;
-          if (node.id === "*" || node.version === "*")
-            this.status = ChangeType.CELL_CHANGED;
-          this.historyModel.handleCellRun(change.newValue, node);
+          this.cellRun(change.newValue);
         }
       },
       this
@@ -136,5 +147,32 @@ export class MarkdownCellListen extends CellListen {
     ).id;
     console.log("Nodey initialized to ", this._nodey, this.nodey, this.cell);
     super.init();
+  }
+
+  protected listen(): void {
+    super.listen();
+    if (this.cell.editor instanceof CodeMirrorEditor) {
+      var editor = <CodeMirrorEditor>this.cell.editor;
+      //editor.model.value.changed //listen in
+      //editor.model.selections.changed //listen in
+
+      CodeMirror.on(
+        editor.doc,
+        "change",
+        (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
+          this.historyModel.starNodey(
+            [
+              (node: Nodey) => {
+                console.log("Updating nodey", node);
+                (<NodeyMarkdown>node).markdown = (<NodeyMarkdown>(
+                  node
+                )).cell.cell.model.value.text;
+              }
+            ],
+            this.nodey
+          );
+        }
+      );
+    }
   }
 }
