@@ -12,7 +12,7 @@ import { KernelListen } from "./kernel-listen";
 
 import { ASTResolve } from "./ast-resolve";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
 
 export class ASTGenerate {
   //Properties
@@ -20,9 +20,9 @@ export class ASTGenerate {
   session: Session.ISession;
   astResolve: ASTResolve;
   parserText: string;
-  historyModel: Model;
+  historyModel: HistoryModel;
 
-  constructor(historyModel: Model) {
+  constructor(historyModel: HistoryModel) {
     this.historyModel = historyModel;
     this.astResolve = new ASTResolve(historyModel);
     this.parserText = `
@@ -276,8 +276,8 @@ def main(text):
   async generateCodeNodey(
     code: string,
     options: { [key: string]: any }
-  ): Promise<string> {
-    return new Promise<string>((accept, reject) => {
+  ): Promise<number> {
+    return new Promise<number>((accept, reject) => {
       var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
         //console.log(code, "R: ", msg)
       };
@@ -323,18 +323,18 @@ def main(text):
     this.runKernel('main("""' + code + '""")', onReply, onIOPub);
   }
 
-  recieve_generateAST(jsn: string, options: { [key: string]: any }): string {
+  recieve_generateAST(jsn: string, options: { [key: string]: any }): number {
     if (jsn == "null") return null; //NodeyCode.EMPTY()
     if (jsn === "[]\n") return null; //NodeyCode.EMPTY()
 
     //console.log("trying to parse", jsn)
     var dict = JSON.parse(jsn);
     console.log(dict);
-    var nodey = Nodey.dictToCodeNodeys(
+    var nodey = Nodey.dictToCodeCellNodey(
       Object.assign({}, dict, options),
       this.historyModel
     );
-    return nodey.name;
+    return nodey.id;
   }
 
   runKernel(

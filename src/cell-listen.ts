@@ -4,26 +4,26 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { ASTGenerate } from "./ast-generate";
 
-import { NodeyOutput, NodeyCode } from "./nodey";
+import { Nodey, NodeyOutput, NodeyCell, NodeyCodeCell } from "./nodey";
 
 import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
 
 import { IChangedArgs } from "@jupyterlab/coreutils";
 
 import { ChangeType } from "./run";
 
-export class CellListen {
+export abstract class CellListen {
   cell: Cell;
   astUtils: ASTGenerate;
-  private _nodey: string;
-  historyModel: Model;
+  protected _nodey: number;
+  historyModel: HistoryModel;
   status: number;
 
-  constructor(cell: Cell, astUtils: ASTGenerate, historyModel: Model) {
+  constructor(cell: Cell, astUtils: ASTGenerate, historyModel: HistoryModel) {
     this.cell = cell;
     this.astUtils = astUtils;
     this.historyModel = historyModel;
@@ -35,63 +35,77 @@ export class CellListen {
     return this._ready.promise;
   }
 
-  get nodey(): NodeyCode {
-    if (this._nodey) return this.historyModel.getNodeyHead(this._nodey);
+  get nodey(): NodeyCell {
+    return this.historyModel.getNodeyCell(this._nodey);
   }
 
   get nodeyName(): string {
-    return this._nodey;
+    return this.nodey.name;
   }
 
   public clearStatus(): void {
     this.status = ChangeType.CELL_SAME;
   }
 
-  public focus(): void {
-    console.log("Active!", this.cell, this.cell.inputArea.promptNode);
-  }
+  public focus(): void {}
 
   public blur(): void {}
 
-  private async init() {
+  protected async init(): Promise<void> {
+    this.listen();
+    this._ready.resolve(undefined);
+  }
+
+  protected listen(): void {
+    this.cell.model.stateChanged.connect(
+      (model: ICellModel, change: IChangedArgs<any>) => {
+        if (change.name === "executionCount") {
+          var node = this.nodey;
+          if (node.id === "*" || node.version === "*")
+            this.status = ChangeType.CELL_CHANGED;
+          this.historyModel.handleCellRun(change.newValue, node);
+        }
+      },
+      this
+    );
+  }
+
+  protected _ready = new PromiseDelegate<void>();
+}
+
+/*
+*
+*  Cell listen for code cells
+*
+*/
+export class CodeCellListen extends CellListen {
+  protected async init() {
     if (this.cell instanceof CodeCell) {
       var text: string = this.cell.editor.model.value.text;
       var outNode = this.outputToNodey();
       this._nodey = await this.astUtils.generateCodeNodey(text, {
         output: outNode,
-        run: 0
+        run: 0,
+        cell: this
       });
       console.log("Nodey initialized to ", this._nodey, typeof this._nodey);
-      //if(this.cell.editor instanceof CodeMirrorEditor)
-      //  Nodey.placeMarkers(this.nodey, this.cell.editor)
     }
-    //TODO markdown and other cell types
 
-    this.listen();
-    this._ready.resolve(undefined);
+    super.init();
   }
 
   private outputToNodey(): NodeyOutput[] {
-    if (this.cell instanceof CodeCell) {
-      var output = this.cell.outputArea.model.toJSON();
-      var outNode: NodeyOutput[] = [];
-      if (output.length < 1) outNode = undefined;
-      else {
-        for (var item in output) outNode.push(new NodeyOutput(output[item]));
-      }
-      return outNode;
+    var output = (<CodeCell>this.cell).outputArea.model.toJSON();
+    var outNode: NodeyOutput[] = [];
+    if (output.length < 1) outNode = undefined;
+    else {
+      for (var item in output) outNode.push(new NodeyOutput(output[item]));
     }
+    return outNode;
   }
 
-  private listen(): void {
-    this.cell.model.stateChanged.connect(
-      (model: ICellModel, change: IChangedArgs<any>) => {
-        if (change.name === "executionCount")
-          this.handleCellRun(change.newValue);
-      },
-      this
-    );
-
+  protected listen(): void {
+    super.listen();
     if (this.cell.editor instanceof CodeMirrorEditor) {
       var editor = <CodeMirrorEditor>this.cell.editor;
       //editor.model.value.changed //listen in
@@ -102,20 +116,25 @@ export class CellListen {
         "change",
         (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
           console.log("there was a change!", change, this.nodey);
-          this.astUtils.repairAST(this.nodey, change, editor);
+          this.astUtils.repairAST(<NodeyCodeCell>this.nodey, change, editor);
         }
       );
     }
   }
-
-  private handleCellRun(execCount: number): void {
-    var node = this.nodey;
-    if (node.id === "*" || node.version === "*")
-      this.status = ChangeType.CELL_CHANGED;
-
-    this.historyModel.cellRun(execCount, node);
-    this._nodey = this.historyModel.getNodeyHead(this._nodey).name; //update to latest version
+}
+/*
+  *
+  *  Cell listen for code cells
+  *
+  */
+export class MarkdownCellListen extends CellListen {
+  protected async init() {
+    this._nodey = Nodey.dictToMarkdownNodey(
+      this.cell.model.value.text,
+      this.historyModel,
+      this
+    ).id;
+    console.log("Nodey initialized to ", this._nodey, this.nodey, this.cell);
+    super.init();
   }
-
-  private _ready = new PromiseDelegate<void>();
 }

@@ -4,7 +4,7 @@ import { NotebookPanel } from "@jupyterlab/notebook";
 
 import "../../style/index.css";
 
-import { Model } from "../model";
+import { HistoryModel } from "../history-model";
 
 import { SearchBar } from "./search-bar";
 
@@ -21,14 +21,14 @@ const HEADER_CELL_LABEL = "v-VerdantPanel-header-cellLabel";
  * A widget which displays notebook-level history information
  */
 export class VerdantPanel extends Widget {
-  readonly historyModel: Model;
+  readonly historyModel: HistoryModel;
   readonly fileTabs: TabBar<Widget>;
   readonly searchBar: SearchBar;
   readonly runList: RunList;
   readonly cellPanel: CellPanel;
   readonly layout: PanelLayout;
 
-  constructor(historyModel: Model) {
+  constructor(historyModel: HistoryModel) {
     super();
     this.addClass("v-VerdantPanel");
     this.historyModel = historyModel;

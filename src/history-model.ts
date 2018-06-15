@@ -1,49 +1,50 @@
-import { Nodey, NodeyCode, serialized_Nodey } from "./nodey";
-
-import { PathExt } from "@jupyterlab/coreutils";
+import { Nodey, NodeyCode, NodeyCell } from "./nodey";
 
 import { NotebookListen } from "./notebook-listen";
 
-import { Contents, ContentsManager } from "@jupyterlab/services";
-
-import { RunRecord, Run, CellRunData } from "./run";
-
-import { Signal } from "@phosphor/signaling";
+import { RunModel } from "./run-model";
 
 import { Inspect } from "./inspect";
 
-export class Model {
+import { serialized_NodeyList } from "./file-manager";
+
+export class HistoryModel {
   constructor(startCount: number = 0) {
     this._nodeyCounter = startCount;
-    this._runStore = new RunRecord();
     this._inspector = new Inspect(this);
+    this._runModel = new RunModel(this);
   }
 
   private _notebook: NotebookListen;
   private _inspector: Inspect;
+  private _runModel: RunModel;
 
   private _nodeyCounter = 0;
   private _nodeyStore: NodeyVersionList[] = [];
-  private _runStore: RunRecord;
+  private _cellList: number[] = [];
+  //TODO private _deletedCellList: number[] = [];
   private _starNodes: Nodey[] = []; // new nodes that haven't been commited & subsequently indexed yet
-  private _newRun = new Signal<this, Run>(this);
 
   set notebook(notebook: NotebookListen) {
     console.log("NOTEBOOK SET TO", notebook);
     this._notebook = notebook;
-    this._inspector.notebook = notebook;
+    this._inspector.notebook = this._notebook;
   }
 
   get inspector(): Inspect {
     return this._inspector;
   }
 
-  get runs(): { date: number; runs: Run[] }[] {
-    return this._runStore.runs;
+  get runModel(): RunModel {
+    return this._runModel;
   }
 
-  get newRun(): Signal<Model, Run> {
-    return this._newRun;
+  get cellList(): NodeyCell[] {
+    return this._cellList.map(num => this.getNodeyCell(num));
+  }
+
+  public getVersionsFor(nodey: Nodey) {
+    return this._nodeyStore[parseInt(nodey.id)];
   }
 
   dispenseNodeyID(): number {
@@ -52,22 +53,30 @@ export class Model {
     return id;
   }
 
-  getNodeyHead(name: string): NodeyCode {
+  getNodeyHead(name: string): Nodey {
     //TODO seperate list for markdown and output
     var [id, ver] = name.split(".");
     if (id === "*")
       // its not a committed node yet
-      return <NodeyCode>this._starNodes[parseInt(ver)];
+      return this._starNodes[parseInt(ver)];
 
-    return <NodeyCode>this._nodeyStore[parseInt(id)].getNodeyHead();
+    return this._nodeyStore[parseInt(id)].getNodeyHead();
   }
 
-  getNodey(name: string): NodeyCode {
+  getNodeyCell(id: number): NodeyCell {
+    return <NodeyCell>this._nodeyStore[id].getNodeyHead();
+  }
+
+  getNodey(name: string): Nodey {
     var [id, ver] = name.split(".");
     if (id === "*")
       // its not a committed node yet
-      return <NodeyCode>this._starNodes[parseInt(ver)];
-    return <NodeyCode>this._nodeyStore[parseInt(id)].getNodey(ver);
+      return this._starNodes[parseInt(ver)];
+    return this._nodeyStore[parseInt(id)].getNodey(ver);
+  }
+
+  handleCellRun(executionCount: number, nodey: NodeyCell) {
+    this._runModel.cellRun(executionCount, nodey);
   }
 
   starNodey(
@@ -86,37 +95,16 @@ export class Model {
     return version;
   }
 
+  registerCellNodey(nodey: NodeyCell): number {
+    var version = this.registerNodey(nodey);
+    this._cellList.push(nodey.id); //TODO cells change order, deleted, ect
+    return version;
+  }
+
   registerStarNodey(nodey: Nodey): number {
     this._starNodes.push(nodey);
     var version = this._starNodes.length - 1;
     return version;
-  }
-
-  registerRun(time: number, cells: CellRunData[]): Run {
-    return this._runStore.addNewRun(time, cells);
-  }
-
-  cellRun(execCount: number, nodey: NodeyCode) {
-    console.log("Cell run!", execCount, nodey);
-    var timestamp = Date.now();
-    if (execCount !== null) {
-      this.commitChanges(nodey);
-      this.pruneStarList();
-      this.dump();
-      var cellDat: CellRunData[] = [];
-      this._notebook.cells.forEach(cell => {
-        var dat = {
-          node: cell.nodeyName,
-          changeType: cell.status
-        } as CellRunData;
-        if (cell.nodeyName === nodey.name) dat["run"] = true;
-        cellDat.push(dat);
-        cell.clearStatus();
-      });
-      var run = this.registerRun(timestamp, cellDat);
-      console.log("Run committed ", run);
-      this._newRun.emit(run);
-    }
   }
 
   commitChanges(nodey: Nodey, prior: NodeyCode = null): Nodey {
@@ -139,7 +127,7 @@ export class Model {
           codey.content[index] = child.name;
           child.parent = codey.name;
           if (prior) prior.right = child.name;
-          prior = child;
+          prior = child as NodeyCode;
         }
       });
     }
@@ -165,8 +153,8 @@ export class Model {
         acc.push(n);
         var oldName = n.name;
         n.version = acc.length - 1;
-        if (n.parent) {
-          var parent = this.getNodeyHead(n.parent);
+        if (n instanceof NodeyCode && n.parent) {
+          var parent = this.getNodeyHead(n.parent) as NodeyCode;
           parent.content[parent.content.indexOf(oldName)] = n.name;
         }
       }
@@ -185,79 +173,16 @@ export class Model {
     //for debugging only
     console.log(this._starNodes, this._nodeyStore);
   }
-
-  writeToFile(): Promise<void> {
-    return new Promise((accept, reject) => {
-      var notebookPath = this._notebook.path;
-      //console.log("notebook path is", notebookPath)
-      var name = PathExt.basename(notebookPath);
-      name = name.substring(0, name.indexOf(".")) + ".ipyhistory";
-      //console.log("name is", name)
-      var path =
-        "/" +
-        notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
-        name;
-      //console.log("goal path is ", path)
-
-      var saveModel = new HistorySaveModel(
-        name,
-        path,
-        "today",
-        "today",
-        JSON.stringify(this.toJSON())
-      );
-      //console.log("Model to save is", saveModel)
-
-      let contents = new ContentsManager();
-      contents
-        .save(path, saveModel)
-        .then(res => {
-          console.log("Model written to file", saveModel);
-          accept();
-        })
-        .catch(rej => {
-          //here when you reject the promise if the filesave fails
-          console.error(rej);
-          reject();
-        });
-    });
-  }
-
-  loadFromFile(): Promise<void> {
-    return new Promise((accept, reject) => {
-      var notebookPath = this._notebook.path;
-      //console.log("notebook path is", notebookPath)
-      var name = PathExt.basename(notebookPath);
-      name = name.substring(0, name.indexOf(".")) + ".ipyhistory";
-      //console.log("name is", name)
-      var path =
-        "/" +
-        notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
-        name;
-      let contents = new ContentsManager();
-      contents
-        .get(path)
-        .then(res => {
-          console.log("Found a model ", res);
-          accept();
-        })
-        .catch(rej => {
-          //here when you reject the promise if the filesave fails
-          console.error(rej);
-          reject();
-        });
-    });
-  }
 }
 
 export class NodeyVersionList {
-  historyModel: Model;
+  historyModel: HistoryModel;
 
   private _verList: Nodey[];
   private _number: number;
   private _starState: Nodey;
 
-  constructor(historyModel: Model, index: number) {
+  constructor(historyModel: HistoryModel, index: number) {
     this.historyModel = historyModel;
     this._verList = [];
     this._number = index;
@@ -272,18 +197,18 @@ export class NodeyVersionList {
     return this._verList;
   }
 
-  getNodeyHead(): Nodey {
+  public getNodeyHead(): Nodey {
     if (this._starState) return this._starState;
     else return this.getNodey(this._verList.length - 1);
   }
 
-  getNodey(index: any): Nodey {
+  public getNodey(index: any): Nodey {
     if (index === "*") return this._starState;
 
     return this._verList[parseInt(index)];
   }
 
-  starNodey(
+  public starNodey(
     changes: ((x: Nodey) => void)[],
     nodey: Nodey = this._verList[this._verList.length - 1]
   ) {
@@ -318,37 +243,5 @@ export class NodeyVersionList {
     var versions = this._verList.map(item => item.toJSON());
     var jsn: serialized_NodeyList = { nodey: this._number, versions: versions };
     return jsn;
-  }
-}
-
-export interface serialized_NodeyList {
-  nodey: number;
-  versions: serialized_Nodey[];
-}
-
-export class HistorySaveModel implements Contents.IModel {
-  readonly type: Contents.ContentType = "file";
-  readonly writable: boolean = true;
-  readonly mimetype: string = "application/json";
-  readonly format: Contents.FileFormat = "text";
-
-  readonly name: string;
-  readonly path: string;
-  readonly created: string;
-  readonly last_modified: string;
-  readonly content: any;
-
-  constructor(
-    name: string,
-    path: string,
-    createDate: string,
-    modDate: string,
-    content: any
-  ) {
-    this.name = name;
-    this.path = path;
-    this.created = createDate;
-    this.last_modified = modDate;
-    this.content = content;
   }
 }

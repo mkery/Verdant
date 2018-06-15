@@ -2,9 +2,9 @@ import { Widget } from "@phosphor/widgets";
 
 import "../../style/index.css";
 
-import { Model } from "../model";
+import { HistoryModel } from "../history-model";
 
-import { Run } from "../run";
+import { Run, RunDateList } from "../run";
 
 import { RunItem } from "./run-item";
 
@@ -13,35 +13,38 @@ import { RunSection } from "./run-section";
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 
 export class RunList extends Widget {
-  readonly historyModel: Model;
+  readonly historyModel: HistoryModel;
   selectedRun: RunItem;
   sections: { date: number; section: RunSection }[];
 
-  constructor(historyModel: Model) {
+  constructor(historyModel: HistoryModel) {
     super();
     this.historyModel = historyModel;
     this.sections = [];
 
-    var runDataList = this.historyModel.runs;
+    var runDateList = this.historyModel.runModel.runDateList;
 
-    runDataList.forEach(runData => {
-      var date = this.formatDate(runData.date);
+    runDateList.forEach((runDate: RunDateList) => {
+      var date = this.formatDate(runDate.date);
       var dateSection = new RunSection(
         this.historyModel,
         "runs",
         date,
         this.onClick.bind(this),
-        runData.runs
+        runDate.runList
       );
 
-      this.sections.push({ date: runData.date, section: dateSection });
+      this.sections.push({
+        date: runDate.date.getTime(),
+        section: dateSection
+      });
       this.node.appendChild(dateSection.node);
     });
 
-    this.historyModel.newRun.connect(this.addNewRun.bind(this));
+    this.historyModel.runModel.newRun.connect(this.addNewRun.bind(this));
   }
 
-  private formatDate(timestamp: number): string {
+  private formatDate(date: Date): string {
     var monthNames = [
       "January",
       "February",
@@ -60,7 +63,6 @@ export class RunList extends Widget {
     var today = new Date();
     var yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
-    var date = new Date(timestamp);
 
     var dateDesc = "";
 
@@ -110,7 +112,7 @@ export class RunList extends Widget {
       var dateSection = new RunSection(
         this.historyModel,
         "runs",
-        this.formatDate(run.timestamp),
+        this.formatDate(new Date(run.timestamp)),
         this.onClick.bind(this),
         [run]
       );

@@ -1,6 +1,6 @@
 import { NotebookPanel, Notebook } from "@jupyterlab/notebook";
 
-import { Cell, CodeCell } from "@jupyterlab/cells";
+import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
@@ -8,11 +8,11 @@ import { Signal } from "@phosphor/signaling";
 
 import { ASTGenerate } from "./ast-generate";
 
-import { CellListen } from "./cell-listen";
+import { CellListen, CodeCellListen, MarkdownCellListen } from "./cell-listen";
 
 import { KernelListen } from "./kernel-listen";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
 
 export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
@@ -22,12 +22,12 @@ export class NotebookListen {
   astUtils: ASTGenerate;
   cells: Map<Cell, CellListen>;
   activeCell: Cell;
-  historyModel: Model;
+  historyModel: HistoryModel;
 
   constructor(
     notebookPanel: NotebookPanel,
     astUtils: ASTGenerate,
-    historyModel: Model
+    historyModel: HistoryModel
   ) {
     this._notebookPanel = notebookPanel;
     this.astUtils = astUtils;
@@ -66,7 +66,11 @@ export class NotebookListen {
     var cellsReady: Promise<void>[] = [];
     this._notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
-        var cell = new CellListen(item, this.astUtils, this.historyModel);
+        var cell: CellListen;
+        if (item instanceof CodeCell)
+          cell = new CodeCellListen(item, this.astUtils, this.historyModel);
+        else if (item instanceof MarkdownCell)
+          cell = new MarkdownCellListen(item, this.astUtils, this.historyModel);
         this.cells.set(item, cell);
         cellsReady.push(cell.ready);
       }
@@ -76,8 +80,6 @@ export class NotebookListen {
     this.historyModel.notebook = this;
     //console.log("TO JSON", this.toJSON())
     this.historyModel.dump();
-    this.historyModel.loadFromFile();
-    this.historyModel.writeToFile();
     this.focusCell(this._notebook.activeCell);
     this.listen();
     this._ready.resolve(undefined);
@@ -91,12 +93,11 @@ export class NotebookListen {
   }
 
   focusCell(cell: Cell): void {
-    if (cell instanceof CodeCell) {
+    if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       this._activeCellChanged.emit(this.cells.get(cell)); //TODO markdown
       this.cells.get(cell).focus();
     }
-    if (this.activeCell && this.activeCell instanceof CodeCell)
-      this.cells.get(this.activeCell).blur();
+    if (this.activeCell) this.cells.get(this.activeCell).blur();
     this.activeCell = cell;
   }
 

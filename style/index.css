@@ -311,3 +311,20 @@
   vertical-align: top;
   margin-top: 10px;
 }
+
+.v-VerdantPanel-inspect-content {
+  -webkit-margin-before: 5px;
+  -webkit-margin-after: 0px;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+  -webkit-padding-start: 0px;
+}
+
+.v-VerdantPanel-inspect-version {
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+  letter-spacing: var(--jp-cell-prompt-letter-spacing);
+  font-family: var(--jp-cell-prompt-font-family);
+  margin-top: 10px;
+  text-align: left;
+}

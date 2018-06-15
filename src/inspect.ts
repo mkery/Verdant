@@ -1,8 +1,8 @@
 import { NotebookListen } from "./notebook-listen";
 
-import { Nodey } from "./nodey";
+import { Nodey, NodeyCode } from "./nodey";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
 
 import { CellListen } from "./cell-listen";
 
@@ -10,11 +10,11 @@ import { Signal } from "@phosphor/signaling";
 
 export class Inspect {
   private _notebook: NotebookListen;
-  private _historyModel: Model;
+  private _historyModel: HistoryModel;
   private _targetChanged = new Signal<this, Nodey>(this);
   private _target: Nodey;
 
-  constructor(historyModel: Model) {
+  constructor(historyModel: HistoryModel) {
     this._historyModel = historyModel;
   }
 
@@ -31,9 +31,32 @@ export class Inspect {
     return this._targetChanged;
   }
 
+  get versionsOfTarget() {
+    var nodeVerList = this._historyModel.getVersionsFor(this._target);
+    var recovered = nodeVerList.history.map((item: Nodey) =>
+      this.renderNode(item)
+    );
+    return recovered;
+  }
+
   changeTarget(nodey: Nodey) {
     this._historyModel.dump();
     this._target = nodey;
     this._targetChanged.emit(this._target);
+  }
+
+  public renderNode(nodey: Nodey): any {
+    if (nodey instanceof NodeyCode) return this.renderCodeNode(nodey);
+  }
+
+  private renderCodeNode(nodey: NodeyCode): string {
+    var literal = nodey.literal || "";
+    if (nodey.content) {
+      nodey.content.forEach(name => {
+        var child = this._historyModel.getNodey(name);
+        literal += this.renderCodeNode(child as NodeyCode);
+      });
+    }
+    return literal;
   }
 }

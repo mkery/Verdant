@@ -2,7 +2,7 @@ import { Widget } from "@phosphor/widgets";
 
 import "../../style/index.css";
 
-import { Model } from "../model";
+import { HistoryModel } from "../history-model";
 
 import { Run } from "../run";
 
@@ -16,13 +16,13 @@ const DATE_LABEL = "v-VerdantPanel-runList-dateLabel";
 const DATEHEADER_CARET = "v-VerdantPanel-runList-caret";
 
 export class RunSection extends Widget {
-  readonly historyModel: Model;
+  readonly historyModel: HistoryModel;
   private runItemList: HTMLElement;
   readonly headerTag: string;
   readonly headerTitle: string;
 
   constructor(
-    historyModel: Model,
+    historyModel: HistoryModel,
     headerTag: string,
     headerTitle: string,
     selectionHandler: () => any,

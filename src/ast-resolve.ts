@@ -4,15 +4,15 @@ import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
 
 import * as crypto from "crypto";
 import * as levenshtein from "fast-levenshtein";
 
 export class ASTResolve {
-  historyModel: Model;
+  historyModel: HistoryModel;
 
-  constructor(historyModel: Model) {
+  constructor(historyModel: HistoryModel) {
     this.historyModel = historyModel;
   }
 
@@ -133,7 +133,7 @@ export class ASTResolve {
     // shift all nodes after this changed node
     var [nodeEnd, deltaLine, deltaCh] = this.calcShift(affected, change);
     if (affected.right) {
-      var right = this.historyModel.getNodeyHead(affected.right);
+      var right = this.historyModel.getNodeyHead(affected.right) as NodeyCode;
       if (right.start.line !== nodeEnd.line) deltaCh = 0;
       this.shiftAllAfter(right, deltaLine, deltaCh);
     }
@@ -193,7 +193,9 @@ export class ASTResolve {
     this.shiftAllChildren(nodey, deltaLine, deltaCh);
 
     if (nodey.right) {
-      var rightSibling = this.historyModel.getNodeyHead(nodey.right);
+      var rightSibling = this.historyModel.getNodeyHead(
+        nodey.right
+      ) as NodeyCode;
       if (rightSibling.start.line !== nodey.start.line) deltaCh = 0;
       this.shiftAllAfter(rightSibling, deltaLine, deltaCh);
     }
@@ -201,7 +203,7 @@ export class ASTResolve {
 
   shiftAllChildren(nodey: NodeyCode, deltaLine: number, deltaCh: number): void {
     for (var i in nodey.content) {
-      var child = this.historyModel.getNodeyHead(nodey.content[i]);
+      var child = this.historyModel.getNodeyHead(nodey.content[i]) as NodeyCode;
       child.start.line += deltaLine;
       child.end.line += deltaLine;
       child.start.ch += deltaCh;
@@ -280,7 +282,9 @@ export class ASTResolve {
     console.log("Attempting to match", nodeToMatch);
 
     for (var i = 0; i < candidateList.length; i++) {
-      var candidate = this.historyModel.getNodeyHead(candidateList[i]);
+      var candidate = this.historyModel.getNodeyHead(
+        candidateList[i]
+      ) as NodeyCode;
       var [score, updates] = this.matchNode(nodeToMatch, candidate);
 
       if (score === 0) {

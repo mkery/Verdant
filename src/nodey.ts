@@ -1,6 +1,13 @@
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
+import { CellListen } from "./cell-listen";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
+
+import {
+  serialized_NodeyOutput,
+  serialized_Nodey,
+  serialized_NodeyCode,
+  serialized_NodeyMarkdown
+} from "./file-manager";
 
 export abstract class Nodey {
   private node_id: number; //id for this node
@@ -76,23 +83,6 @@ export class NodeyOutput extends Nodey {
   }
 }
 
-export interface serialized_Nodey {
-  run?: number; //TODO
-}
-
-export interface serialized_NodeyOutput extends serialized_Nodey {
-  output?: { [key: string]: any };
-}
-
-export interface serialized_NodeyCode extends serialized_Nodey {
-  type: string;
-  output?: serialized_NodeyOutput[];
-  literal?: any;
-  start?: { line: number; ch: number };
-  end?: { line: number; ch: number };
-  content?: string[];
-}
-
 export class NodeyCode extends Nodey {
   type: string;
   output: NodeyOutput[];
@@ -158,13 +148,72 @@ export class NodeyCode extends Nodey {
   }
 }
 
+/*
+* Cell-level nodey
+*/
+export interface NodeyCell extends Nodey {
+  cell: CellListen;
+}
+
+export class NodeyCodeCell extends NodeyCode implements NodeyCell {
+  cell: CellListen;
+
+  constructor(options: { [id: string]: any }) {
+    super(options);
+    this.cell = options.cell;
+  }
+}
+
+export class NodeyMarkdown extends Nodey implements NodeyCell {
+  markdown: string;
+  cell: CellListen;
+
+  constructor(options: { [id: string]: any }) {
+    super(options);
+    this.cell = options.cell;
+    this.markdown = options.markdown;
+  }
+
+  clone(): Nodey {
+    return new NodeyMarkdown({
+      markdown: this.markdown,
+      id: this.id,
+      parent: this.parent
+    });
+  }
+
+  toJSON(): serialized_NodeyMarkdown {
+    return { markdown: this.markdown };
+  }
+
+  typeName(): string {
+    return "markdown cell";
+  }
+}
+
 /**
  * A namespace for Nodey statics.
  */
 export namespace Nodey {
+  export function dictToCodeCellNodey(
+    dict: { [id: string]: any },
+    historyModel: HistoryModel
+  ) {
+    dict.id = historyModel.dispenseNodeyID();
+    dict.start.line -= 1; // convert the coordinates of the range to code mirror style
+    dict.end.line -= 1;
+
+    var n = new NodeyCodeCell(dict);
+    var verNum = historyModel.registerCellNodey(n);
+    n.version = verNum;
+
+    dictToCodeChildren(dict, historyModel, n);
+    return n;
+  }
+
   export function dictToCodeNodeys(
     dict: { [id: string]: any },
-    historyModel: Model,
+    historyModel: HistoryModel,
     prior: NodeyCode = null
   ): NodeyCode {
     dict.id = historyModel.dispenseNodeyID();
@@ -177,8 +226,17 @@ export namespace Nodey {
     n.version = verNum;
 
     if (prior) prior.right = n.name;
-    prior = null;
 
+    dictToCodeChildren(dict, historyModel, n);
+    return n;
+  }
+
+  function dictToCodeChildren(
+    dict: { [id: string]: any },
+    historyModel: HistoryModel,
+    n: NodeyCode
+  ) {
+    var prior = null;
     n.content = [];
     for (var item in dict.content) {
       var child = dictToCodeNodeys(dict.content[item], historyModel, prior);
@@ -191,18 +249,19 @@ export namespace Nodey {
     return n;
   }
 
-  export function placeMarkers(
-    nodey: NodeyCode,
-    editor: CodeMirrorEditor
-  ): void {
-    if (nodey.literal) {
-      //if this node is has shown concrete text
-      var div = document.createElement("div");
-      div.classList.add("verd-marker");
-      editor.doc.markText(nodey.start, nodey.end, {
-        css: "background-color: pink"
-      });
-    }
-    for (var i in nodey.content) this.placeMarkers(nodey.content[i], editor);
+  export function dictToMarkdownNodey(
+    text: string,
+    historyModel: HistoryModel,
+    cell: CellListen
+  ) {
+    var id = historyModel.dispenseNodeyID();
+    console.log("ID IS", id);
+    var n = new NodeyMarkdown({ id: id, markdown: text, cell: cell });
+    console.log("NODE IS", n);
+    var verNum = historyModel.registerCellNodey(n);
+    console.log("Version IS", verNum);
+    n.version = verNum;
+
+    return n;
   }
 }

@@ -14,7 +14,7 @@ import { ASTGenerate } from "./ast-generate";
 
 import { NotebookListen } from "./notebook-listen";
 
-import { Model } from "./model";
+import { HistoryModel } from "./history-model";
 
 import { VerdantPanel } from "./widgets/verdant-panel";
 
@@ -29,7 +29,7 @@ const extension: JupyterLabPlugin<void> = {
     var activePanel: NotebookPanel;
 
     var notebook: NotebookListen;
-    const model = new Model(0);
+    const model = new HistoryModel(0);
     const astUtils = new ASTGenerate(model);
 
     restorer.add(panel, "v-VerdantPanel");
