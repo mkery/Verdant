@@ -1,10 +1,10 @@
-import { NodeyCode } from "./nodey";
+import { NodeyCode } from "../nodey";
 
 import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "../history-model";
 
 import * as crypto from "crypto";
 import * as levenshtein from "fast-levenshtein";

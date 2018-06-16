@@ -6,13 +6,13 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { Signal } from "@phosphor/signaling";
 
-import { ASTGenerate } from "./ast-generate";
+import { ASTGenerate } from "../analysis/ast-generate";
 
 import { CellListen, CodeCellListen, MarkdownCellListen } from "./cell-listen";
 
 import { KernelListen } from "./kernel-listen";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "../history-model";
 
 export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on

@@ -4,8 +4,6 @@ import { HistoryModel } from "../history-model";
 
 import { Nodey, NodeyMarkdown } from "../nodey";
 
-import * as renderers from "@jupyterlab/rendermime";
-
 import "../../style/index.css";
 
 const CELL_PANEL = "v-VerdantPanel-cellPanel";
@@ -49,6 +47,10 @@ export class CellPanel extends Widget {
     );
   }
 
+  private get inspector() {
+    return this._historyModel.inspector;
+  }
+
   get header() {
     return this.node.getElementsByClassName(CELL_PANEL_INSPECT_TITLE)[0];
   }
@@ -60,7 +62,7 @@ export class CellPanel extends Widget {
   public changeTarget(sender: any, target: Nodey) {
     this.header.textContent = target.typeName() + " node " + target.name;
     this.content.innerHTML = "";
-    this.fillContent(target, this._historyModel.inspector.versionsOfTarget);
+    this.fillContent(target, this.inspector.versionsOfTarget);
   }
 
   private fillContent(target: Nodey, verList: any[]) {
@@ -73,16 +75,7 @@ export class CellPanel extends Widget {
 
       if (target instanceof NodeyMarkdown) {
         li.classList.add("markdown");
-        renderers.renderMarkdown({
-          host: li as HTMLElement,
-          source: text,
-          shouldTypeset: true,
-          trusted: true,
-          sanitizer: null,
-          resolver: null,
-          linkHandler: this._historyModel.inspector.linkHandler,
-          latexTypesetter: this._historyModel.inspector.latexTypesetter
-        });
+        this.inspector.renderBaby.renderMarkdown(li, text);
       }
 
       contentDiv.appendChild(li);

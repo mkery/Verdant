@@ -2,7 +2,7 @@ import { Cell, CodeCell, ICellModel } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
-import { ASTGenerate } from "./ast-generate";
+import { ASTGenerate } from "../analysis/ast-generate";
 
 import {
   Nodey,
@@ -10,17 +10,17 @@ import {
   NodeyCell,
   NodeyCodeCell,
   NodeyMarkdown
-} from "./nodey";
+} from "../nodey";
 
 import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "../history-model";
 
 import { IChangedArgs } from "@jupyterlab/coreutils";
 
-import { ChangeType } from "./run";
+import { ChangeType } from "../run";
 
 export abstract class CellListen {
   cell: Cell;

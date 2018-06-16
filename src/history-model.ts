@@ -1,8 +1,8 @@
 import { Nodey, NodeyCode, NodeyCell } from "./nodey";
 
-import { ILatexTypesetter } from "@jupyterlab/rendermime";
+import { RenderBaby } from "./jupyter-hooks/render-baby";
 
-import { NotebookListen } from "./notebook-listen";
+import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { RunModel } from "./run-model";
 
@@ -11,13 +11,9 @@ import { Inspect } from "./inspect";
 import { serialized_NodeyList } from "./file-manager";
 
 export class HistoryModel {
-  constructor(
-    startCount: number = 0,
-    latexTypesetter: ILatexTypesetter,
-    linkHandler: any
-  ) {
+  constructor(startCount: number = 0, renderBaby: RenderBaby) {
     this._nodeyCounter = startCount;
-    this._inspector = new Inspect(this, latexTypesetter, linkHandler);
+    this._inspector = new Inspect(this, renderBaby);
     this._runModel = new RunModel(this);
   }
 

@@ -1,12 +1,12 @@
-import { NotebookListen } from "./notebook-listen";
-
-import { ILatexTypesetter } from "@jupyterlab/rendermime";
+import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { Nodey, NodeyCode, NodeyMarkdown } from "./nodey";
 
 import { HistoryModel } from "./history-model";
 
-import { CellListen } from "./cell-listen";
+import { CellListen } from "./jupyter-hooks/cell-listen";
+
+import { RenderBaby } from "./jupyter-hooks/render-baby";
 
 import { Signal } from "@phosphor/signaling";
 
@@ -15,17 +15,11 @@ export class Inspect {
   private _historyModel: HistoryModel;
   private _targetChanged = new Signal<this, Nodey>(this);
   private _target: Nodey;
-  latexTypesetter: ILatexTypesetter;
-  linkHandler: any;
+  renderBaby: RenderBaby;
 
-  constructor(
-    historyModel: HistoryModel,
-    latexTypesetter: ILatexTypesetter,
-    linkHandler: any
-  ) {
+  constructor(historyModel: HistoryModel, renderBaby: RenderBaby) {
     this._historyModel = historyModel;
-    this.latexTypesetter = latexTypesetter;
-    this.linkHandler = linkHandler;
+    this.renderBaby = renderBaby;
   }
 
   set notebook(notebook: NotebookListen) {

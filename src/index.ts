@@ -4,21 +4,23 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
-import { ILatexTypesetter } from "@jupyterlab/rendermime";
-
 import { NotebookPanel } from "@jupyterlab/notebook";
 
 import { StackedPanel } from "@phosphor/widgets";
 
+import * as renderers from "@jupyterlab/rendermime";
+
 import "../style/index.css";
 
-import { ASTGenerate } from "./ast-generate";
+import { ASTGenerate } from "./analysis/ast-generate";
 
-import { NotebookListen } from "./notebook-listen";
+import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { HistoryModel } from "./history-model";
 
 import { VerdantPanel } from "./widgets/verdant-panel";
+
+import { RenderBaby } from "./jupyter-hooks/render-baby";
 
 /**
  * Initialization data for the Verdant extension.
@@ -28,7 +30,7 @@ const extension: JupyterLabPlugin<void> = {
   activate: (
     app: JupyterLab,
     restorer: ILayoutRestorer,
-    latexTypesetter: ILatexTypesetter
+    latexTypesetter: renderers.ILatexTypesetter
   ) => {
     const { shell } = app;
     const panel = new StackedPanel();
@@ -39,7 +41,8 @@ const extension: JupyterLabPlugin<void> = {
       }
     };
     var notebook: NotebookListen;
-    const model = new HistoryModel(0, latexTypesetter, linkHandler);
+    const renderBaby = new RenderBaby(latexTypesetter, linkHandler);
+    const model = new HistoryModel(0, renderBaby);
     const astUtils = new ASTGenerate(model);
 
     restorer.add(panel, "v-VerdantPanel");
@@ -75,7 +78,7 @@ const extension: JupyterLabPlugin<void> = {
     });
   },
   autoStart: true,
-  requires: [ILayoutRestorer, ILatexTypesetter]
+  requires: [ILayoutRestorer, renderers.ILatexTypesetter]
 };
 
 export default extension;

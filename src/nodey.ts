@@ -1,4 +1,4 @@
-import { CellListen } from "./cell-listen";
+import { CellListen } from "./jupyter-hooks/cell-listen";
 
 import { HistoryModel } from "./history-model";
 

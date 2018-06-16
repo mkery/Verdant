@@ -1,6 +1,6 @@
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { NotebookListen } from "./notebook-listen";
+import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
