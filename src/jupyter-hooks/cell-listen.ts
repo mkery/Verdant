@@ -160,7 +160,7 @@ export class MarkdownCellListen extends CellListen {
         editor.doc,
         "change",
         (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
-          this.historyModel.starNodey(
+          this.historyModel.stageChanges(
             [
               (node: Nodey) => {
                 console.log("Updating nodey", node);

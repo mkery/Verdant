@@ -43,7 +43,7 @@ export class RunModel {
       console.log("Cell run!", execCount, nodey);
       var timestamp = Date.now();
       this._historyModel.commitChanges(nodey);
-      this._historyModel.pruneStarList();
+      this._historyModel.dump();
       var run = this.recordRun(timestamp, nodey);
       console.log("Run committed ", run);
       this._newRun.emit(run);

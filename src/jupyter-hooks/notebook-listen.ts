@@ -77,7 +77,6 @@ export class NotebookListen {
     });
     await Promise.all(cellsReady);
     console.log("Loaded Notebook", this._notebook, this.nodey);
-    this.historyModel.notebook = this;
     //console.log("TO JSON", this.toJSON())
     this.historyModel.dump();
     this.focusCell(this._notebook.activeCell);

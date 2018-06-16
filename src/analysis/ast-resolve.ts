@@ -246,7 +246,7 @@ export class ASTResolve {
 
       var [score, transforms] = this.matchNode(dict, nodey);
       console.log("Match?", score, transforms);
-      this.historyModel.starNodey(transforms, nodey);
+      this.historyModel.stageChanges(transforms, nodey);
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
@@ -385,8 +385,8 @@ export class ASTResolve {
     n.start.line -= 1; // convert the coordinates of the range to code mirror style
     n.end.line -= 1;
     n.positionRelativeTo(target);
-    var num = this.historyModel.registerStarNodey(n);
-    n.version = num;
+    var label = this.historyModel.addStarNode(n, target);
+    n.version = label;
 
     if (prior) prior.right = n.name;
     prior = null;
