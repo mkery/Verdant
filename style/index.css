@@ -344,3 +344,30 @@
   background-color: var(--verdant-highlight-color1);
   border-color: var(--jp-brand-color1);
 }
+
+.v-VerdantPanel-wishbone-line {
+  position: absolute;
+  display: inline-block;
+  left: 0px;
+  width: 100%;
+  height: var(--jp-code-font-size);
+  z-index: 5;
+}
+
+.v-VerdantPanel-wishbone-line.v-VerdantPanel-wishbone-highlight {
+  background-color: #c5e5fc4e;
+  cursor: default;
+  margin-top: -2px;
+  padding-bottom: var(--jp-code-padding);
+  border-top: 3px solid var(--jp-brand-color1);
+  border-bottom: 3px solid var(--jp-brand-color1);
+}
+
+.v-VerdantPanel-wishbone-line-seg {
+  display: inline-block;
+  height: var(--jp-code-font-size);
+  position: relative;
+  float: left;
+  color: transparent;
+  border-right: 1px solid black;
+}
