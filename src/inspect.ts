@@ -45,6 +45,7 @@ export class Inspect {
 
   changeTarget(nodey: Nodey) {
     //this._historyModel.dump();
+    console.log("new target!", nodey);
     this._target = nodey;
     this._targetChanged.emit(this._target);
   }

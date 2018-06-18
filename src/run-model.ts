@@ -44,7 +44,10 @@ export class RunModel {
       var timestamp = Date.now();
       this._historyModel.commitChanges(nodey);
       this._historyModel.dump();
-      var run = this.recordRun(timestamp, nodey);
+      var run = this.recordRun(
+        timestamp,
+        this._historyModel.getNodeyCell(nodey.id)
+      );
       console.log("Run committed ", run);
       this._newRun.emit(run);
     }
@@ -54,7 +57,7 @@ export class RunModel {
     var cellDat: CellRunData[] = [];
     this._historyModel.cellList.forEach(cell => {
       var dat = {
-        node: cell.id,
+        node: cell.name,
         changeType: cell.cell.status
       } as CellRunData;
       if (cell.id === nodey.id) dat["run"] = true;

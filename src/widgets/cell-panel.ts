@@ -12,6 +12,7 @@ const CELL_PANEL_INSPECT_HEADER = "v-VerdantPanel-inspect-header";
 const CELL_PANEL_INSPECT_TITLE = "v-VerdantPanel-inspect-title";
 const CELL_PANEL_INSPECT_CONTENT = "v-VerdantPanel-inspect-content";
 const CELL_PANEL_INSPECT_VERSION = "v-VerdantPanel-inspect-version";
+const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
 /**
  * A widget which displays cell-level history information
  */
@@ -28,6 +29,7 @@ export class CellPanel extends Widget {
 
     let icon = document.createElement("div");
     icon.classList.add(CELL_PANEL_INSPECT_ICON);
+    icon.addEventListener("click", this.toggleWishbone.bind(this));
 
     let title = document.createElement("div");
     title.classList.add(CELL_PANEL_INSPECT_TITLE);
@@ -45,6 +47,8 @@ export class CellPanel extends Widget {
     this._historyModel.inspector.targetChanged.connect(
       this.changeTarget.bind(this)
     );
+
+    // look for jp-OutputArea-output
   }
 
   private get inspector() {
@@ -53,6 +57,10 @@ export class CellPanel extends Widget {
 
   get header() {
     return this.node.getElementsByClassName(CELL_PANEL_INSPECT_TITLE)[0];
+  }
+
+  get icon() {
+    return this.node.getElementsByClassName(CELL_PANEL_INSPECT_ICON)[0];
   }
 
   get content() {
@@ -81,4 +89,41 @@ export class CellPanel extends Widget {
       contentDiv.appendChild(li);
     });
   }
+
+  public toggleWishbone() {
+    if (this.icon.classList.contains("active")) this._stopWishbone();
+    else this._startWishbone();
+  }
+
+  private _startWishbone() {
+    console.log("Wishbone start!");
+    this.icon.classList.add("active");
+
+    var outDivs = this._historyModel.notebook.elem.getElementsByClassName(
+      "jp-OutputArea-output"
+    );
+    for (var i = 0; i < outDivs.length; i++) {
+      outDivs[i].addEventListener("mouseenter", this.highlightSelection);
+      outDivs[i].addEventListener("mouseleave", this.blurSelection);
+    }
+  }
+
+  private _stopWishbone() {
+    console.log("Wishbone end!");
+    this.icon.classList.remove("active");
+
+    var outDivs = this._historyModel.notebook.elem.getElementsByClassName(
+      "jp-OutputArea-output"
+    );
+    for (var i = 0; i < outDivs.length; i++) {
+      outDivs[i].removeEventListener("mouseenter", this.highlightSelection);
+      outDivs[i].removeEventListener("mouseleave", this.blurSelection);
+    }
+  }
+
+  private highlightSelection = (event: Event) =>
+    (<Element>event.target).classList.add(WISHBONE_HIGHLIGHT);
+
+  private blurSelection = (event: Event) =>
+    (<Element>event.target).classList.remove(WISHBONE_HIGHLIGHT);
 }

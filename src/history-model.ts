@@ -6,6 +6,8 @@ import {
   NodeyMarkdown
 } from "./nodey";
 
+import { NotebookListen } from "./jupyter-hooks/notebook-listen";
+
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
 import { RunModel } from "./run-model";
@@ -23,11 +25,21 @@ export class HistoryModel {
 
   private _inspector: Inspect;
   private _runModel: RunModel;
+  private _notebook: NotebookListen;
 
   private _nodeyCounter = 0;
   private _nodeyStore: NodeHistory[] = [];
   private _cellList: number[] = [];
   //TODO private _deletedCellList: number[] = [];
+
+  set notebook(notebook: NotebookListen) {
+    this._notebook = notebook;
+    this._inspector.notebook = this._notebook;
+  }
+
+  get notebook() {
+    return this._notebook;
+  }
 
   get inspector(): Inspect {
     return this._inspector;
@@ -84,10 +96,7 @@ export class HistoryModel {
   }
 
   registerNodey(nodey: Nodey): number {
-    this._nodeyStore[nodey.id] = {
-      versions: [],
-      starNodey: null
-    } as NodeHistory;
+    this._nodeyStore[nodey.id] = new NodeHistory();
     this._nodeyStore[nodey.id].versions.push(nodey);
     return this._nodeyStore[nodey.id].versions.length - 1;
   }
@@ -168,7 +177,7 @@ export class HistoryModel {
     else if (nodey.version === "*") {
       var history = this.getVersionsFor(nodey);
       newNodey = history.deStar() as NodeyCode;
-    }
+    } else return nodey; // nothing to change, stop update here
 
     if (prior) prior.right = newNodey.name;
     prior = null;
@@ -209,11 +218,11 @@ export class HistoryModel {
 * Just a container for a list of nodey versions
 */
 export class NodeHistory {
-  versions: Nodey[];
-  starNodey: Nodey;
+  versions: Nodey[] = [];
+  starNodey: Nodey = null;
 
   get latest() {
-    if (this.starNodey) return this.starNodey;
+    if (this.starNodey !== null) return this.starNodey;
     return this.versions[this.versions.length - 1];
   }
 

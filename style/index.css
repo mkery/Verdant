@@ -9,6 +9,8 @@
   --verdant-icon-caretdown: url("img/chevron-more.svg");
   --verdant-icon-cellrun: url("img/cell-run.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
+  --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
+  --verdant-highlight-color1: #c5e5fc;
 }
 
 /*-----------------------------------------------------------------------------
@@ -297,11 +299,15 @@
   margin: 5px;
   background-image: var(--verdant-icon-timeinspect);
   background-repeat: no-repeat;
-  border: 1px solid #c5e5fc;
+  border: 1px solid var(--verdant-highlight-color1);
   border-radius: 5px;
   display: inline-block;
   width: 1em;
   height: 1em;
+}
+.v-VerdantPanel-inspect-icon.active {
+  background-image: var(--verdant-icon-timeinspect-active);
+  border: 1px solid var(--jp-brand-color1);
 }
 
 .v-VerdantPanel-inspect-title {
@@ -332,4 +338,9 @@
   font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color1);
   font-family: var(--jp-ui-font-family);
+}
+
+.v-VerdantPanel-wishbone-highlight {
+  background-color: var(--verdant-highlight-color1);
+  border-color: var(--jp-brand-color1);
 }

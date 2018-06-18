@@ -36,6 +36,10 @@ export class NotebookListen {
     this.init();
   }
 
+  get elem(): HTMLElement {
+    return this._notebook.node;
+  }
+
   get ready(): Promise<void> {
     return this._ready.promise;
   }
@@ -77,6 +81,7 @@ export class NotebookListen {
     });
     await Promise.all(cellsReady);
     console.log("Loaded Notebook", this._notebook, this.nodey);
+    this.historyModel.notebook = this;
     //console.log("TO JSON", this.toJSON())
     this.historyModel.dump();
     this.focusCell(this._notebook.activeCell);

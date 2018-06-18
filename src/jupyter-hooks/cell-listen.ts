@@ -99,7 +99,6 @@ export class CodeCellListen extends CellListen {
         run: 0,
         cell: this
       });
-      console.log("Nodey initialized to ", this._nodey, typeof this._nodey);
     }
 
     super.init();
@@ -140,12 +139,12 @@ export class CodeCellListen extends CellListen {
   */
 export class MarkdownCellListen extends CellListen {
   protected async init() {
-    this._nodey = Nodey.dictToMarkdownNodey(
+    var nodey = Nodey.dictToMarkdownNodey(
       this.cell.model.value.text,
       this.historyModel,
       this
-    ).id;
-    console.log("Nodey initialized to ", this._nodey, this.nodey, this.cell);
+    );
+    this._nodey = nodey.id;
     super.init();
   }
 
