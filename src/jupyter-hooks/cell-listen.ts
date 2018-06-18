@@ -107,7 +107,7 @@ export class CodeCellListen extends CellListen {
 
   public get output(): NodeyOutput[] {
     var output = (this.nodey as NodeyCodeCell).output;
-    return output.map(o => this.historyModel.getOutput(o));
+    if (output) return output.map(o => this.historyModel.getOutput(o));
   }
 
   public get outputArea(): OutputArea {

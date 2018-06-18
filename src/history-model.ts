@@ -54,6 +54,8 @@ export class HistoryModel {
   }
 
   public getVersionsFor(nodey: Nodey) {
+    if (nodey instanceof NodeyOutput)
+      return this._outputStore[parseInt(nodey.id)];
     return this._nodeyStore[parseInt(nodey.id)];
   }
 

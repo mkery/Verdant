@@ -4,6 +4,8 @@ import { HistoryModel } from "../history-model";
 
 import { Nodey, NodeyMarkdown } from "../nodey";
 
+import { Wishbone } from "./wishbone";
+
 import "../../style/index.css";
 
 const CELL_PANEL = "v-VerdantPanel-cellPanel";
@@ -12,7 +14,7 @@ const CELL_PANEL_INSPECT_HEADER = "v-VerdantPanel-inspect-header";
 const CELL_PANEL_INSPECT_TITLE = "v-VerdantPanel-inspect-title";
 const CELL_PANEL_INSPECT_CONTENT = "v-VerdantPanel-inspect-content";
 const CELL_PANEL_INSPECT_VERSION = "v-VerdantPanel-inspect-version";
-const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
+
 /**
  * A widget which displays cell-level history information
  */
@@ -91,39 +93,12 @@ export class CellPanel extends Widget {
   }
 
   public toggleWishbone() {
-    if (this.icon.classList.contains("active")) this._stopWishbone();
-    else this._startWishbone();
-  }
-
-  private _startWishbone() {
-    console.log("Wishbone start!");
-    this.icon.classList.add("active");
-
-    var outDivs = this._historyModel.notebook.elem.getElementsByClassName(
-      "jp-OutputArea-output"
-    );
-    for (var i = 0; i < outDivs.length; i++) {
-      outDivs[i].addEventListener("mouseenter", this.highlightSelection);
-      outDivs[i].addEventListener("mouseleave", this.blurSelection);
+    if (this.icon.classList.contains("active")) {
+      this.icon.classList.remove("active");
+      Wishbone.endWishbone(this._historyModel.notebook, this._historyModel);
+    } else {
+      this.icon.classList.add("active");
+      Wishbone.startWishbone(this._historyModel.notebook, this._historyModel);
     }
   }
-
-  private _stopWishbone() {
-    console.log("Wishbone end!");
-    this.icon.classList.remove("active");
-
-    var outDivs = this._historyModel.notebook.elem.getElementsByClassName(
-      "jp-OutputArea-output"
-    );
-    for (var i = 0; i < outDivs.length; i++) {
-      outDivs[i].removeEventListener("mouseenter", this.highlightSelection);
-      outDivs[i].removeEventListener("mouseleave", this.blurSelection);
-    }
-  }
-
-  private highlightSelection = (event: Event) =>
-    (<Element>event.target).classList.add(WISHBONE_HIGHLIGHT);
-
-  private blurSelection = (event: Event) =>
-    (<Element>event.target).classList.remove(WISHBONE_HIGHLIGHT);
 }

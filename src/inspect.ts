@@ -1,6 +1,6 @@
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
-import { Nodey, NodeyCode, NodeyMarkdown } from "./nodey";
+import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "./nodey";
 
 import { HistoryModel } from "./history-model";
 
@@ -26,7 +26,7 @@ export class Inspect {
     this._notebook = notebook;
     this._notebook.activeCellChanged.connect(
       (sender: any, cell: CellListen) => {
-        this.changeTarget(cell.nodey);
+        this.changeTarget([cell.nodey]);
       }
     );
   }
@@ -43,16 +43,18 @@ export class Inspect {
     return recovered;
   }
 
-  changeTarget(nodey: Nodey) {
+  changeTarget(nodey: Nodey[]) {
     //this._historyModel.dump();
     console.log("new target!", nodey);
-    this._target = nodey;
+    this._target = nodey[0]; //TODO
     this._targetChanged.emit(this._target);
   }
 
   public renderNode(nodey: Nodey): any {
     if (nodey instanceof NodeyCode) return this.renderCodeNode(nodey);
-    if (nodey instanceof NodeyMarkdown) return this.renderMarkdownNode(nodey);
+    else if (nodey instanceof NodeyMarkdown)
+      return this.renderMarkdownNode(nodey);
+    else if (nodey instanceof NodeyOutput) return this.renderOutputNode(nodey);
   }
 
   private renderCodeNode(nodey: NodeyCode): string {
@@ -68,5 +70,9 @@ export class Inspect {
 
   private renderMarkdownNode(nodey: NodeyMarkdown): string {
     return nodey.markdown;
+  }
+
+  private renderOutputNode(nodey: NodeyOutput): string {
+    return JSON.stringify(nodey.raw);
   }
 }
