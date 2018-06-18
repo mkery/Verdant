@@ -85,7 +85,7 @@ export class NodeyOutput extends Nodey {
 
 export class NodeyCode extends Nodey {
   type: string;
-  output: NodeyOutput[];
+  output: string[];
   content: string[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
@@ -116,9 +116,8 @@ export class NodeyCode extends Nodey {
   toJSON(): serialized_NodeyCode {
     var jsn: serialized_NodeyCode = { type: this.type };
     if (this.literal) jsn.literal = this.literal;
-    if (this.output) {
-      var output = this.output.map(output => output.toJSON());
-      if (this.output.length > 0) jsn.output = output;
+    if (this.output && this.output.length > 0) {
+      jsn.output = this.output;
     }
     if (this.content && this.content.length > 0) jsn.content = this.content;
 
@@ -209,13 +208,11 @@ export namespace Nodey {
     dict: { [id: string]: any },
     historyModel: HistoryModel
   ) {
-    dict.id = historyModel.dispenseNodeyID();
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
     dict.end.line -= 1;
 
     var n = new NodeyCodeCell(dict);
-    var verNum = historyModel.registerCellNodey(n);
-    n.version = verNum;
+    historyModel.registerCellNodey(n);
 
     dictToCodeChildren(dict, historyModel, n);
     return n;
@@ -226,14 +223,12 @@ export namespace Nodey {
     historyModel: HistoryModel,
     prior: NodeyCode = null
   ): NodeyCode {
-    dict.id = historyModel.dispenseNodeyID();
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
     dict.end.line -= 1;
 
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict);
-    var verNum = historyModel.registerNodey(n);
-    n.version = verNum;
+    historyModel.registerNodey(n);
 
     if (prior) prior.right = n.name;
 
@@ -264,11 +259,17 @@ export namespace Nodey {
     historyModel: HistoryModel,
     cell: CellListen
   ) {
-    var id = historyModel.dispenseNodeyID();
-    var n = new NodeyMarkdown({ id: id, markdown: text, cell: cell });
-    var verNum = historyModel.registerCellNodey(n);
-    n.version = verNum;
+    var n = new NodeyMarkdown({ markdown: text, cell: cell });
+    historyModel.registerCellNodey(n);
+    return n;
+  }
 
+  export function dictToOutputNodey(
+    output: { [id: string]: any },
+    historyModel: HistoryModel
+  ) {
+    var n = new NodeyOutput(output);
+    historyModel.registerOutputNodey(n);
     return n;
   }
 }

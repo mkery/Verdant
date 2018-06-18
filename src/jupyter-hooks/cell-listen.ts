@@ -1,15 +1,17 @@
 import { Cell, CodeCell, ICellModel } from "@jupyterlab/cells";
 
+import { OutputArea } from "@jupyterlab/outputarea";
+
 import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { ASTGenerate } from "../analysis/ast-generate";
 
 import {
   Nodey,
-  NodeyOutput,
   NodeyCell,
   NodeyCodeCell,
-  NodeyMarkdown
+  NodeyMarkdown,
+  NodeyOutput
 } from "../nodey";
 
 import * as CodeMirror from "codemirror";
@@ -91,25 +93,36 @@ export abstract class CellListen {
 */
 export class CodeCellListen extends CellListen {
   protected async init() {
-    if (this.cell instanceof CodeCell) {
-      var text: string = this.cell.editor.model.value.text;
-      var outNode = this.outputToNodey();
-      this._nodey = await this.astUtils.generateCodeNodey(text, {
-        output: outNode,
-        run: 0,
-        cell: this
-      });
-    }
+    var cell = this.cell as CodeCell;
+    var text: string = cell.editor.model.value.text;
+    var outNode = this.outputToNodey();
+    this._nodey = await this.astUtils.generateCodeNodey(text, {
+      output: outNode,
+      run: 0,
+      cell: this
+    });
 
     super.init();
   }
 
-  private outputToNodey(): NodeyOutput[] {
+  public get output(): NodeyOutput[] {
+    var output = (this.nodey as NodeyCodeCell).output;
+    return output.map(o => this.historyModel.getOutput(o));
+  }
+
+  public get outputArea(): OutputArea {
+    return (this.cell as CodeCell).outputArea;
+  }
+
+  private outputToNodey(): string[] {
     var output = (<CodeCell>this.cell).outputArea.model.toJSON();
-    var outNode: NodeyOutput[] = [];
+    var outNode: string[] = [];
     if (output.length < 1) outNode = undefined;
     else {
-      for (var item in output) outNode.push(new NodeyOutput(output[item]));
+      for (var item in output) {
+        var out = Nodey.dictToOutputNodey(output[item], this.historyModel);
+        outNode.push(out.name);
+      }
     }
     return outNode;
   }

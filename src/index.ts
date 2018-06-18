@@ -42,7 +42,7 @@ const extension: JupyterLabPlugin<void> = {
     };
     var notebook: NotebookListen;
     const renderBaby = new RenderBaby(latexTypesetter, linkHandler);
-    const model = new HistoryModel(0, renderBaby);
+    const model = new HistoryModel(renderBaby);
     const astUtils = new ASTGenerate(model);
 
     restorer.add(panel, "v-VerdantPanel");

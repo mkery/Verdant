@@ -3,7 +3,8 @@ import {
   NodeyCell,
   NodeyCode,
   NodeyCodeCell,
-  NodeyMarkdown
+  NodeyMarkdown,
+  NodeyOutput
 } from "./nodey";
 
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
@@ -17,8 +18,7 @@ import { Inspect } from "./inspect";
 import { serialized_NodeyList } from "./file-manager";
 
 export class HistoryModel {
-  constructor(startCount: number = 0, renderBaby: RenderBaby) {
-    this._nodeyCounter = startCount;
+  constructor(renderBaby: RenderBaby) {
     this._inspector = new Inspect(this, renderBaby);
     this._runModel = new RunModel(this);
   }
@@ -27,9 +27,9 @@ export class HistoryModel {
   private _runModel: RunModel;
   private _notebook: NotebookListen;
 
-  private _nodeyCounter = 0;
   private _nodeyStore: NodeHistory[] = [];
   private _cellList: number[] = [];
+  private _outputStore: NodeHistory[] = [];
   //TODO private _deletedCellList: number[] = [];
 
   set notebook(notebook: NotebookListen) {
@@ -55,12 +55,6 @@ export class HistoryModel {
 
   public getVersionsFor(nodey: Nodey) {
     return this._nodeyStore[parseInt(nodey.id)];
-  }
-
-  dispenseNodeyID(): number {
-    var id = this._nodeyCounter;
-    this._nodeyCounter++;
-    return id;
   }
 
   getNodeyHead(name: string): Nodey {
@@ -91,20 +85,35 @@ export class HistoryModel {
     return this._nodeyStore[parseInt(id)].versions[parseInt(ver)];
   }
 
+  getOutput(name: string): NodeyOutput {
+    var [id, ver] = name.split(".");
+    var nodeHist = this._outputStore[parseInt(id)];
+    return nodeHist.versions[parseInt(ver)] as NodeyOutput;
+  }
+
   handleCellRun(executionCount: number, nodey: NodeyCell) {
     this._runModel.cellRun(executionCount, nodey);
   }
 
-  registerNodey(nodey: Nodey): number {
-    this._nodeyStore[nodey.id] = new NodeHistory();
-    this._nodeyStore[nodey.id].versions.push(nodey);
-    return this._nodeyStore[nodey.id].versions.length - 1;
+  public registerNodey(nodey: Nodey): void {
+    var id = this._nodeyStore.push(new NodeHistory()) - 1;
+    nodey.id = id;
+    var version = this._nodeyStore[nodey.id].versions.push(nodey) - 1;
+    nodey.version = version;
+    return;
   }
 
-  registerCellNodey(nodey: NodeyCell): number {
-    var version = this.registerNodey(nodey);
+  public registerCellNodey(nodey: NodeyCell): void {
+    this.registerNodey(nodey);
     this._cellList.push(nodey.id); //TODO cells change order, deleted, ect
-    return version;
+  }
+
+  public registerOutputNodey(nodey: NodeyOutput) {
+    var id = this._outputStore.push(new NodeHistory()) - 1;
+    nodey.id = id;
+    var version = this._outputStore[nodey.id].versions.push(nodey) - 1;
+    nodey.version = version;
+    return;
   }
 
   public stageChanges(transforms: ((key: any) => any)[], nodey: Nodey): void {
@@ -154,9 +163,7 @@ export class HistoryModel {
 
   private _deStar(nodey: Nodey) {
     var newNodey = nodey.clone();
-    var newID = this.dispenseNodeyID();
-    newNodey.id = newID;
-    newNodey.version = this.registerNodey(nodey);
+    this.registerNodey(nodey);
     return newNodey;
   }
 
@@ -210,7 +217,14 @@ export class HistoryModel {
 
   dump(): void {
     //for debugging only
-    console.log(this._nodeyStore);
+    console.log(
+      "CELLS",
+      this._cellList,
+      "NODES",
+      this._nodeyStore,
+      "OUTPUT",
+      this._outputStore
+    );
   }
 }
 
