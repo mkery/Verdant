@@ -1,4 +1,4 @@
-import { NodeyCode } from "../nodey";
+import { NodeyCode, SyntaxToken } from "../nodey";
 
 import * as CodeMirror from "codemirror";
 
@@ -28,7 +28,7 @@ export class ASTResolve {
     var affected = this.findAffectedChild(
       nodey,
       0,
-      Math.max(0, nodey.content.length - 1),
+      Math.max(0, nodey.getChildren().length - 1),
       range
     );
 
@@ -88,10 +88,10 @@ export class ASTResolve {
     max: number,
     change: { start: any; end: any }
   ): NodeyCode {
-    var content: string[] = node.content;
+    var children: string[] = node.getChildren();
     var match = null;
     var mid = Math.round((max - min) / 2) + min;
-    var midNodey = <NodeyCode>this.historyModel.getNodeyHead(content[mid]);
+    var midNodey = <NodeyCode>this.historyModel.getNodeyHead(children[mid]);
     var direction = this.inRange(midNodey, change);
 
     if ((min >= max || max <= min) && direction !== 0)
@@ -99,15 +99,16 @@ export class ASTResolve {
       return null;
 
     if (direction === 0) {
+      var midChildren = midNodey.getChildren();
       // it's in this node, check for children to be more specific
-      if (midNodey.content.length < 1) match = midNodey;
+      if (midChildren.length < 1) match = midNodey;
       // found!
       else
         match =
           this.findAffectedChild(
             midNodey,
             0,
-            Math.max(0, midNodey.content.length - 1),
+            Math.max(0, midChildren.length - 1),
             change
           ) || midNodey; // found!
     } else if (direction === 2) return null;
@@ -202,8 +203,9 @@ export class ASTResolve {
   }
 
   shiftAllChildren(nodey: NodeyCode, deltaLine: number, deltaCh: number): void {
-    for (var i in nodey.content) {
-      var child = this.historyModel.getNodeyHead(nodey.content[i]) as NodeyCode;
+    var children = nodey.getChildren();
+    for (var i in children) {
+      var child = this.historyModel.getNodeyHead(children[i]) as NodeyCode;
       child.start.line += deltaLine;
       child.end.line += deltaLine;
       child.start.ch += deltaCh;
@@ -282,10 +284,20 @@ export class ASTResolve {
     console.log("Attempting to match", nodeToMatch);
 
     for (var i = 0; i < candidateList.length; i++) {
-      var candidate = this.historyModel.getNodeyHead(
-        candidateList[i]
-      ) as NodeyCode;
-      var [score, updates] = this.matchNode(nodeToMatch, candidate);
+      if (candidateList[i] instanceof SyntaxToken) {
+        if (SyntaxToken.KEY in nodeToMatch)
+          var [score, updates] = this.matchSyntaxToken(
+            nodeToMatch,
+            candidateList[i],
+            nodeIndex
+          );
+        else continue;
+      } else {
+        var candidate = this.historyModel.getNodeyHead(
+          candidateList[i]
+        ) as NodeyCode;
+        var [score, updates] = this.matchNode(nodeToMatch, candidate);
+      }
 
       if (score === 0) {
         // perfect match
@@ -368,6 +380,14 @@ export class ASTResolve {
     target.literal = node.literal;
   }
 
+  changeSyntaxToken(
+    node: { [key: string]: any },
+    at: number,
+    target: NodeyCode
+  ) {
+    target.content[at] = node[SyntaxToken.KEY];
+  }
+
   addNewNode(node: { [key: string]: any }, at: number, target: NodeyCode) {
     var nodey = this.buildStarNode(node, target);
     nodey.parent = target.name;
@@ -411,5 +431,16 @@ export class ASTResolve {
 
   matchLiterals(val1: string, val2: string): number {
     return levenshtein.get(val1, val2);
+  }
+
+  matchSyntaxToken(
+    node: { [key: string]: any },
+    potentialMatch: SyntaxToken,
+    position: number
+  ): [number, any[]] {
+    return [
+      this.matchLiterals(node[SyntaxToken.KEY], potentialMatch.tokens),
+      [this.changeSyntaxToken.bind(this, node, position)]
+    ];
   }
 }

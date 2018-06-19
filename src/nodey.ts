@@ -51,6 +51,25 @@ export abstract class Nodey {
   abstract typeName(): string;
 }
 
+/*
+*  does not do anything. For syntax punctuation and new lines only
+*/
+export class SyntaxToken {
+  tokens: string;
+
+  constructor(tokens: string) {
+    this.tokens = tokens;
+  }
+
+  toJSON(): { [id: string]: any } {
+    return { syntok: this.tokens };
+  }
+}
+
+export namespace SyntaxToken {
+  export const KEY = "syntok";
+}
+
 export class NodeyOutput extends Nodey {
   dependsOn: Nodey[];
   raw: {};
@@ -86,7 +105,7 @@ export class NodeyOutput extends Nodey {
 export class NodeyCode extends Nodey {
   type: string;
   output: string[];
-  content: string[];
+  content: any[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
   literal: any;
@@ -113,13 +132,21 @@ export class NodeyCode extends Nodey {
     this.end = { line: deltaLine + this.end.line, ch: deltaCh + this.end.ch };
   }
 
+  getChildren() {
+    return this.content.filter(item => !(item instanceof SyntaxToken));
+  }
+
   toJSON(): serialized_NodeyCode {
     var jsn: serialized_NodeyCode = { type: this.type };
     if (this.literal) jsn.literal = this.literal;
     if (this.output && this.output.length > 0) {
       jsn.output = this.output;
     }
-    if (this.content && this.content.length > 0) jsn.content = this.content;
+    if (this.content && this.content.length > 0)
+      jsn.content = this.content.map(item => {
+        if (item instanceof SyntaxToken) return item.toJSON();
+        return item;
+      });
 
     return jsn;
   }
@@ -244,11 +271,20 @@ export namespace Nodey {
     var prior = null;
     n.content = [];
     for (var item in dict.content) {
-      var child = dictToCodeNodeys(dict.content[item], historyModel, prior);
-      child.parent = n.name;
-      if (prior) prior.right = child.name;
-      n.content.push(child.name);
-      prior = child;
+      if (SyntaxToken.KEY in dict.content[item]) {
+        console.log(
+          "Found snytax token!",
+          dict.content[item][SyntaxToken.KEY],
+          n.id
+        );
+        n.content.push(new SyntaxToken(dict.content[item][SyntaxToken.KEY]));
+      } else {
+        var child = dictToCodeNodeys(dict.content[item], historyModel, prior);
+        child.parent = n.name;
+        if (prior) prior.right = child.name;
+        n.content.push(child.name);
+        prior = child;
+      }
     }
 
     return n;

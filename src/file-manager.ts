@@ -124,7 +124,7 @@ export interface serialized_NodeyCode extends serialized_Nodey {
   literal?: any;
   start?: { line: number; ch: number };
   end?: { line: number; ch: number };
-  content?: string[];
+  content?: any[];
 }
 
 export interface serialized_NodeyList {

@@ -1,6 +1,12 @@
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
-import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "./nodey";
+import {
+  Nodey,
+  NodeyCode,
+  NodeyMarkdown,
+  NodeyOutput,
+  SyntaxToken
+} from "./nodey";
 
 import { HistoryModel } from "./history-model";
 
@@ -78,8 +84,12 @@ export class Inspect {
     var literal = nodey.literal || "";
     if (nodey.content) {
       nodey.content.forEach(name => {
-        var child = this._historyModel.getNodey(name);
-        literal += this.renderCodeNode(child as NodeyCode);
+        if (name instanceof SyntaxToken) {
+          literal += name.tokens;
+        } else {
+          var child = this._historyModel.getNodey(name);
+          literal += this.renderCodeNode(child as NodeyCode);
+        }
       });
     }
     return literal;

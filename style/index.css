@@ -332,6 +332,8 @@
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
   font-family: var(--jp-cell-prompt-font-family);
   margin-top: 10px;
+  white-space: pre-wrap;
+  width: max-content;
   text-align: left;
 }
 .v-VerdantPanel-inspect-version.markdown {
@@ -354,7 +356,8 @@
   z-index: 5;
 }
 
-.v-VerdantPanel-wishbone-line.v-VerdantPanel-wishbone-highlight {
+.v-VerdantPanel-wishbone-line.v-VerdantPanel-wishbone-highlight,
+.v-VerdantPanel-wishbone-line-seg.v-VerdantPanel-wishbone-highlight {
   background-color: #c5e5fc4e;
   cursor: default;
   margin-top: -2px;
