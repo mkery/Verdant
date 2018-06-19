@@ -81,14 +81,22 @@ export class Inspect {
   }
 
   private renderCodeNode(nodey: NodeyCode): string {
-    var literal = nodey.literal || "";
+    var literal = "";
+    if (nodey.literal) literal = nodey.literal + " "; // add in spaceing
     if (nodey.content) {
+      var priorLiteral = false;
       nodey.content.forEach(name => {
         if (name instanceof SyntaxToken) {
-          literal += name.tokens;
+          if (!priorLiteral && literal != "") {
+            literal = literal.substring(0, literal.length - 1) + name.tokens;
+          } else {
+            literal += name.tokens;
+          }
+          priorLiteral = true;
         } else {
           var child = this._historyModel.getNodey(name);
           literal += this.renderCodeNode(child as NodeyCode);
+          priorLiteral = false;
         }
       });
     }

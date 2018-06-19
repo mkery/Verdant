@@ -272,11 +272,6 @@ export namespace Nodey {
     n.content = [];
     for (var item in dict.content) {
       if (SyntaxToken.KEY in dict.content[item]) {
-        console.log(
-          "Found snytax token!",
-          dict.content[item][SyntaxToken.KEY],
-          n.id
-        );
         n.content.push(new SyntaxToken(dict.content[item][SyntaxToken.KEY]));
       } else {
         var child = dictToCodeNodeys(dict.content[item], historyModel, prior);
