@@ -56,23 +56,6 @@ export class Inspect {
     this._targetChanged.emit(this._target);
   }
 
-  getNodesByLine(nodey: NodeyCode, lines: NodeyCode[][] = []): NodeyCode[][] {
-    var start = nodey.start;
-    var end = nodey.end;
-
-    for (var i = start.line; i < end.line + 1; i++) {
-      if (!lines[i]) lines[i] = [];
-      lines[i].push(nodey);
-    }
-
-    nodey.content.forEach((name: string) => {
-      var child = this._historyModel.getNodey(name) as NodeyCode;
-      lines = this.getNodesByLine(child, lines);
-    });
-
-    return lines;
-  }
-
   public renderNode(nodey: Nodey): any {
     if (nodey instanceof NodeyCode) return this.renderCodeNode(nodey);
     else if (nodey instanceof NodeyMarkdown)

@@ -351,9 +351,11 @@
   position: absolute;
   display: inline-block;
   left: 0px;
+  top: 0px;
   width: 100%;
-  height: var(--jp-code-font-size);
+  height: max-content;
   z-index: 5;
+  padding: var(--jp-code-padding);
 }
 
 .v-VerdantPanel-wishbone-line.v-VerdantPanel-wishbone-highlight,
@@ -368,9 +370,26 @@
 
 .v-VerdantPanel-wishbone-line-seg {
   display: inline-block;
-  height: var(--jp-code-font-size);
+  height: max-content;
   position: relative;
   float: left;
   color: transparent;
   border-right: 1px solid black;
+}
+
+.v-VerdantPanel-wishbone-line-full {
+  display: inline-block;
+  width: 100%;
+  height: var(--jp-code-font-size);
+}
+
+.v-VerdantPanel-wishbone-spacing {
+  display: inline-block;
+  height: max-content;
+  position: relative;
+  float: left;
+  color: transparent;
+  white-space: pre-wrap;
+  background: deeppink;
+  opacity: 0.5;
 }

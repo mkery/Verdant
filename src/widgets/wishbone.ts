@@ -1,5 +1,5 @@
 import { HistoryModel } from "../history-model";
-import { Nodey, NodeyCodeCell } from "../nodey";
+import { Nodey, NodeyCode, NodeyCodeCell, SyntaxToken } from "../nodey";
 import { Inspect } from "../inspect";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Cell, CodeCell } from "@jupyterlab/cells";
@@ -7,7 +7,9 @@ import { CellListen, CodeCellListen } from "../jupyter-hooks/cell-listen";
 
 const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
 const WISHBONE_LINE = "v-VerdantPanel-wishbone-line";
-const WISHBONE_LINE_SEG = "v-VerdantPanel-wishbone-line-seg";
+const WISHBONE_NODEY = "v-VerdantPanel-wishbone-line-seg";
+const WISHBONE_SPACING = "v-VerdantPanel-wishbone-spacing";
+const WISHBONE_FULLLINE = "v-VerdantPanel-wishbone-line-full";
 
 export namespace Wishbone {
   export function startWishbone(
@@ -125,31 +127,76 @@ namespace Private {
     cellListen: CodeCellListen,
     historyModel: HistoryModel
   ) {
-    var lines = cell.inputArea.node.getElementsByClassName("CodeMirror-line");
-    var nodes = historyModel.inspector.getNodesByLine(
-      cellListen.nodey as NodeyCodeCell
-    );
-    console.log("lines are", nodes);
-    for (var i = 0; i < lines.length; i++) {
-      var wishLine = document.createElement("div");
-      wishLine.classList.add(WISHBONE_LINE);
-      var lineNodes = nodes[i];
-      lineNodes.forEach(nodey => {
-        var seg = document.createElement("div");
-        seg.classList.add(WISHBONE_LINE_SEG);
-        if (nodey.end.line === nodey.start.line) {
-          var filler = "";
-          var length = nodey.end.ch - nodey.start.ch;
-          for (var j = 0; j < length; j++) {
-            filler += "w";
+    var wishElem = document.createElement("div");
+    wishElem.classList.add(WISHBONE_LINE);
+
+    var nodey = cellListen.nodey as NodeyCodeCell;
+    nodesToSpans(nodey, wishElem, wishElem, historyModel);
+    cell.inputArea.node
+      .getElementsByClassName("CodeMirror-lines")[0]
+      .appendChild(wishElem);
+  }
+
+  function nodesToSpans(
+    nodey: NodeyCode,
+    elem: Element,
+    container: Element,
+    historyModel: HistoryModel,
+    level: number = 0
+  ): void {
+    var childBreak = container;
+    if (nodey.start.line !== nodey.end.line) {
+      // has multiple lines
+      elem.classList.add(WISHBONE_FULLLINE);
+      childBreak = elem;
+    }
+
+    var spacing = ""; // add in spaceing
+    if (nodey.literal) {
+      var span = document.createElement("span");
+      span.textContent = nodey.literal;
+      elem.appendChild(span);
+    }
+    if (nodey.content) {
+      var priorLiteral = false;
+      nodey.content.forEach(name => {
+        if (name instanceof SyntaxToken) {
+          if (name.tokens === "\n") {
+            var br = document.createElement("div");
+            br.classList.add(WISHBONE_FULLLINE);
+            container.appendChild(br);
+            spacing = "";
+          } else if (!priorLiteral && spacing != "") {
+            spacing = name.tokens;
+          } else {
+            spacing += name.tokens;
           }
-          seg.textContent = filler;
+          priorLiteral = true;
         }
-        wishLine.appendChild(seg);
-        addEvents(seg, [nodey], historyModel.inspector);
+        if (spacing !== "") {
+          var span = document.createElement("div");
+          span.classList.add(WISHBONE_SPACING);
+          span.textContent = spacing;
+          elem.appendChild(span);
+          spacing = "";
+        }
+        if (!(name instanceof SyntaxToken)) {
+          spacing = "w"; // add in spaceing
+          var childElem = document.createElement("div");
+          childElem.classList.add(WISHBONE_NODEY);
+          childElem.style.zIndex = level + 1 + "";
+          var child = historyModel.getNodey(name);
+          nodesToSpans(
+            child as NodeyCode,
+            childElem,
+            childBreak,
+            historyModel,
+            level++
+          );
+          elem.appendChild(childElem);
+          priorLiteral = false;
+        }
       });
-      lines[i].appendChild(wishLine);
-      //addEvents(wishLine, nodes[i], historyModel.inspector);
     }
   }
 
