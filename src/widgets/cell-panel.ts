@@ -98,7 +98,7 @@ export class CellPanel extends Widget {
       Wishbone.endWishbone(this._historyModel.notebook, this._historyModel);
     } else {
       this.icon.classList.add("active");
-      Wishbone.startWishbone(this._historyModel.notebook, this._historyModel);
+      Wishbone.startWishbone(this._historyModel);
     }
   }
 }

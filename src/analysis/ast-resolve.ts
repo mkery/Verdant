@@ -6,6 +6,8 @@ import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 import { HistoryModel } from "../history-model";
 
+import { ASTUtils } from "./ast-utils";
+
 import * as crypto from "crypto";
 import * as levenshtein from "fast-levenshtein";
 
@@ -25,12 +27,7 @@ export class ASTResolve {
       start: { line: change.from.line, ch: change.from.ch },
       end: { line: change.to.line, ch: change.to.ch }
     }; // first convert code mirror coordinates to our coordinates
-    var affected = this.findAffectedChild(
-      nodey,
-      0,
-      Math.max(0, nodey.getChildren().length - 1),
-      range
-    );
+    var affected = ASTUtils.findNodeAtRange(nodey, range, this.historyModel);
 
     if (affected) {
       // shift all nodey positions after affected
@@ -57,74 +54,6 @@ export class ASTResolve {
 
     var kernel_reply = this.recieve_newVersion.bind(this, affected, updateID);
     return [kernel_reply, text];
-  }
-
-  /*
-  * Convert into full line ranges, to increase the likelihood that we get a nodey that the python
-  * parser can parse (it fails on random little snippets)
-  */
-  solveRange(change: CodeMirror.EditorChange, editor: CodeMirrorEditor) {
-    var lineRange = {
-      start: { line: change.from.line, ch: change.from.ch },
-      end: { line: change.to.line, ch: change.to.ch }
-    };
-    lineRange.start.ch = 0;
-    return lineRange;
-  }
-
-  fullLinesRange(change: CodeMirror.EditorChange, editor: CodeMirrorEditor) {
-    var lineRange = {
-      start: { line: change.from.line, ch: change.from.ch },
-      end: { line: change.to.line, ch: change.to.ch }
-    };
-    lineRange.start.ch = 0;
-    lineRange.end.ch = editor.doc.getLine(change.to.line).length;
-    return lineRange;
-  }
-
-  findAffectedChild(
-    node: NodeyCode,
-    min: number,
-    max: number,
-    change: { start: any; end: any }
-  ): NodeyCode {
-    var children: string[] = node.getChildren();
-    var match = null;
-    var mid = Math.round((max - min) / 2) + min;
-    var midNodey = <NodeyCode>this.historyModel.getNodeyHead(children[mid]);
-    var direction = this.inRange(midNodey, change);
-
-    if ((min >= max || max <= min) && direction !== 0)
-      //end condition no more to explore
-      return null;
-
-    if (direction === 0) {
-      var midChildren = midNodey.getChildren();
-      // it's in this node, check for children to be more specific
-      if (midChildren.length < 1) match = midNodey;
-      // found!
-      else
-        match =
-          this.findAffectedChild(
-            midNodey,
-            0,
-            Math.max(0, midChildren.length - 1),
-            change
-          ) || midNodey; // found!
-    } else if (direction === 2) return null;
-    // there is no match at this level
-    else if (direction === -1)
-      // check the left
-      match = this.findAffectedChild(node, min, mid - 1, change);
-    else if (direction === 1)
-      // check the right
-      match = this.findAffectedChild(node, mid + 1, max, change);
-
-    if (match) {
-      // if there's a match, now find it's closest parsable parent
-      return match; //TODO
-    }
-    return null;
   }
 
   repairPositions(
@@ -213,29 +142,6 @@ export class ASTResolve {
     }
   }
 
-  //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
-  inRange(nodey: NodeyCode, change: { start: any; end: any }): number {
-    var val = 0;
-    if (change.start.line < nodey.start.line) val = -1;
-    else if (
-      change.start.line === nodey.start.line &&
-      change.start.ch < nodey.start.ch
-    )
-      val = -1;
-
-    if (change.end.line > nodey.end.line) {
-      if (val === -1) val = 2;
-      else val = 1;
-    } else if (
-      change.end.line === nodey.end.line &&
-      change.end.ch > nodey.end.ch
-    ) {
-      if (val === -1) val = 2;
-      else val = 1;
-    }
-    return val;
-  }
-
   recieve_newVersion(
     nodey: NodeyCode,
     updateID: string,
@@ -243,7 +149,7 @@ export class ASTResolve {
   ): NodeyCode {
     if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
       console.log("Time to resolve", jsn, "with", nodey);
-      var dict = this.reduceAST(JSON.parse(jsn));
+      var dict = ASTUtils.reduceASTDict(JSON.parse(jsn));
       console.log("Reduced AST", dict);
 
       var [score, transforms] = this.matchNode(dict, nodey);
@@ -254,21 +160,6 @@ export class ASTResolve {
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
     }
     return nodey;
-  }
-
-  reduceAST(ast: { [key: string]: any }): { [key: string]: any } {
-    if (ast.content && ast.content.length === 1) {
-      // check if this node is a wrapper or not
-      var child = ast.content[0];
-      if (
-        child.start.line === ast.start.line &&
-        child.start.ch === ast.start.ch &&
-        child.end.line === ast.end.line &&
-        child.end.ch === ast.end.ch
-      )
-        return this.reduceAST(child);
-    }
-    return ast;
   }
 
   match(

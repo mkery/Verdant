@@ -5,16 +5,22 @@ import {
   NodeyCode,
   NodeyMarkdown,
   NodeyOutput,
-  SyntaxToken
+  SyntaxToken,
+  NodeyCodeCell
 } from "./nodey";
+
+import { CodeCell } from "@jupyterlab/cells";
 
 import { HistoryModel } from "./history-model";
 
 import { CellListen } from "./jupyter-hooks/cell-listen";
 
+import { ASTUtils } from "./analysis/ast-utils";
+
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
 import { Signal } from "@phosphor/signaling";
+import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 export class Inspect {
   private _notebook: NotebookListen;
@@ -54,6 +60,62 @@ export class Inspect {
     console.log("new target!", nodey);
     this._target = nodey[0]; //TODO
     this._targetChanged.emit(this._target);
+  }
+
+  public figureOutTarget(
+    parent: NodeyCodeCell,
+    cell: CodeCell,
+    elem: HTMLElement
+  ) {
+    var codeBlock = this.findAncestor(elem, "CodeMirror-code");
+    var lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
+    var lineDiv = this.findAncestor(elem, "CodeMirror-line");
+    var lineNum = Math.round(
+      (lineDiv.offsetTop / codeBlock.offsetHeight) * lineCount
+    );
+    var lineText = (cell.editor as CodeMirrorEditor).doc.getLine(lineNum);
+
+    if (elem.hasAttribute("role")) {
+      // a full line in Code Mirror
+      var res = ASTUtils.findNodeAtRange(
+        parent,
+        {
+          start: { line: lineNum, ch: 0 },
+          end: { line: lineNum, ch: lineText.length - 2 }
+        },
+        this._historyModel
+      );
+      return res || parent; //just in case no more specific result is found
+    } else {
+      var spanRol = this.findAncestorByAttr(elem, "role");
+      var startCh = Math.round(
+        (elem.offsetLeft / spanRol.offsetWidth) * lineText.length
+      );
+      var endCh = Math.round(
+        ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
+          lineText.length
+      );
+      return ASTUtils.findNodeAtRange(
+        parent,
+        {
+          start: { line: lineNum, ch: startCh },
+          end: { line: lineNum, ch: endCh }
+        },
+        this._historyModel
+      );
+    }
+  }
+
+  private findAncestorByAttr(el: HTMLElement, attr: string) {
+    if (el.hasAttribute(attr)) return el;
+    while ((el = el.parentElement) && !el.hasAttribute(attr));
+    return el;
+  }
+
+  private findAncestor(el: HTMLElement, cls: string) {
+    if (el.classList.contains(cls)) return el;
+    while ((el = el.parentElement) && !el.classList.contains(cls));
+    return el;
   }
 
   public renderNode(nodey: Nodey): any {
