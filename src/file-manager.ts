@@ -4,6 +4,8 @@ import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
+import { CellRunData } from "./run";
+
 import { HistoryModel } from "./history-model";
 
 export class FileManager {
@@ -129,7 +131,15 @@ export interface serialized_NodeyCode extends serialized_Nodey {
   runs: number[];
 }
 
-export interface serialized_NodeyList {
-  nodey: number;
-  versions: serialized_Nodey[];
+export interface serialized_Run {
+  run: number;
+  timestamp: number;
+  cells: CellRunData[];
+}
+
+export interface serialized_NodeyHistory {
+  runs: serialized_Run[];
+  cells: number[];
+  nodey: { nodey: number; versions: serialized_Nodey[] }[];
+  output: { output: number; versions: serialized_NodeyOutput[] }[];
 }

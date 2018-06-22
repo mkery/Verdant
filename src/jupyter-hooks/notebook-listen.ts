@@ -89,13 +89,6 @@ export class NotebookListen {
     this._ready.resolve(undefined);
   }
 
-  toJSON(): { runs: any[]; cells: any[]; nodey: any[] } {
-    var runList = <any>[]; //TODO
-    var cells = this.nodey;
-    var nodey = this.historyModel.toJSON();
-    return { runs: runList, cells: cells, nodey: nodey };
-  }
-
   focusCell(cell: Cell): void {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       this._activeCellChanged.emit(this.cells.get(cell)); //TODO markdown

@@ -16,7 +16,11 @@ import { RunModel } from "./run-model";
 
 import { Inspect } from "./inspect";
 
-import { serialized_NodeyList } from "./file-manager";
+import {
+  serialized_NodeyHistory,
+  serialized_Nodey,
+  serialized_NodeyOutput
+} from "./file-manager";
 
 import { CodeCell } from "@jupyterlab/cells";
 
@@ -239,14 +243,30 @@ export class HistoryModel {
     return newNodey;
   }
 
-  toJSON(): serialized_NodeyList[] {
-    return this._nodeyStore.map((history: NodeHistory, index: number) => {
-      if (history) {
-        let versions = history.versions.map((item: Nodey) => item.toJSON());
-        let nodey = index;
-        return { versions: versions, nodey: nodey };
+  toJSON(): serialized_NodeyHistory {
+    var jsn = {
+      runs: this._runModel.toJSON(),
+      cells: this._cellList
+    } as serialized_NodeyHistory;
+    jsn["nodey"] = this._nodeyStore.map(
+      (history: NodeHistory, index: number) => {
+        if (history) {
+          let versions = history.versions.map((item: Nodey) => item.toJSON());
+          let nodey = index;
+          return { nodey: nodey, versions: versions };
+        }
       }
-    });
+    ) as { nodey: number; versions: serialized_Nodey[] }[];
+    jsn["output"] = this._outputStore.map(
+      (history: NodeHistory, index: number) => {
+        if (history) {
+          let versions = history.versions.map((item: Nodey) => item.toJSON());
+          let nodey = index;
+          return { versions: versions, output: nodey };
+        }
+      }
+    ) as { output: number; versions: serialized_NodeyOutput[] }[];
+    return jsn;
   }
 
   dump(): void {

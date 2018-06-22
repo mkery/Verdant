@@ -2,6 +2,7 @@ import { Run, CellRunData, RunDateList } from "./run";
 import { NodeyCell, NodeyCode } from "./nodey";
 import { Signal } from "@phosphor/signaling";
 import { HistoryModel } from "./history-model";
+import { serialized_Run } from "./file-manager";
 /*
 *
 */
@@ -95,5 +96,11 @@ export class RunModel {
     var d = new Date();
     d.setHours(12, 0, 0); // set to default time since we only want the day
     return d;
+  }
+
+  public toJSON(): serialized_Run[] {
+    return this._runList.map(run => {
+      return { run: run.id, timestamp: run.timestamp, cells: run.cells };
+    });
   }
 }
