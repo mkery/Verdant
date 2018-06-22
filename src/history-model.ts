@@ -63,11 +63,11 @@ export class HistoryModel {
   }
 
   getNodeyHead(name: string): Nodey {
-    var [id, ver, tag] = name.split(".");
-    var nodeHist = this._nodeyStore[parseInt(id)];
+    let [id, ver, tag] = name.split(".");
+    let nodeHist = this._nodeyStore[parseInt(id)];
 
     if (id === "*" && tag) {
-      var cell = this.getNodeyCell(parseInt(ver));
+      let cell = this.getNodeyCell(parseInt(ver));
       return cell.starNodes[parseInt(tag)];
     }
 
@@ -77,14 +77,14 @@ export class HistoryModel {
   }
 
   getNodeyCell(id: number): NodeyCell {
-    var nodeHist = this._nodeyStore[id];
+    let nodeHist = this._nodeyStore[id];
     return <NodeyCell>nodeHist.latest;
   }
 
   getNodey(name: string): Nodey {
-    var [id, ver, tag] = name.split(".");
+    let [id, ver, tag] = name.split(".");
     if (id === "*" && tag) {
-      var cell = this.getNodeyCell(parseInt(ver));
+      let cell = this.getNodeyCell(parseInt(ver));
       return cell.starNodes[parseInt(tag)];
     }
 
@@ -94,8 +94,8 @@ export class HistoryModel {
   }
 
   getOutput(name: string): NodeyOutput {
-    var [id, ver] = name.split(".");
-    var nodeHist = this._outputStore[parseInt(id)];
+    let [id, ver] = name.split(".");
+    let nodeHist = this._outputStore[parseInt(id)];
     return nodeHist.versions[parseInt(ver)] as NodeyOutput;
   }
 
@@ -104,9 +104,9 @@ export class HistoryModel {
   }
 
   public registerNodey(nodey: Nodey): void {
-    var id = this._nodeyStore.push(new NodeHistory()) - 1;
+    let id = this._nodeyStore.push(new NodeHistory()) - 1;
     nodey.id = id;
-    var version = this._nodeyStore[nodey.id].versions.push(nodey) - 1;
+    let version = this._nodeyStore[nodey.id].versions.push(nodey) - 1;
     nodey.version = version;
     return;
   }
@@ -117,31 +117,31 @@ export class HistoryModel {
   }
 
   public registerOutputNodey(nodey: NodeyOutput) {
-    var id = this._outputStore.push(new NodeHistory()) - 1;
+    let id = this._outputStore.push(new NodeHistory()) - 1;
     nodey.id = id;
-    var version = this._outputStore[nodey.id].versions.push(nodey) - 1;
+    let version = this._outputStore[nodey.id].versions.push(nodey) - 1;
     nodey.version = version;
     return;
   }
 
   public stageChanges(transforms: ((key: any) => any)[], nodey: Nodey): void {
-    var history = this.getVersionsFor(nodey);
+    let history = this.getVersionsFor(nodey);
     this._stageChanges(transforms, history);
   }
 
   private _stageChanges(changes: ((x: Nodey) => void)[], history: NodeHistory) {
     if (!history.starNodey) {
       //newly entering star state!
-      var nodey = history.versions[history.versions.length - 1];
+      let nodey = history.versions[history.versions.length - 1];
       history.starNodey = nodey.clone();
       history.starNodey.version = "*";
       if (history.starNodey.parent) {
         // star all the way up the chain
-        var transforms = [
+        let transforms = [
           (x: NodeyCode) =>
             (x.content[x.content.indexOf(nodey.name)] = history.starNodey.name)
         ];
-        var parent = this.getNodeyHead(history.starNodey.parent);
+        let parent = this.getNodeyHead(history.starNodey.parent);
         this.stageChanges(transforms, parent);
       }
     }
@@ -149,9 +149,9 @@ export class HistoryModel {
   }
 
   public addStarNode(starNode: NodeyCode, relativeTo: NodeyCode): string {
-    var cell = this._getCellParent(relativeTo);
+    let cell = this._getCellParent(relativeTo);
     cell.starNodes.push(starNode);
-    var num = cell.starNodes.length;
+    let num = cell.starNodes.length;
     return cell.id + "." + num;
   }
 
@@ -164,7 +164,7 @@ export class HistoryModel {
   public commitChanges(cell: NodeyCell, runId: number) {
     console.log("Cell to commit is " + cell.name, cell, runId);
     if (cell instanceof NodeyCodeCell) {
-      var output = this._commitOutput(cell, runId);
+      let output = this._commitOutput(cell, runId);
       this._commitCode(cell, runId, output, this._deStar.bind(this));
     } else if (cell instanceof NodeyMarkdown) this._commitMarkdown(cell, runId);
 
@@ -172,8 +172,8 @@ export class HistoryModel {
   }
 
   private _deStar(nodey: Nodey, runId: number, output: string[]) {
-    var newNodey = nodey.clone();
-    if (newNodey instanceof NodeyCode) newNodey.output.concat(output);
+    let newNodey = nodey.clone();
+    if (newNodey instanceof NodeyCode) newNodey.addOutput(runId, output);
     newNodey.run.push(runId);
     this.registerNodey(newNodey);
     console.log("star node now ", newNodey);
@@ -182,16 +182,19 @@ export class HistoryModel {
 
   private _commitMarkdown(nodey: NodeyMarkdown, runId: number) {
     if (nodey.version === "*") {
-      var history = this.getVersionsFor(nodey);
+      let history = this.getVersionsFor(nodey);
       return history.deStar(runId) as NodeyMarkdown;
     }
   }
 
   private _commitOutput(nodey: NodeyCodeCell, runId: number) {
+    let latestOutput = nodey.latestOutput;
+    let output = null;
+    if (latestOutput) output = latestOutput.map(o => this.getOutput(o));
     return Nodey.outputToNodey(
       nodey.cell.cell as CodeCell,
       this,
-      nodey.output.map((o: string) => this.getOutput(o)),
+      output,
       runId
     );
   }
@@ -204,10 +207,10 @@ export class HistoryModel {
     prior: NodeyCode = null
   ): NodeyCode {
     console.log("Commiting code", nodey);
-    var newNodey: NodeyCode;
+    let newNodey: NodeyCode;
     if (nodey.id === "*") newNodey = starFactory(nodey, runId, output);
     else if (nodey.version === "*") {
-      var history = this.getVersionsFor(nodey);
+      let history = this.getVersionsFor(nodey);
       newNodey = history.deStar(runId, output) as NodeyCode;
     } else {
       return nodey; // nothing to change, stop update here
@@ -219,10 +222,10 @@ export class HistoryModel {
     newNodey.content.forEach((childName: any, index: number) => {
       if (!(childName instanceof SyntaxToken)) {
         //skip syntax tokens
-        var [id, ver] = childName.split(".");
+        let [id, ver] = childName.split(".");
         if (id === "*" || ver === "*") {
           // only update children that are changed
-          var child = this.getNodey(childName) as NodeyCode;
+          let child = this.getNodey(childName) as NodeyCode;
           console.log("getting " + childName, child);
           child = this._commitCode(child, runId, output, starFactory, prior);
           newNodey.content[index] = child.name;
@@ -239,8 +242,8 @@ export class HistoryModel {
   toJSON(): serialized_NodeyList[] {
     return this._nodeyStore.map((history: NodeHistory, index: number) => {
       if (history) {
-        var versions = history.versions.map((item: Nodey) => item.toJSON());
-        var nodey = index;
+        let versions = history.versions.map((item: Nodey) => item.toJSON());
+        let nodey = index;
         return { versions: versions, nodey: nodey };
       }
     });
@@ -272,9 +275,9 @@ export class NodeHistory {
   }
 
   deStar(runId: number, output: string[] = null) {
-    var newNodey = this.starNodey.clone();
+    let newNodey = this.starNodey.clone();
     newNodey.run.push(runId);
-    if (newNodey instanceof NodeyCode) newNodey.output.concat(output);
+    if (newNodey instanceof NodeyCode) newNodey.addOutput(runId, output);
     this.starNodey = null;
     this.versions.push(newNodey);
     newNodey.version = this.versions.length - 1;

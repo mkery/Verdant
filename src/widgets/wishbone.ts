@@ -135,10 +135,8 @@ namespace Private {
     var outputNodey = cellListen.output;
     console.log("output nodey are", outputNodey);
     if (outputNodey)
-      addEvents(
-        cellListen.outputArea.node,
-        outputNodey,
-        historyModel.inspector
+      outputNodey.forEach(out =>
+        addEvents(cellListen.outputArea.node, out, historyModel.inspector)
       );
   }
 
@@ -148,11 +146,10 @@ namespace Private {
   ) {
     var outputNodey = cellListen.output;
     if (outputNodey)
-      removeEvents(
-        cellListen.outputArea.node,
-        outputNodey,
-        historyModel.inspector
-      );
+      if (outputNodey)
+        outputNodey.forEach(out =>
+          removeEvents(cellListen.outputArea.node, out, historyModel.inspector)
+        );
   }
 
   export function addLineEvents(

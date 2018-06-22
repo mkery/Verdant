@@ -1,5 +1,5 @@
 import { Run, CellRunData, RunDateList } from "./run";
-import { NodeyCell } from "./nodey";
+import { NodeyCell, NodeyCode } from "./nodey";
 import { Signal } from "@phosphor/signaling";
 import { HistoryModel } from "./history-model";
 /*
@@ -55,20 +55,28 @@ export class RunModel {
     }
   }
 
-  private recordRun(runID: number, timestamp: number, nodey: NodeyCell) {
+  private recordRun(runId: number, timestamp: number, nodey: NodeyCell) {
     var cellDat: CellRunData[] = [];
     this._historyModel.cellList.forEach(cell => {
       var dat = {
         node: cell.name,
         changeType: cell.cell.status
       } as CellRunData;
-      if (cell.id === nodey.id) dat["run"] = true;
+      if (cell.id === nodey.id) {
+        dat["run"] = true;
+        console.log("cell is", cell);
+        if (cell instanceof NodeyCode) {
+          var out = cell.getOutput(runId);
+          console.log("cell is", cell, "found output", out);
+          if (out) dat["newOutput"] = out;
+        }
+      }
       cellDat.push(dat);
       cell.cell.clearStatus();
     });
 
-    var run = new Run(timestamp, cellDat, runID);
-    this._runList[runID] = run;
+    var run = new Run(timestamp, cellDat, runId);
+    this._runList[runId] = run;
     this.categorizeRun(run);
     return run;
   }
