@@ -41,10 +41,12 @@ export class RunModel {
     if (execCount === null) this.onRunStarted(execCount, nodey);
     else {
       console.log("Cell run!", execCount, nodey);
+      var runID = this._runList.length;
       var timestamp = Date.now();
-      this._historyModel.commitChanges(nodey);
-      this._historyModel.dump();
+      this._historyModel.commitChanges(nodey, runID);
+      //this._historyModel.dump();
       var run = this.recordRun(
+        runID,
         timestamp,
         this._historyModel.getNodeyCell(nodey.id)
       );
@@ -53,7 +55,7 @@ export class RunModel {
     }
   }
 
-  private recordRun(timestamp: number, nodey: NodeyCell) {
+  private recordRun(runID: number, timestamp: number, nodey: NodeyCell) {
     var cellDat: CellRunData[] = [];
     this._historyModel.cellList.forEach(cell => {
       var dat = {
@@ -65,8 +67,8 @@ export class RunModel {
       cell.cell.clearStatus();
     });
 
-    var run = new Run(timestamp, cellDat, Math.max(this._runList.length, 0));
-    this._runList.push(run);
+    var run = new Run(timestamp, cellDat, runID);
+    this._runList[runID] = run;
     this.categorizeRun(run);
     return run;
   }

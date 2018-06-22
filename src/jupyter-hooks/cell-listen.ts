@@ -64,11 +64,11 @@ export abstract class CellListen {
     this._ready.resolve(undefined);
   }
 
-  public cellRun(exec: number = 0) {
-    console.log("Running cell!", this.cell);
+  public cellRun(exec: number = null) {
     var node = this.nodey;
     if (node.id === "*" || node.version === "*")
       this.status = ChangeType.CELL_CHANGED;
+    console.log("Running cell!", this.cell, exec, typeof node);
     this.historyModel.handleCellRun(exec, node);
   }
 
@@ -95,7 +95,7 @@ export class CodeCellListen extends CellListen {
   protected async init() {
     var cell = this.cell as CodeCell;
     var text: string = cell.editor.model.value.text;
-    var outNode = this.outputToNodey();
+    var outNode = Nodey.outputToNodey(cell, this.historyModel);
     this._nodey = await this.astUtils.generateCodeNodey(text, {
       output: outNode,
       run: 0,
@@ -112,19 +112,6 @@ export class CodeCellListen extends CellListen {
 
   public get outputArea(): OutputArea {
     return (this.cell as CodeCell).outputArea;
-  }
-
-  private outputToNodey(): string[] {
-    var output = (<CodeCell>this.cell).outputArea.model.toJSON();
-    var outNode: string[] = [];
-    if (output.length < 1) outNode = undefined;
-    else {
-      for (var item in output) {
-        var out = Nodey.dictToOutputNodey(output[item], this.historyModel);
-        outNode.push(out.name);
-      }
-    }
-    return outNode;
   }
 
   protected listen(): void {
@@ -145,6 +132,7 @@ export class CodeCellListen extends CellListen {
     }
   }
 }
+
 /*
   *
   *  Cell listen for code cells

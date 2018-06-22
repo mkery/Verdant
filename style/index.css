@@ -344,7 +344,6 @@
 
 .v-VerdantPanel-wishbone-highlight {
   background-color: var(--verdant-highlight-color1);
-  border-color: var(--jp-brand-color1);
 }
 
 .v-VerdantPanel-wishbone-code-mask {
@@ -360,5 +359,4 @@
 
 .v-VerdantPanel-wishbone-code-highlight {
   background-color: var(--verdant-highlight-color1);
-  border-color: var(--jp-brand-color1);
 }

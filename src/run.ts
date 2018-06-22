@@ -11,6 +11,7 @@ export interface CellRunData {
   node: string;
   changeType: number;
   run?: boolean;
+  newOutput?: string;
 }
 
 export class Run {

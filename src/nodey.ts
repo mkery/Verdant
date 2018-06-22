@@ -1,5 +1,7 @@
 import { CellListen } from "./jupyter-hooks/cell-listen";
 
+import { CodeCell } from "@jupyterlab/cells";
+
 import { HistoryModel } from "./history-model";
 
 import {
@@ -12,15 +14,13 @@ import {
 export abstract class Nodey {
   private node_id: number; //id for this node
   private version_id: any; //chronological number
-  run: string; //id marking which run
-  timestamp: Date; //timestamp when created
+  run: number[] = []; //id marking which run
   pendingUpdate: string;
   parent: string; //lookup id for the parent Nodey of this Nodey
 
   constructor(options: { [id: string]: any }) {
     this.node_id = options.id;
-    this.run = options.run;
-    this.timestamp = options.timestamp;
+    this.run = options.run || [];
     this.parent = options.parent;
   }
 
@@ -94,7 +94,7 @@ export class NodeyOutput extends Nodey {
   }
 
   toJSON(): serialized_NodeyOutput {
-    return { output: this.raw }; //TODO
+    return { output: this.raw, runs: this.run };
   }
 
   typeName(): string {
@@ -104,7 +104,7 @@ export class NodeyOutput extends Nodey {
 
 export class NodeyCode extends Nodey {
   type: string;
-  output: string[];
+  output: string[] = [];
   content: any[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
@@ -115,7 +115,7 @@ export class NodeyCode extends Nodey {
     super(options);
     this.type = options.type;
     this.content = options.content;
-    this.output = (<any>options)["output"];
+    this.output = (<any>options)["output"] || [];
     this.literal = options.literal;
     this.start = options.start;
     this.end = options.end;
@@ -137,7 +137,7 @@ export class NodeyCode extends Nodey {
   }
 
   toJSON(): serialized_NodeyCode {
-    var jsn: serialized_NodeyCode = { type: this.type };
+    var jsn: serialized_NodeyCode = { type: this.type, runs: this.run };
     if (this.literal) jsn.literal = this.literal;
     if (this.output && this.output.length > 0) {
       jsn.output = this.output;
@@ -192,9 +192,18 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   }
 
   clone(): Nodey {
-    var node = super.clone() as NodeyCodeCell;
-    node.cell = this.cell;
-    return node;
+    //really important to slice the content array or it references, instead of copies, the list
+    return new NodeyCodeCell({
+      type: this.type,
+      content: this.content.slice(0),
+      literal: this.literal,
+      start: this.start,
+      end: this.end,
+      right: this.right,
+      id: this.id,
+      parent: this.parent,
+      cell: this.cell
+    });
   }
 }
 
@@ -295,7 +304,35 @@ export namespace Nodey {
     return n;
   }
 
-  export function dictToOutputNodey(
+  export function outputToNodey(
+    cell: CodeCell,
+    historyModel: HistoryModel,
+    oldOutput: NodeyOutput[] = null,
+    runId: number = -1
+  ): string[] {
+    var output = cell.outputArea.model.toJSON();
+
+    if (oldOutput) {
+      // need to check if the output is different
+      if (
+        JSON.stringify(output) === JSON.stringify(oldOutput.map(out => out.raw))
+      )
+        return []; //outputs are the same don't bother
+    }
+
+    var outNode: string[] = [];
+    if (output.length < 1) outNode = undefined;
+    else {
+      for (var item in output) {
+        var out = dictToOutputNodey(output[item], historyModel);
+        if (runId !== -1) out.run.push(runId);
+        outNode.push(out.name);
+      }
+    }
+    return outNode;
+  }
+
+  function dictToOutputNodey(
     output: { [id: string]: any },
     historyModel: HistoryModel
   ) {

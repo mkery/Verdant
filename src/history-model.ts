@@ -4,7 +4,8 @@ import {
   NodeyCode,
   NodeyCodeCell,
   NodeyMarkdown,
-  NodeyOutput
+  NodeyOutput,
+  SyntaxToken
 } from "./nodey";
 
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
@@ -16,6 +17,8 @@ import { RunModel } from "./run-model";
 import { Inspect } from "./inspect";
 
 import { serialized_NodeyList } from "./file-manager";
+
+import { CodeCell } from "@jupyterlab/cells";
 
 export class HistoryModel {
   constructor(renderBaby: RenderBaby) {
@@ -84,6 +87,9 @@ export class HistoryModel {
       var cell = this.getNodeyCell(parseInt(ver));
       return cell.starNodes[parseInt(tag)];
     }
+
+    if (ver === "*") return this._nodeyStore[parseInt(id)].starNodey;
+
     return this._nodeyStore[parseInt(id)].versions[parseInt(ver)];
   }
 
@@ -155,52 +161,75 @@ export class HistoryModel {
       return this._getCellParent(this.getNodey(relativeTo.parent) as NodeyCode);
   }
 
-  public commitChanges(cell: NodeyCell) {
-    if (cell instanceof NodeyCodeCell)
-      this._commitCode(cell, this._deStar.bind(this));
-    else if (cell instanceof NodeyMarkdown) this._commitMarkdown(cell);
+  public commitChanges(cell: NodeyCell, runId: number) {
+    console.log("Cell to commit is " + cell.name, cell, runId);
+    if (cell instanceof NodeyCodeCell) {
+      var output = this._commitOutput(cell, runId);
+      this._commitCode(cell, runId, output, this._deStar.bind(this));
+    } else if (cell instanceof NodeyMarkdown) this._commitMarkdown(cell, runId);
 
     cell.starNodes = [];
   }
 
-  private _deStar(nodey: Nodey) {
+  private _deStar(nodey: Nodey, runId: number, output: string[]) {
     var newNodey = nodey.clone();
-    this.registerNodey(nodey);
+    if (newNodey instanceof NodeyCode) newNodey.output.concat(output);
+    newNodey.run.push(runId);
+    this.registerNodey(newNodey);
+    console.log("star node now ", newNodey);
     return newNodey;
   }
 
-  private _commitMarkdown(nodey: NodeyMarkdown) {
+  private _commitMarkdown(nodey: NodeyMarkdown, runId: number) {
     if (nodey.version === "*") {
       var history = this.getVersionsFor(nodey);
-      return history.deStar() as NodeyCode;
+      return history.deStar(runId) as NodeyMarkdown;
     }
+  }
+
+  private _commitOutput(nodey: NodeyCodeCell, runId: number) {
+    return Nodey.outputToNodey(
+      nodey.cell.cell as CodeCell,
+      this,
+      nodey.output.map((o: string) => this.getOutput(o)),
+      runId
+    );
   }
 
   private _commitCode(
     nodey: NodeyCode,
-    starFactory: (x: NodeyCode) => NodeyCode,
+    runId: number,
+    output: string[],
+    starFactory: (x: NodeyCode, num: number, out: string[]) => NodeyCode,
     prior: NodeyCode = null
   ): NodeyCode {
+    console.log("Commiting code", nodey);
     var newNodey: NodeyCode;
-    if (nodey.id === "*") newNodey = starFactory(newNodey);
+    if (nodey.id === "*") newNodey = starFactory(nodey, runId, output);
     else if (nodey.version === "*") {
       var history = this.getVersionsFor(nodey);
-      newNodey = history.deStar() as NodeyCode;
-    } else return nodey; // nothing to change, stop update here
+      newNodey = history.deStar(runId, output) as NodeyCode;
+    } else {
+      return nodey; // nothing to change, stop update here
+    }
 
     if (prior) prior.right = newNodey.name;
     prior = null;
 
-    newNodey.content.forEach((childName: string, index: number) => {
-      var [id, ver] = childName.split(".");
-      if (id === "*" || ver === "*") {
-        // only update children that are changed
-        var child = this.getNodey(childName) as NodeyCode;
-        child = this._commitCode(child, starFactory, prior);
-        newNodey.content[index] = child.name;
-        child.parent = newNodey.name;
-        if (prior) prior.right = child.name;
-        prior = child;
+    newNodey.content.forEach((childName: any, index: number) => {
+      if (!(childName instanceof SyntaxToken)) {
+        //skip syntax tokens
+        var [id, ver] = childName.split(".");
+        if (id === "*" || ver === "*") {
+          // only update children that are changed
+          var child = this.getNodey(childName) as NodeyCode;
+          console.log("getting " + childName, child);
+          child = this._commitCode(child, runId, output, starFactory, prior);
+          newNodey.content[index] = child.name;
+          child.parent = newNodey.name;
+          if (prior) prior.right = child.name;
+          prior = child;
+        }
       }
     });
 
@@ -242,11 +271,14 @@ export class NodeHistory {
     return this.versions[this.versions.length - 1];
   }
 
-  deStar() {
+  deStar(runId: number, output: string[] = null) {
     var newNodey = this.starNodey.clone();
+    newNodey.run.push(runId);
+    if (newNodey instanceof NodeyCode) newNodey.output.concat(output);
     this.starNodey = null;
     this.versions.push(newNodey);
     newNodey.version = this.versions.length - 1;
+    console.log("de-staring", newNodey, this);
     return newNodey;
   }
 }

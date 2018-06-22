@@ -49,6 +49,7 @@ export class Inspect {
 
   get versionsOfTarget() {
     var nodeVerList = this._historyModel.getVersionsFor(this._target);
+    console.log("Found versions", nodeVerList);
     var recovered = nodeVerList.versions.map((item: Nodey) =>
       this.renderNode(item)
     );

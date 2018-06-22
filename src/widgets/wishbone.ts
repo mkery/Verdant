@@ -133,6 +133,7 @@ namespace Private {
     historyModel: HistoryModel
   ) {
     var outputNodey = cellListen.output;
+    console.log("output nodey are", outputNodey);
     if (outputNodey)
       addEvents(
         cellListen.outputArea.node,
