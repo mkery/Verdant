@@ -1,5 +1,7 @@
 import { NotebookPanel, Notebook } from "@jupyterlab/notebook";
 
+import { IObservableJSON } from "@jupyterlab/observables";
+
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
@@ -58,6 +60,18 @@ export class NotebookListen {
 
   get path(): string {
     return this.kernUtil.path;
+  }
+
+  get metadata(): IObservableJSON {
+    return this._notebook.model.metadata;
+  }
+
+  get nbformatMinor(): number {
+    return this._notebook.model.nbformatMinor;
+  }
+
+  get nbformat(): number {
+    return this._notebook.model.nbformat;
   }
 
   private async init() {

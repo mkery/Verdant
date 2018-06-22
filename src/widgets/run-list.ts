@@ -90,6 +90,7 @@ export class RunList extends Widget {
    * Handle the `'click'` event for the widget.
    */
   private onClick(runItem: RunItem, event: Event) {
+    console.log("Run item ", runItem);
     if (this.selectedRun)
       this.selectedRun.node.classList.remove(RUN_ITEM_ACTIVE);
 
@@ -99,7 +100,10 @@ export class RunList extends Widget {
     let target = event.target as HTMLElement;
     if (target.classList.contains("v-VerdantPanel-runItem-caret"))
       runItem.caretClicked();
-    else console.log("Open old version of notebook");
+    else {
+      console.log("Open old version of notebook", runItem.run);
+      this.historyModel.inspector.produceNotebook(runItem.run);
+    }
   }
 
   private addNewRun(sender: any, run: Run) {

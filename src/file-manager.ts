@@ -8,18 +8,13 @@ import { CellRunData } from "./run";
 
 import { HistoryModel } from "./history-model";
 
-export class FileManager {
-  private _notebook: NotebookListen;
-  private _historyModel: HistoryModel;
-
-  constructor(notebook: NotebookListen, historyModel: HistoryModel) {
-    this._notebook = notebook;
-    this._historyModel = historyModel;
-  }
-
-  writeToFile(): Promise<void> {
+export namespace FileManager {
+  export function writeToFile(
+    notebook: NotebookListen,
+    historyModel: HistoryModel
+  ): Promise<void> {
     return new Promise((accept, reject) => {
-      var notebookPath = this._notebook.path;
+      var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
       name = name.substring(0, name.indexOf(".")) + ".ipyhistory";
@@ -35,7 +30,7 @@ export class FileManager {
         path,
         "today",
         "today",
-        JSON.stringify(this._historyModel.toJSON())
+        JSON.stringify(historyModel.toJSON())
       );
       //console.log("Model to save is", saveModel)
 
@@ -54,9 +49,54 @@ export class FileManager {
     });
   }
 
-  loadFromFile(): Promise<void> {
+  export function writeGhostFile(
+    notebook: NotebookListen,
+    historyModel: HistoryModel,
+    run: number,
+    data: {}
+  ): Promise<void> {
     return new Promise((accept, reject) => {
-      var notebookPath = this._notebook.path;
+      var notebookPath = notebook.path;
+      //console.log("notebook path is", notebookPath)
+      var name = PathExt.basename(notebookPath);
+      name = name.substring(0, name.indexOf(".")) + "-ghost-" + run + ".ipynb";
+      //console.log("name is", name)
+      var path =
+        "/" +
+        notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
+        name;
+      //console.log("goal path is ", path)
+
+      var saveModel = new HistorySaveModel(
+        name,
+        path,
+        "today",
+        "today",
+        JSON.stringify(data, null, 2)
+      );
+      //console.log("Model to save is", saveModel)
+
+      let contents = new ContentsManager();
+      contents
+        .save(path, saveModel)
+        .then(res => {
+          console.log("Model written to file", saveModel);
+          accept();
+        })
+        .catch(rej => {
+          //here when you reject the promise if the filesave fails
+          console.error(rej);
+          reject();
+        });
+    });
+  }
+
+  export function loadFromFile(
+    notebook: NotebookListen,
+    historyModel: HistoryModel
+  ): Promise<void> {
+    return new Promise((accept, reject) => {
+      var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
       name = name.substring(0, name.indexOf(".")) + ".ipyhistory";

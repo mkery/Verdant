@@ -1,5 +1,9 @@
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
+import { FileManager } from "./file-manager";
+
+import { nbformat } from "@jupyterlab/coreutils";
+
 import {
   Nodey,
   NodeyCode,
@@ -8,6 +12,8 @@ import {
   SyntaxToken,
   NodeyCodeCell
 } from "./nodey";
+
+import { Run, CellRunData } from "./run";
 
 import { CodeCell } from "@jupyterlab/cells";
 
@@ -40,6 +46,52 @@ export class Inspect {
       (sender: any, cell: CellListen) => {
         this.changeTarget([cell.nodey]);
       }
+    );
+  }
+
+  public produceNotebook(run: Run) {
+    var cells = run.cells.map((cellDat: CellRunData) => {
+      var nodey = this._historyModel.getNodey(cellDat.node);
+      var jsn: { [key: string]: any } = {
+        cell_type: nodey.typeName,
+        metadata: {},
+        source: [] as string[]
+      };
+      jsn.source = (this.renderNode(nodey) || "").split("\n");
+      if (nodey instanceof NodeyCode) {
+        jsn.executionCount = 0;
+        var outputList: {}[] = [];
+        nodey.output.map(dict => {
+          if (dict.out)
+            //TODO bug
+            dict.out.map((outName: string) => {
+              var outputNode = this._historyModel.getOutput(outName);
+              outputList.push(outputNode.raw);
+            });
+        });
+        jsn.outputs = outputList;
+      }
+      return jsn;
+    });
+
+    var metadata = this._notebook.metadata;
+    let metaJsn = Object.create(null) as nbformat.INotebookMetadata;
+    for (let key of metadata.keys()) {
+      metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
+    }
+
+    var file = {
+      cells: cells,
+      metadata: metaJsn,
+      nbformat_minor: this._notebook.nbformatMinor,
+      nbformat: this._notebook.nbformat
+    };
+
+    FileManager.writeGhostFile(
+      this._notebook,
+      this._historyModel,
+      run.id,
+      file
     );
   }
 

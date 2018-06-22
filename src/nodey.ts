@@ -48,7 +48,7 @@ export abstract class Nodey {
 
   abstract toJSON(): serialized_Nodey;
 
-  abstract typeName(): string;
+  abstract get typeName(): string;
 }
 
 /*
@@ -97,7 +97,7 @@ export class NodeyOutput extends Nodey {
     return { output: this.raw, runs: this.run };
   }
 
-  typeName(): string {
+  get typeName(): string {
     return "output";
   }
 }
@@ -185,7 +185,7 @@ export class NodeyCode extends Nodey {
     });
   }
 
-  typeName(): string {
+  get typeName(): string {
     return "code";
   }
 
@@ -251,8 +251,8 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
     return { markdown: this.markdown };
   }
 
-  typeName(): string {
-    return "markdown cell";
+  get typeName(): string {
+    return "markdown";
   }
 }
 

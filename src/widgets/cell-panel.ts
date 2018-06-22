@@ -70,7 +70,7 @@ export class CellPanel extends Widget {
   }
 
   public changeTarget(sender: any, target: Nodey) {
-    this.header.textContent = target.typeName() + " node " + target.name;
+    this.header.textContent = target.typeName + " node " + target.name;
     this.content.innerHTML = "";
     this.fillContent(target, this.inspector.versionsOfTarget);
   }
