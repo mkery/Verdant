@@ -266,6 +266,7 @@ def main(text):
 
   async generateCodeNodey(
     code: string,
+    position: number,
     options: { [key: string]: any }
   ): Promise<number> {
     return new Promise<number>((accept, reject) => {
@@ -285,7 +286,7 @@ def main(text):
           case "stream":
             var jsn = (<any>msg.content)["text"];
             //console.log("py 2 ast execution finished!", jsn)
-            accept(this.recieve_generateAST(jsn, options));
+            accept(this.recieve_generateAST(jsn, position, options));
             break;
           case "clear_output":
           case "update_display_data":
@@ -314,7 +315,11 @@ def main(text):
     this.runKernel('main("""' + code + '""")', onReply, onIOPub);
   }
 
-  recieve_generateAST(jsn: string, options: { [key: string]: any }): number {
+  recieve_generateAST(
+    jsn: string,
+    position: number,
+    options: { [key: string]: any }
+  ): number {
     if (jsn == "null") return null; //NodeyCode.EMPTY()
     if (jsn === "[]\n") return null; //NodeyCode.EMPTY()
 
@@ -323,6 +328,7 @@ def main(text):
     console.log(dict);
     var nodey = Nodey.dictToCodeCellNodey(
       Object.assign({}, dict, options),
+      position,
       this.historyModel
     );
     return nodey.id;

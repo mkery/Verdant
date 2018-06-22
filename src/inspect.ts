@@ -58,6 +58,10 @@ export class Inspect {
         source: [] as string[]
       };
       jsn.source = (this.renderNode(nodey) || "").split("\n");
+      jsn.source = jsn.source.map((str: string, index: number) => {
+        if (index !== jsn.source.length - 1) return str + "\n";
+        else return str;
+      });
       if (nodey instanceof NodeyCode) {
         jsn.executionCount = 0;
         var outputList: {}[] = [];

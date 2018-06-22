@@ -262,13 +262,14 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 export namespace Nodey {
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
+    position: number,
     historyModel: HistoryModel
   ) {
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
     dict.end.line -= 1;
 
     var n = new NodeyCodeCell(dict);
-    historyModel.registerCellNodey(n);
+    historyModel.registerCellNodey(n, position);
 
     dictToCodeChildren(dict, historyModel, n);
     return n;
@@ -316,11 +317,12 @@ export namespace Nodey {
 
   export function dictToMarkdownNodey(
     text: string,
+    position: number,
     historyModel: HistoryModel,
     cell: CellListen
   ) {
     var n = new NodeyMarkdown({ markdown: text, cell: cell });
-    historyModel.registerCellNodey(n);
+    historyModel.registerCellNodey(n, position);
     return n;
   }
 

@@ -30,11 +30,18 @@ export abstract class CellListen {
   protected _nodey: number;
   historyModel: HistoryModel;
   status: number;
+  position: number;
 
-  constructor(cell: Cell, astUtils: ASTGenerate, historyModel: HistoryModel) {
+  constructor(
+    cell: Cell,
+    astUtils: ASTGenerate,
+    historyModel: HistoryModel,
+    position: number
+  ) {
     this.cell = cell;
     this.astUtils = astUtils;
     this.historyModel = historyModel;
+    this.position = position;
     this.status = ChangeType.CELL_SAME;
     this.init();
   }
@@ -96,7 +103,7 @@ export class CodeCellListen extends CellListen {
     var cell = this.cell as CodeCell;
     var text: string = cell.editor.model.value.text;
     var outNode = Nodey.outputToNodey(cell, this.historyModel);
-    this._nodey = await this.astUtils.generateCodeNodey(text, {
+    this._nodey = await this.astUtils.generateCodeNodey(text, this.position, {
       output: outNode,
       run: 0,
       cell: this
@@ -145,6 +152,7 @@ export class MarkdownCellListen extends CellListen {
   protected async init() {
     var nodey = Nodey.dictToMarkdownNodey(
       this.cell.model.value.text,
+      this.position,
       this.historyModel,
       this
     );

@@ -86,9 +86,19 @@ export class NotebookListen {
       if (item instanceof Cell) {
         var cell: CellListen;
         if (item instanceof CodeCell)
-          cell = new CodeCellListen(item, this.astUtils, this.historyModel);
+          cell = new CodeCellListen(
+            item,
+            this.astUtils,
+            this.historyModel,
+            index
+          );
         else if (item instanceof MarkdownCell)
-          cell = new MarkdownCellListen(item, this.astUtils, this.historyModel);
+          cell = new MarkdownCellListen(
+            item,
+            this.astUtils,
+            this.historyModel,
+            index
+          );
         this.cells.set(item, cell);
         cellsReady.push(cell.ready);
       }

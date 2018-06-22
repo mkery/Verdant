@@ -115,9 +115,9 @@ export class HistoryModel {
     return;
   }
 
-  public registerCellNodey(nodey: NodeyCell): void {
+  public registerCellNodey(nodey: NodeyCell, position: number): void {
     this.registerNodey(nodey);
-    this._cellList.push(nodey.id); //TODO cells change order, deleted, ect
+    this._cellList[position] = nodey.id; //TODO cells change order, deleted, ect
   }
 
   public registerOutputNodey(nodey: NodeyOutput) {
