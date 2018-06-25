@@ -4,6 +4,8 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
+import { InstanceTracker } from "@jupyterlab/apputils";
+
 import { NotebookPanel } from "@jupyterlab/notebook";
 
 import { StackedPanel } from "@phosphor/widgets";
@@ -19,6 +21,8 @@ import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 import { HistoryModel } from "./history-model";
 
 import { VerdantPanel } from "./widgets/verdant-panel";
+
+import { GhostBookFactory, GhostBook } from "./widgets/ghost-book";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
@@ -44,6 +48,46 @@ const extension: JupyterLabPlugin<void> = {
     const renderBaby = new RenderBaby(latexTypesetter, linkHandler);
     const model = new HistoryModel(renderBaby);
     const astUtils = new ASTGenerate(model);
+
+    const ghostFactory = new GhostBookFactory({
+      name: "Ghost",
+      modelName: "base64",
+      fileTypes: ["ghost"],
+      defaultFor: ["ghost"],
+      readOnly: true
+    });
+    const ghostTracker = new InstanceTracker<GhostBook>({
+      namespace: "ghostbook"
+    });
+
+    // Handle state restoration.
+    restorer.restore(ghostTracker, {
+      command: "docmanager:open",
+      args: widget => ({ path: widget.context.path, factory: "Ghost" }),
+      name: widget => widget.context.path
+    });
+
+    app.docRegistry.addWidgetFactory(ghostFactory);
+    app.docRegistry.addFileType({
+      name: "ghost",
+      extensions: [".ghost"]
+    });
+    console.log("Doc registrey is:", app.docRegistry);
+
+    ghostFactory.widgetCreated.connect((sender, widget) => {
+      // Notify the instance tracker if restore data needs to update.
+      widget.context.pathChanged.connect(() => {
+        ghostTracker.save(widget);
+      });
+      ghostTracker.add(widget);
+
+      const types = app.docRegistry.getFileTypesForPath(widget.context.path);
+
+      if (types.length > 0) {
+        widget.title.iconClass = types[0].iconClass;
+        widget.title.iconLabel = types[0].iconLabel;
+      }
+    });
 
     restorer.add(panel, "v-VerdantPanel");
     panel.id = "v-VerdantPanel";

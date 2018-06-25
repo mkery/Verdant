@@ -116,7 +116,9 @@ export class CodeCellListen extends CellListen {
     var output = (this.nodey as NodeyCodeCell).output;
     if (output)
       return output.map(run => {
-        return run.out.map(o => this.historyModel.getOutput(o));
+        if (run.out)
+          //TODO bug should not occur
+          return run.out.map(o => this.historyModel.getOutput(o));
       });
   }
 
