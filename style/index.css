@@ -8,9 +8,11 @@
   --jp-private-verdant-manager-tab-padding-top: 8px;
   --verdant-icon-caretdown: url("img/chevron-more.svg");
   --verdant-icon-cellrun: url("img/cell-run.svg");
+  --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
   --verdant-highlight-color1: #c5e5fc;
+  --verdant-ghost-color1: #f0f9ff;
 }
 
 /*-----------------------------------------------------------------------------
@@ -359,4 +361,28 @@
 
 .v-VerdantPanel-wishbone-code-highlight {
   background-color: var(--verdant-highlight-color1);
+}
+
+.v-Verdant-GhostBook {
+  background-color: var(--verdant-ghost-color1);
+}
+
+.v-Verdant-GhostBook-icon {
+  background-image: var(--verdant-icon-ghostbook);
+}
+
+.v-Verdant-GhostBook-toolbar {
+  padding: 2px;
+  height: 28px;
+  box-shadow: var(--jp-toolbar-box-shadow);
+  background: var(--jp-toolbar-background);
+  z-index: 1;
+}
+
+.v-Verdant-GhostBook-toolbar-priorButton {
+  background-image: var(--jp-icon-expand-less);
+}
+
+.v-Verdant-GhostBook-toolbar-nextButton {
+  background-image: var(--jp-icon-expand-more);
 }

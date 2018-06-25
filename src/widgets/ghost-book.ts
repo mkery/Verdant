@@ -8,32 +8,19 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { Message } from "@phosphor/messaging";
 
-import { Widget } from "@phosphor/widgets";
+import { Widget, PanelLayout } from "@phosphor/widgets";
 
-import { IInstanceTracker } from "@jupyterlab/apputils";
-
-import { Token } from "@phosphor/coreutils";
+import { Toolbar, ToolbarButton } from "@jupyterlab/apputils";
 
 import "../../style/index.css";
-
-/**
- * A class that tracks editor widgets.
- */
-export interface IImageTracker extends IInstanceTracker<GhostBook> {}
-
-/* tslint:disable */
-/**
- * The editor tracker token.
- */
-export const IImageTracker = new Token<GhostBook>(
-  "@jupyterlab/ghostbook:GhostBook"
-);
-/* tslint:enable */
 
 /**
  * The class name added to a imageviewer.
  */
 const GHOST_BOOK = "v-Verdant-GhostBook";
+const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
+const GHOST_BOOK_TOOLBAR_PRIOR = "v-Verdant-GhostBook-toolbar-priorButton";
+const GHOST_BOOK_TOOLBAR_NEXT = "v-Verdant-GhostBook-toolbar-nextButton";
 
 /**
  * A widget for images.
@@ -52,6 +39,15 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     this.context = context;
     this.node.tabIndex = -1;
     this.addClass(GHOST_BOOK);
+
+    let layout = (this.layout = new PanelLayout());
+
+    // Toolbar
+    let toolbar = new Toolbar();
+    toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
+    toolbar.addItem("priorChange", this.createPriorButton());
+    toolbar.addItem("nextChange", this.createNextButton());
+    layout.addWidget(toolbar);
 
     let test = document.createElement("h1");
     test.textContent = "It's alive!!!";
@@ -104,6 +100,26 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     this.node.focus();
   }
 
+  createPriorButton(): ToolbarButton {
+    return new ToolbarButton({
+      className: GHOST_BOOK_TOOLBAR_PRIOR,
+      onClick: () => {
+        console.log("Prior change!");
+      },
+      tooltip: "Go to the previous change in this run"
+    });
+  }
+
+  createNextButton(): ToolbarButton {
+    return new ToolbarButton({
+      className: GHOST_BOOK_TOOLBAR_NEXT,
+      onClick: () => {
+        console.log("Next change!");
+      },
+      tooltip: "Go to the next change in this run"
+    });
+  }
+
   /**
    * Handle a change to the title.
    */
@@ -142,4 +158,8 @@ export class GhostBookFactory extends ABCWidgetFactory<
   ): GhostBook {
     return new GhostBook(context);
   }
+}
+
+export namespace GhostBook {
+  export const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";
 }
