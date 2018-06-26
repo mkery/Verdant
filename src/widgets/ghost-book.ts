@@ -21,7 +21,7 @@ const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
 const GHOST_BOOK_TOOLBAR_PRIOR = "v-Verdant-GhostBook-toolbar-priorButton";
 const GHOST_BOOK_TOOLBAR_NEXT = "v-Verdant-GhostBook-toolbar-nextButton";
-
+const GHOST_BOOK_TOOLBAR_LABEL = "v-Verdant-GhostBook-toolbar-label";
 /**
  * A widget for images.
  */
@@ -46,11 +46,15 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     let toolbar = new Toolbar();
     toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
     toolbar.addItem("priorChange", this.createPriorButton());
+    let changeLabel = document.createElement("div");
+    changeLabel.textContent = "0/0 changes";
+    changeLabel.classList.add(GHOST_BOOK_TOOLBAR_LABEL);
     toolbar.addItem("nextChange", this.createNextButton());
+    toolbar.node.appendChild(changeLabel);
     layout.addWidget(toolbar);
 
-    let test = document.createElement("h1");
-    test.textContent = "It's alive!!!";
+    let test = document.createElement("div");
+    test.textContent = this.context.model.toString();
     this.node.appendChild(test);
 
     this._onTitleChanged();
@@ -136,8 +140,7 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     if (!cm) {
       return;
     }
-    let content = context.model.toString();
-    console.log("content is", content, cm);
+    console.log("content is", context);
   }
 
   private _ready = new PromiseDelegate<void>();

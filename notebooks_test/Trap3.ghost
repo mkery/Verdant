@@ -105,6 +105,7 @@
     }
   ],
   "metadata": {
+    "run": 3,
     "kernelspec": {
       "display_name": "Python 3",
       "language": "python",

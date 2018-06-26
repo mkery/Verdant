@@ -51,7 +51,7 @@ const extension: JupyterLabPlugin<void> = {
 
     const ghostFactory = new GhostBookFactory({
       name: "Ghost",
-      modelName: "base64",
+      modelName: "notebook",
       fileTypes: ["ghost"],
       defaultFor: ["ghost"],
       readOnly: true
@@ -64,13 +64,16 @@ const extension: JupyterLabPlugin<void> = {
     restorer.restore(ghostTracker, {
       command: "docmanager:open",
       args: widget => ({ path: widget.context.path, factory: "Ghost" }),
-      name: widget => widget.context.path
+      name: widget => "Run of " + widget.context.path
     });
 
     app.docRegistry.addWidgetFactory(ghostFactory);
     app.docRegistry.addFileType({
       name: "ghost",
-      extensions: [".ghost"]
+      extensions: [".ghost"],
+      fileFormat: "json",
+      mimeTypes: ["application/x-ipynb+json"],
+      iconClass: "jp-MaterialIcon v-Verdant-GhostBook-icon "
     });
     console.log("Doc registrey is:", app.docRegistry);
 

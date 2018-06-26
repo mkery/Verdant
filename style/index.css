@@ -386,3 +386,15 @@
 .v-Verdant-GhostBook-toolbar-nextButton {
   background-image: var(--jp-icon-expand-more);
 }
+
+.v-Verdant-GhostBook-toolbar-label {
+  font-size: var(--jp-ui-font-size1);
+  background-size: 16px;
+  padding-right: 16px;
+  padding-left: 8px;
+  padding-top: calc(8px - var(--jp-ui-font-size1) * 0.5);
+  border: none;
+  border-radius: 0;
+  outline: none;
+  background-color: transparent;
+}
