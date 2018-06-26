@@ -4,12 +4,20 @@ import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
+import { IDocumentManager } from "@jupyterlab/docmanager";
+
 import { CellRunData } from "./run";
 
 import { HistoryModel } from "./history-model";
 
-export namespace FileManager {
-  export function writeToFile(
+export class FileManager {
+  readonly docManager: IDocumentManager;
+
+  constructor(docManager: IDocumentManager) {
+    this.docManager = docManager;
+  }
+
+  public writeToFile(
     notebook: NotebookListen,
     historyModel: HistoryModel
   ): Promise<void> {
@@ -49,17 +57,21 @@ export namespace FileManager {
     });
   }
 
-  export function writeGhostFile(
+  public openGhost(path: string) {
+    this.docManager.openOrReveal(path);
+  }
+
+  public writeGhostFile(
     notebook: NotebookListen,
     historyModel: HistoryModel,
     run: number,
     data: {}
-  ): Promise<void> {
+  ): Promise<string> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
-      name = name.substring(0, name.indexOf(".")) + "-ghost-" + run + ".ipynb";
+      name = name.substring(0, name.indexOf(".")) + run + ".ghost";
       //console.log("name is", name)
       var path =
         "/" +
@@ -81,7 +93,7 @@ export namespace FileManager {
         .save(path, saveModel)
         .then(res => {
           console.log("Model written to file", saveModel);
-          accept();
+          accept(path);
         })
         .catch(rej => {
           //here when you reject the promise if the filesave fails
@@ -91,7 +103,7 @@ export namespace FileManager {
     });
   }
 
-  export function loadFromFile(
+  public loadFromFile(
     notebook: NotebookListen,
     historyModel: HistoryModel
   ): Promise<void> {

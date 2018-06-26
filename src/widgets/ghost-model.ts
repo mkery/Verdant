@@ -94,6 +94,7 @@ export class GhostBookModel extends NotebookModel {
   fromJSON(value: nbformat.INotebookContent): void {
     this._run = value.metadata.run as number;
     this._timestamp = value.metadata.timestamp as number;
+    this._origin = value.metadata.origin as string;
     super.fromJSON(value);
   }
 
@@ -105,8 +106,13 @@ export class GhostBookModel extends NotebookModel {
     return this._timestamp;
   }
 
+  public get origin() {
+    return this._origin;
+  }
+
   private _run: number;
   private _timestamp: number;
+  private _origin: string;
 }
 
 export namespace GhostBookFactory {

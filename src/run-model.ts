@@ -2,7 +2,7 @@ import { Run, CellRunData, RunDateList } from "./run";
 import { NodeyCell, NodeyCode } from "./nodey";
 import { Signal } from "@phosphor/signaling";
 import { HistoryModel } from "./history-model";
-import { serialized_Run, FileManager } from "./file-manager";
+import { serialized_Run } from "./file-manager";
 
 /*
 *
@@ -80,7 +80,10 @@ export class RunModel {
     var run = new Run(timestamp, cellDat, runId);
     this._runList[runId] = run;
     this.categorizeRun(run);
-    FileManager.writeToFile(this._historyModel.notebook, this._historyModel);
+    this._historyModel.fileManager.writeToFile(
+      this._historyModel.notebook,
+      this._historyModel
+    );
     return run;
   }
 

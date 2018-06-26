@@ -1,5 +1,7 @@
 import { NotebookPanel, Notebook } from "@jupyterlab/notebook";
 
+import { PathExt } from "@jupyterlab/coreutils";
+
 import { IObservableJSON } from "@jupyterlab/observables";
 
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
@@ -60,6 +62,10 @@ export class NotebookListen {
 
   get path(): string {
     return this.kernUtil.path;
+  }
+
+  get name(): string {
+    return PathExt.basename(this.path);
   }
 
   get metadata(): IObservableJSON {

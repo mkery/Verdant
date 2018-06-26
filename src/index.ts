@@ -8,7 +8,11 @@ import { IEditorServices } from "@jupyterlab/codeeditor";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
+import { IDocumentManager } from "@jupyterlab/docmanager";
+
 import { NotebookPanel } from "@jupyterlab/notebook";
+
+import { FileManager } from "./file-manager";
 
 import { StackedPanel } from "@phosphor/widgets";
 
@@ -36,6 +40,7 @@ const extension: JupyterLabPlugin<void> = {
   activate: (
     app: JupyterLab,
     restorer: ILayoutRestorer,
+    docManager: IDocumentManager,
     rendermime: IRenderMimeRegistry,
     latexTypesetter: renderers.ILatexTypesetter,
     contentFactory: NotebookPanel.IContentFactory,
@@ -49,9 +54,10 @@ const extension: JupyterLabPlugin<void> = {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
       }
     };
+    const fileManager = new FileManager(docManager);
     var notebook: NotebookListen;
     const renderBaby = new RenderBaby(latexTypesetter, linkHandler);
-    const model = new HistoryModel(renderBaby);
+    const model = new HistoryModel(renderBaby, fileManager);
     const astUtils = new ASTGenerate(model);
     const ghostFactory = GhostBookFactory.registerFileType(
       app.docRegistry,
@@ -97,6 +103,7 @@ const extension: JupyterLabPlugin<void> = {
   autoStart: true,
   requires: [
     ILayoutRestorer,
+    IDocumentManager,
     IRenderMimeRegistry,
     renderers.ILatexTypesetter,
     NotebookPanel.IContentFactory,

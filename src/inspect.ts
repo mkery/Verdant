@@ -1,7 +1,5 @@
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
-import { FileManager } from "./file-manager";
-
 import { nbformat } from "@jupyterlab/coreutils";
 
 import {
@@ -49,7 +47,7 @@ export class Inspect {
     );
   }
 
-  public produceNotebook(run: Run) {
+  public async produceNotebook(run: Run) {
     var cells = run.cells.map((cellDat: CellRunData) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
       var jsn: { [key: string]: any } = {
@@ -83,6 +81,9 @@ export class Inspect {
     for (let key of metadata.keys()) {
       metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
     }
+    metaJsn["run"] = run.id;
+    metaJsn["timestamp"] = run.timestamp;
+    metaJsn["origin"] = this._notebook.name;
 
     var file = {
       cells: cells,
@@ -91,12 +92,14 @@ export class Inspect {
       nbformat: this._notebook.nbformat
     };
 
-    FileManager.writeGhostFile(
+    var path = await this._historyModel.fileManager.writeGhostFile(
       this._notebook,
       this._historyModel,
       run.id,
       file
     );
+
+    this._historyModel.fileManager.openGhost(path);
   }
 
   get targetChanged(): Signal<this, Nodey> {

@@ -83,6 +83,7 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     );
 
     context.ready.then(() => {
+      console.log("this widget is", this);
       if (this.isDisposed) {
         return;
       }
@@ -167,7 +168,10 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
   private _render(): void {
     let context = this.context;
     let run = context.model.run;
+    let origin = context.model.origin;
     let timestamp = new Date(context.model.timestamp);
+
+    this.title.label = "Run #" + run + " " + origin;
 
     let layout = (this.layout = new PanelLayout());
 
@@ -189,12 +193,12 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     toolbar.addItem("spacer", Toolbar.createSpacerItem());
     toolbar.addItem("priorChange", this.createPriorButton());
     toolbar.addItem("nextChange", this.createNextButton());
-    toolbar.addItem("changeLabel", new ToolbarLabel("0/0 changes"));
+    toolbar.addItem("changeLabel", new ToolbarLabel("?/? changes"));
     layout.addWidget(toolbar);
 
     layout.addWidget(this.cellArea);
 
-    console.log("content is", context);
+    //console.log("content is", context);
     let model = context.model as NotebookModel;
     let cells = model.cells;
     each(cells, (cell: ICellModel, i: number) => {

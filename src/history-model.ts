@@ -16,6 +16,8 @@ import { RunModel } from "./run-model";
 
 import { Inspect } from "./inspect";
 
+import { FileManager } from "./file-manager";
+
 import {
   serialized_NodeyHistory,
   serialized_Nodey,
@@ -25,12 +27,14 @@ import {
 import { CodeCell } from "@jupyterlab/cells";
 
 export class HistoryModel {
-  constructor(renderBaby: RenderBaby) {
+  constructor(renderBaby: RenderBaby, fileManager: FileManager) {
     this._inspector = new Inspect(this, renderBaby);
+    this.fileManager = fileManager;
     this._runModel = new RunModel(this);
   }
 
   private _inspector: Inspect;
+  readonly fileManager: FileManager;
   private _runModel: RunModel;
   private _notebook: NotebookListen;
 
