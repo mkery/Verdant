@@ -4,6 +4,10 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
+import { IEditorServices } from "@jupyterlab/codeeditor";
+
+import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
+
 import { InstanceTracker } from "@jupyterlab/apputils";
 
 import { NotebookPanel } from "@jupyterlab/notebook";
@@ -34,7 +38,10 @@ const extension: JupyterLabPlugin<void> = {
   activate: (
     app: JupyterLab,
     restorer: ILayoutRestorer,
-    latexTypesetter: renderers.ILatexTypesetter
+    rendermime: IRenderMimeRegistry,
+    latexTypesetter: renderers.ILatexTypesetter,
+    contentFactory: NotebookPanel.IContentFactory,
+    editorServices: IEditorServices
   ) => {
     const { shell } = app;
     const panel = new StackedPanel();
@@ -54,7 +61,11 @@ const extension: JupyterLabPlugin<void> = {
       modelName: "notebook",
       fileTypes: ["ghost"],
       defaultFor: ["ghost"],
-      readOnly: true
+      readOnly: true,
+      rendermime: rendermime,
+      contentFactory,
+      editorConfig: null,
+      mimeTypeService: editorServices.mimeTypeService
     });
     const ghostTracker = new InstanceTracker<GhostBook>({
       namespace: "ghostbook"
@@ -124,7 +135,13 @@ const extension: JupyterLabPlugin<void> = {
     });
   },
   autoStart: true,
-  requires: [ILayoutRestorer, renderers.ILatexTypesetter]
+  requires: [
+    ILayoutRestorer,
+    IRenderMimeRegistry,
+    renderers.ILatexTypesetter,
+    NotebookPanel.IContentFactory,
+    IEditorServices
+  ]
 };
 
 export default extension;

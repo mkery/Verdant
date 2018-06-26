@@ -2,6 +2,12 @@
 // Distributed under the terms of the Modified BSD License.
 import { PathExt } from "@jupyterlab/coreutils";
 
+import { IEditorMimeTypeService } from "@jupyterlab/codeeditor";
+
+import { RenderMimeRegistry } from "@jupyterlab/rendermime";
+
+import { each } from "@phosphor/algorithm";
+
 import { ABCWidgetFactory, DocumentRegistry } from "@jupyterlab/docregistry";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
@@ -11,6 +17,23 @@ import { Message } from "@phosphor/messaging";
 import { Widget, PanelLayout } from "@phosphor/widgets";
 
 import { Toolbar, ToolbarButton } from "@jupyterlab/apputils";
+
+import {
+  NotebookModel,
+  NotebookWidgetFactory,
+  NotebookPanel
+} from "@jupyterlab/notebook";
+
+import {
+  ICellModel,
+  Cell,
+  CodeCell,
+  RawCell,
+  MarkdownCell,
+  IMarkdownCellModel,
+  ICodeCellModel,
+  IRawCellModel
+} from "@jupyterlab/cells";
 
 import "../../style/index.css";
 
@@ -30,13 +53,18 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
    * The ghost book's widget's context.
    */
   readonly context: DocumentRegistry.Context;
+  readonly rendermime: RenderMimeRegistry;
 
   /**
    * Construct a new image widget.
    */
-  constructor(context: DocumentRegistry.Context) {
+  constructor(
+    context: DocumentRegistry.Context,
+    options: { [key: string]: any }
+  ) {
     super();
     this.context = context;
+    this.rendermime = options.rendermime;
     this.node.tabIndex = -1;
     this.addClass(GHOST_BOOK);
 
@@ -136,11 +164,38 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
    */
   private _render(): void {
     let context = this.context;
-    let cm = context.contentsModel;
-    if (!cm) {
-      return;
-    }
     console.log("content is", context);
+    let model = context.model as NotebookModel;
+    let cells = model.cells;
+    each(cells, (cell: ICellModel, i: number) => {
+      console.log("Cell:", cell);
+      this._insertCell(i, cell);
+    });
+  }
+
+  /**
+   * Create a cell widget and insert into the notebook.
+   */
+  private _insertCell(index: number, cell: ICellModel): void {
+    let widget: Cell;
+    let rendermime = this.rendermime;
+    switch (cell.type) {
+      case "code":
+        widget = new CodeCell({ model: cell as ICodeCellModel, rendermime });
+        //TODO widget.model.mimeType = this._mimetype;
+        break;
+      case "markdown":
+        widget = new MarkdownCell({
+          model: cell as IMarkdownCellModel,
+          rendermime
+        });
+        break;
+      default:
+        widget = new RawCell({ model: cell as IRawCellModel });
+    }
+    //widget.addClass(NB_CELL_CLASS);
+    let layout = this.layout as PanelLayout;
+    layout.insertWidget(index, widget);
   }
 
   private _ready = new PromiseDelegate<void>();
@@ -151,15 +206,39 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
  */
 export class GhostBookFactory extends ABCWidgetFactory<
   GhostBook,
-  DocumentRegistry.IModel
+  NotebookModel
 > {
+  /*
+   * The rendermime instance.
+   */
+  readonly rendermime: RenderMimeRegistry;
+
+  /**
+   * The content factory used by the widget factory.
+   */
+  readonly contentFactory: NotebookPanel.IContentFactory;
+
+  /**
+   * The service used to look up mime types.
+   */
+  readonly mimeTypeService: IEditorMimeTypeService;
+
+  //private _editorConfig: StaticNotebook.IEditorConfig;
+
+  constructor(options: NotebookWidgetFactory.IOptions) {
+    super(options);
+    this.rendermime = options.rendermime;
+    /*this.contentFactory = NotebookPanel.defaultContentFactory;
+    this.mimeTypeService = options.mimeTypeService;
+    this._editorConfig = StaticNotebook.defaultEditorConfig;*/
+  }
   /**
    * Create a new widget given a context.
    */
   protected createNewWidget(
-    context: DocumentRegistry.IContext<DocumentRegistry.IModel>
+    context: DocumentRegistry.IContext<NotebookModel>
   ): GhostBook {
-    return new GhostBook(context);
+    return new GhostBook(context, { rendermime: this.rendermime });
   }
 }
 
