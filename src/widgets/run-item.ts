@@ -32,7 +32,7 @@ export class RunItem extends Widget {
     number.classList.add(RUN_ITEM_NUMBER);
 
     let time = document.createElement("div");
-    time.textContent = this.formatTime();
+    time.textContent = Run.formatTime(new Date(this.run.timestamp));
     time.classList.add(RUN_ITEM_TIME);
 
     let dotMap = this.buildDotMap();
@@ -72,16 +72,6 @@ export class RunItem extends Widget {
       dotMap.appendChild(div);
     });
     return dotMap;
-  }
-
-  formatTime(): string {
-    var date = new Date(this.run.timestamp);
-    var hours = date.getHours();
-    var minutes = date.getMinutes();
-    var ampm = hours >= 12 ? "pm" : "am";
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
-    return hours + ":" + (minutes < 10 ? "0" + minutes : minutes) + ampm;
   }
 
   caretClicked() {

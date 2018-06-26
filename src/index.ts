@@ -8,8 +8,6 @@ import { IEditorServices } from "@jupyterlab/codeeditor";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
-import { InstanceTracker } from "@jupyterlab/apputils";
-
 import { NotebookPanel } from "@jupyterlab/notebook";
 
 import { StackedPanel } from "@phosphor/widgets";
@@ -26,7 +24,7 @@ import { HistoryModel } from "./history-model";
 
 import { VerdantPanel } from "./widgets/verdant-panel";
 
-import { GhostBookFactory, GhostBook } from "./widgets/ghost-book";
+import { GhostBookFactory } from "./widgets/ghost-model";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
@@ -55,52 +53,14 @@ const extension: JupyterLabPlugin<void> = {
     const renderBaby = new RenderBaby(latexTypesetter, linkHandler);
     const model = new HistoryModel(renderBaby);
     const astUtils = new ASTGenerate(model);
-
-    const ghostFactory = new GhostBookFactory({
-      name: "Ghost",
-      modelName: "notebook",
-      fileTypes: ["ghost"],
-      defaultFor: ["ghost"],
-      readOnly: true,
-      rendermime: rendermime,
+    const ghostFactory = GhostBookFactory.registerFileType(
+      app.docRegistry,
+      restorer,
+      rendermime,
       contentFactory,
-      editorConfig: null,
-      mimeTypeService: editorServices.mimeTypeService
-    });
-    const ghostTracker = new InstanceTracker<GhostBook>({
-      namespace: "ghostbook"
-    });
-
-    // Handle state restoration.
-    restorer.restore(ghostTracker, {
-      command: "docmanager:open",
-      args: widget => ({ path: widget.context.path, factory: "Ghost" }),
-      name: widget => "Run of " + widget.context.path
-    });
-
-    app.docRegistry.addWidgetFactory(ghostFactory);
-    app.docRegistry.addFileType({
-      name: "ghost",
-      extensions: [".ghost"],
-      fileFormat: "json",
-      mimeTypes: ["application/x-ipynb+json"],
-      iconClass: "jp-MaterialIcon v-Verdant-GhostBook-icon "
-    });
-    console.log("Doc registrey is:", app.docRegistry);
-
-    ghostFactory.widgetCreated.connect((sender, widget) => {
-      // Notify the instance tracker if restore data needs to update.
-      widget.context.pathChanged.connect(() => {
-        ghostTracker.save(widget);
-      });
-      ghostTracker.add(widget);
-
-      const types = app.docRegistry.getFileTypesForPath(widget.context.path);
-
-      if (types.length > 0) {
-        widget.title.iconClass = GhostBook.GHOST_BOOK_ICON;
-      }
-    });
+      editorServices
+    );
+    console.log("created ghost factory", ghostFactory);
 
     restorer.add(panel, "v-VerdantPanel");
     panel.id = "v-VerdantPanel";

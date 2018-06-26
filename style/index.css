@@ -9,10 +9,11 @@
   --verdant-icon-caretdown: url("img/chevron-more.svg");
   --verdant-icon-cellrun: url("img/cell-run.svg");
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
+  --verdant-icon-edit: url("img/pen.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
   --verdant-highlight-color1: #c5e5fc;
-  --verdant-ghost-color1: #f0f9ff;
+  --verdant-ghost-color1: #e9eff5;
 }
 
 /*-----------------------------------------------------------------------------
@@ -387,14 +388,18 @@
   background-image: var(--jp-icon-expand-more);
 }
 
-.v-Verdant-GhostBook-toolbar-label {
-  font-size: var(--jp-ui-font-size1);
-  background-size: 16px;
-  padding-right: 16px;
-  padding-left: 8px;
-  padding-top: calc(8px - var(--jp-ui-font-size1) * 0.5);
-  border: none;
-  border-radius: 0;
+.v-Verdant-GhostBook-cell {
+  background: var(--verdant-ghost-color1);
+  color: var(--jp-content-font-color1);
+}
+
+.v-Verdant-GhostBook-cell-area {
+  padding: var(--jp-notebook-padding);
   outline: none;
-  background-color: transparent;
+  overflow: auto;
+  background: var(--verdant-ghost-color1);
+}
+
+.v-Verdant-GhostBook-toolbar-edit-icon {
+  background-image: var(--verdant-icon-edit);
 }

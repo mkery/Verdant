@@ -25,7 +25,7 @@ export class RunList extends Widget {
     var runDateList = this.historyModel.runModel.runDateList;
 
     runDateList.forEach((runDate: RunDateList) => {
-      var date = this.formatDate(runDate.date);
+      var date = Run.formatDate(runDate.date);
       var dateSection = new RunSection(
         this.historyModel,
         "runs",
@@ -42,48 +42,6 @@ export class RunList extends Widget {
     });
 
     this.historyModel.runModel.newRun.connect(this.addNewRun.bind(this));
-  }
-
-  private formatDate(date: Date): string {
-    var monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December"
-    ];
-
-    var today = new Date();
-    var yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-
-    var dateDesc = "";
-
-    if (this.sameDay(today, date)) dateDesc = "today ";
-    else if (this.sameDay(yesterday, date)) dateDesc = "yesterday ";
-
-    dateDesc +=
-      monthNames[date.getMonth()] +
-      " " +
-      date.getDate() +
-      " " +
-      date.getFullYear();
-    return dateDesc;
-  }
-
-  private sameDay(d1: Date, d2: Date) {
-    return (
-      d1.getUTCFullYear() == d2.getUTCFullYear() &&
-      d1.getUTCMonth() == d2.getUTCMonth() &&
-      d1.getUTCDate() == d2.getUTCDate()
-    );
   }
 
   /**
@@ -109,14 +67,14 @@ export class RunList extends Widget {
   private addNewRun(sender: any, run: Run) {
     var date = new Date(run.timestamp);
     var section = this.sections.find(elem =>
-      this.sameDay(new Date(elem.date), date)
+      Run.sameDay(new Date(elem.date), date)
     );
 
     if (!section) {
       var dateSection = new RunSection(
         this.historyModel,
         "runs",
-        this.formatDate(new Date(run.timestamp)),
+        Run.formatDate(new Date(run.timestamp)),
         this.onClick.bind(this),
         [run]
       );

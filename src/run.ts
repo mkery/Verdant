@@ -49,3 +49,56 @@ export class RunDateList {
     this._runs.push(r.id);
   }
 }
+
+export namespace Run {
+  export function formatTime(date: Date): string {
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return hours + ":" + (minutes < 10 ? "0" + minutes : minutes) + ampm;
+  }
+
+  export function formatDate(date: Date): string {
+    var monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ];
+
+    var today = new Date();
+    var yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    var dateDesc = "";
+
+    if (sameDay(today, date)) dateDesc = "today ";
+    else if (sameDay(yesterday, date)) dateDesc = "yesterday ";
+
+    dateDesc +=
+      monthNames[date.getMonth()] +
+      " " +
+      date.getDate() +
+      " " +
+      date.getFullYear();
+    return dateDesc;
+  }
+
+  export function sameDay(d1: Date, d2: Date) {
+    return (
+      d1.getUTCFullYear() == d2.getUTCFullYear() &&
+      d1.getUTCMonth() == d2.getUTCMonth() &&
+      d1.getUTCDate() == d2.getUTCDate()
+    );
+  }
+}
