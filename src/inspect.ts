@@ -99,7 +99,7 @@ export class Inspect {
       file
     );
 
-    this._historyModel.fileManager.openGhost(path);
+    this._historyModel.fileManager.openGhost(path, file);
   }
 
   get targetChanged(): Signal<this, Nodey> {

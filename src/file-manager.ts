@@ -8,6 +8,8 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { CellRunData } from "./run";
 
+import { GhostBook } from "./widgets/ghost-book";
+
 import { HistoryModel } from "./history-model";
 
 export class FileManager {
@@ -57,8 +59,11 @@ export class FileManager {
     });
   }
 
-  public openGhost(path: string) {
-    this.docManager.openOrReveal(path);
+  public openGhost(path: string, data: { [key: string]: any }) {
+    let widget = this.docManager.findWidget(path);
+    if (widget) {
+      (widget as GhostBook).feedNewData(data);
+    } else this.docManager.open(path);
   }
 
   public writeGhostFile(
@@ -71,7 +76,7 @@ export class FileManager {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
-      name = name.substring(0, name.indexOf(".")) + run + ".ghost";
+      name = name.substring(0, name.indexOf(".")) + ".ghost";
       //console.log("name is", name)
       var path =
         "/" +

@@ -403,3 +403,8 @@
 .v-Verdant-GhostBook-toolbar-edit-icon {
   background-image: var(--verdant-icon-edit);
 }
+
+.v-Verdant-GhostBook-toolbar-label-text {
+  height: 100%;
+  margin-top: calc(var(--jp-ui-font-size1) * -0.25);
+}

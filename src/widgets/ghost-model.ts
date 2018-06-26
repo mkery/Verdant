@@ -92,27 +92,15 @@ export class GhostModelFactory extends NotebookModelFactory {
 
 export class GhostBookModel extends NotebookModel {
   fromJSON(value: nbformat.INotebookContent): void {
-    this._run = value.metadata.run as number;
-    this._timestamp = value.metadata.timestamp as number;
-    this._origin = value.metadata.origin as string;
+    this.run = value.metadata.run as number;
+    this.timestamp = value.metadata.timestamp as number;
+    this.origin = value.metadata.origin as string;
     super.fromJSON(value);
   }
 
-  public get run() {
-    return this._run;
-  }
-
-  public get timestamp() {
-    return this._timestamp;
-  }
-
-  public get origin() {
-    return this._origin;
-  }
-
-  private _run: number;
-  private _timestamp: number;
-  private _origin: string;
+  run: number;
+  timestamp: number;
+  origin: string;
 }
 
 export namespace GhostBookFactory {

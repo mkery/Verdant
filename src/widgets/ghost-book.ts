@@ -43,6 +43,7 @@ const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
 const GHOST_BOOK_TOOLBAR_PRIOR = "v-Verdant-GhostBook-toolbar-priorButton";
 const GHOST_BOOK_TOOLBAR_NEXT = "v-Verdant-GhostBook-toolbar-nextButton";
 const GHOST_BOOK_TOOLBAR_LABEL = "v-Verdant-GhostBook-toolbar-label";
+const GHOST_BOOK_TOOLBAR_LABEL_TEXT = "v-Verdant-GhostBook-toolbar-label-text";
 const GHOST_BOOK_TOOLBAR_EDIT_ICON = "v-Verdant-GhostBook-toolbar-edit-icon";
 const GHOST_BOOK_CELL_AREA = "v-Verdant-GhostBook-cell-area";
 const GHOST_BOOK_CELL_CLASS = "v-Verdant-GhostBook-cell";
@@ -56,7 +57,9 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
   readonly context: DocumentRegistry.IContext<GhostBookModel>;
   readonly model: GhostBookModel;
   readonly rendermime: RenderMimeRegistry;
-  readonly cellArea: Widget;
+  cellArea: Widget;
+  runLabel: ToolbarLabel;
+  changeLabel: ToolbarLabel;
 
   /**
    * Construct a new image widget.
@@ -72,9 +75,20 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     this.node.tabIndex = -1;
     this.addClass(GHOST_BOOK);
 
-    this.cellArea = new Widget();
-    this.cellArea.layout = new PanelLayout();
-    this.cellArea.addClass(GHOST_BOOK_CELL_AREA);
+    let layout = (this.layout = new PanelLayout());
+
+    // Toolbar
+    let toolbar = new Toolbar();
+    toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
+    toolbar.addItem("edit", this.createEditButton());
+    this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
+    toolbar.addItem("editLabel", this.runLabel);
+    toolbar.addItem("spacer", Toolbar.createSpacerItem());
+    toolbar.addItem("priorChange", this.createPriorButton());
+    toolbar.addItem("nextChange", this.createNextButton());
+    this.changeLabel = new ToolbarLabel("?/? changes");
+    toolbar.addItem("changeLabel", this.changeLabel);
+    layout.addWidget(toolbar);
 
     this._onTitleChanged();
     context.pathChanged.connect(
@@ -106,6 +120,12 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
    */
   get ready(): Promise<void> {
     return this._ready.promise;
+  }
+
+  public feedNewData(dict: { [key: string]: any }) {
+    this.context.model.run = dict.metadata.run;
+    this.context.model.timestamp = dict.metadata.timestamp;
+    this._render();
   }
 
   /**
@@ -171,32 +191,25 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     let origin = context.model.origin;
     let timestamp = new Date(context.model.timestamp);
 
+    this.runLabel.setText(
+      "Work in notebook at Run #" +
+        run +
+        " " +
+        Run.formatDate(timestamp) +
+        " " +
+        Run.formatTime(timestamp)
+    );
+
     this.title.label = "Run #" + run + " " + origin;
 
-    let layout = (this.layout = new PanelLayout());
-
-    // Toolbar
-    let toolbar = new Toolbar();
-    toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
-    toolbar.addItem("edit", this.createEditButton());
-    toolbar.addItem(
-      "editLabel",
-      new ToolbarLabel(
-        "Work in notebook at Run #" +
-          run +
-          " " +
-          Run.formatDate(timestamp) +
-          " " +
-          Run.formatTime(timestamp)
-      )
-    );
-    toolbar.addItem("spacer", Toolbar.createSpacerItem());
-    toolbar.addItem("priorChange", this.createPriorButton());
-    toolbar.addItem("nextChange", this.createNextButton());
-    toolbar.addItem("changeLabel", new ToolbarLabel("?/? changes"));
-    layout.addWidget(toolbar);
-
-    layout.addWidget(this.cellArea);
+    if (this.cellArea) {
+      (this.layout as PanelLayout).removeWidget(this.cellArea);
+      this.cellArea = null;
+    }
+    this.cellArea = new Widget();
+    this.cellArea.layout = new PanelLayout();
+    this.cellArea.addClass(GHOST_BOOK_CELL_AREA);
+    (this.layout as PanelLayout).addWidget(this.cellArea);
 
     //console.log("content is", context);
     let model = context.model as NotebookModel;
@@ -250,7 +263,14 @@ export class ToolbarLabel extends Widget {
     super();
     this.addClass(GHOST_BOOK_TOOLBAR_LABEL);
     let changeLabel = document.createElement("div");
+    changeLabel.classList.add(GHOST_BOOK_TOOLBAR_LABEL_TEXT);
     changeLabel.textContent = text;
     this.node.appendChild(changeLabel);
+  }
+
+  public setText(text: string) {
+    this.node.getElementsByClassName(
+      GHOST_BOOK_TOOLBAR_LABEL_TEXT
+    )[0].textContent = text;
   }
 }
