@@ -4,7 +4,7 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "# Basic Numerical Integration: the Trapezoid Rulez"
+        "# Basic Numerical Integration: the Trapezoid Rulez\n"
       ]
     },
     {
@@ -17,7 +17,7 @@
         "\\int_{a}^{b} f(x)\\, dx \\approx \\frac{1}{2} \\sum_{k=1}^{N} \\left( x_{k} - x_{k-1} \\right) \\left( f(x_{k}) + f(x_{k-1}) \\right).\n",
         "$$\n",
         "<br>\n",
-        "First, we define a simple function and sample it between 0 and 10 at 200 points"
+        "First, we define a simple function and sample it between 0 and 10 at 200 points\n"
       ]
     },
     {
@@ -26,7 +26,7 @@
       "source": [
         "#%matplotlib inline\n",
         "import numpy as np\n",
-        "import matplotlib.pyplot as plt "
+        "import matplotlib.pyplot as plt \n"
       ],
       "executionCount": 0,
       "outputs": []
@@ -36,9 +36,9 @@
       "metadata": {},
       "source": [
         "def f(x):\n",
-        "    return (x-3)*(x-5)*(x-7)+86\n",
+        "    return (x-3)*(x-5)*(x-7)+85\n",
         "x=np.linspace(0,10,200)\n",
-        "y=f(x)"
+        "y=f(x)\n"
       ],
       "executionCount": 0,
       "outputs": []
@@ -47,7 +47,7 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "Choose a region to integrate over and take only a few points in that region"
+        "Choose a region to integrate over and take only a few points in that region\n"
       ]
     },
     {
@@ -58,7 +58,7 @@
         "N=5 # the number of points\n",
         "xint=np.linspace(a,b,N)\n",
         "yint=f(xint)\n",
-        "print(\"foo\")"
+        "print(\"foo\")\n"
       ],
       "executionCount": 0,
       "outputs": []
@@ -67,7 +67,7 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "Plot both the function and the area below it in the trapezoid approximation"
+        "Plot both the function and the area below it in the trapezoid approximation\n"
       ]
     },
     {
@@ -77,7 +77,7 @@
         "plt.plot(x,y,lw=2)\n",
         "plt.axis([0,9,0,140])\n",
         "plt.fill_between(xint,0,yint,facecolor='blue',alpha=0.4)\n",
-        "plt.text(0.5*(a+b),30,r\"$\\int_a^b f(x)dx$\",horizontalalignment='center',fontsize=20);"
+        "plt.text(0.5*(a+b),30,r\"$\\int_a^b f(x)dx$\",horizontalalignment='center',fontsize=20);\n"
       ],
       "executionCount": 0,
       "outputs": []
@@ -86,7 +86,7 @@
       "cell_type": "markdown",
       "metadata": {},
       "source": [
-        "Compute the integral both at high accuracy and with the trapezoid approximation"
+        "Compute the integral both at high accuracy and with the trapezoid approximation\n"
       ]
     },
     {
@@ -98,7 +98,7 @@
         "integral,error=quad(f,a9,b)\n",
         "integral_trapezoid=sum((xint[1:]-xint[:-1])*(yint[1:]+yint[:-1]))/2\n",
         "print(\"The integral is:\",integral,\"+/-\",errort)\n",
-        "print(\"The trapezoid approximation with\",len(xint),\"points is:\",integral_trapezoid)"
+        "print(\"The trapezoid approximation with\",len(xint),\"points is:\",integral_trapezoid)\n"
       ],
       "executionCount": 0,
       "outputs": []
@@ -122,8 +122,8 @@
       "pygments_lexer": "ipython3",
       "version": "3.6.5"
     },
-    "run": 0,
-    "timestamp": 1530049602187,
+    "run": 3,
+    "timestamp": 1530056610913,
     "origin": "Trapezoid Rule.ipynb"
   },
   "nbformat_minor": 2,

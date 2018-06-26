@@ -50,13 +50,13 @@ export class Inspect {
   public async produceNotebook(run: Run) {
     var cells = run.cells.map((cellDat: CellRunData) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
-      var jsn: { [key: string]: any } = {
+      var jsn: nbformat.ICell = {
         cell_type: nodey.typeName,
         metadata: {},
         source: [] as string[]
       };
-      jsn.source = (this.renderNode(nodey) || "").split("\n");
-      jsn.source = jsn.source.map((str: string, index: number) => {
+      var str = (this.renderNode(nodey) || "").split("\n");
+      jsn.source = str.map((str: string, index: number) => {
         if (index !== jsn.source.length - 1) return str + "\n";
         else return str;
       });

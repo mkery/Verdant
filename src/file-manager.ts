@@ -2,6 +2,8 @@ import { PathExt } from "@jupyterlab/coreutils";
 
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
+import { nbformat } from "@jupyterlab/coreutils";
+
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
@@ -59,7 +61,7 @@ export class FileManager {
     });
   }
 
-  public openGhost(path: string, data: { [key: string]: any }) {
+  public openGhost(path: string, data: nbformat.INotebookContent) {
     let widget = this.docManager.findWidget(path);
     if (widget) {
       (widget as GhostBook).feedNewData(data);

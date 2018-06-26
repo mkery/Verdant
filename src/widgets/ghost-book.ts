@@ -4,6 +4,8 @@ import { PathExt } from "@jupyterlab/coreutils";
 
 import { Run } from "../run";
 
+import { nbformat } from "@jupyterlab/coreutils";
+
 import { RenderMimeRegistry } from "@jupyterlab/rendermime";
 
 import { each } from "@phosphor/algorithm";
@@ -122,9 +124,8 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     return this._ready.promise;
   }
 
-  public feedNewData(dict: { [key: string]: any }) {
-    this.context.model.run = dict.metadata.run;
-    this.context.model.timestamp = dict.metadata.timestamp;
+  public feedNewData(dict: nbformat.INotebookContent) {
+    this.context.model.fromJSON(dict);
     this._render();
   }
 
