@@ -153,6 +153,7 @@ export class Inspect {
   }
 
   public async produceNotebook(run: Run) {
+    var totalChanges = 0;
     var cells = run.cells.map((cellDat: CellRunData) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
       var jsn: nbformat.ICell = {
@@ -164,10 +165,9 @@ export class Inspect {
         // this nodey was run
         jsn.metadata["change"] = cellDat.changeType;
         if (cellDat.changeType === ChangeType.CELL_CHANGED) {
-          jsn.metadata["edits"] = this.getChangesInRun(
-            nodey as NodeyCode,
-            run.id
-          );
+          var changes = this.getChangesInRun(nodey as NodeyCode, run.id);
+          jsn.metadata["edits"] = changes;
+          totalChanges += changes.length;
         }
       }
       var str = (this.renderNode(nodey) || "").split("\n");
@@ -201,6 +201,7 @@ export class Inspect {
     metaJsn["run"] = run.id;
     metaJsn["timestamp"] = run.timestamp;
     metaJsn["origin"] = this._notebook.name;
+    metaJsn["totalChanges"] = totalChanges;
 
     var file = {
       cells: cells,

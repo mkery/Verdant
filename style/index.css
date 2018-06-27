@@ -366,6 +366,9 @@
 
 .v-Verdant-GhostBook {
   background-color: var(--verdant-ghost-color1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .v-Verdant-GhostBook-icon {
@@ -398,6 +401,7 @@
   outline: none;
   overflow: auto;
   background: var(--verdant-ghost-color1);
+  flex: 1 1 auto;
 }
 
 .v-Verdant-GhostBook-toolbar-edit-icon {
@@ -407,4 +411,9 @@
 .v-Verdant-GhostBook-toolbar-label-text {
   height: 100%;
   margin-top: calc(var(--jp-ui-font-size1) * -0.25);
+}
+
+.v-Verdant-GhostBook-cell-changed {
+  background-color: white;
+  border: var(--jp-border-width) solid var(--jp-brand-color2);
 }

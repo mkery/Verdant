@@ -51,7 +51,7 @@
       },
       "source": [
         "def f(x):\n",
-        "    return (x-3)*(x-5)*(x-7)+50\n",
+        "    return (x-3)*(x-5)*(x-7)+80\n",
         "x=np.linspace(0,10,200)\n",
         "y=f(x)\n"
       ],
@@ -164,9 +164,10 @@
       "pygments_lexer": "ipython3",
       "version": "3.6.5"
     },
-    "run": 2,
-    "timestamp": 1530109344948,
-    "origin": "Trapezoid Rule.ipynb"
+    "run": 3,
+    "timestamp": 1530110480340,
+    "origin": "Trapezoid Rule.ipynb",
+    "totalChanges": 1
   },
   "nbformat_minor": 2,
   "nbformat": 4

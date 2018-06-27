@@ -2,7 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { Run } from "../run";
+import { Run, ChangeType } from "../run";
 
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -49,6 +49,7 @@ const GHOST_BOOK_TOOLBAR_LABEL_TEXT = "v-Verdant-GhostBook-toolbar-label-text";
 const GHOST_BOOK_TOOLBAR_EDIT_ICON = "v-Verdant-GhostBook-toolbar-edit-icon";
 const GHOST_BOOK_CELL_AREA = "v-Verdant-GhostBook-cell-area";
 const GHOST_BOOK_CELL_CLASS = "v-Verdant-GhostBook-cell";
+const GHOST_CELL_CHANGED = "v-Verdant-GhostBook-cell-changed";
 /**
  * A widget for images.
  */
@@ -191,6 +192,7 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     let run = context.model.run;
     let origin = context.model.origin;
     let timestamp = new Date(context.model.timestamp);
+    let totalChanges = context.model.totalChanges;
 
     this.runLabel.setText(
       "Work in notebook at Run #" +
@@ -200,6 +202,8 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
         " " +
         Run.formatTime(timestamp)
     );
+    var min = Math.min(1, totalChanges);
+    this.changeLabel.setText(min + "/" + totalChanges + " changes");
 
     this.title.label = "Run #" + run + " " + origin;
 
@@ -216,7 +220,6 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     let model = context.model as NotebookModel;
     let cells = model.cells;
     each(cells, (cell: ICellModel, i: number) => {
-      console.log("Cell:", cell);
       this._insertCell(i, cell);
     });
   }
@@ -241,13 +244,45 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
       default:
         widget = new RawCell({ model: cell as IRawCellModel });
     }
+    console.log("Cell:", widget);
     widget.readOnly = true;
-    var codeMirror = widget.editorWidget.node.getElementsByClassName(
-      "CodeMirror"
-    )[0];
-    codeMirror.classList.replace("cm-s-jupyter", GHOST_BOOK_CELL_CLASS);
+    var changes = cell.metadata.get("change");
+    if (changes) this._decorateChanges(widget, cell, changes as number);
+    else {
+      var codeMirror = widget.editorWidget.node.getElementsByClassName(
+        "CodeMirror"
+      )[0];
+      codeMirror.classList.replace("cm-s-jupyter", GHOST_BOOK_CELL_CLASS);
+    }
     let layout = this.cellArea.layout as PanelLayout;
     layout.insertWidget(index, widget);
+  }
+
+  private _decorateChanges(widget: Cell, cell: ICellModel, change: number) {
+    switch (cell.type) {
+      case "code":
+        this._decorateChanges_codeCell(widget as CodeCell, cell, change);
+        break;
+      case "markdown":
+        //TODO
+        break;
+    }
+  }
+
+  private _decorateChanges_codeCell(
+    widget: CodeCell,
+    model: ICellModel,
+    change: number
+  ) {
+    switch (change) {
+      case ChangeType.CELL_CHANGED:
+        widget.inputArea.node.classList.add(GHOST_CELL_CHANGED);
+        break;
+      case ChangeType.CELL_REMOVED:
+        break;
+      case ChangeType.CELL_ADDED:
+        break;
+    }
   }
 
   private _ready = new PromiseDelegate<void>();
