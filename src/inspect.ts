@@ -118,6 +118,7 @@ export class Inspect {
     if (prior) changeAcc = this.diffNodey(nodey, prior, changeAcc);
     else {
       // this cell is all new
+      console.log("has not prior!", nodey);
       changeAcc.push(this._nodeAdded(nodey.name));
     }
     return changeAcc;
@@ -148,7 +149,8 @@ export class Inspect {
     return {
       change: ChangeType.CELL_CHANGED,
       start: nodey.start,
-      end: nodey.end
+      end: nodey.end,
+      text: prior.literal
     };
   }
 
@@ -180,15 +182,11 @@ export class Inspect {
       if (nodey instanceof NodeyCode) {
         jsn.executionCount = 0;
         var outputList: {}[] = [];
-        console.log("output is", nodey.output);
         nodey.output.map(dict => {
-          if (dict.out)
-            //TODO bug
-            dict.out.forEach((outName: string) => {
-              console.log("Output name is ", outName, dict);
-              var outputNode = this._historyModel.getOutput(outName);
-              outputList.push(outputNode.raw);
-            });
+          dict.out.forEach((outName: string) => {
+            var outputNode = this._historyModel.getOutput(outName);
+            outputList.push(outputNode.raw);
+          });
         });
         jsn.outputs = outputList;
       }

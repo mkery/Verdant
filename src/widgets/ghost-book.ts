@@ -56,8 +56,7 @@ const GHOST_BOOK_CELL_CLASS = "v-Verdant-GhostBook-cell";
 const GHOST_CELL_CHANGED = "v-Verdant-GhostBook-cell-changed";
 const GHOST_CELL_REMOVED = "v-Verdant-GhostBook-cell-removed";
 const GHOST_CELL_ADDED = "v-Verdant-GhostBook-cell-added";
-const GHOST_CODE_CHANGED = "v-Verdant-GhostBook-code-changed";
-//const GHOST_CODE_REMOVED = "v-Verdant-GhostBook-code-removed";
+const GHOST_CODE_REMOVED = "v-Verdant-GhostBook-code-removed";
 const GHOST_CODE_ADDED = "v-Verdant-GhostBook-code-added";
 
 /**
@@ -307,8 +306,17 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
       switch (edit.change) {
         case ChangeType.CELL_CHANGED:
           codemirror.doc.markText(edit.start, edit.end, {
-            className: GHOST_CODE_CHANGED
+            className: GHOST_CODE_ADDED
           });
+          codemirror.doc.replaceRange(edit.text, edit.start);
+          //TODO multiline text
+          codemirror.doc.markText(
+            edit.start,
+            { line: edit.start.line, ch: edit.start.ch + edit.text.length },
+            {
+              className: GHOST_CODE_REMOVED
+            }
+          );
           break;
         case ChangeType.CELL_REMOVED:
           break;
