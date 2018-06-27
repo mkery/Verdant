@@ -86,8 +86,9 @@ namespace Private {
   ): NodeyCode {
     var children: string[] = node.getChildren();
     var match = null;
-    var mid = Math.round((max - min) / 2) + min;
+    var mid = Math.floor((max - min) / 2) + min;
     var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);
+    console.log("checking mid range", midNodey);
     var direction = ASTUtils.inRange(midNodey, change);
 
     if ((min >= max || max <= min) && direction !== 0)

@@ -72,13 +72,14 @@ export class HistoryModel {
 
   getNodeyHead(name: string): Nodey {
     let [id, ver, tag] = name.split(".");
-    let nodeHist = this._nodeyStore[parseInt(id)];
 
     if (id === "*" && tag) {
       let cell = this.getNodeyCell(parseInt(ver));
-      return cell.starNodes[parseInt(tag)];
+      console.log("looking for a star node ", name, cell);
+      return cell.starNodes[parseInt(tag) - 1];
     }
 
+    let nodeHist = this._nodeyStore[parseInt(id)];
     if (ver === "*") return nodeHist.starNodey;
 
     return nodeHist.versions[nodeHist.versions.length - 1];

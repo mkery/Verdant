@@ -6,7 +6,7 @@ import { Session, KernelMessage } from "@jupyterlab/services";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
-import { Nodey, NodeyCode } from "../nodey";
+import { Nodey, NodeyCode, NodeyCodeCell } from "../nodey";
 
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 
@@ -351,7 +351,7 @@ def main(text):
   }
 
   async repairAST(
-    nodey: NodeyCode,
+    nodey: NodeyCodeCell,
     change: CodeMirror.EditorChange,
     editor: CodeMirrorEditor
   ) {

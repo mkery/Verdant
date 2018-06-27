@@ -215,7 +215,7 @@ export interface NodeyCell extends Nodey {
 
 export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   cell: CellListen;
-  starNodes: NodeyCode[];
+  starNodes: NodeyCode[] = [];
 
   constructor(options: { [id: string]: any }) {
     super(options);
@@ -241,7 +241,7 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
 export class NodeyMarkdown extends Nodey implements NodeyCell {
   markdown: string;
   cell: CellListen;
-  starNodes: NodeyMarkdown[];
+  starNodes: NodeyMarkdown[] = [];
 
   constructor(options: { [id: string]: any }) {
     super(options);

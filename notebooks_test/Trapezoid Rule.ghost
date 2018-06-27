@@ -65,12 +65,12 @@
               "line": 0,
               "ch": 11
             },
-            "text": "5"
+            "text": "9"
           }
         ]
       },
       "source": [
-        "a,b=1,9 # the left and right boundaries\n",
+        "a,b=1,5 # the left and right boundaries\n",
         "N=5 # the number of points\n",
         "xint=np.linspace(a,b,N)\n",
         "yint=f(xint)\n",
@@ -165,8 +165,8 @@
       "pygments_lexer": "ipython3",
       "version": "3.6.5"
     },
-    "run": 5,
-    "timestamp": 1530125963023,
+    "run": 3,
+    "timestamp": 1530125957724,
     "origin": "Trapezoid Rule.ipynb",
     "totalChanges": [
       5

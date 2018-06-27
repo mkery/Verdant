@@ -1,4 +1,4 @@
-import { NodeyCode, SyntaxToken } from "../nodey";
+import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../nodey";
 
 import * as CodeMirror from "codemirror";
 
@@ -19,14 +19,15 @@ export class ASTResolve {
   }
 
   repairAST(
-    nodey: NodeyCode,
+    nodey: NodeyCodeCell,
     change: CodeMirror.EditorChange,
     editor: CodeMirrorEditor
   ) {
     var range = {
-      start: { line: change.from.line, ch: change.from.ch },
-      end: { line: change.to.line, ch: change.to.ch }
+      start: change.from,
+      end: change.to
     }; // first convert code mirror coordinates to our coordinates
+
     var affected = ASTUtils.findNodeAtRange(nodey, range, this.historyModel);
 
     if (affected) {
@@ -175,15 +176,17 @@ export class ASTResolve {
     console.log("Attempting to match", nodeToMatch);
 
     for (var i = 0; i < candidateList.length; i++) {
-      if (candidateList[i] instanceof SyntaxToken) {
-        if (SyntaxToken.KEY in nodeToMatch)
+      if (nodeToMatch[SyntaxToken.KEY]) {
+        if (candidateList[i] instanceof SyntaxToken)
           var [score, updates] = this.matchSyntaxToken(
             nodeToMatch,
             candidateList[i],
             nodeIndex
           );
         else continue;
-      } else {
+      } else if (candidateList[i] instanceof SyntaxToken) continue;
+      //syntok can only match syntok
+      else {
         var candidate = this.historyModel.getNodeyHead(
           candidateList[i]
         ) as NodeyCode;
@@ -256,9 +259,13 @@ export class ASTResolve {
         potentialMatch.content.slice(0)
       );
       candidateList.map(x => {
-        updates.push(
-          this.removeOldNode.bind(this, this.historyModel.getNodeyHead(x))
-        );
+        console.log("to remove", x);
+        if (x instanceof SyntaxToken)
+          updates.push(this.removeSyntaxToken.bind(this, x));
+        else
+          updates.push(
+            this.removeOldNode.bind(this, this.historyModel.getNodeyHead(x))
+          );
       });
       return [totalScore, updates];
     }
@@ -317,6 +324,12 @@ export class ASTResolve {
   removeOldNode(node: NodeyCode, target: NodeyCode) {
     var index = target.content.indexOf(node.name);
     console.log("Removing old node", node, "from", target);
+    target.content.splice(index, 1);
+  }
+
+  removeSyntaxToken(tok: SyntaxToken, target: NodeyCode) {
+    var index = target.content.indexOf(tok);
+    console.log("Removing old token", tok, "from", target);
     target.content.splice(index, 1);
   }
 
