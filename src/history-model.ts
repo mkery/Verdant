@@ -188,7 +188,8 @@ export class HistoryModel {
 
   private _deStar(nodey: Nodey, runId: number, output: string[]) {
     let newNodey = nodey.clone();
-    if (newNodey instanceof NodeyCode) newNodey.addOutput(runId, output);
+    if (newNodey instanceof NodeyCode && output)
+      newNodey.addOutput(runId, output);
     newNodey.run.push(runId);
     this.registerNodey(newNodey);
     console.log("star node now ", newNodey);
@@ -308,7 +309,8 @@ export class NodeHistory {
   deStar(runId: number, output: string[] = null) {
     let newNodey = this.starNodey.clone();
     newNodey.run.push(runId);
-    if (newNodey instanceof NodeyCode) newNodey.addOutput(runId, output);
+    if (newNodey instanceof NodeyCode && output)
+      newNodey.addOutput(runId, output);
     this.starNodey = null;
     this.versions.push(newNodey);
     newNodey.version = this.versions.length - 1;

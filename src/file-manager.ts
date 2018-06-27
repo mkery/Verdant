@@ -63,9 +63,11 @@ export class FileManager {
 
   public openGhost(path: string, data: nbformat.INotebookContent) {
     let widget = this.docManager.findWidget(path);
+    this.docManager.openOrReveal(path);
     if (widget) {
+      console.log("ATTEMPTING TO OPEN GHOST", widget);
       (widget as GhostBook).feedNewData(data);
-    } else this.docManager.open(path);
+    }
   }
 
   public writeGhostFile(

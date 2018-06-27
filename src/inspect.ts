@@ -183,6 +183,7 @@ export class Inspect {
         jsn.executionCount = 0;
         var outputList: {}[] = [];
         nodey.output.map(dict => {
+          console.log("output is ", dict);
           dict.out.forEach((outName: string) => {
             var outputNode = this._historyModel.getOutput(outName);
             outputList.push(outputNode.raw);

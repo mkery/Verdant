@@ -135,6 +135,10 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
   }
 
   public feedNewData(dict: nbformat.INotebookContent) {
+    if (this.isDisposed || !this.context.isReady) {
+      return;
+    }
+    console.log("updating Ghost book with new data");
     this.context.model.fromJSON(dict);
     this._render();
   }
@@ -146,7 +150,7 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     if (this.isDisposed || !this.context.isReady) {
       return;
     }
-    this._render();
+    console.log("Update request!", msg);
   }
 
   /**
@@ -253,7 +257,7 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
       default:
         widget = new RawCell({ model: cell as IRawCellModel });
     }
-    console.log("Cell:", widget);
+    //console.log("Cell:", widget);
     widget.readOnly = true;
     var changes = cell.metadata.get("change");
     if (changes) this._decorateChanges(widget, cell, changes as number);
