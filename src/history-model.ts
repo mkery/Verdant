@@ -107,6 +107,13 @@ export class HistoryModel {
     return nodeHist.versions[parseInt(ver)] as NodeyOutput;
   }
 
+  getPriorVersion(nodey: Nodey) {
+    if (nodey.version !== 0) {
+      let nodeHist = this._nodeyStore[nodey.id];
+      return nodeHist.versions[nodey.id - 1];
+    }
+  }
+
   handleCellRun(executionCount: number, nodey: NodeyCell) {
     this._runModel.cellRun(executionCount, nodey);
   }

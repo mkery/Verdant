@@ -103,8 +103,10 @@ export class CodeCellListen extends CellListen {
     var cell = this.cell as CodeCell;
     var text: string = cell.editor.model.value.text;
     var outNode = Nodey.outputToNodey(cell, this.historyModel);
+    var output = [];
+    if (outNode) output.push({ run: 0, out: outNode });
     this._nodey = await this.astUtils.generateCodeNodey(text, this.position, {
-      output: outNode,
+      output: output,
       run: 0,
       cell: this
     });

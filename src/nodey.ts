@@ -44,6 +44,16 @@ export abstract class Nodey {
     this.version_id = verNum;
   }
 
+  /*
+  * In case there's many runs, check the most recent first
+  */
+  public changedAt(run: number) {
+    for (var i = this.run.length - 1; i > -1; i--) {
+      if (i == run) return true;
+      if (i < run) return false;
+    }
+  }
+
   abstract clone(): Nodey;
 
   abstract toJSON(): serialized_Nodey;
@@ -153,6 +163,7 @@ export class NodeyCode extends Nodey {
   }
 
   getChildren() {
+    if (!this.content || this.content.length === 0) return [];
     return this.content.filter(item => !(item instanceof SyntaxToken));
   }
 
