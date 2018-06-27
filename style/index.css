@@ -14,6 +14,7 @@
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
   --verdant-highlight-color1: #c5e5fc;
   --verdant-ghost-color1: #e9eff5;
+  --verdant-ghost-color2: #e1f5ff;
 }
 
 /*-----------------------------------------------------------------------------
@@ -416,4 +417,29 @@
 .v-Verdant-GhostBook-cell-changed {
   background-color: white;
   border: var(--jp-border-width) solid var(--jp-brand-color2);
+}
+
+.v-Verdant-GhostBook-cell-removed {
+  background-color: white;
+  border: var(--jp-border-width) solid red;
+}
+
+.v-Verdant-GhostBook-cell-added {
+  background-color: white;
+  border: var(--jp-border-width) solid green;
+}
+
+.v-Verdant-GhostBook-code-changed {
+  background-color: var(--verdant-ghost-color2);
+}
+
+.v-Verdant-GhostBook-code-removed {
+  color: red;
+  text-decoration: line-through;
+}
+
+.v-Verdant-GhostBook-code-added {
+  /*tested for accessibility */
+  color: #1a4936;
+  background-color: #defeb7;
 }

@@ -95,14 +95,14 @@ export class GhostBookModel extends NotebookModel {
     this.run = value.metadata.run as number;
     this.timestamp = value.metadata.timestamp as number;
     this.origin = value.metadata.origin as string;
-    this.totalChanges = value.metadata.totalChanges as number;
+    this.totalChanges = value.metadata.totalChanges as number[];
     super.fromJSON(value);
   }
 
   run: number;
   timestamp: number;
   origin: string;
-  totalChanges: number;
+  totalChanges: number[];
 }
 
 export namespace GhostBookFactory {

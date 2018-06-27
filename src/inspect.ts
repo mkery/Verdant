@@ -153,8 +153,8 @@ export class Inspect {
   }
 
   public async produceNotebook(run: Run) {
-    var totalChanges = 0;
-    var cells = run.cells.map((cellDat: CellRunData) => {
+    var totalChanges: number[] = [];
+    var cells = run.cells.map((cellDat: CellRunData, cellIndex: number) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
       var jsn: nbformat.ICell = {
         cell_type: nodey.typeName,
@@ -167,7 +167,9 @@ export class Inspect {
         if (cellDat.changeType === ChangeType.CELL_CHANGED) {
           var changes = this.getChangesInRun(nodey as NodeyCode, run.id);
           jsn.metadata["edits"] = changes;
-          totalChanges += changes.length;
+          for (var i = 0; i < changes.length; i++) {
+            totalChanges.push(cellIndex);
+          }
         }
       }
       var str = (this.renderNode(nodey) || "").split("\n");

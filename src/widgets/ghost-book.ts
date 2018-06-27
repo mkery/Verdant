@@ -22,6 +22,10 @@ import { Toolbar, ToolbarButton } from "@jupyterlab/apputils";
 
 import { NotebookModel } from "@jupyterlab/notebook";
 
+import { NodeChangeDesc } from "../inspect";
+
+import { CodeMirrorEditor } from "@jupyterlab/codemirror";
+
 import {
   ICellModel,
   Cell,
@@ -50,6 +54,12 @@ const GHOST_BOOK_TOOLBAR_EDIT_ICON = "v-Verdant-GhostBook-toolbar-edit-icon";
 const GHOST_BOOK_CELL_AREA = "v-Verdant-GhostBook-cell-area";
 const GHOST_BOOK_CELL_CLASS = "v-Verdant-GhostBook-cell";
 const GHOST_CELL_CHANGED = "v-Verdant-GhostBook-cell-changed";
+const GHOST_CELL_REMOVED = "v-Verdant-GhostBook-cell-removed";
+const GHOST_CELL_ADDED = "v-Verdant-GhostBook-cell-added";
+const GHOST_CODE_CHANGED = "v-Verdant-GhostBook-code-changed";
+//const GHOST_CODE_REMOVED = "v-Verdant-GhostBook-code-removed";
+const GHOST_CODE_ADDED = "v-Verdant-GhostBook-code-added";
+
 /**
  * A widget for images.
  */
@@ -202,8 +212,8 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
         " " +
         Run.formatTime(timestamp)
     );
-    var min = Math.min(1, totalChanges);
-    this.changeLabel.setText(min + "/" + totalChanges + " changes");
+    var min = Math.min(1, totalChanges.length);
+    this.changeLabel.setText(min + "/" + totalChanges.length + " changes");
 
     this.title.label = "Run #" + run + " " + origin;
 
@@ -277,12 +287,38 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
     switch (change) {
       case ChangeType.CELL_CHANGED:
         widget.inputArea.node.classList.add(GHOST_CELL_CHANGED);
+        this._decorateChanges_code(widget, model.metadata.get(
+          "edits"
+        ) as NodeChangeDesc[]);
         break;
       case ChangeType.CELL_REMOVED:
+        widget.inputArea.node.classList.add(GHOST_CELL_REMOVED);
         break;
       case ChangeType.CELL_ADDED:
+        widget.inputArea.node.classList.add(GHOST_CELL_ADDED);
         break;
     }
+  }
+
+  private _decorateChanges_code(widget: CodeCell, changes: NodeChangeDesc[]) {
+    console.log("changes are ", changes);
+    changes.forEach((edit: NodeChangeDesc) => {
+      var codemirror = widget.editor as CodeMirrorEditor;
+      switch (edit.change) {
+        case ChangeType.CELL_CHANGED:
+          codemirror.doc.markText(edit.start, edit.end, {
+            className: GHOST_CODE_CHANGED
+          });
+          break;
+        case ChangeType.CELL_REMOVED:
+          break;
+        case ChangeType.CELL_ADDED:
+          codemirror.doc.markText(edit.start, edit.end, {
+            className: GHOST_CODE_ADDED
+          });
+          break;
+      }
+    });
   }
 
   private _ready = new PromiseDelegate<void>();
