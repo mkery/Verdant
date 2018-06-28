@@ -44,6 +44,10 @@ export class ASTResolve {
     var affected = ASTUtils.findNodeAtRange(nodey, range, this.historyModel);
 
     if (affected) {
+      //some types cannot be parsed alone by Python TODO
+      while (affected.type === "Str" || affected.type === "STRING")
+        affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
+
       // shift all nodey positions after affected
       var newEnd = this.repairPositions(affected, change);
       // return the text from this node's new range
@@ -166,7 +170,7 @@ export class ASTResolve {
       var dict = ASTUtils.reduceASTDict(JSON.parse(jsn));
       console.log("Reduced AST", dict);
 
-      var [score, transforms] = this.matchNode(dict, nodey); //TODO? not correct index
+      var [score, transforms] = this.matchNode(dict, nodey.name);
       console.log("Match?", score, transforms);
       if (transforms.length > 0)
         this.historyModel.stageChanges(transforms, nodey);
@@ -181,29 +185,14 @@ export class ASTResolve {
     nodeIndex: number,
     nodeList: { [key: string]: any }[],
     candidateList: { item: any; index: number }[]
-  ): [number, { item: any; index: number }[], any[]] {
+  ): [number, { item: any; index: number }[], (() => any)[]] {
     var nodeToMatch = nodeList[nodeIndex];
     var options = [];
-    var updates = [];
+    var updates: (() => any)[] = [];
     var totalScore = 0;
 
     for (var i = 0; i < candidateList.length; i++) {
-      if (nodeToMatch[SyntaxToken.KEY]) {
-        if (candidateList[i].item instanceof SyntaxToken)
-          var [score, updates] = this.matchSyntaxToken(
-            nodeToMatch,
-            candidateList[i].item
-          );
-      } else {
-        // match nodey
-        if (!(candidateList[i].item instanceof SyntaxToken)) {
-          //syntok can only match syntok
-          var candidate = this.historyModel.getNodeyHead(
-            candidateList[i].item
-          ) as NodeyCode;
-          var [score, updates] = this.matchNode(nodeToMatch, candidate);
-        }
-      }
+      var [score, updates] = this.matchNode(nodeToMatch, candidateList[i].item);
 
       if (score === 0) {
         // perfect match
@@ -218,7 +207,7 @@ export class ASTResolve {
     }
 
     // if we've gotten here, an exact match was NOT found
-    if (nodeIndex < nodeList.length - 1)
+    if (nodeIndex < nodeList.length - 1 && candidateList.length > 0)
       var [totalScore, candidateList, updates] = this.match(
         nodeIndex + 1,
         nodeList,
@@ -232,9 +221,11 @@ export class ASTResolve {
       options,
       candidateList
     );
+    updates = []; // need to pick from several choices
     var bestMatch;
     var matchIndex;
     for (var k = 0; k < candidateList.length; k++) {
+      console.log("candidate", candidateList[k].item);
       var j = candidateList[k].index;
       if (options[j]) {
         //can use this one
@@ -249,7 +240,7 @@ export class ASTResolve {
       console.log("there is a best match!", bestMatch);
       totalScore = bestMatch.score;
       candidateList.splice(matchIndex, 1);
-      updates.concat(bestMatch.transforms);
+      bestMatch.transforms.forEach(item => updates.push(item));
     } else {
       console.log("maybe add", nodeToMatch);
       if (nodeToMatch[SyntaxToken.KEY])
@@ -257,52 +248,90 @@ export class ASTResolve {
       else updates.push(this.addNewNode.bind(this, nodeToMatch, nodeIndex));
     }
 
+    console.log("sending on updates", updates);
     return [totalScore, candidateList, updates];
   }
 
   matchNode(
     node: { [key: string]: any },
-    potentialMatch: NodeyCode
-  ): [number, any[]] {
-    if (node.literal && potentialMatch.literal) {
-      //leaf nodes
-      //console.log("maybe change literal", node.literal, potentialMatch.literal);
-      var score = this.matchLiterals(
-        node.literal + "",
-        potentialMatch.literal + ""
-      );
-      var transforms = [];
-      if (score !== 0) {
-        // not a perfect match
-        transforms = [this.changeLiteral.bind(this, node, potentialMatch)];
-      }
-      return [score, transforms];
-    } else if (node.type !== potentialMatch.type) return [-1, []];
-    else {
-      var candidates = potentialMatch.content.map((item, index) => {
-        //need to preserve the exact index of the original content to go back and edit it later
-        return { item: item, index: index };
-      });
-      console.log("candidates are", candidates);
-      var [totalScore, candidateRemain, updates] = this.match(
-        0,
-        node.content,
-        candidates
-      );
-      candidateRemain.map(x => {
-        console.log("maybe remove remainder", x);
-        if (x.item instanceof SyntaxToken)
-          updates.push(this.removeSyntaxToken.bind(this, x.item));
-        else
-          updates.push(
-            this.removeOldNode.bind(
-              this,
-              this.historyModel.getNodeyHead(x.item)
-            )
-          );
-      });
-      return [totalScore, updates];
+    potentialMatch: any
+  ): [number, (() => any)[]] {
+    if (SyntaxToken.KEY in node || potentialMatch instanceof SyntaxToken) {
+      return this._matchSyntaxToken(node, potentialMatch);
+    } else {
+      var matchNode = this.historyModel.getNodey(
+        potentialMatch as string
+      ) as NodeyCode;
+      if (node.literal && matchNode.literal)
+        return this._matchLiteralNode(node, matchNode);
+      else return this._matchUpperNode(node, matchNode);
     }
+  }
+
+  private _matchUpperNode(
+    node: { [key: string]: any },
+    potentialMatch: NodeyCode
+  ): [number, (() => any)[]] {
+    var candidates = potentialMatch.content.map((item, index) => {
+      //need to preserve the exact index of the original content to go back and edit it later
+      return { item: item, index: index };
+    });
+    console.log("candidates are", candidates, node);
+    var [totalScore, candidateRemain, updates] = this.match(
+      0,
+      node.content,
+      candidates
+    );
+    candidateRemain.map(x => {
+      console.log("maybe remove remainder", x);
+      if (x.item instanceof SyntaxToken)
+        updates.push(this.removeSyntaxToken.bind(this, x.item));
+      else
+        updates.push(
+          this.removeOldNode.bind(this, this.historyModel.getNodeyHead(x.item))
+        );
+    });
+    return [totalScore, updates];
+  }
+
+  private _matchSyntaxToken(
+    node: { [key: string]: any },
+    potentialMatch: any
+  ): [number, (() => any)[]] {
+    if (!(potentialMatch instanceof SyntaxToken && SyntaxToken.KEY in node))
+      return [-1, []]; // no match possible
+
+    var score = this.matchLiterals(
+      node[SyntaxToken.KEY],
+      potentialMatch.tokens
+    );
+    var transforms = [];
+    if (score !== 0)
+      transforms = [this.changeSyntaxToken.bind(this, node, potentialMatch)];
+    return [score, transforms];
+  }
+
+  private _matchLiteralNode(
+    node: { [key: string]: any },
+    potentialMatch: NodeyCode
+  ): [number, (() => any)[]] {
+    //leaf nodes
+    var score = this.matchLiterals(
+      node.literal + "",
+      potentialMatch.literal + ""
+    );
+    var transforms: (() => any)[] = [];
+    if (score !== 0) {
+      // not a perfect match
+      console.log(
+        "maybe change literal",
+        node.literal,
+        potentialMatch.literal,
+        score
+      );
+      transforms = [this.changeLiteral.bind(this, node, potentialMatch)];
+    }
+    return [score, transforms];
   }
 
   changeLiteral(node: { [key: string]: any }, target: NodeyCode) {
@@ -373,15 +402,5 @@ export class ASTResolve {
 
   matchLiterals(val1: string, val2: string): number {
     return levenshtein.get(val1, val2);
-  }
-
-  matchSyntaxToken(
-    node: { [key: string]: any },
-    potentialMatch: SyntaxToken
-  ): [number, any[]] {
-    return [
-      this.matchLiterals(node[SyntaxToken.KEY], potentialMatch.tokens),
-      [this.changeSyntaxToken.bind(this, node, potentialMatch)]
-    ];
   }
 }
