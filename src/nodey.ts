@@ -66,9 +66,18 @@ export abstract class Nodey {
 */
 export class SyntaxToken {
   tokens: string;
+  _star: boolean = false;
 
   constructor(tokens: string) {
     this.tokens = tokens;
+  }
+
+  get star(): boolean {
+    return this._star;
+  }
+
+  set star(flag: boolean) {
+    this._star = flag;
   }
 
   toJSON(): { [id: string]: any } {

@@ -88,9 +88,8 @@ namespace Private {
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
     var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);
-    console.log("checking mid range", midNodey);
     var direction = ASTUtils.inRange(midNodey, change);
-
+    //console.log("checking mid range", midNodey, direction);
     if ((min >= max || max <= min) && direction !== 0)
       //end condition no more to explore
       return null;

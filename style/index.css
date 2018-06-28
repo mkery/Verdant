@@ -331,6 +331,7 @@
 }
 
 .v-VerdantPanel-inspect-version {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
@@ -339,6 +340,7 @@
   white-space: pre-wrap;
   width: max-content;
   text-align: left;
+  padding-bottom: 1em;
 }
 .v-VerdantPanel-inspect-version.markdown {
   font-size: var(--jp-ui-font-size1);

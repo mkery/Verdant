@@ -158,6 +158,7 @@ export class Inspect {
     var totalChanges: number[] = [];
     var cells = run.cells.map((cellDat: CellRunData, cellIndex: number) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
+      console.log("found node?", cellDat.node, nodey);
       var jsn: nbformat.ICell = {
         cell_type: nodey.typeName,
         metadata: {},
@@ -180,7 +181,7 @@ export class Inspect {
         else return str;
       });
       if (nodey instanceof NodeyCode) {
-        jsn.executionCount = 0;
+        jsn.execution_count = 0;
         var outputList: {}[] = [];
         nodey.output.map(dict => {
           console.log("output is ", dict);

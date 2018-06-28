@@ -94,7 +94,8 @@ export class HistoryModel {
     let [id, ver, tag] = name.split(".");
     if (id === "*" && tag) {
       let cell = this.getNodeyCell(parseInt(ver));
-      return cell.starNodes[parseInt(tag)];
+      console.log("looking for a star node ", name, cell);
+      return cell.starNodes[parseInt(tag) - 1];
     }
 
     if (ver === "*") return this._nodeyStore[parseInt(id)].starNodey;
@@ -224,19 +225,10 @@ export class HistoryModel {
     prior: NodeyCode = null
   ): NodeyCode {
     console.log("Commiting code", nodey);
-    let newNodey: NodeyCode;
-    if (nodey.id === "*") newNodey = starFactory(nodey, runId, output);
-    else if (nodey.version === "*") {
-      let history = this.getVersionsFor(nodey);
-      newNodey = history.deStar(runId, output) as NodeyCode;
-    } else {
-      return nodey; // nothing to change, stop update here
-    }
-
-    if (prior) prior.right = newNodey.name;
+    if (prior) prior.right = nodey.name;
     prior = null;
 
-    newNodey.content.forEach((childName: any, index: number) => {
+    nodey.content.forEach((childName: any, index: number) => {
       if (!(childName instanceof SyntaxToken)) {
         //skip syntax tokens
         let [id, ver] = childName.split(".");
@@ -245,13 +237,22 @@ export class HistoryModel {
           let child = this.getNodey(childName) as NodeyCode;
           console.log("getting " + childName, child);
           child = this._commitCode(child, runId, output, starFactory, prior);
-          newNodey.content[index] = child.name;
-          child.parent = newNodey.name;
+          nodey.content[index] = child.name;
+          child.parent = nodey.name;
           if (prior) prior.right = child.name;
           prior = child;
         }
       }
     });
+
+    let newNodey: NodeyCode;
+    if (nodey.id === "*") newNodey = starFactory(nodey, runId, output);
+    else if (nodey.version === "*") {
+      let history = this.getVersionsFor(nodey);
+      newNodey = history.deStar(runId, output) as NodeyCode;
+    } else {
+      return nodey; // nothing to change, stop update here
+    }
 
     return newNodey;
   }
