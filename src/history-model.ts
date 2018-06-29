@@ -80,9 +80,7 @@ export class HistoryModel {
     }
 
     let nodeHist = this._nodeyStore[parseInt(id)];
-    if (ver === "*") return nodeHist.starNodey;
-
-    return nodeHist.versions[nodeHist.versions.length - 1];
+    return nodeHist.latest;
   }
 
   getNodeyCell(id: number): NodeyCell {
@@ -141,13 +139,9 @@ export class HistoryModel {
     return;
   }
 
-  public stageChanges(transforms: ((key: any) => any)[], nodey: Nodey): void {
-    let history = this.getVersionsFor(nodey);
-    console.log("staging changes for ", history);
-    this._stageChanges(transforms, history);
-  }
-
-  private _stageChanges(changes: ((x: Nodey) => void)[], history: NodeHistory) {
+  public markAsEdited(unedited: NodeyCode): NodeyCode {
+    let history = this.getVersionsFor(unedited);
+    console.log("history of this node", history);
     if (!history.starNodey) {
       //newly entering star state!
       let nodey = history.versions[history.versions.length - 1];
@@ -156,15 +150,16 @@ export class HistoryModel {
       if (history.starNodey.parent) {
         console.log("parent is", history.starNodey.parent, history.starNodey);
         // star all the way up the chain
-        let transforms = [
-          (x: NodeyCode) =>
-            (x.content[x.content.indexOf(nodey.name)] = history.starNodey.name)
-        ];
-        let parent = this.getNodeyHead(history.starNodey.parent);
-        this.stageChanges(transforms, parent);
+        let parent = this.getNodeyHead(history.starNodey.parent) as NodeyCode;
+        var starParent = this.markAsEdited(parent);
+
+        //finally, fix pointer names to be stars too
+        history.starNodey.parent = starParent.name;
+        starParent.content[starParent.content.indexOf(nodey.name)] =
+          history.starNodey.name;
       }
     }
-    changes.forEach((fun: (x: Nodey) => void) => fun(history.starNodey));
+    return history.starNodey as NodeyCode;
   }
 
   public addStarNode(starNode: NodeyCode, relativeTo: NodeyCode): string {
@@ -227,26 +222,6 @@ export class HistoryModel {
     prior: NodeyCode = null
   ): NodeyCode {
     console.log("Commiting code", nodey);
-    if (prior) prior.right = nodey.name;
-    prior = null;
-
-    nodey.content.forEach((childName: any, index: number) => {
-      if (!(childName instanceof SyntaxToken)) {
-        //skip syntax tokens
-        let [id, ver] = childName.split(".");
-        if (id === "*" || ver === "*") {
-          // only update children that are changed
-          let child = this.getNodey(childName) as NodeyCode;
-          console.log("getting " + childName, child);
-          child = this._commitCode(child, runId, output, starFactory, prior);
-          nodey.content[index] = child.name;
-          child.parent = nodey.name;
-          if (prior) prior.right = child.name;
-          prior = child;
-        }
-      }
-    });
-
     let newNodey: NodeyCode;
     if (nodey.id === "*") newNodey = starFactory(nodey, runId, output);
     else if (nodey.version === "*") {
@@ -255,6 +230,32 @@ export class HistoryModel {
     } else {
       return nodey; // nothing to change, stop update here
     }
+
+    if (prior) prior.right = newNodey.name;
+    prior = null;
+
+    newNodey.content.forEach((childName: any, index: number) => {
+      if (!(childName instanceof SyntaxToken)) {
+        //skip syntax tokens
+        let [id, ver] = childName.split(".");
+        if (id === "*" || ver === "*") {
+          // only update children that are changed
+          let child = this.getNodey(childName) as NodeyCode;
+          console.log("getting " + childName, child);
+          let newChild = this._commitCode(
+            child,
+            runId,
+            output,
+            starFactory,
+            prior
+          );
+          newNodey.content[index] = newChild.name;
+          newChild.parent = newNodey.name;
+          if (prior) prior.right = newChild.name;
+          prior = newChild;
+        }
+      }
+    });
 
     return newNodey;
   }

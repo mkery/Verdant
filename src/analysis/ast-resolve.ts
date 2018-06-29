@@ -46,8 +46,10 @@ export class ASTResolve {
     if (affected) {
       //some types cannot be parsed alone by Python TODO
       var unparsable = ["Str", "STRING", "keyword"];
-      while (unparsable.indexOf(affected.type) !== -1)
+      while (unparsable.indexOf(affected.type) !== -1) {
+        console.log("affected is", affected);
         affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
+      }
 
       // shift all nodey positions after affected
       var newEnd = this.repairPositions(affected, change);
@@ -173,8 +175,10 @@ export class ASTResolve {
 
       var [score, transforms] = this.matchNode(dict, nodey.name);
       console.log("Match?", score, transforms);
-      if (transforms.length > 0)
-        this.historyModel.stageChanges(transforms, nodey);
+      if (transforms.length > 0) {
+        //each transform will stage itself
+        transforms.forEach((fun: () => void) => fun());
+      }
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
@@ -245,8 +249,13 @@ export class ASTResolve {
     } else {
       console.log("maybe add", nodeToMatch);
       if (nodeToMatch[SyntaxToken.KEY])
-        updates.push(this.addNewStnTok.bind(this, nodeToMatch, nodeIndex));
-      else updates.push(this.addNewNode.bind(this, nodeToMatch, nodeIndex));
+        updates.push(
+          ASTTransforms.addNewStnTok.bind(this, nodeToMatch, nodeIndex)
+        );
+      else
+        updates.push(
+          ASTTransforms.addNewNode.bind(this, nodeToMatch, nodeIndex)
+        );
     }
 
     console.log("sending on updates", updates);
@@ -286,11 +295,10 @@ export class ASTResolve {
     candidateRemain.map(x => {
       console.log("maybe remove remainder", x);
       if (x.item instanceof SyntaxToken)
-        updates.push(this.removeSyntaxToken.bind(this, x.item));
-      else
         updates.push(
-          this.removeOldNode.bind(this, this.historyModel.getNodeyHead(x.item))
+          ASTTransforms.removeSyntaxToken.bind(this, x.item, potentialMatch)
         );
+      else updates.push(ASTTransforms.removeOldNode.bind(this, x.item));
     });
     return [totalScore, updates];
   }
@@ -308,7 +316,13 @@ export class ASTResolve {
     );
     var transforms = [];
     if (score !== 0)
-      transforms = [this.changeSyntaxToken.bind(this, node, potentialMatch)];
+      transforms = [
+        ASTTransforms.changeSyntaxToken.bind(
+          this,
+          node[SyntaxToken.KEY],
+          potentialMatch
+        )
+      ];
     return [score, transforms];
   }
 
@@ -330,39 +344,75 @@ export class ASTResolve {
         potentialMatch.literal,
         score
       );
-      transforms = [this.changeLiteral.bind(this, node, potentialMatch.name)];
+      transforms = [
+        ASTTransforms.changeLiteral.bind(
+          this,
+          node.literal,
+          potentialMatch.name
+        )
+      ];
     }
     return [score, transforms];
   }
 
-  changeLiteral(node: { [key: string]: any }, name: string) {
-    var target = this.historyModel.getNodeyHead(name) as NodeyCode;
-    console.log(
-      "Changing literal from " + target.literal + " to " + node.literal,
-      node
-    );
-    target.literal = node.literal;
+  matchLiterals(val1: string, val2: string): number {
+    return levenshtein.get(val1, val2);
+  }
+}
+
+export namespace ASTTransforms {
+  /*
+  * Important steps: make the change, then mark all affected
+  * nodes as edited
+  */
+  export function removeOldNode(toRemove: string) {
+    var target = this.historyModel.getNodeyHead(toRemove);
+    var parent = this.historyModel.getNodeyHead(target.parent);
+    var index = parent.content.indexOf(target);
+    console.log("Removing old node", target, "from", parent);
+    var starTarget = this.historyModel.markAsEdited(parent);
+    starTarget.content.splice(index, 1);
   }
 
-  changeSyntaxToken(node: { [key: string]: any }, target: SyntaxToken) {
-    target.tokens = node[SyntaxToken.KEY];
+  export function removeSyntaxToken(tok: SyntaxToken, parent: NodeyCode) {
+    var index = parent.content.indexOf(tok);
+    console.log("Removing old token", tok, "from", parent, index);
+    var starTarget = this.historyModel.markAsEdited(parent);
+    starTarget.content.splice(index, 1);
   }
 
-  addNewStnTok(syntok: { [key: string]: any }, at: number, target: NodeyCode) {
-    var s = new SyntaxToken(syntok.syntok);
-    s.star = true;
+  export function changeLiteral(newLiteral: string, nodeName: string) {
+    var target = this.historyModel.getNodeyHead(nodeName) as NodeyCode;
+    console.log("Changing literal from " + target + " to " + newLiteral);
+    var starTarget = this.historyModel.markAsEdited(target);
+    starTarget.literal = newLiteral;
+  }
+
+  export function changeSyntaxToken(newToken: any, target: SyntaxToken) {
+    //TODO do we count this as a change?
+    target.tokens = newToken;
+  }
+
+  export function addNewStnTok(syntok: string, at: number, target: NodeyCode) {
+    var s = new SyntaxToken(syntok);
     console.log("Added a new syntax token ", s, " to ", target);
-    target.content.splice(at, 0, s);
+    var starTarget = this.historyModel.markAsEdited(target);
+    starTarget.content.splice(at, 0, s);
   }
 
-  addNewNode(node: { [key: string]: any }, at: number, target: NodeyCode) {
-    var nodey = this.buildStarNode(node, target);
+  export function addNewNode(
+    node: { [key: string]: any },
+    at: number,
+    target: NodeyCode
+  ) {
+    var nodey = buildStarNode.bind(this)(node, target);
     nodey.parent = target.name;
     console.log("Added a new node ", nodey, " to ", target);
-    target.content.splice(at, 0, nodey.name);
+    var starTarget = this.historyModel.markAsEdited(target);
+    starTarget.content.splice(at, 0, nodey.name);
   }
 
-  buildStarNode(
+  export function buildStarNode(
     node: { [key: string]: any },
     target: NodeyCode,
     prior: NodeyCode = null
@@ -388,21 +438,5 @@ export class ASTResolve {
     }
 
     return n;
-  }
-
-  removeOldNode(node: NodeyCode, target: NodeyCode) {
-    var index = target.content.indexOf(node);
-    console.log("Removing old node", node, "from", target);
-    if (index !== -1) target.content.splice(index, 1);
-  }
-
-  removeSyntaxToken(tok: SyntaxToken, target: NodeyCode) {
-    var index = target.content.indexOf(tok);
-    console.log("Removing old token", tok, "from", target, index);
-    target.content.splice(index, 1);
-  }
-
-  matchLiterals(val1: string, val2: string): number {
-    return levenshtein.get(val1, val2);
   }
 }

@@ -6,13 +6,7 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { ASTGenerate } from "../analysis/ast-generate";
 
-import {
-  Nodey,
-  NodeyCell,
-  NodeyCodeCell,
-  NodeyMarkdown,
-  NodeyOutput
-} from "../nodey";
+import { Nodey, NodeyCell, NodeyCodeCell, NodeyOutput } from "../nodey";
 
 import * as CodeMirror from "codemirror";
 
@@ -175,7 +169,7 @@ export class MarkdownCellListen extends CellListen {
         editor.doc,
         "change",
         (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
-          this.historyModel.stageChanges(
+          /*this.historyModel.stageChanges(
             [
               (node: Nodey) => {
                 console.log("Updating nodey", node);
@@ -185,7 +179,8 @@ export class MarkdownCellListen extends CellListen {
               }
             ],
             this.nodey
-          );
+          );*/
+          //TODO!
         }
       );
     }
