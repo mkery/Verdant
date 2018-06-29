@@ -143,6 +143,7 @@ export class HistoryModel {
 
   public stageChanges(transforms: ((key: any) => any)[], nodey: Nodey): void {
     let history = this.getVersionsFor(nodey);
+    console.log("staging changes for ", history);
     this._stageChanges(transforms, history);
   }
 
@@ -153,6 +154,7 @@ export class HistoryModel {
       history.starNodey = nodey.clone();
       history.starNodey.version = "*";
       if (history.starNodey.parent) {
+        console.log("parent is", history.starNodey.parent, history.starNodey);
         // star all the way up the chain
         let transforms = [
           (x: NodeyCode) =>

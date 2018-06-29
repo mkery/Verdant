@@ -45,7 +45,8 @@ export class ASTResolve {
 
     if (affected) {
       //some types cannot be parsed alone by Python TODO
-      while (affected.type === "Str" || affected.type === "STRING")
+      var unparsable = ["Str", "STRING", "keyword"];
+      while (unparsable.indexOf(affected.type) !== -1)
         affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
 
       // shift all nodey positions after affected
@@ -329,12 +330,13 @@ export class ASTResolve {
         potentialMatch.literal,
         score
       );
-      transforms = [this.changeLiteral.bind(this, node, potentialMatch)];
+      transforms = [this.changeLiteral.bind(this, node, potentialMatch.name)];
     }
     return [score, transforms];
   }
 
-  changeLiteral(node: { [key: string]: any }, target: NodeyCode) {
+  changeLiteral(node: { [key: string]: any }, name: string) {
+    var target = this.historyModel.getNodeyHead(name) as NodeyCode;
     console.log(
       "Changing literal from " + target.literal + " to " + node.literal,
       node
