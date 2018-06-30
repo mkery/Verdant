@@ -56,6 +56,13 @@ export abstract class CellListen {
     this.status = ChangeType.CELL_SAME;
   }
 
+  /**
+   * Dispose of the resources held by the model.
+   */
+  public dispose(): void {
+    this.cell = null;
+  }
+
   public focus(): void {}
 
   public blur(): void {}
@@ -68,7 +75,8 @@ export abstract class CellListen {
   public cellRun(exec: number = null) {
     var node = this.nodey;
     if (node.id === "*" || node.version === "*")
-      this.status = ChangeType.CELL_CHANGED;
+      if (this.status === ChangeType.CELL_SAME)
+        this.status = ChangeType.CELL_CHANGED;
     console.log("Running cell!", this.cell, exec, typeof node);
     this.historyModel.handleCellRun(exec, node);
   }

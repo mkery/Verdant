@@ -61,9 +61,19 @@ export class FileManager {
     });
   }
 
-  public openGhost(path: string, data: nbformat.INotebookContent) {
-    let widget = this.docManager.findWidget(path);
-    this.docManager.openOrReveal(path);
+  public openGhost(
+    data: nbformat.INotebookContent,
+    notebook: NotebookListen,
+    path: string = ""
+  ) {
+    if (!path) {
+      var name = notebook.name;
+      path = notebook.path;
+      name = name.substring(0, name.indexOf(".")) + ".ghost";
+      var path = "/" + path.substring(0, path.lastIndexOf("/") + 1) + name;
+    }
+    //let widget = this.docManager.findWidget(path);
+    let widget = this.docManager.openOrReveal(path);
     if (widget) {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
       (widget as GhostBook).feedNewData(data);
@@ -203,4 +213,5 @@ export interface serialized_NodeyHistory {
   cells: number[];
   nodey: { nodey: number; versions: serialized_Nodey[] }[];
   output: { output: number; versions: serialized_NodeyOutput[] }[];
+  deletedCells: number[];
 }

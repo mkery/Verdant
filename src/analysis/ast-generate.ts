@@ -221,17 +221,43 @@ def zipTokensAST(tokens, node, parentBounty = []):
     return before_tokens, nodey, remainder
 
 
+def addBackSpaces(tokens):
+    prior = None
+    fixedList = []
+    for tok in tokens:
+        if(prior):
+            start = tok.start
+            #check for a gap. prior end and tok start should match
+            if(prior.end[0] == start[0]): # same line
+                if(prior.end[1] != start[1]): # different character
+                    space = start[1] - prior.end[1]
+                    fixedList.append(SpacerToken(token.OP, " "*space, [prior.end[0], prior.end[1]], [start[0], start[1]]))
+        fixedList.append(tok)
+        prior = tok
+    return fixedList
+
+
+class SpacerToken:
+    def __init__(self, ty, st, start, end):
+        self.type = ty
+        self.string = st
+        self.start = start
+        self.end = end
+
+
 def main(text):
     tree = ast.parse(text)
     split = text.split('\\n')
     bytes = io.BytesIO(text.encode())
     g = tokenize.tokenize(bytes.readline)
     tokens = list(g)
+    tokens = addBackSpaces(tokens)
+    #print(tokens)
     tokens.pop(0) #get rid of encoding stuff
     before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
     nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
     nodey['content'].pop() #remove end marker
-    print (json.dumps(nodey))
+    print (json.dumps(nodey, indent=2))
 `;
   }
 

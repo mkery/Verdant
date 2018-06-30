@@ -2,7 +2,7 @@ import { HistoryModel } from "../history-model";
 import { Nodey, NodeyCodeCell } from "../nodey";
 import { Inspect } from "../inspect";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
-import { Cell, CodeCell } from "@jupyterlab/cells";
+import { CodeCell } from "@jupyterlab/cells";
 import { CellListen, CodeCellListen } from "../jupyter-hooks/cell-listen";
 
 const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
@@ -13,7 +13,8 @@ const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 export namespace Wishbone {
   export function startWishbone(historyModel: HistoryModel) {
     historyModel.notebook.cells.forEach(
-      (cellListen: CellListen, cell: Cell) => {
+      (cellListen: CellListen, cellName: string) => {
+        var cell = cellListen.cell;
         Private.addEvents(
           cell.inputArea.promptNode,
           [cellListen.nodey],
@@ -36,7 +37,8 @@ export namespace Wishbone {
     notebook: NotebookListen,
     historyModel: HistoryModel
   ) {
-    notebook.cells.forEach((cellListen: CellListen, cell: Cell) => {
+    notebook.cells.forEach((cellListen: CellListen, cellName: string) => {
+      var cell = cellListen.cell;
       Private.removeEvents(
         cell.inputArea.node,
         [cellListen.nodey],

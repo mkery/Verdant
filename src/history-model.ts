@@ -8,6 +8,8 @@ import {
   SyntaxToken
 } from "./nodey";
 
+import { ChangeType } from "./run";
+
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
@@ -41,7 +43,7 @@ export class HistoryModel {
   private _nodeyStore: NodeHistory[] = [];
   private _cellList: number[] = [];
   private _outputStore: NodeHistory[] = [];
-  //TODO private _deletedCellList: number[] = [];
+  private _deletedCellList: number[] = [];
 
   set notebook(notebook: NotebookListen) {
     this._notebook = notebook;
@@ -136,7 +138,20 @@ export class HistoryModel {
     nodey.id = id;
     let version = this._outputStore[nodey.id].versions.push(nodey) - 1;
     nodey.version = version;
+
     return;
+  }
+
+  public clearCellStatus(cell: NodeyCell) {
+    var status = cell.cell.status;
+    if (status !== ChangeType.CELL_REMOVED) cell.cell.clearStatus();
+    else {
+      cell.cell.dispose();
+      cell.cell = null;
+      var index = this._cellList.indexOf(cell.id);
+      this._cellList.splice(index, 1);
+      this._deletedCellList.push(cell.id);
+    }
   }
 
   public markAsEdited(unedited: NodeyCode): NodeyCode {
@@ -283,6 +298,7 @@ export class HistoryModel {
         }
       }
     ) as { output: number; versions: serialized_NodeyOutput[] }[];
+    jsn["deletedCells"] = this._deletedCellList;
     return jsn;
   }
 

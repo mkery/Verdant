@@ -2,15 +2,19 @@ import { NotebookPanel, Notebook } from "@jupyterlab/notebook";
 
 import { PathExt } from "@jupyterlab/coreutils";
 
+import { ChangeType } from "../run";
+
 import { IObservableJSON } from "@jupyterlab/observables";
 
-import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
+import { Cell, CodeCell, MarkdownCell, ICellModel } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { Signal } from "@phosphor/signaling";
 
 import { ASTGenerate } from "../analysis/ast-generate";
+
+import { IObservableList } from "@jupyterlab/observables";
 
 import { CellListen, CodeCellListen, MarkdownCellListen } from "./cell-listen";
 
@@ -24,7 +28,7 @@ export class NotebookListen {
   private _activeCellChanged = new Signal<this, CellListen>(this);
   kernUtil: KernelListen;
   astUtils: ASTGenerate;
-  cells: Map<Cell, CellListen>;
+  cells: Map<string, CellListen>;
   activeCell: Cell;
   historyModel: HistoryModel;
 
@@ -36,7 +40,7 @@ export class NotebookListen {
     this._notebookPanel = notebookPanel;
     this.astUtils = astUtils;
     this.historyModel = historyModel;
-    this.cells = new Map<Cell, CellListen>();
+    this.cells = new Map<string, CellListen>();
     this.init();
   }
 
@@ -90,22 +94,7 @@ export class NotebookListen {
     var cellsReady: Promise<void>[] = [];
     this._notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
-        var cell: CellListen;
-        if (item instanceof CodeCell)
-          cell = new CodeCellListen(
-            item,
-            this.astUtils,
-            this.historyModel,
-            index
-          );
-        else if (item instanceof MarkdownCell)
-          cell = new MarkdownCellListen(
-            item,
-            this.astUtils,
-            this.historyModel,
-            index
-          );
-        this.cells.set(item, cell);
+        var cell: CellListen = this.createCodeCellListen(item, index);
         cellsReady.push(cell.ready);
       }
     });
@@ -121,14 +110,37 @@ export class NotebookListen {
 
   focusCell(cell: Cell): void {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
-      this._activeCellChanged.emit(this.cells.get(cell)); //TODO markdown
-      this.cells.get(cell).focus();
+      this._activeCellChanged.emit(this.cells.get(cell.model.id));
+      this.cells.get(cell.model.id).focus();
     }
-    if (this.activeCell) this.cells.get(this.activeCell).blur();
+    if (this.activeCell) this.cells.get(this.activeCell.model.id).blur();
     this.activeCell = cell;
   }
 
   private listen() {
+    this._notebook.model.cells.changed.connect(
+      (sender: any, data: IObservableList.IChangedArgs<ICellModel>) => {
+        var newIndex = data.newIndex;
+        var newValues = data.newValues;
+        var oldIndex = data.oldIndex;
+        var oldValues = data.oldValues;
+        switch (data.type) {
+          case "add":
+            this._addNewCells(newIndex, newValues);
+            break;
+          case "remove":
+            this._removeCells(oldIndex, oldValues);
+            break;
+          case "move":
+            this._cellsMoved(oldIndex, newIndex, newValues);
+            break;
+          default:
+            console.log("cell list changed!!!!", sender, data);
+            break;
+        }
+      }
+    );
+
     this._notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
       this.focusCell(cell);
     });
@@ -137,8 +149,54 @@ export class NotebookListen {
       "p-Widget jp-mod-styled jp-Toolbar-button jp-RunIcon jp-Toolbar-item"
     )[0];
     runButton.addEventListener("mousedown", ev => {
-      if (this.activeCell) this.cells.get(this.activeCell).cellRun();
+      if (this.activeCell) this.cells.get(this.activeCell.model.id).cellRun();
     });
+  }
+
+  private createCodeCellListen(cell: Cell, index: number) {
+    var cellListen: CellListen;
+    if (cell instanceof CodeCell)
+      cellListen = new CodeCellListen(
+        cell,
+        this.astUtils,
+        this.historyModel,
+        index
+      );
+    else if (cell instanceof MarkdownCell)
+      cellListen = new MarkdownCellListen(
+        cell,
+        this.astUtils,
+        this.historyModel,
+        index
+      );
+    this.cells.set(cell.model.id, cellListen);
+    return cellListen;
+  }
+
+  private _addNewCells(newIndex: number, newValues: ICellModel[]) {
+    newValues.forEach((added, index) => {
+      var cell: Cell = this._notebook.widgets[newIndex + index];
+      console.log("adding a new cell!", cell, newIndex, newValues);
+      var cellListen = this.createCodeCellListen(cell, newIndex);
+      cellListen.status = ChangeType.CELL_ADDED;
+    });
+  }
+
+  private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
+    console.log("removing cells", oldIndex, oldValues);
+    oldValues.forEach((removed, item) => {
+      var cellListen: CellListen = this.cells.get(removed.id);
+      cellListen.status = ChangeType.CELL_REMOVED;
+    });
+  }
+
+  private _cellsMoved(
+    oldIndex: number,
+    newIndex: number,
+    newValues: ICellModel[]
+  ) {
+    console.log("moving cell", oldIndex, newIndex, newValues);
+    //TODO
   }
 
   private _ready = new PromiseDelegate<void>();

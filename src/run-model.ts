@@ -74,7 +74,7 @@ export class RunModel {
         }
       }
       cellDat.push(dat);
-      cell.cell.clearStatus();
+      this._historyModel.clearCellStatus(cell);
     });
 
     var run = new Run(timestamp, cellDat, runId);

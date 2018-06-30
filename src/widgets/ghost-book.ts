@@ -135,9 +135,6 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
   }
 
   public feedNewData(dict: nbformat.INotebookContent) {
-    if (this.isDisposed || !this.context.isReady) {
-      return;
-    }
     console.log("updating Ghost book with new data");
     this.context.model.fromJSON(dict);
     this._render();
@@ -325,9 +322,13 @@ export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
         case ChangeType.CELL_REMOVED:
           break;
         case ChangeType.CELL_ADDED:
-          codemirror.doc.markText(edit.start, edit.end, {
-            className: GHOST_CODE_ADDED
-          });
+          codemirror.doc.markText(
+            edit.start,
+            { line: edit.start.line, ch: edit.start.ch + edit.text.length },
+            {
+              className: GHOST_CODE_ADDED
+            }
+          );
           break;
       }
     });

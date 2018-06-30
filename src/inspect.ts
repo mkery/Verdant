@@ -212,14 +212,14 @@ export class Inspect {
       nbformat: this._notebook.nbformat
     };
 
-    var path = await this._historyModel.fileManager.writeGhostFile(
+    /*var path = await this._historyModel.fileManager.writeGhostFile(
       this._notebook,
       this._historyModel,
       run.id,
       file
-    );
+    );*/
 
-    this._historyModel.fileManager.openGhost(path, file);
+    this._historyModel.fileManager.openGhost(file, this._notebook);
   }
 
   get targetChanged(): Signal<this, Nodey> {
@@ -306,22 +306,14 @@ export class Inspect {
   }
 
   private renderCodeNode(nodey: NodeyCode): string {
-    var literal = "";
-    if (nodey.literal) literal = nodey.literal + " "; // add in spaceing
+    var literal = nodey.literal || "";
     if (nodey.content) {
-      var priorLiteral = false;
       nodey.content.forEach(name => {
         if (name instanceof SyntaxToken) {
-          if (!priorLiteral && literal != "") {
-            literal = literal.substring(0, literal.length - 1) + name.tokens;
-          } else {
-            literal += name.tokens;
-          }
-          priorLiteral = true;
+          literal += name.tokens;
         } else {
           var child = this._historyModel.getNodey(name);
           literal += this.renderCodeNode(child as NodeyCode);
-          priorLiteral = false;
         }
       });
     }
