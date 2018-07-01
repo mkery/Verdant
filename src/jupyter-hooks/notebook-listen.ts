@@ -91,13 +91,13 @@ export class NotebookListen {
     this.kernUtil = new KernelListen(this._notebookPanel.session);
     this.astGen.setKernUtil(this.kernUtil);
     //load in prior data if exists
-    await this.historyModel.init(this.astGen);
+    var prior = await this.historyModel.init(this.astGen);
     await this.astGen.ready;
 
     var cellsReady: Promise<void>[] = [];
     this._notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
-        var cell: CellListen = this.createCodeCellListen(item, index);
+        var cell: CellListen = this.createCodeCellListen(item, index, prior);
         cellsReady.push(cell.ready);
       }
     });
@@ -153,21 +153,23 @@ export class NotebookListen {
     });
   }
 
-  private createCodeCellListen(cell: Cell, index: number) {
+  private createCodeCellListen(cell: Cell, index: number, matchPrior: boolean) {
     var cellListen: CellListen;
     if (cell instanceof CodeCell)
       cellListen = new CodeCellListen(
         cell,
         this.astGen,
         this.historyModel,
-        index
+        index,
+        matchPrior
       );
     else if (cell instanceof MarkdownCell)
       cellListen = new MarkdownCellListen(
         cell,
         this.astGen,
         this.historyModel,
-        index
+        index,
+        matchPrior
       );
     this.cells.set(cell.model.id, cellListen);
     return cellListen;
@@ -177,7 +179,7 @@ export class NotebookListen {
     newValues.forEach((added, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
       console.log("adding a new cell!", cell, newIndex, newValues);
-      var cellListen = this.createCodeCellListen(cell, newIndex);
+      var cellListen = this.createCodeCellListen(cell, newIndex, false);
       cellListen.status = ChangeType.CELL_ADDED;
     });
   }

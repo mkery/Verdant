@@ -47,13 +47,15 @@ export class HistoryModel {
   private _outputStore: NodeHistory[] = [];
   private _deletedCellList: number[] = [];
 
-  public async init(astGen: ASTGenerate) {
+  public async init(astGen: ASTGenerate): Promise<boolean> {
     // check if there is an existing history file for this notebook
     var data = await this.fileManager.loadFromFile(this._notebook);
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
       this.fromJSON(history);
+      return true;
     }
+    return false;
   }
 
   set notebook(notebook: NotebookListen) {

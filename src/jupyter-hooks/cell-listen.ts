@@ -30,14 +30,15 @@ export abstract class CellListen {
     cell: Cell,
     astUtils: ASTGenerate,
     historyModel: HistoryModel,
-    position: number
+    position: number,
+    matchPrior: boolean
   ) {
     this.cell = cell;
     this.astUtils = astUtils;
     this.historyModel = historyModel;
     this.position = position;
     this.status = ChangeType.CELL_SAME;
-    this.init();
+    this.init(matchPrior);
   }
 
   get ready(): Promise<void> {
@@ -67,7 +68,7 @@ export abstract class CellListen {
 
   public blur(): void {}
 
-  protected async init(): Promise<void> {
+  protected async init(matchPrior: boolean): Promise<void> {
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -101,7 +102,7 @@ export abstract class CellListen {
 *
 */
 export class CodeCellListen extends CellListen {
-  protected async init() {
+  protected async init(matchPrior: boolean) {
     var cell = this.cell as CodeCell;
     var text: string = cell.editor.model.value.text;
     var outNode = Nodey.outputToNodey(cell, this.historyModel);
@@ -113,7 +114,7 @@ export class CodeCellListen extends CellListen {
       cell: this
     });
 
-    super.init();
+    super.init(matchPrior);
   }
 
   public get output(): NodeyOutput[][] {
@@ -155,7 +156,7 @@ export class CodeCellListen extends CellListen {
   *
   */
 export class MarkdownCellListen extends CellListen {
-  protected async init() {
+  protected async init(matchPrior: boolean) {
     var nodey = Nodey.dictToMarkdownNodey(
       this.cell.model.value.text,
       this.position,
@@ -163,7 +164,7 @@ export class MarkdownCellListen extends CellListen {
       this
     );
     this._nodey = nodey.id;
-    super.init();
+    super.init(matchPrior);
   }
 
   protected listen(): void {
