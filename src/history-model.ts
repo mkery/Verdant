@@ -20,6 +20,8 @@ import { Inspect } from "./inspect";
 
 import { FileManager } from "./file-manager";
 
+import { ASTGenerate } from "./analysis/ast-generate";
+
 import {
   serialized_NodeyHistory,
   serialized_Nodey,
@@ -44,6 +46,15 @@ export class HistoryModel {
   private _cellList: number[] = [];
   private _outputStore: NodeHistory[] = [];
   private _deletedCellList: number[] = [];
+
+  public async init(astGen: ASTGenerate) {
+    // check if there is an existing history file for this notebook
+    var data = await this.fileManager.loadFromFile(this._notebook);
+    if (data) {
+      var history = JSON.parse(data) as serialized_NodeyHistory;
+      this.fromJSON(history);
+    }
+  }
 
   set notebook(notebook: NotebookListen) {
     this._notebook = notebook;
@@ -275,7 +286,35 @@ export class HistoryModel {
     return newNodey;
   }
 
-  toJSON(): serialized_NodeyHistory {
+  private fromJSON(data: serialized_NodeyHistory) {
+    this._runModel.fromJSON(data.runs);
+    this._cellList = data.cells;
+    data.nodey.map(item => {
+      let id = item.nodey;
+      var hist = new NodeHistory();
+      item.versions.forEach(nodeDat => {
+        var node: Nodey = Nodey.fromJSON(nodeDat);
+        node.id = id;
+        var ver = hist.versions.push(node) - 1;
+        node.version = ver;
+      });
+      this._nodeyStore[id] = hist;
+    });
+    data.output.map(out => {
+      let id = out.output;
+      var hist = new NodeHistory();
+      out.versions.forEach(nodeDat => {
+        var node: Nodey = Nodey.outputFromJSON(nodeDat);
+        node.id = id;
+        var ver = hist.versions.push(node) - 1;
+        node.version = ver;
+      });
+      this._outputStore[id] = hist;
+    });
+    this._deletedCellList = data.deletedCells;
+  }
+
+  public toJSON(): serialized_NodeyHistory {
     var jsn = {
       runs: this._runModel.toJSON(),
       cells: this._cellList

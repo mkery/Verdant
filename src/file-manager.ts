@@ -122,10 +122,7 @@ export class FileManager {
     });
   }
 
-  public loadFromFile(
-    notebook: NotebookListen,
-    historyModel: HistoryModel
-  ): Promise<void> {
+  public loadFromFile(notebook: NotebookListen): Promise<any> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
@@ -141,12 +138,12 @@ export class FileManager {
         .get(path)
         .then(res => {
           console.log("Found a model ", res);
-          accept();
+          accept(res.content);
         })
         .catch(rej => {
           //here when you reject the promise if the filesave fails
           console.error(rej);
-          reject();
+          accept(null);
         });
     });
   }
@@ -180,12 +177,13 @@ export class HistorySaveModel implements Contents.IModel {
 }
 
 export interface serialized_Nodey {
+  typeName: string;
+  parent: string;
   run?: number; //TODO
 }
 
 export interface serialized_NodeyOutput extends serialized_Nodey {
   output: { [key: string]: any };
-  runs: number[];
 }
 
 export interface serialized_NodeyMarkdown extends serialized_Nodey {
@@ -199,6 +197,7 @@ export interface serialized_NodeyCode extends serialized_Nodey {
   start?: { line: number; ch: number };
   end?: { line: number; ch: number };
   content?: any[];
+  right: string;
   runs: number[];
 }
 

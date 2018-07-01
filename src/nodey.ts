@@ -113,7 +113,11 @@ export class NodeyOutput extends Nodey {
   }
 
   toJSON(): serialized_NodeyOutput {
-    return { output: this.raw, runs: this.run };
+    return {
+      parent: this.parent,
+      typeName: "output",
+      output: this.raw
+    };
   }
 
   get typeName(): string {
@@ -177,7 +181,13 @@ export class NodeyCode extends Nodey {
   }
 
   toJSON(): serialized_NodeyCode {
-    var jsn: serialized_NodeyCode = { type: this.type, runs: this.run };
+    var jsn: serialized_NodeyCode = {
+      typeName: "code",
+      parent: this.parent,
+      right: this.right,
+      type: this.type,
+      runs: this.run
+    };
     if (this.literal) jsn.literal = this.literal;
     if (this.output && this.output.length > 0) {
       jsn.output = this.output;
@@ -245,6 +255,12 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
       cell: this.cell
     });
   }
+
+  toJSON(): serialized_NodeyCode {
+    var jsn: serialized_NodeyCode = super.toJSON();
+    jsn.typeName = "codeCell";
+    return jsn;
+  }
 }
 
 export class NodeyMarkdown extends Nodey implements NodeyCell {
@@ -268,7 +284,11 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
   }
 
   toJSON(): serialized_NodeyMarkdown {
-    return { markdown: this.markdown };
+    return {
+      parent: this.parent,
+      typeName: "markdown",
+      markdown: this.markdown
+    };
   }
 
   get typeName(): string {
@@ -280,6 +300,47 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
  * A namespace for Nodey statics.
  */
 export namespace Nodey {
+  export function fromJSON(dat: serialized_Nodey): Nodey {
+    switch (dat.typeName) {
+      case "code":
+        var codedat = dat as serialized_NodeyCode;
+        return new NodeyCode({
+          type: codedat.type,
+          content: codedat.content,
+          output: codedat.output,
+          literal: codedat.literal,
+          right: codedat.right,
+          parent: codedat.parent
+        });
+        break;
+      case "codeCell":
+        var codedat = dat as serialized_NodeyCode;
+        return new NodeyCodeCell({
+          type: codedat.type,
+          output: codedat.output,
+          content: codedat.content,
+          literal: codedat.literal,
+          right: codedat.right,
+          parent: codedat.parent
+        });
+      case "markdown":
+        var markdat = dat as serialized_NodeyMarkdown;
+        return new NodeyMarkdown({
+          markdown: markdat.markdown,
+          parent: markdat.parent
+        });
+      default:
+        return;
+    }
+  }
+
+  export function outputFromJSON(dat: serialized_NodeyOutput): NodeyOutput {
+    return new NodeyOutput({
+      raw: dat.output,
+      parent: dat.parent
+    });
+  }
+
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
     position: number,

@@ -103,6 +103,14 @@ export class RunModel {
     return d;
   }
 
+  public fromJSON(data: serialized_Run[]) {
+    data.map((run: serialized_Run) => {
+      var r = new Run(run.timestamp, run.cells, run.run);
+      this._runList[r.id] = r;
+      this.categorizeRun(r);
+    });
+  }
+
   public toJSON(): serialized_Run[] {
     return this._runList.map(run => {
       return { run: run.id, timestamp: run.timestamp, cells: run.cells };

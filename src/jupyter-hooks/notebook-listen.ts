@@ -27,18 +27,18 @@ export class NotebookListen {
   private _notebookPanel: NotebookPanel;
   private _activeCellChanged = new Signal<this, CellListen>(this);
   kernUtil: KernelListen;
-  astUtils: ASTGenerate;
+  astGen: ASTGenerate;
   cells: Map<string, CellListen>;
   activeCell: Cell;
   historyModel: HistoryModel;
 
   constructor(
     notebookPanel: NotebookPanel,
-    astUtils: ASTGenerate,
+    astGen: ASTGenerate,
     historyModel: HistoryModel
   ) {
     this._notebookPanel = notebookPanel;
-    this.astUtils = astUtils;
+    this.astGen = astGen;
     this.historyModel = historyModel;
     this.cells = new Map<string, CellListen>();
     this.init();
@@ -87,9 +87,12 @@ export class NotebookListen {
   private async init() {
     await this._notebookPanel.ready;
     this._notebook = this._notebookPanel.notebook;
+    this.historyModel.notebook = this;
     this.kernUtil = new KernelListen(this._notebookPanel.session);
-    this.astUtils.setKernUtil(this.kernUtil);
-    await this.astUtils.ready;
+    this.astGen.setKernUtil(this.kernUtil);
+    //load in prior data if exists
+    await this.historyModel.init(this.astGen);
+    await this.astGen.ready;
 
     var cellsReady: Promise<void>[] = [];
     this._notebook.widgets.forEach((item, index) => {
@@ -100,9 +103,6 @@ export class NotebookListen {
     });
     await Promise.all(cellsReady);
     console.log("Loaded Notebook", this._notebook, this.nodey);
-    this.historyModel.notebook = this;
-    //console.log("TO JSON", this.toJSON())
-    this.historyModel.dump();
     this.focusCell(this._notebook.activeCell);
     this.listen();
     this._ready.resolve(undefined);
@@ -158,14 +158,14 @@ export class NotebookListen {
     if (cell instanceof CodeCell)
       cellListen = new CodeCellListen(
         cell,
-        this.astUtils,
+        this.astGen,
         this.historyModel,
         index
       );
     else if (cell instanceof MarkdownCell)
       cellListen = new MarkdownCellListen(
         cell,
-        this.astUtils,
+        this.astGen,
         this.historyModel,
         index
       );
