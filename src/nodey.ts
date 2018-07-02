@@ -8,7 +8,8 @@ import {
   serialized_NodeyOutput,
   serialized_Nodey,
   serialized_NodeyCode,
-  serialized_NodeyMarkdown
+  serialized_NodeyMarkdown,
+  serialized_NodeyCodeCell
 } from "./file-manager";
 
 export abstract class Nodey {
@@ -66,18 +67,9 @@ export abstract class Nodey {
 */
 export class SyntaxToken {
   tokens: string;
-  _star: boolean = false;
 
   constructor(tokens: string) {
     this.tokens = tokens;
-  }
-
-  get star(): boolean {
-    return this._star;
-  }
-
-  set star(flag: boolean) {
-    this._star = flag;
   }
 
   toJSON(): { [id: string]: any } {
@@ -256,9 +248,10 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
     });
   }
 
-  toJSON(): serialized_NodeyCode {
-    var jsn: serialized_NodeyCode = super.toJSON();
+  toJSON(): serialized_NodeyCodeCell {
+    var jsn: serialized_NodeyCodeCell = super.toJSON();
     jsn.typeName = "codeCell";
+    jsn.starNodes = this.starNodes;
     return jsn;
   }
 }
@@ -304,9 +297,16 @@ export namespace Nodey {
     switch (dat.typeName) {
       case "code":
         var codedat = dat as serialized_NodeyCode;
+        var content = codedat.content;
+        if (content) {
+          content = content.map(item => {
+            if (typeof item === "string" || item instanceof String) return item;
+            else return new SyntaxToken(item[SyntaxToken.KEY]);
+          });
+        }
         return new NodeyCode({
           type: codedat.type,
-          content: codedat.content,
+          content: content,
           output: codedat.output,
           literal: codedat.literal,
           right: codedat.right,
@@ -315,10 +315,17 @@ export namespace Nodey {
         break;
       case "codeCell":
         var codedat = dat as serialized_NodeyCode;
+        var content = codedat.content;
+        if (content) {
+          content = content.map(item => {
+            if (typeof item === "string" || item instanceof String) return item;
+            else return new SyntaxToken(item[SyntaxToken.KEY]);
+          });
+        }
         return new NodeyCodeCell({
           type: codedat.type,
           output: codedat.output,
-          content: codedat.content,
+          content: content,
           literal: codedat.literal,
           right: codedat.right,
           parent: codedat.parent

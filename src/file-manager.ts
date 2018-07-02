@@ -10,6 +10,8 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { CellRunData } from "./run";
 
+import { NodeyCode } from "./nodey";
+
 import { GhostBook } from "./widgets/ghost-book";
 
 import { HistoryModel } from "./history-model";
@@ -199,6 +201,10 @@ export interface serialized_NodeyCode extends serialized_Nodey {
   content?: any[];
   right: string;
   runs: number[];
+}
+
+export interface serialized_NodeyCodeCell extends serialized_NodeyCode {
+  starNodes?: NodeyCode[];
 }
 
 export interface serialized_Run {

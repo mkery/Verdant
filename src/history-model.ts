@@ -104,6 +104,7 @@ export class HistoryModel {
   }
 
   getNodey(name: string): Nodey {
+    //console.log("attempting to find", name);
     let [id, ver, tag] = name.split(".");
     if (id === "*" && tag) {
       let cell = this.getNodeyCell(parseInt(ver));
@@ -192,6 +193,7 @@ export class HistoryModel {
 
   public addStarNode(starNode: NodeyCode, relativeTo: NodeyCode): string {
     let cell = this._getCellParent(relativeTo);
+    console.log("adding star node to", relativeTo, cell, starNode);
     cell.starNodes.push(starNode);
     let num = cell.starNodes.length;
     return cell.id + "." + num;

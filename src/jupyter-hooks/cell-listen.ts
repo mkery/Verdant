@@ -6,7 +6,13 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { ASTGenerate } from "../analysis/ast-generate";
 
-import { Nodey, NodeyCell, NodeyCodeCell, NodeyOutput } from "../nodey";
+import {
+  Nodey,
+  NodeyCell,
+  NodeyCodeCell,
+  NodeyOutput,
+  NodeyMarkdown
+} from "../nodey";
 
 import * as CodeMirror from "codemirror";
 
@@ -105,14 +111,24 @@ export class CodeCellListen extends CellListen {
   protected async init(matchPrior: boolean) {
     var cell = this.cell as CodeCell;
     var text: string = cell.editor.model.value.text;
-    var outNode = Nodey.outputToNodey(cell, this.historyModel);
-    var output = [];
-    if (outNode) output.push({ run: 0, out: outNode });
-    this._nodey = await this.astUtils.generateCodeNodey(text, this.position, {
-      output: output,
-      run: 0,
-      cell: this
-    });
+    if (matchPrior) {
+      var nodeyCell = this.historyModel.cellList[
+        this.position
+      ] as NodeyCodeCell; //TODO could easily fail!!!
+      nodeyCell.cell = this;
+      this._nodey = nodeyCell.id;
+      this.astUtils.matchASTOnInit(nodeyCell, text);
+      //TODO match output too
+    } else {
+      var outNode = Nodey.outputToNodey(cell, this.historyModel);
+      var output = [];
+      if (outNode) output.push({ run: 0, out: outNode });
+      this._nodey = await this.astUtils.generateCodeNodey(text, this.position, {
+        output: output,
+        run: 0,
+        cell: this
+      });
+    }
 
     super.init(matchPrior);
   }
@@ -157,13 +173,22 @@ export class CodeCellListen extends CellListen {
   */
 export class MarkdownCellListen extends CellListen {
   protected async init(matchPrior: boolean) {
-    var nodey = Nodey.dictToMarkdownNodey(
-      this.cell.model.value.text,
-      this.position,
-      this.historyModel,
-      this
-    );
-    this._nodey = nodey.id;
+    if (matchPrior) {
+      var nodeyCell = this.historyModel.cellList[
+        this.position
+      ] as NodeyMarkdown; //TODO could easily fail!!!
+      nodeyCell.cell = this;
+      this._nodey = nodeyCell.id;
+      this.astUtils.repairMarkdown(nodeyCell, this.cell.model.value.text);
+    } else {
+      var nodey = Nodey.dictToMarkdownNodey(
+        this.cell.model.value.text,
+        this.position,
+        this.historyModel,
+        this
+      );
+      this._nodey = nodey.id;
+    }
     super.init(matchPrior);
   }
 

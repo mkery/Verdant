@@ -103,6 +103,7 @@ export class NotebookListen {
     });
     await Promise.all(cellsReady);
     console.log("Loaded Notebook", this._notebook, this.nodey);
+    this.historyModel.dump();
     this.focusCell(this._notebook.activeCell);
     this.listen();
     this._ready.resolve(undefined);

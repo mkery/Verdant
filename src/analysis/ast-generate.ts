@@ -6,7 +6,7 @@ import { Session, KernelMessage } from "@jupyterlab/services";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
-import { Nodey, NodeyCode, NodeyCodeCell } from "../nodey";
+import { Nodey, NodeyCode, NodeyCodeCell, NodeyMarkdown } from "../nodey";
 
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 
@@ -48,7 +48,6 @@ def getStart(node):
         loc = getStart(child) if child else None
         return loc
 
-
 def formatToken(tk):
     ban = [token.NEWLINE, token.DEDENT, token.INDENT, token.OP]
     range = {'start': {'line': tk.start[0], 'ch': tk.start[1]}, 'end': {'line': tk.end[0], 'ch': tk.end[1]}}
@@ -66,49 +65,12 @@ def formatTokenList(tk_list):
         formatted.append(fm)
     return formatted
 
-
-def getNewBounty(bounty, tk):
-    target = bounty[-1] if len(bounty) > 0 else None
-
-    if(target):
-        if(tk.string == '['): bounty.append('[')
-
-        elif(tk.string == '('): bounty.append('(')
-
-        elif(tk.string == '{'): bounty.append('{')
-
-        match = fulfillBounty(bounty, tk)
-        if(match) : bounty.pop()
-        else: raise ValueError('Unmatched target '+str(target)+": "+str(bounty))
-
-    return bounty
-
-
-def fulfillBounty(bounty, tk):
-    target = bounty[-1] if len(bounty) > 0 else None
-    if(tk.string == ']'):
-        return True
-    if(tk.string == ')'):
-        return True
-    if(tk.string == '}'):
-        return True
-    return False
-
-
-def processTokenList(tk_list):
-    bounty = []
-    formatted = []
-    for tk in tk_list:
-        bounty = getNewBounty(bounty, tk)
-        formatted += formatTokenList([tk])
-    return bounty, formatted
-
-
 def splitBeforeTokens(content, nodey, before_tokens):
     prevNodey = content[-1] if content != [] else None
     middle = []
     nodeyMatch = []
     for tk in before_tokens:
+        #print('prevNodey is', prevNodey, 'token is', tk, 'nodey is', nodey)
         if(nodey and tk['start']['line'] == nodey['start']['line']):
             nodeyMatch.append(tk)
         elif(prevNodey and tk['start']['line'] == prevNodey['start']['line']):
@@ -131,8 +93,6 @@ def splitAfterTokens(prevStart, nodeStart, after_tokens):
     return middle, nodeyMatch
 
 
-
-
 def processTokens_before(node, tokenList):
     chunkList = []
     before = []
@@ -145,14 +105,14 @@ def processTokens_before(node, tokenList):
                     chunkList.append(chunk)
                 else:
                     before.append(chunk)
-            newBounty, before_formatted = processTokenList(before)
-            return newBounty, before_formatted, chunkList
+            before_formatted = formatTokenList(before)
+            return before_formatted, chunkList
 
-    return [], [], tokenList
+    return [], tokenList
 
 
 
-def processTokens_middle(node, tokenList, bounty):
+def processTokens_middle(node, tokenList):
     children = ast.iter_child_nodes(node)
     child1 = next(children, None)
     content = []
@@ -170,7 +130,7 @@ def processTokens_middle(node, tokenList, bounty):
             for chunk in tokenList:
                 if(child2 and startsWith(child2_start, chunk)): #start of child 2
                     #first, give all the tokens collected so far to child1. child2 starts with what remains
-                    before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1, bounty)
+                    before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1)
                     content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
                     content += before_tokens
                     if child_nodey: content.append(child_nodey)
@@ -182,35 +142,33 @@ def processTokens_middle(node, tokenList, bounty):
                     child1 = child2
                     child2 = next(children, None)
                     child2_start = getStart(child2) if child2 else None
-
                 chunkList.append(chunk)
         else:
             chunkList = tokenList
 
-        before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1, bounty)
+        before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1)
         content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
         content += before_tokens
         if child_nodey: content.append(child_nodey)
         chunkList = after_tokens
-        return bounty, content, chunkList
+        return content, chunkList
     else:
         # no children, but eat what can
         start = getStart(node)
+        #print("my start", start)
         content = []
         if(start):
             if(tokenList[0].start[0] == start['line'] and tokenList[0].start[1] == start['ch']):
                 content += formatTokenList([tokenList.pop(0)])
-                end = content[-1]
-        return bounty, content, tokenList
+                #end = content[-1]
+        return content, tokenList
 
 
-def zipTokensAST(tokens, node, parentBounty = []):
+def zipTokensAST(tokens, node):
+    before_tokens, tokens = processTokens_before(node, tokens)
 
-    bounty = []
-
-    bounty, before_tokens, tokens = processTokens_before(node, tokens)
-
-    bounty, content, remainder = processTokens_middle(node, tokens, bounty)
+    content, remainder = processTokens_middle(node, tokens)
+    #print("got content ", content, remainder)
     if(content != []):
         if(remainder != []):
             remainder, chunkList = splitAfterTokens(None, content[-1]['start'], remainder)
@@ -219,6 +177,7 @@ def zipTokensAST(tokens, node, parentBounty = []):
     else:
         nodey = None
     return before_tokens, nodey, remainder
+
 
 
 def addBackSpaces(tokens):
@@ -256,6 +215,8 @@ def main(text):
     tokens.pop(0) #get rid of encoding stuff
     before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
     nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
+    nodey['start'] = nodey['content'][0]['start']
+    nodey['end'] = nodey['content'][-1]['end']
     nodey['content'].pop() #remove end marker
     print (json.dumps(nodey, indent=2))
 `;
@@ -374,6 +335,30 @@ def main(text):
     future.onReply = onReply;
     future.onIOPub = onIOPub;
     return future.done;
+  }
+
+  async repairMarkdown(nodey: NodeyMarkdown, newText: string) {
+    this.astResolve.repairMarkdown(nodey, newText);
+  }
+
+  async matchASTOnInit(nodey: NodeyCodeCell, newCode: string) {
+    console.log("trying to match code on startup");
+    return new Promise<NodeyCode>((accept, reject) => {
+      var recieve_reply = this.astResolve.matchASTOnInit(nodey);
+
+      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
+        console.log("R: ", msg);
+      };
+      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
+        console.log("IO: ", msg);
+        if (msg.header.msg_type === "stream") {
+          var jsn = (<any>msg.content)["text"];
+          //console.log("py 2 ast execution finished!", jsn)
+          accept(recieve_reply(jsn));
+        }
+      };
+      this.parseCode(newCode, onReply, onIOPub);
+    });
   }
 
   async repairAST(
