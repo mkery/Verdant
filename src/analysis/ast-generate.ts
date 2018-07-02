@@ -215,9 +215,9 @@ def main(text):
     tokens.pop(0) #get rid of encoding stuff
     before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
     nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
+    nodey['content'].pop() #remove end marker
     nodey['start'] = nodey['content'][0]['start']
     nodey['end'] = nodey['content'][-1]['end']
-    nodey['content'].pop() #remove end marker
     print (json.dumps(nodey, indent=2))
 `;
   }

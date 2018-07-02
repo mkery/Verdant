@@ -264,28 +264,29 @@ export class HistoryModel {
     if (prior) prior.right = newNodey.name;
     prior = null;
 
-    newNodey.content.forEach((childName: any, index: number) => {
-      if (!(childName instanceof SyntaxToken)) {
-        //skip syntax tokens
-        let [id, ver] = childName.split(".");
-        if (id === "*" || ver === "*") {
-          // only update children that are changed
-          let child = this.getNodey(childName) as NodeyCode;
-          console.log("getting " + childName, child);
-          let newChild = this._commitCode(
-            child,
-            runId,
-            output,
-            starFactory,
-            prior
-          );
-          newNodey.content[index] = newChild.name;
-          newChild.parent = newNodey.name;
-          if (prior) prior.right = newChild.name;
-          prior = newChild;
+    if(newNodey.content)
+      newNodey.content.forEach((childName: any, index: number) => {
+        if (!(childName instanceof SyntaxToken)) {
+          //skip syntax tokens
+          let [id, ver] = childName.split(".");
+          if (id === "*" || ver === "*") {
+            // only update children that are changed
+            let child = this.getNodey(childName) as NodeyCode;
+            console.log("getting " + childName, child);
+            let newChild = this._commitCode(
+              child,
+              runId,
+              output,
+              starFactory,
+              prior
+            );
+            newNodey.content[index] = newChild.name;
+            newChild.parent = newNodey.name;
+            if (prior) prior.right = newChild.name;
+            prior = newChild;
+          }
         }
-      }
-    });
+      });
 
     return newNodey;
   }

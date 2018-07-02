@@ -193,7 +193,9 @@ export class ASTResolve {
     if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
       //console.log("Time to resolve", jsn, "with", nodey);
       var dict = ASTUtils.reduceASTDict(JSON.parse(jsn));
-      console.log("Reduced AST", dict, nodey, JSON.parse(jsn));
+      console.log("Reduced AST", dict, nodey);
+      console.log(this.historyModel.dump())
+
 
       var [score, candidates, transforms] = this.match(
         0,
@@ -428,7 +430,7 @@ export namespace ASTTransforms {
     var target = this.historyModel.getNodeyHead(nodeName) as NodeyCode;
     target.start = node.start;
     target.end = node.end;
-    console.log("Changing literal from " + target + " to " + newLiteral);
+    console.log("Changing literal from " , target , " to " + newLiteral);
     var starTarget = this.historyModel.markAsEdited(target);
     starTarget.literal = newLiteral;
   }
