@@ -20,8 +20,6 @@ import { Inspect } from "./inspect";
 
 import { FileManager } from "./file-manager";
 
-import { ASTGenerate } from "./analysis/ast-generate";
-
 import {
   serialized_NodeyHistory,
   serialized_Nodey,
@@ -47,7 +45,7 @@ export class HistoryModel {
   private _outputStore: NodeHistory[] = [];
   private _deletedCellList: number[] = [];
 
-  public async init(astGen: ASTGenerate): Promise<boolean> {
+  public async init(): Promise<boolean> {
     // check if there is an existing history file for this notebook
     var data = await this.fileManager.loadFromFile(this._notebook);
     if (data) {
@@ -104,6 +102,7 @@ export class HistoryModel {
   }
 
   getNodey(name: string): Nodey {
+    if (!name) return null;
     //console.log("attempting to find", name);
     let [id, ver, tag] = name.split(".");
     if (id === "*" && tag) {
@@ -264,7 +263,7 @@ export class HistoryModel {
     if (prior) prior.right = newNodey.name;
     prior = null;
 
-    if(newNodey.content)
+    if (newNodey.content)
       newNodey.content.forEach((childName: any, index: number) => {
         if (!(childName instanceof SyntaxToken)) {
           //skip syntax tokens

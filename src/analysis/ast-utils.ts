@@ -124,3 +124,14 @@ namespace Private {
     return null;
   }
 }
+
+export interface ParserNodey
+{
+  content?: any[];
+  start: {line: number, ch: number};
+  end: {line: number, ch: number};
+  type?: string;
+  literal?: string;
+  syntok?: string;
+  parent?: number;
+}

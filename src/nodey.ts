@@ -194,9 +194,8 @@ export class NodeyCode extends Nodey {
   }
 
   clone(): Nodey {
-    var content = null
-    if(this.content)
-      content = this.content.slice(0)
+    var content = null;
+    if (this.content) content = this.content.slice(0);
     //really important to slice the content array or it references, instead of copies, the list
     return new NodeyCode({
       type: this.type,
@@ -237,9 +236,8 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   }
 
   clone(): Nodey {
-    var content = null
-    if(this.content)
-      content = this.content.slice(0)
+    var content = null;
+    if (this.content) content = this.content.slice(0);
     //really important to slice the content array or it references, instead of copies, the list
     return new NodeyCodeCell({
       type: this.type,
@@ -318,7 +316,6 @@ export namespace Nodey {
           right: codedat.right,
           parent: codedat.parent
         });
-        break;
       case "codeCell":
         var codedat = dat as serialized_NodeyCode;
         var content = codedat.content;

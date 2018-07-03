@@ -54,7 +54,7 @@ export class NotebookListen {
 
   get nodey(): string[] {
     var arr: string[] = [];
-    this.cells.forEach((value, key) => {
+    this.cells.forEach(value => {
       arr.push(value.nodeyName);
     });
     return arr;
@@ -91,7 +91,7 @@ export class NotebookListen {
     this.kernUtil = new KernelListen(this._notebookPanel.session);
     this.astGen.setKernUtil(this.kernUtil);
     //load in prior data if exists
-    var prior = await this.historyModel.init(this.astGen);
+    var prior = await this.historyModel.init();
     await this.astGen.ready;
 
     var cellsReady: Promise<void>[] = [];
