@@ -125,13 +125,18 @@ namespace Private {
   }
 }
 
-export interface ParserNodey
-{
+export interface ParserNodey {
   content?: any[];
-  start: {line: number, ch: number};
-  end: {line: number, ch: number};
+  start: { line: number; ch: number };
+  end: { line: number; ch: number };
   type?: string;
   literal?: string;
   syntok?: string;
   parent?: number;
+  match?: MatchedNodey;
+}
+
+export interface MatchedNodey {
+  nodey: string;
+  score: number;
 }

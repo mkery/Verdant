@@ -51,7 +51,7 @@ export class FileManager {
       let contents = new ContentsManager();
       contents
         .save(path, saveModel)
-        .then(res => {
+        .then(() => {
           console.log("Model written to file", saveModel);
           accept();
         })
@@ -78,16 +78,11 @@ export class FileManager {
     let widget = this.docManager.openOrReveal(path);
     if (widget) {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
-      (widget as GhostBook).feedNewData(data);
+      (widget.content as GhostBook).feedNewData(data);
     }
   }
 
-  public writeGhostFile(
-    notebook: NotebookListen,
-    historyModel: HistoryModel,
-    run: number,
-    data: {}
-  ): Promise<string> {
+  public writeGhostFile(notebook: NotebookListen, data: {}): Promise<string> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
@@ -112,7 +107,7 @@ export class FileManager {
       let contents = new ContentsManager();
       contents
         .save(path, saveModel)
-        .then(res => {
+        .then(() => {
           console.log("Model written to file", saveModel);
           accept(path);
         })
@@ -125,7 +120,7 @@ export class FileManager {
   }
 
   public loadFromFile(notebook: NotebookListen): Promise<any> {
-    return new Promise((accept, reject) => {
+    return new Promise(accept => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
@@ -142,9 +137,9 @@ export class FileManager {
           console.log("Found a model ", res);
           accept(res.content);
         })
-        .catch(rej => {
+        .catch(() => {
           //here when you reject the promise if the filesave fails
-          console.error(rej);
+          //console.error(rej);
           accept(null);
         });
     });

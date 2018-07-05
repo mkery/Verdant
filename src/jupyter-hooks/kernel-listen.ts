@@ -1,4 +1,4 @@
-import { Kernel } from "@jupyterlab/services";
+import { Kernel, Session } from "@jupyterlab/services";
 
 import { IClientSession } from "@jupyterlab/apputils";
 
@@ -32,7 +32,10 @@ export class KernelListen {
     );
   }
 
-  private onKernelChanged(sender: any, kernel: Kernel.IKernelConnection) {
-    this.kernel = kernel;
+  private onKernelChanged(
+    sender: IClientSession,
+    args: Session.IKernelChangedArgs
+  ) {
+    this.kernel = args.newValue;
   }
 }

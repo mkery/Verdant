@@ -85,8 +85,8 @@ export class NotebookListen {
   }
 
   private async init() {
-    await this._notebookPanel.ready;
-    this._notebook = this._notebookPanel.notebook;
+    await this._notebookPanel.revealed;
+    this._notebook = this._notebookPanel.content;
     this.historyModel.notebook = this;
     this.kernUtil = new KernelListen(this._notebookPanel.session);
     this.astGen.setKernUtil(this.kernUtil);

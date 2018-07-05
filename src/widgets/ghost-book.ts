@@ -62,7 +62,7 @@ const GHOST_CODE_ADDED = "v-Verdant-GhostBook-code-added";
 /**
  * A widget for images.
  */
-export class GhostBook extends Widget implements DocumentRegistry.IReadyWidget {
+export class GhostBook extends Widget {
   /**
    * The ghost book's widget's context.
    */

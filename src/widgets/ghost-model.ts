@@ -1,10 +1,12 @@
 import { IEditorMimeTypeService } from "@jupyterlab/codeeditor";
 
-import { ABCWidgetFactory } from "@jupyterlab/docregistry";
+import {
+  ABCWidgetFactory,
+  DocumentWidget,
+  DocumentRegistry
+} from "@jupyterlab/docregistry";
 
 import { RenderMimeRegistry } from "@jupyterlab/rendermime";
-
-import { DocumentRegistry } from "@jupyterlab/docregistry";
 
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -28,13 +30,27 @@ import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
 import { InstanceTracker } from "@jupyterlab/apputils";
 
+export class GhostBookPanel extends DocumentWidget<GhostBook, GhostBookModel> {
+  constructor(options: DocumentWidget.IOptions<GhostBook, GhostBookModel>) {
+    super(options);
+  }
+}
+
 /**
  * A widget factory for images.
  */
 export class GhostBookFactory extends ABCWidgetFactory<
-  GhostBook,
-  NotebookModel
+  GhostBookPanel,
+  GhostBookModel
 > {
+  constructor(options: NotebookWidgetFactory.IOptions) {
+    super(options);
+    this.rendermime = options.rendermime;
+    /*this.contentFactory = NotebookPanel.defaultContentFactory;
+    this.mimeTypeService = options.mimeTypeService;
+    this._editorConfig = StaticNotebook.defaultEditorConfig;*/
+  }
+
   /*
    * The rendermime instance.
    */
@@ -51,21 +67,17 @@ export class GhostBookFactory extends ABCWidgetFactory<
   readonly mimeTypeService: IEditorMimeTypeService;
 
   //private _editorConfig: StaticNotebook.IEditorConfig;
-
-  constructor(options: NotebookWidgetFactory.IOptions) {
-    super(options);
-    this.rendermime = options.rendermime;
-    /*this.contentFactory = NotebookPanel.defaultContentFactory;
-    this.mimeTypeService = options.mimeTypeService;
-    this._editorConfig = StaticNotebook.defaultEditorConfig;*/
-  }
   /**
    * Create a new widget given a context.
    */
   protected createNewWidget(
     context: DocumentRegistry.IContext<GhostBookModel>
-  ): GhostBook {
-    return new GhostBook(context, { rendermime: this.rendermime });
+  ): GhostBookPanel {
+    var ghostBook = new GhostBook(context, { rendermime: this.rendermime });
+    return new GhostBookPanel({
+      content: ghostBook,
+      context
+    });
   }
 }
 
@@ -120,6 +132,8 @@ export namespace GhostBookFactory {
       modelName: "ghost",
       fileTypes: ["ghost"],
       defaultFor: ["ghost"],
+      preferKernel: true,
+      canStartKernel: false,
       readOnly: true,
       rendermime: rendermime,
       contentFactory,
@@ -148,19 +162,21 @@ export namespace GhostBookFactory {
     });
     //console.log("Doc registrey is:", docRegistry);
 
-    ghostFactory.widgetCreated.connect((sender: any, widget: GhostBook) => {
-      // Notify the instance tracker if restore data needs to update.
-      widget.context.pathChanged.connect(() => {
-        ghostTracker.save(widget);
-      });
-      ghostTracker.add(widget);
+    ghostFactory.widgetCreated.connect(
+      (sender: any, widget: DocumentWidget<GhostBook, GhostBookModel>) => {
+        // Notify the instance tracker if restore data needs to update.
+        widget.context.pathChanged.connect(() => {
+          ghostTracker.save(widget.content);
+        });
+        ghostTracker.add(widget.content);
 
-      const types = docRegistry.getFileTypesForPath(widget.context.path);
+        const types = docRegistry.getFileTypesForPath(widget.context.path);
 
-      if (types.length > 0) {
-        widget.title.iconClass = GHOST_BOOK_ICON;
+        if (types.length > 0) {
+          widget.title.iconClass = GHOST_BOOK_ICON;
+        }
       }
-    });
+    );
 
     return ghostFactory;
   }
