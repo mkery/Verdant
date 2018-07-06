@@ -280,9 +280,13 @@ export class ASTResolve {
   ): NodeyCode {
     if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
       //console.log("Time to resolve", jsn, "with", nodey);
-      var dict: ParserNodey = ASTUtils.reduceASTDict(
-        JSON.parse(jsn)
-      ) as ParserNodey;
+      var dict: ParserNodey = JSON.parse(jsn) as ParserNodey;
+      if (nodey instanceof NodeyCodeCell === false) {
+        // only reduce if the target type is not a Module
+        // NodeyCodeCell are always Module AST type, so
+        // no need to reduce
+        dict = ASTUtils.reduceASTDict(dict) as ParserNodey;
+      }
       console.log("Reduced AST", dict, nodey);
       console.log(this.historyModel.dump());
 
@@ -338,29 +342,34 @@ export class ASTResolve {
     relativeTo: NodeyCode
   ) {
     var parsedNode = newNodes[root].nodey;
-    console.log("PARSED NODE", parsedNode, newNodes[root].match);
+    //console.log("PARSED NODE", parsedNode, newNodes[root].match);
     var match = newNodes[root].match;
     var nodeyEdited: NodeyCode;
-    if (match) {
+    if (match && match.index > -1) {
       var nodeyMatch = oldNodes[match.index];
       var nodey = this.historyModel.getNodey(nodeyMatch.nodey) as NodeyCode;
       if (match.score !== 0) {
         // there was some change
         nodeyEdited = this.historyModel.markAsEdited(nodey);
         if (parsedNode.literal) nodeyEdited.literal = parsedNode.literal;
-        if (parsedNode.content) {
-          console.log("parsed node content is ", parsedNode.content);
-          var content = parsedNode.content.map(num => {
-            if (num instanceof SyntaxToken) return num;
-
-            let child = this.finalizeMatch(num, newNodes, oldNodes, relativeTo);
-            child.parent = nodeyEdited.name;
-            return child.name;
-          });
-          nodeyEdited.content = content;
-          console.log("edited node is ", nodeyEdited);
-        }
       } else nodeyEdited = nodey; // exactly the same
+
+      // unfortunately we traverse even if no change if positions aren't set
+      if (parsedNode.content && (match.score !== 0 || !nodeyEdited.end)) {
+        //TODO optimize
+        var content = parsedNode.content.map(num => {
+          if (num instanceof SyntaxToken) return num;
+
+          let child = this.finalizeMatch(num, newNodes, oldNodes, relativeTo);
+          child.parent = nodeyEdited.name;
+          return child.name;
+        });
+        nodeyEdited.content = content;
+        console.log("edited node is ", nodeyEdited);
+      }
+      //fix position
+      nodeyEdited.start = parsedNode.start;
+      nodeyEdited.end = parsedNode.end;
     } else {
       console.log("New Node!", parsedNode);
       nodeyEdited = this.buildStarNode(parsedNode, relativeTo, newNodes);
@@ -518,7 +527,7 @@ export class ASTResolve {
       leafChildren.forEach(index => {
         if (index instanceof SyntaxToken === false) {
           var leaf = newNodey[index];
-          if (leaf.match) {
+          if (leaf.match && leaf.match.index > -1) {
             score += leaf.match.score;
             if (
               nodeParent.content.indexOf(oldNodey[leaf.match.index].nodey) > -1

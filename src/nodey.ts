@@ -138,13 +138,16 @@ export class NodeyCode extends Nodey {
   }
 
   positionRelativeTo(target: NodeyCode) {
-    var deltaLine = target.start.line;
-    var deltaCh = target.start.ch;
-    this.start = {
-      line: deltaLine + this.start.line,
-      ch: deltaCh + this.start.ch
-    };
-    this.end = { line: deltaLine + this.end.line, ch: deltaCh + this.end.ch };
+    //may run into historical targets that do not have position info
+    if (target.start && target.end) {
+      var deltaLine = target.start.line;
+      var deltaCh = target.start.ch;
+      this.start = {
+        line: deltaLine + this.start.line,
+        ch: deltaCh + this.start.ch
+      };
+      this.end = { line: deltaLine + this.end.line, ch: deltaCh + this.end.ch };
+    }
   }
 
   getOutput(runId: number): string[] {
