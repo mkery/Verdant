@@ -268,9 +268,9 @@ export class HistoryModel {
         if (!(childName instanceof SyntaxToken)) {
           //skip syntax tokens
           let [id, ver] = childName.split(".");
+          let child = this.getNodey(childName) as NodeyCode;
           if (id === "*" || ver === "*") {
             // only update children that are changed
-            let child = this.getNodey(childName) as NodeyCode;
             console.log("getting " + childName, child);
             let newChild = this._commitCode(
               child,
@@ -283,6 +283,10 @@ export class HistoryModel {
             newChild.parent = newNodey.name;
             if (prior) prior.right = newChild.name;
             prior = newChild;
+          } else {
+            child.parent = newNodey.name;
+            if (prior) prior.right = child.name;
+            prior = child;
           }
         }
       });

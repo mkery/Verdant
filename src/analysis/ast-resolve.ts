@@ -258,7 +258,7 @@ export class ASTResolve {
       while (newParents.length > 0) {
         newParents = this.matchParentNodes(newLeaves, newNodey);
       }
-      this.finalizeMatch(newNodey.length - 1, newNodey);
+      this.finalizeMatch(newNodey.length - 1, newNodey, nodey);
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
@@ -266,22 +266,33 @@ export class ASTResolve {
     return nodey;
   }
 
-  finalizeMatch(root: number, newNodes: ParserNodey[]) {
+  finalizeMatch(root: number, newNodes: ParserNodey[], relativeTo: NodeyCode) {
     var parsedNode = newNodes[root];
+    console.log("PARSED NODE", parsedNode);
     var match = parsedNode.match;
+    var nodeyEdited: NodeyCode;
     if (match) {
+      var nodey = this.historyModel.getNodey(match.nodey) as NodeyCode;
       if (match.score !== 0) {
         // there was some change
-        var nodey = this.historyModel.getNodey(match.nodey) as NodeyCode;
-        var nodeyEdited = this.historyModel.markAsEdited(nodey);
-        if (parsedNode.literal) {
-          nodeyEdited.literal = parsedNode.literal;
-        } else {
+        nodeyEdited = this.historyModel.markAsEdited(nodey);
+        if (parsedNode.literal) nodeyEdited.literal = parsedNode.literal;
+        if (parsedNode.content) {
+          console.log("parsed node content is ", parsedNode.content);
+          var content = parsedNode.content.map(num => {
+            let child = this.finalizeMatch(num, newNodes, relativeTo);
+            child.parent = nodeyEdited.name;
+            return child.name;
+          });
+          nodeyEdited.content = content;
+          console.log("edited node is ", nodeyEdited);
         }
-      }
+      } else nodeyEdited = nodey; // exactly the same
     } else {
-      console.log("New Node! No match for", parsedNode);
+      console.log("New Node!", parsedNode);
+      nodeyEdited = this.buildStarNode(parsedNode, relativeTo);
     }
+    return nodeyEdited;
   }
 
   matchParentNodes(matchedLeaves: number[], newNodes: ParserNodey[]) {
@@ -375,11 +386,6 @@ export class ASTResolve {
     // now choose the best match for each parsed Parent
     var finishedParsed = <number[]>[];
     parsedParentOptions.forEach(parsedParent => {
-      if (newNodes[parsedParent.index].parent) {
-        if (!newNodes[newNodes[parsedParent.index].parent].match) {
-          finishedParsed.push(parsedParent.index);
-        }
-      }
       var bestMatch = { nodey: <string>null, score: Number.MAX_SAFE_INTEGER };
       parsedParent.possibleMatches.forEach(candidate => {
         var match = nodeyParentOptions[candidate].matched;
@@ -391,6 +397,15 @@ export class ASTResolve {
       });
       console.log("best match for ", parsedParent, "is", bestMatch);
       if (bestMatch.nodey) newNodes[parsedParent.index].match = bestMatch;
+      else newNodes[parsedParent.index].match = { nodey: null, score: 0 };
+    });
+
+    parsedParentOptions.forEach(parsedParent => {
+      if (newNodes[parsedParent.index].parent) {
+        if (!newNodes[newNodes[parsedParent.index].parent].match) {
+          finishedParsed.push(parsedParent.index);
+        }
+      }
     });
 
     return finishedParsed;
@@ -415,6 +430,7 @@ export class ASTResolve {
       var numChildren = nodeParent.getChildren().length;
       var score = numChildren;
       leafChildren.forEach(leaf => {
+        score += leaf.match.score;
         if (nodeParent.content.indexOf(leaf.match.nodey) > -1) score -= 1;
         else score += 1;
       });
@@ -530,6 +546,34 @@ export class ASTResolve {
     }
 
     return match;
+  }
+
+  buildStarNode(
+    node: ParserNodey,
+    target: NodeyCode,
+    prior: NodeyCode = null
+  ): NodeyCode {
+    var n = new NodeyCode(node);
+    n.id = "*";
+    n.start.line -= 1; // convert the coordinates of the range to code mirror style
+    n.end.line -= 1;
+    if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
+    var label = this.historyModel.addStarNode(n, target);
+    n.version = label;
+
+    if (prior) prior.right = n.name;
+    prior = null;
+
+    n.content = [];
+    for (var item in node.content) {
+      var child = this.buildStarNode(node.content[item], target, prior);
+      child.parent = n.name;
+      if (prior) prior.right = child.name;
+      n.content.push(child.name);
+      prior = child;
+    }
+
+    return n;
   }
 
   /*
