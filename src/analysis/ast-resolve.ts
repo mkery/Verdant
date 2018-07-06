@@ -6,7 +6,7 @@ import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 import { HistoryModel } from "../history-model";
 
-import { ASTUtils, ParserNodey, MatchedNodey } from "./ast-utils";
+import { ASTUtils } from "./ast-utils";
 
 import * as crypto from "crypto";
 import * as levenshtein from "fast-levenshtein";
@@ -187,48 +187,75 @@ export class ASTResolve {
 
   dictToNodeyList(
     dict: ParserNodey,
-    nodeyList: ParserNodey[] = [],
+    nodeyList: ParsedNodeOptions[] = [],
     leaves: number[] = []
-  ): [ParserNodey[], number[], number[]] {
+  ): [ParsedNodeOptions[], number[], number[]] {
+    // set up parsed nodey for matching
+    var option: ParsedNodeOptions = {
+      nodey: dict,
+      match: null,
+      possibleMatches: []
+    };
+
     if ("literal" in dict) {
-      var index = nodeyList.push(dict) - 1;
+      var index = nodeyList.push(option) - 1;
       leaves.push(index);
       return [nodeyList, leaves, [index]];
-    } else if (!(SyntaxToken.KEY in dict)) {
-      //just ignore SyntaxToken
-      var children: number[] = [];
-      dict.content.forEach((d: ParserNodey) => {
-        let kids = [];
-        [nodeyList, leaves, kids] = this.dictToNodeyList(d, nodeyList, leaves);
-        console.log("content is", d, children, nodeyList, kids);
-        children = children.concat(kids);
-      });
-      var nodey = {
-        start: dict.start,
-        end: dict.end,
-        content: children,
-        type: dict.type
-      };
-      var index = nodeyList.push(nodey) - 1;
-      children.forEach(num => {
-        nodeyList[num].parent = index;
-      });
+    }
+
+    if (!dict.content) {
+      var index = nodeyList.push(option) - 1;
       return [nodeyList, leaves, [index]];
     }
-    return [nodeyList, leaves, []];
+
+    var children: any[] = [];
+    dict.content.forEach((d: ParserNodey) => {
+      if (SyntaxToken.KEY in dict) {
+        children.push(new SyntaxToken(dict[SyntaxToken.KEY]));
+      } else {
+        let kids = [];
+        [nodeyList, leaves, kids] = this.dictToNodeyList(d, nodeyList, leaves);
+        //console.log("content is", d, children, nodeyList, kids);
+        children = children.concat(kids);
+      }
+    });
+    option.nodey = {
+      start: dict.start,
+      end: dict.end,
+      content: children,
+      type: dict.type
+    };
+
+    var index = nodeyList.push(option) - 1;
+    children.forEach(num => {
+      nodeyList[num].nodey.parent = index;
+    });
+    return [nodeyList, leaves, [index]];
   }
 
-  nodeyToLeaves(nodey: NodeyCode, leaves: string[] = []): string[] {
-    if (nodey.literal) leaves.push(nodey.name);
+  nodeyToLeaves(
+    nodey: NodeyCode,
+    oldNodey: NodeyOptions[] = [],
+    leaves: number[] = []
+  ): [NodeyOptions[], number[]] {
+    var option: NodeyOptions = {
+      nodey: nodey.name,
+      match: null,
+      possibleMatches: []
+    };
+
+    var index = oldNodey.push(option) - 1;
+
+    if (nodey.literal) leaves.push(index);
     else {
       nodey.content.forEach(name => {
         if (!(name instanceof SyntaxToken)) {
           var child = this.historyModel.getNodey(name) as NodeyCode;
-          leaves = this.nodeyToLeaves(child, leaves);
+          [oldNodey, leaves] = this.nodeyToLeaves(child, oldNodey, leaves);
         }
       });
     }
-    return leaves;
+    return [oldNodey, leaves];
   }
 
   recieve_newVersion(
@@ -241,24 +268,33 @@ export class ASTResolve {
       var dict: ParserNodey = ASTUtils.reduceASTDict(
         JSON.parse(jsn)
       ) as ParserNodey;
-      var [newNodey, newLeaves] = this.dictToNodeyList(dict);
-      var oldLeaves = this.nodeyToLeaves(nodey);
-      console.log("Listified nodey", newNodey, newLeaves, oldLeaves);
       console.log("Reduced AST", dict, nodey);
       console.log(this.historyModel.dump());
 
-      var candidates = oldLeaves.map((item, index) => {
-        //need to preserve the exact index of the original content to go back and edit it later
-        return { item: item, index: index };
-      });
-      console.log("candidates are", candidates);
-      this.matchLeaves(newNodey, newLeaves, candidates);
-      console.log("Matched Leaves!", newNodey);
-      var newParents = this.matchParentNodes(newLeaves, newNodey);
+      /*
+      * First, create a list of Parser nodey options,
+      * a list of Nodey options,
+      * and a list of leaves from the parser AST and the
+      * nodey AST. The list of leaves is our starting point
+      * for matching
+      */
+      var [newNodey, newLeaves] = this.dictToNodeyList(dict);
+      var [oldNodey, oldLeaves] = this.nodeyToLeaves(nodey);
+      console.log("Listified nodey", newNodey, newLeaves, oldNodey, oldLeaves);
+
+      /*
+      * Next, match leaves
+      */
+      this.matchLeaves(newNodey, newLeaves, oldNodey, oldLeaves);
+      console.log("Matched Leaves!", newNodey, oldNodey);
+      var newParents = this.grabUnmatchedParents(newLeaves, newNodey, oldNodey);
       while (newParents.length > 0) {
-        newParents = this.matchParentNodes(newLeaves, newNodey);
+        console.log("Now need to match", newParents);
+        this.matchParentNodes(newParents, newNodey, oldNodey);
+        console.log("Matched parents!", newNodey, oldNodey);
+        newParents = this.grabUnmatchedParents(newParents, newNodey, oldNodey);
       }
-      this.finalizeMatch(newNodey.length - 1, newNodey, nodey);
+      this.finalizeMatch(newNodey.length - 1, newNodey, oldNodey, nodey);
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
@@ -266,13 +302,19 @@ export class ASTResolve {
     return nodey;
   }
 
-  finalizeMatch(root: number, newNodes: ParserNodey[], relativeTo: NodeyCode) {
-    var parsedNode = newNodes[root];
+  finalizeMatch(
+    root: number,
+    newNodes: ParsedNodeOptions[],
+    oldNodes: NodeyOptions[],
+    relativeTo: NodeyCode
+  ) {
+    var parsedNode = newNodes[root].nodey;
     console.log("PARSED NODE", parsedNode);
-    var match = parsedNode.match;
+    var match = newNodes[root].match;
     var nodeyEdited: NodeyCode;
     if (match) {
-      var nodey = this.historyModel.getNodey(match.nodey) as NodeyCode;
+      var nodeyMatch = oldNodes[match.index];
+      var nodey = this.historyModel.getNodey(nodeyMatch.nodey) as NodeyCode;
       if (match.score !== 0) {
         // there was some change
         nodeyEdited = this.historyModel.markAsEdited(nodey);
@@ -280,7 +322,7 @@ export class ASTResolve {
         if (parsedNode.content) {
           console.log("parsed node content is ", parsedNode.content);
           var content = parsedNode.content.map(num => {
-            let child = this.finalizeMatch(num, newNodes, relativeTo);
+            let child = this.finalizeMatch(num, newNodes, oldNodes, relativeTo);
             child.parent = nodeyEdited.name;
             return child.name;
           });
@@ -295,7 +337,54 @@ export class ASTResolve {
     return nodeyEdited;
   }
 
-  matchParentNodes(matchedLeaves: number[], newNodes: ParserNodey[]) {
+  grabUnmatchedParents(
+    matchedLeaves: number[],
+    newNodes: ParsedNodeOptions[],
+    oldNodes: NodeyOptions[]
+  ) {
+    var singleParents: number[] = [];
+
+    matchedLeaves.forEach(leafIndex => {
+      var leaf = newNodes[leafIndex];
+      if (leaf.nodey.parent) {
+        var parent = newNodes[leaf.nodey.parent];
+
+        if (!parent.match && leaf.match && leaf.match.index > -1) {
+          if (singleParents.indexOf(leaf.nodey.parent) <= -1) {
+            singleParents.push(leaf.nodey.parent);
+          }
+
+          var nodeyOpt = oldNodes[leaf.match.index];
+          if (nodeyOpt.parentIndex) {
+            var nodeyParentOpt = oldNodes[nodeyOpt.parentIndex];
+            if (!nodeyParentOpt.match) {
+              var matchIndex = nodeyParentOpt.possibleMatches.findIndex(
+                item => item.index === leaf.nodey.parent
+              );
+              if (matchIndex <= -1) {
+                nodeyParentOpt.possibleMatches.push({
+                  index: leaf.nodey.parent,
+                  score: NO_MATCH_SCORE
+                });
+                parent.possibleMatches.push({
+                  index: nodeyOpt.parentIndex,
+                  score: NO_MATCH_SCORE
+                });
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return singleParents;
+  }
+
+  matchParentNodes(
+    newParents: number[],
+    newNodey: ParsedNodeOptions[],
+    oldNodey: NodeyOptions[]
+  ) {
     //for each leaf node, get its possible parents
     // the goal is, for the parent of the parsed leaf, try to figure out if it
     // is one of the old parents or no
@@ -305,116 +394,78 @@ export class ASTResolve {
     * 2. decide the best parent matches O(nk) where k = number possible matches
     * 3. update the history Model
     */
-    var parsedParentOptions: {
-      index: number;
-      possibleMatches: number[];
-      leafChildren: ParserNodey[];
-    }[] = [];
-    var nodeyParentOptions: {
-      name: string;
-      matched: { index: number; score: number };
-      possibleMatches: { index: number; score: number }[];
-    }[] = [];
-
-    matchedLeaves.forEach(leafIndex => {
-      var leaf = newNodes[leafIndex];
-      if (leaf.parent) {
-        var parsedIndex = parsedParentOptions.findIndex(item => {
-          return item.index === leaf.parent;
-        });
-        if (parsedIndex <= -1)
-          parsedIndex =
-            parsedParentOptions.push({
-              index: leaf.parent,
-              possibleMatches: [],
-              leafChildren: [leaf]
-            }) - 1;
-        else parsedParentOptions[parsedIndex].leafChildren.push(leaf);
-
-        if (leaf.match.nodey) {
-          var nodey = this.historyModel.getNodey(leaf.match.nodey);
-          if (nodey.parent) {
-            var nodeyIndex = nodeyParentOptions.findIndex(item => {
-              return item.name === nodey.parent;
-            });
-            if (nodeyIndex <= -1) {
-              nodeyIndex =
-                nodeyParentOptions.push({
-                  name: nodey.parent,
-                  matched: null,
-                  possibleMatches: []
-                }) - 1;
-            }
-            parsedParentOptions[parsedIndex].possibleMatches.push(nodeyIndex);
-          }
-        }
-      }
-    });
-
-    console.log("now options are ", parsedParentOptions, nodeyParentOptions);
+    var refineParsed: number[] = [];
+    var refineNodey: number[] = [];
 
     // Now we have a crazy list for all nodey parents and all parsed parents
     // of possible pairings. Grade each.
-    parsedParentOptions.forEach(item => {
-      var parsedParent = newNodes[item.index];
-      var leafChildren = item.leafChildren;
-      item.possibleMatches.forEach(candidate => {
-        var oldParent = this.historyModel.getNodey(
-          nodeyParentOptions[candidate].name
-        ) as NodeyCode;
+    newParents.forEach(index => {
+      var parsedParent = newNodey[index];
+      var leafChildren = parsedParent.nodey.content;
+      parsedParent.possibleMatches.forEach(candidate => {
+        var nodeyParent = oldNodey[candidate.index];
+        var nodey = this.historyModel.getNodey(nodeyParent.nodey) as NodeyCode;
         var score = this.scoreParentMatch(
-          parsedParent,
-          oldParent,
-          leafChildren
+          parsedParent.nodey,
+          nodey,
+          leafChildren,
+          oldNodey
         );
-        nodeyParentOptions[candidate].possibleMatches.push({
-          index: item.index,
-          score: score
-        });
+        candidate.score = score;
+        if (score === 0) {
+          //Perfect match!
+          parsedParent.match = candidate;
+          nodeyParent.match = { index: index, score: 0 };
+        } else {
+          //one possible match
+          var matchIndex = nodeyParent.possibleMatches.findIndex(
+            item => item.index === index
+          );
+          nodeyParent.possibleMatches[matchIndex].score = score;
+          refineNodey.push(candidate.index);
+          refineParsed.push(index);
+        }
       });
     });
 
     //Now choose the best score for the nodeyParents
-    nodeyParentOptions.forEach(nodeyParent => {
-      var bestMatch = { index: -1, score: Number.MAX_SAFE_INTEGER };
-      nodeyParent.possibleMatches.forEach(candidate => {
-        if (candidate.score < bestMatch.score) bestMatch = candidate;
-      });
-      nodeyParent.matched = bestMatch;
-    });
-
-    // now choose the best match for each parsed Parent
-    var finishedParsed = <number[]>[];
-    parsedParentOptions.forEach(parsedParent => {
-      var bestMatch = { nodey: <string>null, score: Number.MAX_SAFE_INTEGER };
-      parsedParent.possibleMatches.forEach(candidate => {
-        var match = nodeyParentOptions[candidate].matched;
-        if (match.index === parsedParent.index && match.score < bestMatch.score)
-          bestMatch = {
-            nodey: nodeyParentOptions[candidate].name,
-            score: match.score
-          };
-      });
-      console.log("best match for ", parsedParent, "is", bestMatch);
-      if (bestMatch.nodey) newNodes[parsedParent.index].match = bestMatch;
-      else newNodes[parsedParent.index].match = { nodey: null, score: 0 };
-    });
-
-    parsedParentOptions.forEach(parsedParent => {
-      if (newNodes[parsedParent.index].parent) {
-        if (!newNodes[newNodes[parsedParent.index].parent].match) {
-          finishedParsed.push(parsedParent.index);
-        }
+    refineNodey.forEach(index => {
+      var nodeyParent = oldNodey[index];
+      if (!nodeyParent.match) {
+        var bestMatch = { index: -1, score: NO_MATCH_SCORE };
+        nodeyParent.possibleMatches.forEach(candidate => {
+          if (candidate.score < bestMatch.score) bestMatch = candidate;
+        });
+        nodeyParent.match = bestMatch;
+        newNodey[bestMatch.index].match = {
+          index: index,
+          score: bestMatch.score
+        };
       }
     });
 
-    return finishedParsed;
+    // now choose the best match for each parsed Parent
+    refineParsed.forEach(index => {
+      var parsedParent = newNodey[index];
+      if (!parsedParent.match) {
+        var bestMatch = { index: -1, score: NO_MATCH_SCORE };
+        parsedParent.possibleMatches.forEach(candidate => {
+          var nodeyParent = oldNodey[candidate.index];
+          if (!nodeyParent.match && candidate.score < bestMatch.score)
+            bestMatch = candidate;
+        });
+        console.log("best match for ", parsedParent, "is", bestMatch);
+        if (bestMatch.index > -1) oldNodey[bestMatch.index].match = bestMatch;
+        else parsedParent.match = { index: -1, score: 1 };
+      }
+    });
   }
 
   scoreParentMatch(
     parsedParent: ParserNodey,
     nodeParent: NodeyCode,
-    leafChildren: ParserNodey[]
+    leafChildren: ParsedNodeOptions[],
+    oldNodey: NodeyOptions[]
   ): number {
     /* Cost function
     *  current children versus children in oldParent
@@ -423,7 +474,7 @@ export class ASTResolve {
     *  cost of inserting a new node newParent
     *
     */
-    var score = Number.MAX_SAFE_INTEGER;
+    var score = NO_MATCH_SCORE;
     if (nodeParent.type !== parsedParent.type) {
       //TODO Case 1 or Case 2 is possible look up the chain
     } else {
@@ -431,7 +482,8 @@ export class ASTResolve {
       var score = numChildren;
       leafChildren.forEach(leaf => {
         score += leaf.match.score;
-        if (nodeParent.content.indexOf(leaf.match.nodey) > -1) score -= 1;
+        if (nodeParent.content.indexOf(oldNodey[leaf.match.index].nodey) > -1)
+          score -= 1;
         else score += 1;
       });
       //TODO decide when Case 2 is possible and how
@@ -440,112 +492,61 @@ export class ASTResolve {
   }
 
   matchLeaves(
-    newNodes: ParserNodey[],
+    newNodes: ParsedNodeOptions[],
     newLeaves: number[],
-    oldLeaves: { item: string; index: number }[]
+    oldNodes: NodeyOptions[],
+    oldLeaves: number[]
   ) {
-    var choices: {
-      leaf: number;
-      options: { score: number; transforms: (() => void)[] }[];
-    }[] = [];
     newLeaves.forEach((leafIndex: number) => {
-      var [perfectMatch, options] = this.findLeafMatchOptions(
-        leafIndex,
-        newNodes,
-        oldLeaves
-      );
-      if (perfectMatch) {
-        oldLeaves.splice(perfectMatch.index, 1);
-        newNodes[leafIndex].match = {
-          nodey: perfectMatch.item,
-          score: 0
-        };
-      } else choices.push({ leaf: leafIndex, options: options });
+      var leaf = newNodes[leafIndex];
+      this.findLeafMatchOptions(leaf, oldNodes, oldLeaves);
     });
 
-    choices.forEach(imperfectMatch => {
-      var match = this.chooseMatchOption(
-        imperfectMatch.leaf,
-        imperfectMatch.options,
-        newNodes,
-        oldLeaves
-      );
-      newNodes[imperfectMatch.leaf].match = match;
+    oldLeaves.forEach((leafIndex: number) => {
+      var nodeyOpt = oldNodes[leafIndex];
+      if (!nodeyOpt.match) {
+        var bestMatch = { index: -1, score: NO_MATCH_SCORE };
+        nodeyOpt.possibleMatches.forEach(match => {
+          var leaf = newNodes[match.index];
+          if (!leaf.match && match.score < bestMatch.score) bestMatch = match;
+        });
+        nodeyOpt.match = bestMatch;
+        if (bestMatch.index > -1) {
+          var leaf = newNodes[bestMatch.index];
+          leaf.match = { index: leafIndex, score: bestMatch.score };
+        }
+      }
+    });
+
+    newLeaves.forEach((leafIndex: number) => {
+      var leaf = newNodes[leafIndex];
+      if (!leaf.match) leaf.match = { index: -1, score: 1 };
     });
   }
 
   findLeafMatchOptions(
-    leafIndex: number,
-    newNodes: ParserNodey[],
-    oldLeaves: { item: string; index: number }[]
-  ): [
-    { item: string; index: number },
-    { score: number; transforms: (() => void)[] }[]
-  ] {
-    var newLeaf = newNodes[leafIndex];
-    var options = [];
-    var matched: { item: string; index: number } = null;
+    leaf: ParsedNodeOptions,
+    oldNodeList: NodeyOptions[],
+    oldLeaves: number[]
+  ) {
     var i = 0;
+    while (leaf.match === null && i < oldLeaves.length) {
+      var oldLeaf = oldNodeList[oldLeaves[i]];
+      if (!oldLeaf.match) {
+        var oldNodey = this.historyModel.getNodey(oldLeaf.nodey) as NodeyCode;
+        var score = this.matchLiteralNode(leaf.nodey, oldNodey);
 
-    while (matched === null && i < oldLeaves.length) {
-      var oldLeaf = this.historyModel.getNodey(oldLeaves[i].item) as NodeyCode;
-      var [score, updates] = this._matchLiteralNode(newLeaf, oldLeaf);
-
-      if (score === 0) {
-        // perfect match
-        matched = { item: oldLeaves[i].item, index: i };
-      } else if (score != -1)
-        options[oldLeaves[i].index] = { score: score, transforms: updates };
-
-      i++;
-    }
-
-    return [matched, options];
-  }
-
-  chooseMatchOption(
-    leafIndex: number,
-    options: { score: number; transforms: (() => void)[] }[],
-    newNodes: ParserNodey[],
-    oldLeaves: { item: string; index: number }[]
-  ): MatchedNodey {
-    var newLeaf = newNodes[leafIndex];
-    console.log(
-      "No exact match found for",
-      newLeaf,
-      " now options are ",
-      options,
-      oldLeaves
-    );
-
-    var bestMatch;
-    var matchIndex;
-    for (var k = 0; k < oldLeaves.length; k++) {
-      var j = oldLeaves[k].index;
-      if (options[j]) {
-        //can use this one
-        if (!bestMatch || bestMatch.score > options[j].score) {
-          bestMatch = options[j];
-          matchIndex = k;
+        if (score === 0) {
+          // perfect match
+          leaf.match = { index: i, score: score };
+          oldLeaf.match = { index: i, score: score };
+        } else if (score != -1) {
+          leaf.possibleMatches.push({ index: i, score: score });
+          oldLeaf.possibleMatches.push({ index: i, score: score });
         }
       }
+      i++;
     }
-
-    if (bestMatch) {
-      console.log("there is a best match!", bestMatch);
-      var match: MatchedNodey = {
-        nodey: oldLeaves[matchIndex].item,
-        score: bestMatch.score
-      };
-      oldLeaves.splice(matchIndex, 1);
-    } else {
-      var match: MatchedNodey = {
-        nodey: "",
-        score: 1
-      };
-    }
-
-    return match;
   }
 
   buildStarNode(
@@ -576,71 +577,15 @@ export class ASTResolve {
     return n;
   }
 
-  /*
-*
-* OLDER CONSTRUCTION
-*
-*/
-  /*private _matchUpperNode(
+  private matchLiteralNode(
     node: ParserNodey,
     potentialMatch: NodeyCode
-  ): [number, (() => any)[]] {
-    var candidates = potentialMatch.content.map((item, index) => {
-      //need to preserve the exact index of the original content to go back and edit it later
-      return { item: item, index: index };
-    });
-    //console.log("candidates are", candidates, node);
-    var [totalScore, candidateRemain, updates] = this.match(
-      0,
-      node.content,
-      candidates,
-      potentialMatch
-    );
-    candidateRemain.map(x => {
-      console.log("maybe remove remainder", x);
-      if (x.item instanceof SyntaxToken)
-        updates.push(
-          ASTTransforms.removeSyntaxToken.bind(this, x.item, potentialMatch)
-        );
-      else updates.push(ASTTransforms.removeOldNode.bind(this, x.item));
-    });
-    return [totalScore, updates];
-  }
-
-  private _matchSyntaxToken(
-    node: ParserNodey,
-    potentialMatch: any
-  ): [number, (() => any)[]] {
-    if (!(potentialMatch instanceof SyntaxToken && SyntaxToken.KEY in node))
-      return [-1, []]; // no match possible
-
-    var score = this.matchLiterals(
-      node[SyntaxToken.KEY],
-      potentialMatch.tokens
-    );
-    var transforms = [];
-    if (score !== 0)
-      transforms = [
-        ASTTransforms.changeSyntaxToken.bind(
-          this,
-          node[SyntaxToken.KEY],
-          potentialMatch
-        )
-      ];
-    return [score, transforms];
-  }*/
-
-  private _matchLiteralNode(
-    node: ParserNodey,
-    potentialMatch: NodeyCode
-  ): [number, (() => any)[]] {
-    if (!(potentialMatch.literal && "literal" in node)) return [-1, []]; // no match possible
+  ): number {
+    if (!(potentialMatch.literal && "literal" in node)) return -1; // no match possible
     //leaf nodes
-    var score = this.matchLiterals(
-      node.literal + "",
-      potentialMatch.literal + ""
-    );
-    var transforms: (() => any)[] = [];
+    var score =
+      levenshtein.get(node.literal, potentialMatch.literal) /
+      Math.max(node.literal.length, potentialMatch.literal.length);
     if (score !== 0.0) {
       // not a perfect match
       console.log(
@@ -649,94 +594,37 @@ export class ASTResolve {
         potentialMatch.literal,
         score
       );
-      transforms = [
-        ASTTransforms.changeLiteral.bind(this, node, potentialMatch.name)
-      ];
     }
-    return [score, transforms];
-  }
-
-  matchLiterals(val1: string, val2: string): number {
-    return levenshtein.get(val1, val2) / Math.max(val1.length, val2.length);
+    return score;
   }
 }
 
-export namespace ASTTransforms {
-  /*
-  * Important steps: make the change, then mark all affected
-  * nodes as edited
-  */
-  export function removeOldNode(toRemove: string) {
-    var target = this.historyModel.getNodeyHead(toRemove);
-    var parent = this.historyModel.getNodeyHead(target.parent);
-    var index = parent.content.indexOf(target);
-    console.log("Removing old node", target, "from", parent);
-    var starTarget = this.historyModel.markAsEdited(parent);
-    starTarget.content.splice(index, 1);
-  }
-
-  export function removeSyntaxToken(tok: SyntaxToken, parent: NodeyCode) {
-    var index = parent.content.indexOf(tok);
-    console.log("Removing old token", tok, "from", parent, index);
-    var starTarget = this.historyModel.markAsEdited(parent);
-    starTarget.content.splice(index, 1);
-  }
-
-  export function changeLiteral(node: ParserNodey, nodeName: string) {
-    var newLiteral = node.literal;
-    var target = this.historyModel.getNodeyHead(nodeName) as NodeyCode;
-    target.start = node.start;
-    target.end = node.end;
-    console.log("Changing literal from ", target, " to " + newLiteral);
-    var starTarget = this.historyModel.markAsEdited(target);
-    starTarget.literal = newLiteral;
-  }
-
-  export function changeSyntaxToken(newToken: any, target: SyntaxToken) {
-    //TODO do we count this as a change?
-    target.tokens = newToken;
-  }
-
-  export function addNewStnTok(syntok: string, at: number, target: NodeyCode) {
-    var s = new SyntaxToken(syntok);
-    console.log("Added a new syntax token ", s, " to ", target);
-    var starTarget = this.historyModel.markAsEdited(target);
-    starTarget.content.splice(at, 0, s);
-  }
-
-  export function addNewNode(node: ParserNodey, at: number, target: NodeyCode) {
-    var nodey = buildStarNode.bind(this)(node, target);
-    nodey.parent = target.name;
-    console.log("Added a new node ", nodey, " to ", target);
-    var starTarget = this.historyModel.markAsEdited(target);
-    starTarget.content.splice(at, 0, nodey.name);
-  }
-
-  export function buildStarNode(
-    node: ParserNodey,
-    target: NodeyCode,
-    prior: NodeyCode = null
-  ): NodeyCode {
-    var n = new NodeyCode(node);
-    n.id = "*";
-    n.start.line -= 1; // convert the coordinates of the range to code mirror style
-    n.end.line -= 1;
-    if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
-    var label = this.historyModel.addStarNode(n, target);
-    n.version = label;
-
-    if (prior) prior.right = n.name;
-    prior = null;
-
-    n.content = [];
-    for (var item in node.content) {
-      var child = this.buildStarNode(node.content[item], target, prior);
-      child.parent = n.name;
-      if (prior) prior.right = child.name;
-      n.content.push(child.name);
-      prior = child;
-    }
-
-    return n;
-  }
+export interface ParsedNodeOptions {
+  nodey: ParserNodey;
+  match: Match;
+  possibleMatches: Match[];
 }
+
+export interface NodeyOptions {
+  nodey: string;
+  parentIndex?: number;
+  match: Match;
+  possibleMatches: Match[];
+}
+
+export interface ParserNodey {
+  content?: any[];
+  start: { line: number; ch: number };
+  end: { line: number; ch: number };
+  type?: string;
+  literal?: string;
+  syntok?: string;
+  parent?: number;
+}
+
+export interface Match {
+  index: number;
+  score: number;
+}
+
+const NO_MATCH_SCORE = Number.MAX_SAFE_INTEGER;
