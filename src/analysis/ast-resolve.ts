@@ -188,13 +188,15 @@ export class ASTResolve {
   dictToNodeyList(
     dict: ParserNodey,
     nodeyList: ParsedNodeOptions[] = [],
-    leaves: number[] = []
+    leaves: number[] = [],
+    level: number = 0
   ): [ParsedNodeOptions[], number[], number[]] {
     // set up parsed nodey for matching
     var option: ParsedNodeOptions = {
       nodey: dict,
       match: null,
-      possibleMatches: []
+      possibleMatches: [],
+      level: level
     };
 
     if ("literal" in dict) {
@@ -214,7 +216,12 @@ export class ASTResolve {
         children.push(new SyntaxToken(d[SyntaxToken.KEY]));
       } else {
         let kids = [];
-        [nodeyList, leaves, kids] = this.dictToNodeyList(d, nodeyList, leaves);
+        [nodeyList, leaves, kids] = this.dictToNodeyList(
+          d,
+          nodeyList,
+          leaves,
+          level + 1
+        );
         //console.log("content is", d, children, nodeyList, kids);
         children = children.concat(kids);
       }
@@ -295,12 +302,26 @@ export class ASTResolve {
       */
       this.matchLeaves(newNodey, newLeaves, oldNodey, oldLeaves);
       console.log("Matched Leaves!", newNodey, oldNodey);
-      var newParents = this.grabUnmatchedParents(newLeaves, newNodey, oldNodey);
+      var newParents: number[][] = [];
+      newParents = this.grabUnmatchedParents(
+        newLeaves,
+        newParents,
+        newNodey,
+        oldNodey
+      );
       while (newParents.length > 0) {
-        console.log("Now need to match", newParents);
-        this.matchParentNodes(newParents, newNodey, oldNodey);
-        console.log("Matched parents!", newNodey, oldNodey);
-        newParents = this.grabUnmatchedParents(newParents, newNodey, oldNodey);
+        var parents = newParents.pop();
+        //just in case there is no parent on some levels
+        while ((!parents || parents.length === 0) && newParents.length > 0)
+          parents = newParents.pop();
+        console.log("Now need to match", parents, newParents);
+        this.matchParentNodes(parents, newNodey, oldNodey);
+        newParents = this.grabUnmatchedParents(
+          parents,
+          newParents,
+          newNodey,
+          oldNodey
+        );
       }
       this.finalizeMatch(newNodey.length - 1, newNodey, oldNodey, nodey);
 
@@ -349,19 +370,20 @@ export class ASTResolve {
 
   grabUnmatchedParents(
     matchedLeaves: number[],
+    newParents: number[][],
     newNodes: ParsedNodeOptions[],
     oldNodes: NodeyOptions[]
-  ) {
-    var singleParents: number[] = [];
-
+  ): number[][] {
     matchedLeaves.forEach(leafIndex => {
       var leaf = newNodes[leafIndex];
-      if (leaf.nodey.parent) {
+      if ("parent" in leaf.nodey) {
         var parent = newNodes[leaf.nodey.parent];
 
         if (!parent.match && leaf.match && leaf.match.index > -1) {
-          if (singleParents.indexOf(leaf.nodey.parent) <= -1) {
-            singleParents.push(leaf.nodey.parent);
+          if (!newParents[parent.level])
+            newParents[parent.level] = [leaf.nodey.parent];
+          else if (newParents[parent.level].indexOf(leaf.nodey.parent) <= -1) {
+            newParents[parent.level].push(leaf.nodey.parent);
           }
 
           var nodeyOpt = oldNodes[leaf.match.index];
@@ -387,7 +409,7 @@ export class ASTResolve {
       }
     });
 
-    return singleParents;
+    return newParents;
   }
 
   matchParentNodes(
@@ -503,7 +525,7 @@ export class ASTResolve {
             )
               score -= 1;
             else score += 1;
-          } else console.log("leaf has no match, ", leaf);
+          } else console.log("leaf has no match, ", leaf, index);
         }
       });
       //TODO decide when Case 2 is possible and how
@@ -631,6 +653,7 @@ export interface ParsedNodeOptions {
   nodey: ParserNodey;
   match: Match;
   possibleMatches: Match[];
+  level: number;
 }
 
 export interface NodeyOptions {
