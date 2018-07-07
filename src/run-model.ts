@@ -108,6 +108,7 @@ export class RunModel {
       var r = new Run(run.timestamp, run.cells, run.run);
       this._runList[r.id] = r;
       this.categorizeRun(r);
+      this._newRun.emit(r);
     });
   }
 

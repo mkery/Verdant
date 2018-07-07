@@ -257,7 +257,7 @@ export class ASTResolve {
     var index = oldNodey.push(option) - 1;
 
     if (nodey.literal) leaves.push(index);
-    else {
+    else if (nodey.content) {
       nodey.content.forEach(name => {
         if (!(name instanceof SyntaxToken)) {
           var child = this.historyModel.getNodey(name) as NodeyCode;
@@ -365,7 +365,7 @@ export class ASTResolve {
           return child.name;
         });
         nodeyEdited.content = content;
-        console.log("edited node is ", nodeyEdited);
+        //console.log("edited node is ", nodeyEdited);
       }
       //fix position
       nodeyEdited.start = parsedNode.start;

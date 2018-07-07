@@ -85,6 +85,7 @@ namespace Private {
     historyModel: HistoryModel
   ): NodeyCode {
     var children: string[] = node.getChildren();
+    if (children.length < 1) return null;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
     var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);

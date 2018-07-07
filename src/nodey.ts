@@ -359,6 +359,14 @@ export namespace Nodey {
     position: number,
     historyModel: HistoryModel
   ) {
+    if ("start" in dict === false) {
+      dict.start = { line: 1, ch: 0 };
+      dict.end = { line: 1, ch: 0 };
+    }
+    if ("type" in dict === false) {
+      dict.type = "Module";
+    }
+
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
     dict.end.line -= 1;
 

@@ -205,20 +205,22 @@ class SpacerToken:
 
 
 def main(text):
-    tree = ast.parse(text)
-    split = text.split('\\n')
-    bytes = io.BytesIO(text.encode())
-    g = tokenize.tokenize(bytes.readline)
-    tokens = list(g)
-    tokens = addBackSpaces(tokens)
-    #print(tokens)
-    tokens.pop(0) #get rid of encoding stuff
-    before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
-    nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
-    nodey['content'].pop() #remove end marker
-    nodey['start'] = nodey['content'][0]['start']
-    nodey['end'] = nodey['content'][-1]['end']
-    print (json.dumps(nodey, indent=2))
+    if(text == ""): print("[]")
+    else:
+      tree = ast.parse(text)
+      split = text.split('\\n')
+      bytes = io.BytesIO(text.encode())
+      g = tokenize.tokenize(bytes.readline)
+      tokens = list(g)
+      tokens = addBackSpaces(tokens)
+      #print(tokens)
+      tokens.pop(0) #get rid of encoding stuff
+      before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
+      nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
+      nodey['content'].pop() #remove end marker
+      nodey['start'] = nodey['content'][0]['start']
+      nodey['end'] = nodey['content'][-1]['end']
+      print (json.dumps(nodey, indent=2))
 `;
   }
 
@@ -307,17 +309,12 @@ def main(text):
     position: number,
     options: { [key: string]: any }
   ): number {
-    if (jsn == "null") return null; //NodeyCode.EMPTY()
-    if (jsn === "[]\n") return null; //NodeyCode.EMPTY()
+    console.log("Recieved", jsn);
+    var dict = options;
+    if (jsn !== "[]") dict = Object.assign({}, dict, JSON.parse(jsn));
 
-    //console.log("trying to parse", jsn)
-    var dict = JSON.parse(jsn);
-    console.log(dict);
-    var nodey = Nodey.dictToCodeCellNodey(
-      Object.assign({}, dict, options),
-      position,
-      this.historyModel
-    );
+    console.log("Parsed:", dict);
+    var nodey = Nodey.dictToCodeCellNodey(dict, position, this.historyModel);
     return nodey.id;
   }
 
