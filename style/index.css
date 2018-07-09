@@ -313,7 +313,6 @@
   padding-right: 5px;
 }
 .v-VerdantPanel-runCellMap-label:hover {
-  background: var(--jp-toolbar-background);
   border-color: var(--jp-content-font-color1);
 }
 

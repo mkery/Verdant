@@ -190,7 +190,7 @@ export class Inspect {
             outputList.push(outputNode.raw);
           });
         });
-        jsn.outputs = outputList;
+        jsn.outputs = []; //TODO outputList;
       }
       return jsn;
     });

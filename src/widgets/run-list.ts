@@ -8,6 +8,8 @@ import { Run, RunDateList } from "../run";
 
 import { RunItem } from "./run-item";
 
+import { RunCluster } from "./run-cluster";
+
 import { RunSection } from "./run-section";
 
 const RUN_ITEM_ACTIVE = "jp-mod-active";
@@ -80,9 +82,12 @@ export class RunList extends Widget {
     console.log("Run item ", runItem);
 
     let target = event.target as HTMLElement;
-    if (target.classList.contains("v-VerdantPanel-runItem-caret"))
+    if (
+      runItem instanceof RunCluster ||
+      target.classList.contains("v-VerdantPanel-runItem-caret")
+    ) {
       runItem.caretClicked();
-    else if (runItem instanceof RunItem) {
+    } else if (runItem instanceof RunItem) {
       if (this.selectedRun)
         this.selectedRun.node.classList.remove(RUN_ITEM_ACTIVE);
 

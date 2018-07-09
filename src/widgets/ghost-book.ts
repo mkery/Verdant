@@ -135,7 +135,7 @@ export class GhostBook extends Widget {
   }
 
   public feedNewData(dict: nbformat.INotebookContent) {
-    console.log("updating Ghost book with new data");
+    console.log("updating Ghost book with new data", dict);
     this.context.model.fromJSON(dict);
     this._render();
   }
