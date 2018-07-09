@@ -150,6 +150,12 @@ export class NodeyCode extends Nodey {
     }
   }
 
+  public hasChild(name: string) {
+    return this.content.find(
+      item => item instanceof SyntaxToken === false && item === name
+    );
+  }
+
   getOutput(runId: number): string[] {
     var out = this.output.find(o => o.run === runId);
     if (out) return out.out;

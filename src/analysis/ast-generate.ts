@@ -205,7 +205,7 @@ class SpacerToken:
 
 
 def main(text):
-    if(text == ""): print("[]")
+    if(text == ""): print("")
     else:
       tree = ast.parse(text)
       split = text.split('\\n')
@@ -309,11 +309,11 @@ def main(text):
     position: number,
     options: { [key: string]: any }
   ): number {
-    console.log("Recieved", jsn);
+    //console.log("Recieved", jsn);
     var dict = options;
-    if (jsn !== "[]") dict = Object.assign({}, dict, JSON.parse(jsn));
+    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
+    else console.log("Recieved empty?", dict);
 
-    console.log("Parsed:", dict);
     var nodey = Nodey.dictToCodeCellNodey(dict, position, this.historyModel);
     return nodey.id;
   }
