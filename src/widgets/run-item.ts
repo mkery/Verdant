@@ -6,6 +6,7 @@ import "../../style/index.css";
 
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
+const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 
@@ -31,6 +32,10 @@ export class RunItem extends Widget {
     number.textContent = "#" + run.id;
     number.classList.add(RUN_ITEM_NUMBER);
 
+    let eventLabel = document.createElement("div");
+    eventLabel.textContent = run.checkpointType;
+    eventLabel.classList.add(RUN_LABEL);
+
     let time = document.createElement("div");
     time.textContent = Run.formatTime(new Date(this.run.timestamp));
     time.classList.add(RUN_ITEM_TIME);
@@ -39,6 +44,7 @@ export class RunItem extends Widget {
 
     this.node.appendChild(caret);
     this.node.appendChild(number);
+    this.node.appendChild(eventLabel);
     this.node.appendChild(time);
     this.node.appendChild(dotMap);
   }

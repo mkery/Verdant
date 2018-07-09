@@ -124,6 +124,33 @@
   color: var(--jp-ui-font-color3);
 }
 
+.v-VerdantPanel-workingItem {
+  order: 1;
+  display: inline-block;
+  overflow: visible;
+  width: 100%;
+  padding-left: 15px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  color: var(--jp-brand-color1);
+}
+.v-VerdantPanel-workingItem:hover {
+  background: var(--verdant-ghost-color1);
+}
+
+.v-VerdantPanel-workingItem-label {
+  display: inline-block;
+}
+
+.v-VerdantPanel-runContainer {
+  overflow: auto;
+  height: 100%;
+}
+
+.v-VerdantPanel-runList {
+  overflow: visible;
+}
+
 .v-VerdantPanel-runList-runDateTotal {
   font-size: var(--jp-ui-font-size0);
   font-weight: 600;
@@ -147,15 +174,15 @@
   width: 1.5em;
   background-image: var(--jp-icon-expand-less);
   display: inline-block;
-  float: right;
-  margin-top: -2px;
+  vertical-align: bottom;
+  margin-left: 8px;
 }
 .v-VerdantPanel-runList-caret.closed {
   background-image: var(--jp-icon-expand-more);
 }
 
 .v-VerdantPanel-runList-header {
-  padding: 10px;
+  padding-left: 8px;
   padding-top: 15px;
   padding-bottom: 2px;
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);

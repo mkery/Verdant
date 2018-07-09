@@ -20,6 +20,7 @@ export class RunSection extends Widget {
   private runItemList: HTMLElement;
   readonly headerTag: string;
   readonly headerTitle: string;
+  private _workingItem: Widget;
 
   constructor(
     historyModel: HistoryModel,
@@ -72,6 +73,14 @@ export class RunSection extends Widget {
     this.node.appendChild(this.runItemList);
   }
 
+  public set workingItem(item: Widget) {
+    if (item !== null)
+      this.runItemList.insertBefore(item.node, this.runItemList.firstChild);
+    else if (this._workingItem)
+      this.runItemList.removeChild(this.runItemList.firstChild);
+    this._workingItem = item;
+  }
+
   public addNewRun(run: Run, selectionHandler: () => any) {
     console.log("adding new run Widget!", run);
     let runItemData = run;
@@ -80,7 +89,13 @@ export class RunSection extends Widget {
       "click",
       selectionHandler.bind(this, runItem)
     );
-    this.runItemList.insertBefore(runItem.node, this.runItemList.firstChild);
+    if (this._workingItem)
+      this.runItemList.insertBefore(
+        runItem.node,
+        this._workingItem.node.nextSibling
+      );
+    else
+      this.runItemList.insertBefore(runItem.node, this.runItemList.firstChild);
   }
 
   private toggleSection(sectionDiv: HTMLElement, caret: HTMLElement) {

@@ -14,15 +14,27 @@ export interface CellRunData {
   newOutput?: string[];
 }
 
+export namespace CheckpointType {
+  export const RUN = "run";
+  export const SAVE = "save";
+}
+
 export class Run {
   readonly timestamp: number;
   readonly id: number;
   readonly cells: CellRunData[];
+  readonly checkpointType: string;
 
-  constructor(timestamp: number, cells: CellRunData[], id: number) {
+  constructor(
+    timestamp: number,
+    cells: CellRunData[],
+    id: number,
+    type: string = CheckpointType.RUN
+  ) {
     this.timestamp = timestamp;
     this.cells = cells;
     this.id = id;
+    this.checkpointType = type;
   }
 }
 
@@ -96,9 +108,9 @@ export namespace Run {
 
   export function sameDay(d1: Date, d2: Date) {
     return (
-      d1.getUTCFullYear() == d2.getUTCFullYear() &&
-      d1.getUTCMonth() == d2.getUTCMonth() &&
-      d1.getUTCDate() == d2.getUTCDate()
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
     );
   }
 }

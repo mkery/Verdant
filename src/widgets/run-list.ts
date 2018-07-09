@@ -11,6 +11,10 @@ import { RunItem } from "./run-item";
 import { RunSection } from "./run-section";
 
 const RUN_ITEM_ACTIVE = "jp-mod-active";
+const RUN_LIST = "v-VerdantPanel-runContainer";
+const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
+const WORKING_VERSION = "v-VerdantPanel-workingItem";
+const WORKING_VERSION_LABEL = "v-VerdantPanel-workingItem-label";
 
 export class RunList extends Widget {
   readonly historyModel: HistoryModel;
@@ -22,13 +26,18 @@ export class RunList extends Widget {
     this.historyModel = historyModel;
     this.sections = [];
 
+    this.addClass(RUN_LIST);
+
+    var current = new WorkingItem();
+    var today: RunSection = null;
+
     var runDateList = this.historyModel.runModel.runDateList;
 
     runDateList.forEach((runDate: RunDateList) => {
       var date = Run.formatDate(runDate.date);
       var dateSection = new RunSection(
         this.historyModel,
-        "runs",
+        "checkpoints",
         date,
         this.onClick.bind(this),
         runDate.runList
@@ -39,7 +48,27 @@ export class RunList extends Widget {
         section: dateSection
       });
       this.node.appendChild(dateSection.node);
+
+      if (!today && Run.sameDay(runDate.date, new Date())) today = dateSection;
     });
+
+    if (!today) {
+      var date = new Date();
+      var today = new RunSection(
+        this.historyModel,
+        "checkpoints",
+        Run.formatDate(date),
+        this.onClick.bind(this),
+        []
+      );
+
+      this.sections.unshift({
+        date: date.getTime(),
+        section: today
+      });
+      this.node.appendChild(today.node);
+    }
+    today.workingItem = current;
 
     this.historyModel.runModel.newRun.connect(this.addNewRun.bind(this));
   }
@@ -73,7 +102,7 @@ export class RunList extends Widget {
     if (!section) {
       var dateSection = new RunSection(
         this.historyModel,
-        "runs",
+        "Checkpoints",
         Run.formatDate(new Date(run.timestamp)),
         this.onClick.bind(this),
         [run]
@@ -86,7 +115,28 @@ export class RunList extends Widget {
     }
 
     if (this.node.firstChild)
-      this.node.insertBefore(dateSection.node, this.node.firstChild);
+      this.node.insertBefore(
+        dateSection.node,
+        this.node.firstChild.nextSibling
+      );
     else this.node.appendChild(dateSection.node);
+  }
+}
+
+class WorkingItem extends Widget {
+  constructor() {
+    super();
+    this.addClass(WORKING_VERSION);
+
+    let number = document.createElement("div");
+    number.textContent = "#*";
+    number.classList.add(RUN_ITEM_NUMBER);
+
+    let label = document.createElement("div");
+    label.textContent = "current in-progress notebook";
+    label.classList.add(WORKING_VERSION_LABEL);
+
+    this.node.appendChild(number);
+    this.node.appendChild(label);
   }
 }
