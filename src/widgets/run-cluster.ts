@@ -6,11 +6,15 @@ import { Run, ChangeType } from "../run";
 
 import { RunItem } from "./run-item";
 
+import { VerdantListItem } from "./run-list";
+
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
+
+const SUB_RUNLIST_CLASS = "v-VerdantPanel-runCluster-list";
 
 const RUN_CELL_MAP = "v-VerdantPanel-runCellMap";
 const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
@@ -19,7 +23,7 @@ const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
 const RUN_CELL_MAP_ADDED = "v-VerdantPanel-runCellMap-cell-added";
 const RUN_CELL_MAP_RUNSYMBOL = "v-VerdantPanel-runCellMap-runSymbol";
 
-export class RunCluster extends Widget {
+export class RunCluster extends Widget implements VerdantListItem {
   runs: RunItem[];
 
   constructor(runs: RunItem[]) {
@@ -108,7 +112,7 @@ export class RunCluster extends Widget {
       if (change.run) {
         let runSymbol = document.createElement("div");
         runSymbol.classList.add(RUN_CELL_MAP_RUNSYMBOL);
-        runSymbol.textContent = ".";
+        runSymbol.textContent = "r";
         div.appendChild(runSymbol);
       }
       dotMap.appendChild(div);
@@ -117,7 +121,24 @@ export class RunCluster extends Widget {
   }
 
   caretClicked() {
-    console.log("Caret was clicked!");
+    console.log("Caret of CLUSTER was clicked!");
+    let caret = this.node.firstElementChild;
+    console.log("Caret?", caret);
+    if (caret.classList.contains("open")) {
+      this.removeClass("open");
+      caret.classList.remove("open");
+      this.node.removeChild(
+        this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
+      );
+    } else {
+      caret.classList.add("open");
+      this.addClass("open");
+      let kidList = document.createElement("ul");
+      kidList.classList.add(SUB_RUNLIST_CLASS);
+      for (var i = this.runs.length - 1; i > -1; i--)
+        kidList.appendChild(this.runs[i].node);
+      this.node.appendChild(kidList);
+    }
   }
 }
 

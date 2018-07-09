@@ -76,19 +76,19 @@ export class RunList extends Widget {
   /**
    * Handle the `'click'` event for the widget.
    */
-  private onClick(runItem: RunItem, event: Event) {
+  private onClick(runItem: VerdantListItem, event: Event) {
     console.log("Run item ", runItem);
-    if (this.selectedRun)
-      this.selectedRun.node.classList.remove(RUN_ITEM_ACTIVE);
-
-    runItem.node.classList.add(RUN_ITEM_ACTIVE);
-    this.selectedRun = runItem;
 
     let target = event.target as HTMLElement;
     if (target.classList.contains("v-VerdantPanel-runItem-caret"))
       runItem.caretClicked();
-    else {
+    else if (runItem instanceof RunItem) {
+      if (this.selectedRun)
+        this.selectedRun.node.classList.remove(RUN_ITEM_ACTIVE);
+
+      runItem.node.classList.add(RUN_ITEM_ACTIVE);
       console.log("Open old version of notebook", runItem.run);
+      this.selectedRun = runItem;
       this.historyModel.inspector.produceNotebook(runItem.run);
     }
   }
@@ -139,4 +139,8 @@ class WorkingItem extends Widget {
     this.node.appendChild(number);
     this.node.appendChild(label);
   }
+}
+
+export interface VerdantListItem extends Widget {
+  caretClicked: () => void;
 }

@@ -7,6 +7,7 @@
   --jp-private-verdant-manager-tab-height: 24px;
   --jp-private-verdant-manager-tab-padding-top: 8px;
   --verdant-icon-caretdown: url("img/chevron-more.svg");
+  --verdant-icon-caretup: url("img/chevron-less.svg");
   --verdant-icon-cellrun: url("img/cell-run.svg");
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-edit: url("img/pen.svg");
@@ -151,6 +152,15 @@
   overflow: visible;
 }
 
+.v-VerdantPanel-runCluster-list {
+  margin-left: 1.25em;
+  border-left: 1px solid var(--jp-content-font-color3);
+  padding-left: 0.25em;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  cursor: default;
+}
+
 .v-VerdantPanel-runList-runDateTotal {
   font-size: var(--jp-ui-font-size0);
   font-weight: 600;
@@ -205,6 +215,9 @@
   padding-bottom: 2px;
   padding-top: 2px;
 }
+.v-VerdantPanel-runItem.open {
+  background: var(--jp-layout-color2);
+}
 
 .v-VerdantPanel-runItem:hover:not(.jp-mod-active) {
   background: var(--jp-layout-color2);
@@ -222,10 +235,13 @@
   background-repeat: no-repeat;
   display: inline-block;
   float: left;
-  margin-top: 0.5em;
+  padding-top: 0.25em;
   margin-left: 10px;
   background-position: center;
   border: 1px solid transparent;
+}
+.v-VerdantPanel-runItem-caret.open {
+  background-image: var(--verdant-icon-caretup);
 }
 
 .v-VerdantPanel-runItem-caret:hover {
@@ -261,20 +277,56 @@
 
 .v-VerdantPanel-runCellMap-cell {
   display: inline-block;
-  height: var(--jp-ui-font-size1);
   width: calc(var(--jp-ui-font-size1) * 0.75);
-  border-bottom: 2px solid var(--jp-ui-font-color2);
+  border-bottom: 1px solid #808080;
   margin-left: 2px;
+}
+
+.v-VerdantPanel-runCellMap-cellBox {
+  width: calc(var(--jp-ui-font-size1) * 0.75);
+  height: calc(var(--jp-ui-font-size1) * 0.75);
+  border-radius: 2px;
+  border: 1px solid #2199f1;
+  background-color: #92cbef;
+  display: inline-block;
+  vertical-align: baseline;
+  margin-left: 1em;
+}
+.v-VerdantPanel-runCellMap-cellBox.added {
+  border-color: #107e5a;
+  background-color: #9dfcb6;
+}
+.v-VerdantPanel-runCellMap-cellBox.removed {
+  border-color: #ce1d1d;
+  background-color: #ff7d7d;
+}
+
+.v-VerdantPanel-runCellMap-label {
+  padding: 1px;
+  border-radius: 2px;
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+  margin: 4px;
+  margin-left: 8px;
+  margin-right: 0px;
+  display: inline-block;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+.v-VerdantPanel-runCellMap-label:hover {
+  background: var(--jp-toolbar-background);
+  border-color: var(--jp-content-font-color1);
 }
 
 .v-VerdantPanel-runCellMap-cell-changed {
   background-color: #92cbef;
-  border-bottom: 2px solid #2199f1;
+  height: 1em;
+  border-bottom: 4px solid #2199f1;
 }
 
 .v-VerdantPanel-runCellMap-cell-removed {
   background-color: #ff7d7d;
-  border-bottom: 2px solid #ce1d1d;
+  border-bottom: 5px solid #ce1d1d;
+  height: 4px;
 }
 
 .v-VerdantPanel-runCellMap-cell-added {
@@ -284,8 +336,7 @@
 
 .v-VerdantPanel-runCellMap-runSymbol {
   width: calc(100%);
-  height: calc(var(--jp-ui-font-size1) * 1 / 2 + 1px);
-  margin-top: calc(var(--jp-ui-font-size1) * 1 / 2 + 1px);
+  height: var(--jp-ui-font-size1);
   display: inline-block;
   text-align: center;
 }
