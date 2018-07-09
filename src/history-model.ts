@@ -97,6 +97,7 @@ export class HistoryModel {
   }
 
   getNodeyCell(id: number): NodeyCell {
+    console.log("getting cell history ", id, this._cellList);
     let nodeHist = this._nodeyStore[id];
     return <NodeyCell>nodeHist.latest;
   }

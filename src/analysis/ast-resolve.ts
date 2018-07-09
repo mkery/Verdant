@@ -59,7 +59,7 @@ export class ASTResolve {
 
     if (affected) {
       //some types cannot be parsed alone by Python TODO
-      var unparsable = ["Str", "STRING", "keyword"];
+      var unparsable = ["Str", "STRING", "keyword", "NUMBER", "Num"];
       while (unparsable.indexOf(affected.type) !== -1) {
         console.log("affected is", affected);
         affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
@@ -339,13 +339,7 @@ export class ASTResolve {
       */
         var [parsedList, newLeaves] = this.dictToNodeyList(dict);
         var [nodeyList, oldLeaves] = this.nodeyToLeaves(nodey);
-        console.log(
-          "Listified nodey",
-          parsedList,
-          newLeaves,
-          nodeyList,
-          oldLeaves
-        );
+        console.log("Listified nodey", parsedList, nodeyList);
 
         /*
       * Next, match leaves
@@ -648,20 +642,28 @@ export class ASTResolve {
     while (parsedProfile.match === null && i < nodeyCandidates.length) {
       var candidate = nodeyCandidates[i];
       var nodeyProfile = nodeyList[candidate];
-      var score = this.scoreMatch(
-        parsedProfile,
-        nodeyProfile,
-        parsedList,
-        nodeyList
-      );
+      if (!nodeyProfile.match) {
+        var score = this.scoreMatch(
+          parsedProfile,
+          nodeyProfile,
+          parsedList,
+          nodeyList
+        );
 
-      if (score === 0) {
-        //Perfect match!
-        parsedProfile.match = { index: candidate, score: 0 };
-        nodeyProfile.match = { index: parsedIndex, score: 0 };
-      } else {
-        nodeyProfile.possibleMatches.push({ score: score, index: parsedIndex });
-        parsedProfile.possibleMatches.push({ score: score, index: candidate });
+        if (score === 0) {
+          //Perfect match!
+          parsedProfile.match = { index: candidate, score: 0 };
+          nodeyProfile.match = { index: parsedIndex, score: 0 };
+        } else {
+          nodeyProfile.possibleMatches.push({
+            score: score,
+            index: parsedIndex
+          });
+          parsedProfile.possibleMatches.push({
+            score: score,
+            index: candidate
+          });
+        }
       }
       i++;
     }
