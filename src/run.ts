@@ -2,7 +2,7 @@ import { RunModel } from "./run-model";
 
 export namespace ChangeType {
   export const CELL_CHANGED = 2;
-  export const CELL_REMOVED = -1;
+  export const CELL_REMOVED = 1.5;
   export const CELL_ADDED = 1;
   export const CELL_SAME = 0;
 }
@@ -35,6 +35,10 @@ export class Run {
     this.cells = cells;
     this.id = id;
     this.checkpointType = type;
+  }
+
+  public hasEdits() {
+    return this.cells.find(cell => cell.changeType > ChangeType.CELL_SAME);
   }
 }
 
@@ -111,6 +115,16 @@ export namespace Run {
       d1.getFullYear() === d2.getFullYear() &&
       d1.getMonth() === d2.getMonth() &&
       d1.getDate() === d2.getDate()
+    );
+  }
+
+  export function sameMinute(d1: Date, d2: Date) {
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate() &&
+      d1.getHours() === d2.getHours() &&
+      d1.getMinutes() === d2.getMinutes()
     );
   }
 }

@@ -239,6 +239,8 @@
   letter-spacing: 1px;
   display: inline-block;
   margin-left: 5px;
+  margin-right: 2px;
+  vertical-align: text-top;
 }
 
 .v-VerdantPanel-runItem-time {
@@ -247,7 +249,8 @@
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
-  padding-left: 5px;
+  padding-left: 6px;
+  vertical-align: text-top;
 }
 
 .v-VerdantPanel-runCellMap {
