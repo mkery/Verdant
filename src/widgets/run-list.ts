@@ -39,7 +39,7 @@ export class RunList extends Widget {
       var date = Run.formatDate(runDate.date);
       var dateSection = new RunSection(
         this.historyModel,
-        "checkpoints",
+        "",
         date,
         this.onClick.bind(this),
         runDate.runList
@@ -107,7 +107,7 @@ export class RunList extends Widget {
     if (!section) {
       var dateSection = new RunSection(
         this.historyModel,
-        "Checkpoints",
+        "",
         Run.formatDate(new Date(run.timestamp)),
         this.onClick.bind(this),
         [run]

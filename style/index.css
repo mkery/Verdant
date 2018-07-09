@@ -220,6 +220,10 @@
 }
 
 .v-VerdantPanel-runItem:hover:not(.jp-mod-active) {
+  background: var(--verdant-ghost-color1);
+}
+
+.v-VerdantPanel-runItem.cluster:hover:not(.jp-mod-active) {
   background: var(--jp-layout-color2);
 }
 
