@@ -215,10 +215,14 @@ export class HistoryModel {
     console.log("Cell to commit is " + cell.name, cell, runId);
     if (cell instanceof NodeyCodeCell) {
       let output = this._commitOutput(cell, runId);
-      this._commitCode(cell, runId, output, this._deStar.bind(this));
+      var newNode = this._commitCode(
+        cell,
+        runId,
+        output,
+        this._deStar.bind(this)
+      ) as NodeyCodeCell;
+      newNode.starNodes = [];
     } else if (cell instanceof NodeyMarkdown) this._commitMarkdown(cell, runId);
-
-    cell.starNodes = [];
   }
 
   private _deStar(nodey: Nodey, runId: number, output: string[]) {

@@ -450,7 +450,7 @@ export class ASTResolve {
 
           if (leaf.match && leaf.match.index > -1) {
             var nodeyOpt = nodeyList[leaf.match.index];
-            if ("parentIndex" in nodeyOpt) {
+            if ("parentIndex" in nodeyOpt && nodeyOpt.parentIndex !== null) {
               var nodeyParentOpt = nodeyList[nodeyOpt.parentIndex];
               if (!nodeyParentOpt.match) {
                 var matchIndex = nodeyParentOpt.possibleMatches.findIndex(
@@ -481,7 +481,7 @@ export class ASTResolve {
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyOptions[]
   ) {
-    var nodeyCandidates: number[];
+    var nodeyCandidates: number[] = [];
     //for each leaf node, get its possible parents
     // the goal is, for the parent of the parsed leaf, try to figure out if it
     // is one of the old parents or no
@@ -500,7 +500,7 @@ export class ASTResolve {
       var options = nodeyCandidates;
       if (parsedNodey.possibleMatches.length > 0)
         options = parsedNodey.possibleMatches.map(item => item.index);
-      else if (!nodeyCandidates) {
+      else if (nodeyCandidates.length < 1) {
         // only make this list if we need to
         nodeyList.forEach((item, index) => {
           if (!item.match) nodeyCandidates.push(index);

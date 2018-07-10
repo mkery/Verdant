@@ -242,15 +242,19 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   constructor(options: { [id: string]: any }) {
     super(options);
     this.cell = options.cell;
+    this.starNodes = options.starNodes || [];
   }
 
   clone(): Nodey {
     var content = null;
+    var starNodes = null;
     if (this.content) content = this.content.slice(0);
+    if (this.starNodes) starNodes = this.starNodes.slice(0);
     //really important to slice the content array or it references, instead of copies, the list
     return new NodeyCodeCell({
       type: this.type,
       content: content,
+      starNodes: starNodes,
       literal: this.literal,
       start: this.start,
       end: this.end,
