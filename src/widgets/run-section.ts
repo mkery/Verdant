@@ -82,7 +82,7 @@ export class RunSection extends Widget {
   public addNewRun(run: Run, selectionHandler: () => any) {
     console.log("adding new run Widget!", run);
     let runItemData = run;
-    let runItem = new RunItem(runItemData);
+    let runItem = new RunItem(runItemData, this.historyModel);
     runItem.node.addEventListener(
       "click",
       selectionHandler.bind(this, runItem)

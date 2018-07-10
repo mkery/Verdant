@@ -8,6 +8,7 @@ import { RunItem } from "./run-item";
 
 import { VerdantListItem } from "./run-list";
 
+const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
@@ -118,6 +119,11 @@ export class RunCluster extends Widget implements VerdantListItem {
       dotMap.appendChild(div);
     });
     return dotMap;
+  }
+
+  nodeClicked(): RunItem {
+    this.node.classList.add(RUN_ITEM_ACTIVE);
+    return null; //TODO
   }
 
   caretClicked() {

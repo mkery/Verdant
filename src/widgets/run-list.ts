@@ -91,10 +91,11 @@ export class RunList extends Widget {
       if (this.selectedRun)
         this.selectedRun.node.classList.remove(RUN_ITEM_ACTIVE);
 
-      runItem.node.classList.add(RUN_ITEM_ACTIVE);
-      console.log("Open old version of notebook", runItem.run);
-      this.selectedRun = runItem;
-      this.historyModel.inspector.produceNotebook(runItem.run);
+      this.selectedRun = runItem.nodeClicked();
+      if (this.selectedRun) {
+        console.log("Open old version of notebook", runItem.run);
+        this.historyModel.inspector.produceNotebook(runItem.run);
+      }
     }
   }
 
@@ -148,4 +149,5 @@ class WorkingItem extends Widget {
 
 export interface VerdantListItem extends Widget {
   caretClicked: () => void;
+  nodeClicked: () => RunItem;
 }

@@ -12,9 +12,23 @@
   --verdant-icon-edit: url("img/pen.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
+  --verdant-icon-cell-changed: url("img/cell-changed.svg");
+  --verdant-icon-cell-added: url("img/cell-added.svg");
+  --verdant-icon-cell-removed: url("img/cell-removed.svg");
+  --verdant-icon-cell-same: url("img/cell-same.svg");
+  --verdant-icon-cell-changed-highlight: url("img/cell-changed-highlight.svg");
+  --verdant-icon-cell-added-highlight: url("img/cell-added-highlight.svg");
+  --verdant-icon-cell-removed-highlight: url("img/cell-removed-highlight.svg");
+  --verdant-icon-cell-same-highlight: url("img/cell-same-highlight.svg");
   --verdant-highlight-color1: #c5e5fc;
   --verdant-ghost-color1: #e9eff5;
   --verdant-ghost-color2: #e1f5ff;
+  --verdant-cell-change-color1: #92cbef;
+  --verdant-cell-change-color2: #2199f1;
+  --verdant-cell-remove-color1: #ff7d7d;
+  --verdant-cell-remove-color2: #ce1d1d;
+  --verdant-cell-add-color1: #9dfcb6;
+  --verdant-cell-add-color2: #107e5a;
 }
 
 /*-----------------------------------------------------------------------------
@@ -153,7 +167,6 @@
 
 .v-VerdantPanel-runCluster-list {
   margin-left: 1.25em;
-  background: var(--jp-toolbar-background);
   border-left: 1px solid var(--jp-content-font-color3);
   padding-left: 0.25em;
   margin-top: 5px;
@@ -272,27 +285,78 @@
   border-bottom: 1px solid #808080;
   margin-left: 2px;
 }
+.v-VerdantPanel-runCellMap-cell.highlight {
+  border-color: white;
+}
 
 .v-VerdantPanel-runCellMap-cellBox {
-  width: calc(var(--jp-ui-font-size1) * 0.75);
-  height: calc(var(--jp-ui-font-size1) * 0.75);
-  border-radius: 2px;
-  border: 1px solid #2199f1;
-  background-color: #92cbef;
+  width: calc(var(--jp-ui-font-size1) + 2px);
+  height: calc(var(--jp-ui-font-size1) + 2px);
   display: inline-block;
-  vertical-align: baseline;
+  vertical-align: text-top;
   margin-left: 1em;
+  margin-top: 0.5em;
 }
-.v-VerdantPanel-runCellMap-cellBox.added {
-  border-color: #107e5a;
-  background-color: #9dfcb6;
+.v-VerdantPanel-runCellMap-cellBox:hover {
+  background-color: var(--verdant-cell-change-color1);
 }
-.v-VerdantPanel-runCellMap-cellBox.removed {
-  border-color: #ce1d1d;
-  background-color: #ff7d7d;
+.v-VerdantPanel-runCellMap-cellBox.same:hover {
+  background-color: var(--jp-border-color1);
+}
+.v-VerdantPanel-runCellMap-cellBox.added:hover {
+  background-color: var(--verdant-cell-add-color1);
+}
+.v-VerdantPanel-runCellMap-cellBox.removed:hover {
+  background-color: var(--verdant-cell-remove-color1);
+}
+
+.v-VerdantPanel-runCellMap-cellbox-icon {
+  width: 100%;
+  height: 100%;
+  vertical-align: middle;
+  background: var(--verdant-icon-cell-changed);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.highlight {
+  background: var(--verdant-icon-cell-changed-highlight);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.added {
+  background: var(--verdant-icon-cell-added);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.added.highlight {
+  background: var(--verdant-icon-cell-added-highlight);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.removed {
+  background: var(--verdant-icon-cell-removed);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.removed.highlight {
+  background: var(--verdant-icon-cell-removed-highlight);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.same {
+  background: var(--verdant-icon-cell-same);
+}
+.v-VerdantPanel-runCellMap-cellbox-icon.same.highlight {
+  background: var(--verdant-icon-cell-same-highlight);
+}
+.v-VerdantPanel-runCellMap-cellBox-descBox {
+  vertical-align: top;
+  display: inline-block;
+  width: calc(100% - 2em - 9px);
+  padding-right: 5px;
 }
 
 .v-VerdantPanel-runCellMap-label {
+  padding: 1px;
+  border-radius: 2px;
+  border: var(--jp-border-width) solid transparent;
+  margin: 4px;
+  margin-left: 8px;
+  margin-right: 0px;
+  display: inline-block;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.v-VerdantPanel-runCellMap-button {
   padding: 1px;
   border-radius: 2px;
   border: var(--jp-border-width) solid var(--jp-border-color1);
@@ -303,25 +367,25 @@
   padding-left: 5px;
   padding-right: 5px;
 }
-.v-VerdantPanel-runCellMap-label:hover {
+.v-VerdantPanel-runCellMap-button:hover {
   border-color: var(--jp-content-font-color1);
 }
 
 .v-VerdantPanel-runCellMap-cell-changed {
-  background-color: #92cbef;
+  background-color: var(--verdant-cell-change-color1);
   height: 1em;
-  border-bottom: 4px solid #2199f1;
+  border-bottom: 4px solid var(--verdant-cell-change-color2);
 }
 
 .v-VerdantPanel-runCellMap-cell-removed {
-  background-color: #ff7d7d;
-  border-bottom: 5px solid #ce1d1d;
+  background-color: var(--verdant-cell-remove-color1);
+  border-bottom: 5px solid var(--verdant-cell-remove-color2);
   height: 4px;
 }
 
 .v-VerdantPanel-runCellMap-cell-added {
-  background-color: #9dfcb6;
-  border-bottom: 2px solid #107e5a;
+  background-color: var(--verdant-cell-add-color1);
+  border-bottom: 2px solid var(--verdant-cell-add-color2);
 }
 
 .v-VerdantPanel-runCellMap-runSymbol {

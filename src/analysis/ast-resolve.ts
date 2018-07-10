@@ -425,6 +425,7 @@ export class ASTResolve {
     } else {
       console.log("New Node!", parsedNode);
       nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
+      if (!relativeTo.content) relativeTo.content = [];
       relativeTo.content.push(nodeyEdited.name);
     }
     return nodeyEdited;

@@ -27,7 +27,7 @@
     "def f(x): \n",
     "    return (x-3)*(x-5)*(x-7)+85\n",
     "\n",
-    "x = np.linspace(0, 9)\n",
+    "x = np.linspace(0, 8)\n",
     "y = f(x)\n"
    ]
   },
@@ -79,10 +79,19 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {},
+   "metadata": {
+    "change": 2,
+    "edits": [
+     {
+      "change": 1,
+      "end": {},
+      "start": {}
+     }
+    ]
+   },
    "outputs": [],
    "source": [
-    "\n"
+    "print(\"f\")\n"
    ]
   },
   {
@@ -114,9 +123,11 @@
    "version": "3.6.5"
   },
   "origin": "Trapezoid Rule.ipynb",
-  "run": 28,
-  "timestamp": 1531157751485,
-  "totalChanges": []
+  "run": 15,
+  "timestamp": 1531237574018,
+  "totalChanges": [
+   7
+  ]
  },
  "nbformat": 4,
  "nbformat_minor": 2
