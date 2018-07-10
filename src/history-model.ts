@@ -169,8 +169,14 @@ export class HistoryModel {
   }
 
   public markAsEdited(unedited: NodeyCode): NodeyCode {
+    if (unedited.id === "*") {
+      //already a baby star node. has no history
+      return unedited;
+    }
+
+    //otherwise, a normal node with a history
     let history = this.getVersionsFor(unedited);
-    console.log("history of this node", history);
+    console.log("history of this node", history, unedited);
     if (!history.starNodey) {
       //newly entering star state!
       let nodey = history.versions[history.versions.length - 1];

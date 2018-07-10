@@ -411,7 +411,7 @@ export class ASTResolve {
             num,
             parsedList,
             nodeyList,
-            relativeTo
+            nodeyEdited
           );
           child.parent = nodeyEdited.name;
           return child.name;
@@ -425,6 +425,7 @@ export class ASTResolve {
     } else {
       console.log("New Node!", parsedNode);
       nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
+      relativeTo.content.push(nodeyEdited.name);
     }
     return nodeyEdited;
   }
@@ -497,7 +498,7 @@ export class ASTResolve {
     newParents.forEach(index => {
       var parsedNodey = parsedList[index];
       var options = nodeyCandidates;
-      if (parsedNodey.possibleMatches)
+      if (parsedNodey.possibleMatches.length > 0)
         options = parsedNodey.possibleMatches.map(item => item.index);
       else if (!nodeyCandidates) {
         // only make this list if we need to

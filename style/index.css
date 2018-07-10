@@ -8,7 +8,6 @@
   --jp-private-verdant-manager-tab-padding-top: 8px;
   --verdant-icon-caretdown: url("img/chevron-more.svg");
   --verdant-icon-caretup: url("img/chevron-less.svg");
-  --verdant-icon-cellrun: url("img/cell-run.svg");
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-edit: url("img/pen.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
@@ -154,6 +153,7 @@
 
 .v-VerdantPanel-runCluster-list {
   margin-left: 1.25em;
+  background: var(--jp-toolbar-background);
   border-left: 1px solid var(--jp-content-font-color3);
   padding-left: 0.25em;
   margin-top: 5px;
@@ -215,17 +215,6 @@
   padding-bottom: 2px;
   padding-top: 2px;
 }
-.v-VerdantPanel-runItem.open {
-  background: var(--jp-layout-color2);
-}
-
-.v-VerdantPanel-runItem:hover:not(.jp-mod-active) {
-  background: var(--verdant-ghost-color1);
-}
-
-.v-VerdantPanel-runItem.cluster:hover:not(.jp-mod-active) {
-  background: var(--jp-layout-color2);
-}
 
 .v-VerdantPanel-runItem.jp-mod-active {
   color: white;
@@ -234,13 +223,12 @@
 
 .v-VerdantPanel-runItem-caret {
   height: var(--jp-ui-font-size1);
-  width: calc(var(--jp-ui-font-size1) * 0.8);
+  width: 1.5em;
   background-image: var(--verdant-icon-caretdown);
   background-repeat: no-repeat;
   display: inline-block;
   float: left;
   padding-top: 0.25em;
-  margin-left: 10px;
   background-position: center;
   border: 1px solid transparent;
 }
@@ -258,7 +246,6 @@
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
-  margin-left: 5px;
   margin-right: 2px;
   vertical-align: text-top;
 }
