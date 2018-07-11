@@ -6,9 +6,7 @@ import { HistoryModel } from "../../history-model";
 
 import { VerdantListItem } from "./run-list";
 
-import {DotMap} from './dot-map'
-
-import "../../../style/index.css";
+import { DotMap } from "./dot-map";
 
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
@@ -23,7 +21,6 @@ const MAP_CELLBOX_DESCCONTAINER = "v-VerdantPanel-runCellMap-cellBox-descBox";
 const MAP_CELLBOX_LABEL = "v-VerdantPanel-runCellMap-label";
 const MAP_CELLBOX_BUTTON = "v-VerdantPanel-runCellMap-button";
 const MAP_CELLBOX_ICON = "v-VerdantPanel-runCellMap-cellbox-icon";
-
 
 export class RunItem extends Widget implements VerdantListItem {
   readonly run: Run;
@@ -40,7 +37,7 @@ export class RunItem extends Widget implements VerdantListItem {
     caret.classList.add(RUN_ITEM_CARET);
 
     let number = document.createElement("div");
-    number.textContent = ""+run.id;
+    number.textContent = "" + run.id;
     number.classList.add(RUN_ITEM_NUMBER);
 
     let eventLabel = document.createElement("div");
@@ -60,21 +57,20 @@ export class RunItem extends Widget implements VerdantListItem {
     this.node.appendChild(this.dotMap.node);
   }
 
-  blur()
-  {
-    this.dotMap.blur()
+  blur() {
+    this.dotMap.blur();
     let caret = this.node.firstElementChild;
-    caret.classList.remove("highlight")
+    caret.classList.remove("highlight");
     this.node.classList.remove(RUN_ITEM_ACTIVE);
   }
 
   nodeClicked() {
     let caret = this.node.firstElementChild;
-    caret.classList.add("highlight")
+    caret.classList.add("highlight");
     this.node.classList.add(RUN_ITEM_ACTIVE);
     var icons = this.node.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
-    this.dotMap.highlight()
+    this.dotMap.highlight();
     return this;
   }
 

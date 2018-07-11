@@ -34,19 +34,6 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {
-    "change": 1.5
-   },
-   "outputs": [],
-   "source": [
-    "def fun():\n",
-    "    return(\"foo baby\")\n",
-    "return 4\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -95,7 +82,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "\n"
+    "print(\"foo bar\")\n"
    ]
   },
   {
@@ -104,7 +91,34 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "\n"
+    "print(\"p\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(\"h\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "change": 2,
+    "edits": [
+     {
+      "change": 1,
+      "end": {},
+      "start": {}
+     }
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "print(\"o\")\n"
    ]
   }
  ],
@@ -127,9 +141,11 @@
    "version": "3.6.5"
   },
   "origin": "Trapezoid Rule.ipynb",
-  "run": 5,
-  "timestamp": 1531233041865,
-  "totalChanges": []
+  "run": 20,
+  "timestamp": 1531276006786,
+  "totalChanges": [
+   10
+  ]
  },
  "nbformat": 4,
  "nbformat_minor": 2

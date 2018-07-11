@@ -6,8 +6,6 @@ import { Nodey, NodeyMarkdown } from "../../nodey";
 
 import { Wishbone } from "./wishbone";
 
-import "../../../style/index.css";
-
 const INSPECT_ICON = "v-VerdantPanel-inspect-icon";
 const INSPECT_HEADER = "v-VerdantPanel-inspect-header";
 const INSPECT_TITLE = "v-VerdantPanel-inspect-title";
@@ -19,7 +17,7 @@ const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
  */
 export class InspectWidget extends Widget {
   private _historyModel: HistoryModel;
-  private _active : boolean = false;
+  private _active: boolean = false;
 
   constructor(historyModel: HistoryModel) {
     super();
@@ -52,17 +50,15 @@ export class InspectWidget extends Widget {
     // look for jp-OutputArea-output
   }
 
-  hide()
-  {
-    super.hide()
-    this._active = false
+  hide() {
+    super.hide();
+    this._active = false;
   }
 
-  show()
-  {
-    super.show()
-    this._active = true
-    this.retrieveTarget()
+  show() {
+    super.show();
+    this._active = true;
+    this.retrieveTarget();
   }
 
   private get inspector() {
@@ -81,14 +77,12 @@ export class InspectWidget extends Widget {
     return this.node.getElementsByClassName(INSPECT_CONTENT)[0];
   }
 
-  public retrieveTarget()
-  {
-    this.changeTarget(this, this.inspector.target)
+  public retrieveTarget() {
+    this.changeTarget(this, this.inspector.target);
   }
 
   public changeTarget(sender: any, target: Nodey) {
-    if(this._active)
-    {
+    if (this._active) {
       this.header.textContent = target.typeName + " node " + target.name;
       this.content.innerHTML = "";
       this.fillContent(target, this.inspector.versionsOfTarget);

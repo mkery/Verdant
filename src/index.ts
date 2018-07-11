@@ -19,6 +19,11 @@ import { StackedPanel } from "@phosphor/widgets";
 import * as renderers from "@jupyterlab/rendermime";
 
 import "../style/index.css";
+import "../style/ghost-book.css";
+import "../style/cell-history.css";
+import "../style/inspect.css";
+import "../style/notebook-history.css";
+import "../style/verdant-panel.css";
 
 import { ASTGenerate } from "./analysis/ast-generate";
 

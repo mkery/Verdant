@@ -1,0 +1,78 @@
+.v-Verdant-GhostBook {
+  background-color: var(--verdant-ghost-color1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.v-Verdant-GhostBook-icon {
+  background-image: var(--verdant-icon-ghostbook);
+}
+
+.v-Verdant-GhostBook-toolbar {
+  padding: 2px;
+  height: 28px;
+  box-shadow: var(--jp-toolbar-box-shadow);
+  background: var(--jp-toolbar-background);
+  z-index: 1;
+}
+
+.v-Verdant-GhostBook-toolbar-priorButton {
+  background-image: var(--jp-icon-expand-less);
+}
+
+.v-Verdant-GhostBook-toolbar-nextButton {
+  background-image: var(--jp-icon-expand-more);
+}
+
+.v-Verdant-GhostBook-cell {
+  background: var(--verdant-ghost-color1);
+  color: var(--jp-content-font-color1);
+}
+
+.v-Verdant-GhostBook-cell-area {
+  padding: var(--jp-notebook-padding);
+  outline: none;
+  overflow: auto;
+  background: var(--verdant-ghost-color1);
+  flex: 1 1 auto;
+}
+
+.v-Verdant-GhostBook-toolbar-edit-icon {
+  background-image: var(--verdant-icon-edit);
+}
+
+.v-Verdant-GhostBook-toolbar-label-text {
+  height: 100%;
+  margin-top: calc(var(--jp-ui-font-size1) * -0.25);
+}
+
+.v-Verdant-GhostBook-cell-changed {
+  background-color: white;
+  border: var(--jp-border-width) solid var(--jp-brand-color2);
+}
+
+.v-Verdant-GhostBook-cell-removed {
+  background-color: white;
+  border: var(--jp-border-width) solid red;
+}
+
+.v-Verdant-GhostBook-cell-added {
+  background-color: white;
+  border: var(--jp-border-width) solid green;
+}
+
+.v-Verdant-GhostBook-code-changed {
+  background-color: var(--verdant-ghost-color2);
+}
+
+.v-Verdant-GhostBook-code-removed {
+  color: red;
+  text-decoration: line-through;
+}
+
+.v-Verdant-GhostBook-code-added {
+  /*tested for accessibility */
+  color: #1a4936;
+  background-color: #defeb7;
+}

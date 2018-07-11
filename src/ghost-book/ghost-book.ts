@@ -39,8 +39,6 @@ import {
 
 import { GhostBookModel } from "./ghost-model";
 
-import "../../style/index.css";
-
 /**
  * The class name added to a imageviewer.
  */

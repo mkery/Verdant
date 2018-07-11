@@ -1,14 +1,12 @@
 import { Widget } from "@phosphor/widgets";
 
-import "../../style/index.css";
-
 /*
  * History search bar
  */
 
 const SEARCH_BAR_CLASS = "p-CommandPalette-search";
 const SEARCH_WRAPPER_CLASS = "p-CommandPalette-wrapper";
-const SEARCH_INPUT_CLASS = "v-VerdantPanel-input";
+const SEARCH_INPUT_CLASS = "v-VerdantPanel-search-input";
 
 export class SearchBar extends Widget {
   constructor() {

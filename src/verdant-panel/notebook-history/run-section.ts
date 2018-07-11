@@ -1,7 +1,5 @@
 import { Widget } from "@phosphor/widgets";
 
-import "../../../style/index.css";
-
 import { HistoryModel } from "../../history-model";
 
 import { Run } from "../../run";
@@ -60,7 +58,7 @@ export class RunSection extends Widget {
     this.runItemList = document.createElement("ul");
     this.runItemList.classList.add(RUNLIST_UL);
     for (var i = runData.length - 1; i > -1; i--) {
-      this.addNewRun(runData[i], selectionHandler.bind(this, runData[i]));
+      this.addNewRun(runData[i], selectionHandler.bind(this));
     }
 
     caret.addEventListener(

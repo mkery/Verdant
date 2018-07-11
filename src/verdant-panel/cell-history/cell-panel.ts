@@ -4,9 +4,6 @@ import { HistoryModel } from "../../history-model";
 
 import { InspectWidget } from "../inspector/inspect-widget";
 
-
-import "../../../style/index.css";
-
 const CELL_PANEL = "v-VerdantPanel-cellPanel";
 
 /**
@@ -18,20 +15,17 @@ export class CellPanel extends Widget {
   constructor(historyModel: HistoryModel) {
     super();
     this.addClass(CELL_PANEL);
-    this.inspectWidget = new InspectWidget(historyModel)
-    this.node.appendChild(this.inspectWidget.node)
+    this.inspectWidget = new InspectWidget(historyModel);
+    this.node.appendChild(this.inspectWidget.node);
   }
 
-  hide()
-  {
-    super.hide()
-    this.inspectWidget.hide()
+  hide() {
+    super.hide();
+    this.inspectWidget.hide();
   }
 
-  show()
-  {
-    super.show()
-    this.inspectWidget.show()
+  show() {
+    super.show();
+    this.inspectWidget.show();
   }
-
 }

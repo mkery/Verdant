@@ -1,0 +1,68 @@
+.v-VerdantPanel-inspect-icon {
+  padding: 5px;
+  margin: 5px;
+  background-image: var(--verdant-icon-timeinspect);
+  background-repeat: no-repeat;
+  border: 1px solid var(--verdant-highlight-color1);
+  border-radius: 5px;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+}
+.v-VerdantPanel-inspect-icon.active {
+  background-image: var(--verdant-icon-timeinspect-active);
+  border: 1px solid var(--jp-brand-color1);
+}
+
+.v-VerdantPanel-inspect-title {
+  display: inline-block;
+  margin-left: 5px;
+  font-style: italic;
+  vertical-align: top;
+  margin-top: 10px;
+}
+
+.v-VerdantPanel-inspect-content {
+  -webkit-margin-before: 5px;
+  -webkit-margin-after: 0px;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+  -webkit-padding-start: 0px;
+}
+
+.v-VerdantPanel-inspect-version {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
+  letter-spacing: var(--jp-cell-prompt-letter-spacing);
+  font-family: var(--jp-cell-prompt-font-family);
+  margin-top: 10px;
+  white-space: pre-wrap;
+  width: max-content;
+  text-align: left;
+  padding-bottom: 1em;
+}
+.v-VerdantPanel-inspect-version.markdown {
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color1);
+  font-family: var(--jp-ui-font-family);
+}
+
+.v-VerdantPanel-wishbone-highlight {
+  background-color: var(--verdant-highlight-color1);
+}
+
+.v-VerdantPanel-wishbone-code-mask {
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+  position: absolute;
+  z-index: 12;
+  top: 0px;
+  left: 0px;
+  cursor: default;
+}
+
+.v-VerdantPanel-wishbone-code-highlight {
+  background-color: var(--verdant-highlight-color1);
+}
