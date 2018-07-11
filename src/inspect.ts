@@ -222,6 +222,11 @@ export class Inspect {
     this._historyModel.fileManager.openGhost(file, this._notebook);
   }
 
+  get target()
+  {
+    return this._target
+  }
+
   get targetChanged(): Signal<this, Nodey> {
     return this._targetChanged;
   }

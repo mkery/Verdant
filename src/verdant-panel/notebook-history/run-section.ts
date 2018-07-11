@@ -1,10 +1,10 @@
 import { Widget } from "@phosphor/widgets";
 
-import "../../style/index.css";
+import "../../../style/index.css";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../../history-model";
 
-import { Run } from "../run";
+import { Run } from "../../run";
 
 import { RunItem } from "./run-item";
 
@@ -99,7 +99,7 @@ export class RunSection extends Widget {
           runs = priorRun.runs;
         } else runs = [priorRun as RunItem, runItem];
         cluster = new RunCluster(runs);
-        cluster.node.addEventListener(
+        cluster.caret.addEventListener(
           "click",
           selectionHandler.bind(this, cluster)
         );

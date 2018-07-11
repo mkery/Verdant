@@ -26,9 +26,9 @@ import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { HistoryModel } from "./history-model";
 
-import { VerdantPanel } from "./widgets/verdant-panel";
+import { VerdantPanel } from "./verdant-panel/verdant-panel";
 
-import { GhostBookFactory } from "./widgets/ghost-model";
+import { GhostBookFactory } from "./ghost-book/ghost-model";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 

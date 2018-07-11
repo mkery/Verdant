@@ -12,7 +12,7 @@ import { CellRunData } from "./run";
 
 import { NodeyCode } from "./nodey";
 
-import { GhostBook } from "./widgets/ghost-book";
+import { GhostBook } from "./ghost-book/ghost-book";
 
 import { HistoryModel } from "./history-model";
 

@@ -1,12 +1,14 @@
-import { Run, ChangeType } from "../run";
+import { Run, ChangeType } from "../../run";
 
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../../history-model";
 
 import { VerdantListItem } from "./run-list";
 
-import "../../style/index.css";
+import {DotMap} from './dot-map'
+
+import "../../../style/index.css";
 
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
@@ -22,15 +24,10 @@ const MAP_CELLBOX_LABEL = "v-VerdantPanel-runCellMap-label";
 const MAP_CELLBOX_BUTTON = "v-VerdantPanel-runCellMap-button";
 const MAP_CELLBOX_ICON = "v-VerdantPanel-runCellMap-cellbox-icon";
 
-const RUN_CELL_MAP = "v-VerdantPanel-runCellMap";
-const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
-const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
-const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
-const RUN_CELL_MAP_ADDED = "v-VerdantPanel-runCellMap-cell-added";
-const RUN_CELL_MAP_RUNSYMBOL = "v-VerdantPanel-runCellMap-runSymbol";
 
 export class RunItem extends Widget implements VerdantListItem {
   readonly run: Run;
+  readonly dotMap: DotMap;
   readonly historyModel: HistoryModel;
 
   constructor(run: Run, historyModel: HistoryModel) {
@@ -43,7 +40,7 @@ export class RunItem extends Widget implements VerdantListItem {
     caret.classList.add(RUN_ITEM_CARET);
 
     let number = document.createElement("div");
-    number.textContent = "#" + run.id;
+    number.textContent = ""+run.id;
     number.classList.add(RUN_ITEM_NUMBER);
 
     let eventLabel = document.createElement("div");
@@ -54,53 +51,30 @@ export class RunItem extends Widget implements VerdantListItem {
     time.textContent = Run.formatTime(new Date(this.run.timestamp));
     time.classList.add(RUN_ITEM_TIME);
 
-    let dotMap = this.buildDotMap();
+    this.dotMap = new DotMap(this.run.cells);
 
     this.node.appendChild(caret);
     this.node.appendChild(number);
     this.node.appendChild(eventLabel);
     this.node.appendChild(time);
-    this.node.appendChild(dotMap);
+    this.node.appendChild(this.dotMap.node);
   }
 
-  buildDotMap(): HTMLElement {
-    let dotMap = document.createElement("div");
-    dotMap.classList.add(RUN_CELL_MAP);
-    this.run.cells.forEach(cell => {
-      let div = document.createElement("div");
-      div.classList.add(RUN_CELL_MAP_CELL);
-      switch (cell.changeType) {
-        case ChangeType.CELL_CHANGED:
-          div.classList.add(RUN_CELL_MAP_CHANGED);
-          break;
-        case ChangeType.CELL_REMOVED:
-          div.classList.add(RUN_CELL_MAP_REMOVED);
-          break;
-        case ChangeType.CELL_ADDED:
-          div.classList.add(RUN_CELL_MAP_ADDED);
-          break;
-        default:
-          break;
-      }
-
-      if (cell.run) {
-        let runSymbol = document.createElement("div");
-        runSymbol.classList.add(RUN_CELL_MAP_RUNSYMBOL);
-        runSymbol.textContent = "r";
-        div.appendChild(runSymbol);
-      }
-      dotMap.appendChild(div);
-    });
-    return dotMap;
+  blur()
+  {
+    this.dotMap.blur()
+    let caret = this.node.firstElementChild;
+    caret.classList.remove("highlight")
+    this.node.classList.remove(RUN_ITEM_ACTIVE);
   }
 
   nodeClicked() {
+    let caret = this.node.firstElementChild;
+    caret.classList.add("highlight")
     this.node.classList.add(RUN_ITEM_ACTIVE);
     var icons = this.node.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
-    var mapLines = this.node.getElementsByClassName(RUN_CELL_MAP_CELL);
-    for (var i = 0; i < mapLines.length; i++)
-      mapLines[i].classList.add("highlight");
+    this.dotMap.highlight()
     return this;
   }
 

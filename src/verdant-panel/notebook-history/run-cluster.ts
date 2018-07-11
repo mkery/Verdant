@@ -1,10 +1,12 @@
 import { Widget } from "@phosphor/widgets";
 
-import "../../style/index.css";
+import "../../../style/index.css";
 
-import { Run, ChangeType } from "../run";
+import { Run, ChangeType, CellRunData } from "../../run";
 
 import { RunItem } from "./run-item";
+
+import { DotMap} from "./dot-map"
 
 import { VerdantListItem } from "./run-list";
 
@@ -17,15 +19,10 @@ const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 
 const SUB_RUNLIST_CLASS = "v-VerdantPanel-runCluster-list";
 
-const RUN_CELL_MAP = "v-VerdantPanel-runCellMap";
-const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
-const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
-const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
-const RUN_CELL_MAP_ADDED = "v-VerdantPanel-runCellMap-cell-added";
-const RUN_CELL_MAP_RUNSYMBOL = "v-VerdantPanel-runCellMap-runSymbol";
-
 export class RunCluster extends Widget implements VerdantListItem {
   runs: RunItem[];
+  header: HTMLElement;
+  dotMap: DotMap;
 
   constructor(runs: RunItem[]) {
     super();
@@ -36,14 +33,21 @@ export class RunCluster extends Widget implements VerdantListItem {
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
 
+    this.header = this.buildHeader(runs)
+
+    this.node.appendChild(caret);
+    this.node.appendChild(this.header)
+  }
+
+  buildHeader(runs:RunItem[]): HTMLElement {
     let number = document.createElement("div");
     if (runs.length > 2)
       number.textContent =
-        "#" + runs[runs.length - 1].run.id + " to  #" + runs[0].run.id;
+        runs[runs.length - 1].run.id + " ... " + runs[0].run.id;
     else if (runs.length > 1)
       number.textContent =
-        "#" + runs[runs.length - 1].run.id + " #" + runs[0].run.id;
-    else number.textContent = "#" + runs[0].run.id;
+        runs[runs.length - 1].run.id + " " + runs[0].run.id;
+    else number.textContent = "" + runs[0].run.id;
     number.classList.add(RUN_ITEM_NUMBER);
 
     let eventLabel = document.createElement("div");
@@ -66,72 +70,58 @@ export class RunCluster extends Widget implements VerdantListItem {
       time.textContent = Run.formatTime(new Date(this.runs[0].run.timestamp));
     time.classList.add(RUN_ITEM_TIME);
 
-    let dotMap = this.buildDotMap();
+    this.dotMap = this.buildDotMap();
 
-    this.node.appendChild(caret);
-    this.node.appendChild(number);
-    this.node.appendChild(eventLabel);
-    this.node.appendChild(time);
-    this.node.appendChild(dotMap);
+    let header = document.createElement("div")
+    header.appendChild(number);
+    header.appendChild(eventLabel);
+    header.appendChild(time);
+    header.appendChild(this.dotMap.node);
+    return header
   }
 
-  buildDotMap(): HTMLElement {
-    let dotMap = document.createElement("div");
-    dotMap.classList.add(RUN_CELL_MAP);
-    var runMap: { change: number; run: boolean }[] = [];
+  buildDotMap(): DotMap {
+    var runMap: CellRunData[] = [];
     this.runs.map(runItem => {
       runItem.run.cells.forEach((cell, index) => {
-        var change = { change: ChangeType.CELL_SAME, run: false };
+        var change: CellRunData = { node:"", changeType: ChangeType.CELL_SAME, run: false };
         if (runMap[index]) change = runMap[index];
         runMap[index] = {
-          change: Math.min(
+          node: "",
+          changeType: Math.min(
             ChangeType.CELL_CHANGED,
-            change.change + cell.changeType
+            change.changeType + cell.changeType
           ),
-          run: change.run || cell.run
+          run: change.run as boolean || cell.run
         };
       });
     });
 
-    runMap.forEach(change => {
-      let div = document.createElement("div");
-      div.classList.add(RUN_CELL_MAP_CELL);
-      switch (change.change) {
-        case ChangeType.CELL_CHANGED:
-          div.classList.add(RUN_CELL_MAP_CHANGED);
-          break;
-        case ChangeType.CELL_REMOVED:
-          div.classList.add(RUN_CELL_MAP_REMOVED);
-          break;
-        case ChangeType.CELL_ADDED:
-          div.classList.add(RUN_CELL_MAP_ADDED);
-          break;
-        default:
-          break;
-      }
-
-      if (change.run) {
-        let runSymbol = document.createElement("div");
-        runSymbol.classList.add(RUN_CELL_MAP_RUNSYMBOL);
-        runSymbol.textContent = "r";
-        div.appendChild(runSymbol);
-      }
-      dotMap.appendChild(div);
-    });
+    let dotMap = new DotMap(runMap)
     return dotMap;
   }
 
+  get caret()
+  {
+    return this.node.firstElementChild;
+  }
+
+  blur()
+  {
+    this.node.classList.remove(RUN_ITEM_ACTIVE);
+    this.caret.classList.remove("highlight")
+  }
+
   nodeClicked(): RunItem {
-    this.node.classList.add(RUN_ITEM_ACTIVE);
-    return null; //TODO
+    return null;
   }
 
   caretClicked() {
     console.log("Caret of CLUSTER was clicked!");
-    let caret = this.node.firstElementChild;
-    console.log("Caret?", caret);
+    var caret = this.caret
     if (caret.classList.contains("open")) {
       this.removeClass("open");
+      this.header.style.display = ""
       caret.classList.remove("open");
       this.node.removeChild(
         this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
@@ -139,6 +129,7 @@ export class RunCluster extends Widget implements VerdantListItem {
     } else {
       caret.classList.add("open");
       this.addClass("open");
+      this.header.style.display = "none"
       let kidList = document.createElement("ul");
       kidList.classList.add(SUB_RUNLIST_CLASS);
       for (var i = this.runs.length - 1; i > -1; i--)

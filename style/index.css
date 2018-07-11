@@ -7,7 +7,9 @@
   --jp-private-verdant-manager-tab-height: 24px;
   --jp-private-verdant-manager-tab-padding-top: 8px;
   --verdant-icon-caretdown: url("img/chevron-more.svg");
+  --verdant-icon-caretdown-highlight: url("img/chevron-more-highlight.svg");
   --verdant-icon-caretup: url("img/chevron-less.svg");
+  --verdant-icon-caretup-highlight: url("img/chevron-less-highlight.svg");
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-edit: url("img/pen.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
@@ -166,12 +168,13 @@
 }
 
 .v-VerdantPanel-runCluster-list {
-  margin-left: 1.25em;
+  display: inline-block;
+  margin-left: calc(1em - 2px);
   border-left: 1px solid var(--jp-content-font-color3);
   padding-left: 0.25em;
-  margin-top: 5px;
   margin-bottom: 5px;
   cursor: default;
+  width: calc(100% - 1.25em + 2px);
 }
 
 .v-VerdantPanel-runList-runDateTotal {
@@ -245,22 +248,30 @@
   background-position: center;
   border: 1px solid transparent;
 }
+.v-VerdantPanel-runItem-caret.highlight {
+  background-image: var(--verdant-icon-caretdown-highlight);
+}
 .v-VerdantPanel-runItem-caret.open {
   background-image: var(--verdant-icon-caretup);
 }
+.v-VerdantPanel-runItem-caret.open.highlight {
+  background-image: var(--verdant-icon-caretup-highlight);
+}
+
 
 .v-VerdantPanel-runItem-caret:hover {
   border: 1px solid;
 }
 
 .v-VerdantPanel-runItem-number {
-  width: calc(var(--jp-ui-font-size1) * 2.5);
+  width: calc(var(--jp-ui-font-size1) * 2);
   font-size: var(--jp-ui-font-size1);
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
-  margin-right: 2px;
+  margin-right: .25em;
   vertical-align: text-top;
+  text-align: right;
 }
 
 .v-VerdantPanel-runItem-time {
@@ -376,16 +387,25 @@
   height: 1em;
   border-bottom: 4px solid var(--verdant-cell-change-color2);
 }
+.v-VerdantPanel-runCellMap-cell-changed.highlight {
+  border-color: var(--verdant-cell-change-color2);
+}
 
 .v-VerdantPanel-runCellMap-cell-removed {
   background-color: var(--verdant-cell-remove-color1);
   border-bottom: 5px solid var(--verdant-cell-remove-color2);
   height: 4px;
 }
+.v-VerdantPanel-runCellMap-cell-removed.highlight {
+  border-color: var(--verdant-cell-remove-color2);
+}
 
 .v-VerdantPanel-runCellMap-cell-added {
   background-color: var(--verdant-cell-add-color1);
   border-bottom: 2px solid var(--verdant-cell-add-color2);
+}
+.v-VerdantPanel-runCellMap-cell-added.highlight {
+  border-color: var(--verdant-cell-add-color2);
 }
 
 .v-VerdantPanel-runCellMap-runSymbol {

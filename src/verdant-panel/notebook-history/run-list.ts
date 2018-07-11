@@ -1,18 +1,15 @@
 import { Widget } from "@phosphor/widgets";
 
-import "../../style/index.css";
+import "../../../style/index.css";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../../history-model";
 
-import { Run, RunDateList } from "../run";
+import { Run, RunDateList } from "../../run";
 
 import { RunItem } from "./run-item";
 
-import { RunCluster } from "./run-cluster";
-
 import { RunSection } from "./run-section";
 
-const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_LIST = "v-VerdantPanel-runContainer";
 const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
 const WORKING_VERSION = "v-VerdantPanel-workingItem";
@@ -79,31 +76,35 @@ export class RunList extends Widget {
    * Handle the `'click'` event for the widget.
    */
   private onClick(runItem: VerdantListItem, event: Event) {
-    console.log("Run item ", runItem);
+    console.log("Run item ", runItem, event);
 
     let target = event.target as HTMLElement;
     if (
-      runItem instanceof RunCluster ||
       target.classList.contains("v-VerdantPanel-runItem-caret")
     ) {
       runItem.caretClicked();
-    } else if (runItem instanceof RunItem) {
+    } else if (runItem) {
       if (this.selectedRun)
-        this.selectedRun.node.classList.remove(RUN_ITEM_ACTIVE);
+        this.selectedRun.blur()
 
       this.selectedRun = runItem.nodeClicked();
       if (this.selectedRun) {
-        console.log("Open old version of notebook", runItem.run);
-        this.historyModel.inspector.produceNotebook(runItem.run);
+        console.log("Open old version of notebook", this.selectedRun .run);
+        this.historyModel.inspector.produceNotebook(this.selectedRun .run);
       }
     }
   }
 
   private addNewRun(sender: any, run: Run) {
     var date = new Date(run.timestamp);
-    var section = this.sections.find(elem =>
-      Run.sameDay(new Date(elem.date), date)
-    );
+    var section;
+    for(var i = 0; i< this.sections.length; i++)
+    {
+      if(Run.sameDay(new Date(this.sections[i].date), date)){
+        section = this.sections[i]
+        break
+      }
+    }
 
     if (!section) {
       var dateSection = new RunSection(
@@ -150,4 +151,5 @@ class WorkingItem extends Widget {
 export interface VerdantListItem extends Widget {
   caretClicked: () => void;
   nodeClicked: () => RunItem;
+  blur: () => void;
 }
