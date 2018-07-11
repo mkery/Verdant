@@ -56,7 +56,7 @@ export class Legend {
     }
     let cellLabel = document.createElement("div");
     cellLabel.classList.add(LEGEND_LABEL);
-    cellLabel.textContent = "each dash is a cell in your notebook";
+    cellLabel.textContent = "1 dash is 1 cell in your notebook";
     item1.appendChild(cellLabel);
     container.appendChild(item1);
 
