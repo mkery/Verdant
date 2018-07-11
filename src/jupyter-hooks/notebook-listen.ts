@@ -109,10 +109,12 @@ export class NotebookListen {
     this._ready.resolve(undefined);
   }
 
-  focusCell(cell: Cell): void {
+  async focusCell(cell: Cell): Promise<void> {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
-      this._activeCellChanged.emit(this.cells.get(cell.model.id));
-      this.cells.get(cell.model.id).focus();
+      let cellListen = this.cells.get(cell.model.id)
+      await cellListen.ready
+      this._activeCellChanged.emit(cellListen);
+      cellListen.focus();
     }
     if (this.activeCell) this.cells.get(this.activeCell.model.id).blur();
     this.activeCell = cell;
@@ -143,13 +145,13 @@ export class NotebookListen {
     );
 
     this._notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
-      this.focusCell(cell);
+      this.focusCell(cell)
     });
 
     var runButton = this._notebookPanel.toolbar.node.getElementsByClassName(
       "p-Widget jp-mod-styled jp-Toolbar-button jp-RunIcon jp-Toolbar-item"
     )[0];
-    runButton.addEventListener("mousedown", ev => {
+    runButton.addEventListener("mousedown", () => {
       if (this.activeCell) this.cells.get(this.activeCell.model.id).cellRun();
     });
   }
@@ -187,7 +189,7 @@ export class NotebookListen {
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
     console.log("removing cells", oldIndex, oldValues);
-    oldValues.forEach((removed, item) => {
+    oldValues.forEach((removed) => {
       var cellListen: CellListen = this.cells.get(removed.id);
       cellListen.status = ChangeType.CELL_REMOVED;
     });
