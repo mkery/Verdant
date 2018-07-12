@@ -82,7 +82,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "print(\"foo bar\")\n"
+    "print(\"foo btttar\")\n"
    ]
   },
   {
@@ -92,15 +92,6 @@
    "outputs": [],
    "source": [
     "print(\"p\")\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "print(\"h\")\n"
    ]
   },
   {
@@ -118,7 +109,18 @@
    },
    "outputs": [],
    "source": [
-    "print(\"o\")\n"
+    "print(\"h\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "change": 1
+   },
+   "outputs": [],
+   "source": [
+    "\n"
    ]
   }
  ],
@@ -141,10 +143,10 @@
    "version": "3.6.5"
   },
   "origin": "Trapezoid Rule.ipynb",
-  "run": 20,
-  "timestamp": 1531276006786,
+  "run": 19,
+  "timestamp": 1531275996592,
   "totalChanges": [
-   10
+   9
   ]
  },
  "nbformat": 4,

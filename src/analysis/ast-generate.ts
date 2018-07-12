@@ -216,6 +216,8 @@ def main(text):
       #print(tokens)
       tokens.pop(0) #get rid of encoding stuff
       before_tokens, nodey, remainder = zipTokensAST(tokens, tree)
+      if nodey is None:
+        nodey = {'start': {'line': 0, 'ch': 0}, 'end': {'line': -1, 'ch': -1}, 'content': []}
       nodey['content'] = before_tokens + nodey['content'] + formatTokenList(remainder)
       nodey['content'].pop() #remove end marker
       nodey['start'] = nodey['content'][0]['start']

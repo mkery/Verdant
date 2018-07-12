@@ -69,7 +69,6 @@
 .v-VerdantPanel-legend-container {
   position: absolute;
   bottom: calc(2em - 1px);
-  height: 5em;
   width: calc(100% - 22px);
   padding: 5px;
   background: var(--jp-layout-color0);
