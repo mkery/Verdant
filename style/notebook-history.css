@@ -39,7 +39,6 @@
   display: inline-block;
   padding-top: 2px;
   border-top: var(--jp-border-width) solid var(--jp-border-color2);
-  margin-top: 5px;
   font-size: var(--jp-ui-font-size0);
   letter-spacing: 1px;
   color: var(--jp-ui-font-color1);
@@ -69,8 +68,8 @@
 
 .v-VerdantPanel-legend-container {
   position: absolute;
-  bottom: calc(2em + 2px);
-  min-height: 2em;
+  bottom: calc(2em - 1px);
+  height: 5em;
   width: calc(100% - 22px);
   padding: 5px;
   background: var(--jp-layout-color0);
@@ -141,7 +140,7 @@
 
 .v-VerdantPanel-runList-header {
   padding-left: 8px;
-  padding-top: 15px;
+  padding-top: 8px;
   padding-bottom: 2px;
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
   margin-bottom: 5px;
