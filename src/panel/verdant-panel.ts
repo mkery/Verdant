@@ -6,9 +6,9 @@ import { HistoryModel } from "../history-model";
 
 import { SearchBar } from "./search-bar";
 
-import { RunList } from "./notebook-history/run-list";
+import { RunList } from "../notebook-panel/run-list";
 
-import { CellPanel } from "./cell-history/cell-panel";
+import { CellPanel } from "../cell-panel/cell-panel";
 
 const TABS_ID = "v-VerdantPanel-tabs";
 const HEADER_NOTEBOOK_LABEL = "v-VerdantPanel-header-notebookLabel";

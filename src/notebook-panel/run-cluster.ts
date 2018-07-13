@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { Run, ChangeType, CellRunData } from "../../run";
+import { Run, ChangeType, CellRunData } from "../run";
 
 import { RunItem } from "./run-item";
 

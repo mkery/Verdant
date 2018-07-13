@@ -74,9 +74,9 @@ def splitBeforeTokens(content, nodey, before_tokens):
         if(nodey and tk['start']['line'] == nodey['start']['line']):
             nodeyMatch.append(tk)
         elif(prevNodey and tk['start']['line'] == prevNodey['start']['line']):
-            content += tk
+            content.append(tk)
         else:
-            middle += tk
+            middle.append(tk)
     if nodeyMatch != []:
         nodey['content'] = nodeyMatch + (nodey['content'] or [])
     return content, middle, nodey
@@ -131,7 +131,8 @@ def processTokens_middle(node, tokenList):
                 if(child2 and startsWith(child2_start, chunk)): #start of child 2
                     #first, give all the tokens collected so far to child1. child2 starts with what remains
                     before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1)
-                    content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
+                    if(child_nodey):
+                      content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
                     content += before_tokens
                     if child_nodey: content.append(child_nodey)
                     chunkList = []
@@ -147,7 +148,8 @@ def processTokens_middle(node, tokenList):
             chunkList = tokenList
 
         before_tokens, child_nodey, after_tokens = zipTokensAST(chunkList, child1)
-        content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
+        if(child_nodey):
+            content, before_tokens, child_nodey = splitBeforeTokens(content, child_nodey, before_tokens)
         content += before_tokens
         if child_nodey: content.append(child_nodey)
         chunkList = after_tokens
@@ -155,9 +157,8 @@ def processTokens_middle(node, tokenList):
     else:
         # no children, but eat what can
         start = getStart(node)
-        #print("my start", start)
         content = []
-        if(start):
+        if(start != None and tokenList != []):
             if(tokenList[0].start[0] == start['line'] and tokenList[0].start[1] == start['ch']):
                 content += formatTokenList([tokenList.pop(0)])
                 #end = content[-1]
@@ -299,10 +300,19 @@ def main(text):
     code = code.replace(/""".*"""/g, str => {
       return "'" + str + "'";
     });
+
+    // remove any triple quotes, which will mess us up
+    code = code.replace(/"""/g, "'''")
+
     // make sure newline inside strings doesn't cause an EOL error
-    code = code.replace(/".*\\n.*"/g, str => {
-      return str.replace(/\\n/g, "\\\n");
+    code = code.replace(/(").*?(\\.).*?(?=")/g, str => {
+      return str.replace(/\\/g, "\\\\");
     });
+    code = code.replace(/(').*?(\\.).*?(?=')/g, str => {
+      return str.replace(/\\/g, "\\\\");
+    });
+    console.log("cleaned code is ", code)
+
     this.runKernel('main("""' + code + '""")', onReply, onIOPub);
   }
 

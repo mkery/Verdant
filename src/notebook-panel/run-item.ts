@@ -1,8 +1,8 @@
-import { Run, ChangeType } from "../../run";
+import { Run, ChangeType } from "../run";
 
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../../history-model";
+import { HistoryModel } from "../history-model";
 
 import { VerdantListItem } from "./run-list";
 

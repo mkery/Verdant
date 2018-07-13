@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../../history-model";
+import { HistoryModel } from "../history-model";
 
 import { InspectWidget } from "../inspector/inspect-widget";
 

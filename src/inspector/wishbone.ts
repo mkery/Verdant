@@ -1,9 +1,9 @@
-import { HistoryModel } from "../../history-model";
-import { Nodey, NodeyCodeCell } from "../../nodey";
-import { Inspect } from "../../inspect";
-import { NotebookListen } from "../../jupyter-hooks/notebook-listen";
+import { HistoryModel } from "../history-model";
+import { Nodey, NodeyCodeCell } from "../nodey";
+import { Inspect } from "../inspect";
+import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { CodeCell } from "@jupyterlab/cells";
-import { CellListen, CodeCellListen } from "../../jupyter-hooks/cell-listen";
+import { CellListen, CodeCellListen } from "../jupyter-hooks/cell-listen";
 
 const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
 const WISHBONE_HIGHLIGHT_CODE = "v-VerdantPanel-wishbone-code-highlight";

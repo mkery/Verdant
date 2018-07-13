@@ -1,4 +1,4 @@
-import { CellRunData, ChangeType } from "../../run";
+import { CellRunData, ChangeType } from "../run";
 
 const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
 const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
