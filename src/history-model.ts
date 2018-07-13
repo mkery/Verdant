@@ -77,6 +77,14 @@ export class HistoryModel {
     return this._cellList.map(num => this.getNodeyCell(num));
   }
 
+  get cellIndices(): number[] {
+    return this._cellList
+  }
+
+  get deletedCellIndices(): number[]{
+    return this._deletedCellList
+  }
+
   public getVersionsFor(nodey: Nodey) {
     if (nodey instanceof NodeyOutput)
       return this._outputStore[parseInt(nodey.id)];

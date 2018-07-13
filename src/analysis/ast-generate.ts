@@ -305,13 +305,14 @@ def main(text):
     code = code.replace(/"""/g, "'''")
 
     // make sure newline inside strings doesn't cause an EOL error
+    // and make sure any special characters are escaped correctly
     code = code.replace(/(").*?(\\.).*?(?=")/g, str => {
       return str.replace(/\\/g, "\\\\");
     });
     code = code.replace(/(').*?(\\.).*?(?=')/g, str => {
       return str.replace(/\\/g, "\\\\");
     });
-    console.log("cleaned code is ", code)
+    //console.log("cleaned code is ", code)
 
     this.runKernel('main("""' + code + '""")', onReply, onIOPub);
   }

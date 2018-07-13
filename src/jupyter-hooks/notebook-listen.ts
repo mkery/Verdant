@@ -26,6 +26,7 @@ export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
   private _notebookPanel: NotebookPanel;
   private _activeCellChanged = new Signal<this, CellListen>(this);
+  private _cellStructureChanged = new Signal<this, [number, CellListen]>(this);
   kernUtil: KernelListen;
   astGen: ASTGenerate;
   cells: Map<string, CellListen>;
@@ -62,6 +63,10 @@ export class NotebookListen {
 
   get activeCellChanged(): Signal<this, CellListen> {
     return this._activeCellChanged;
+  }
+
+  get cellStructureChanged(): Signal<this, [number, CellListen]> {
+    return this._cellStructureChanged
   }
 
   get path(): string {
@@ -184,6 +189,7 @@ export class NotebookListen {
       console.log("adding a new cell!", cell, newIndex, newValues);
       var cellListen = this.createCodeCellListen(cell, newIndex, false);
       cellListen.status = ChangeType.CELL_ADDED;
+      this._cellStructureChanged.emit([index, cellListen])
     });
   }
 
@@ -192,6 +198,7 @@ export class NotebookListen {
     oldValues.forEach((removed) => {
       var cellListen: CellListen = this.cells.get(removed.id);
       cellListen.status = ChangeType.CELL_REMOVED;
+      this._cellStructureChanged.emit([oldIndex, cellListen])
     });
   }
 
@@ -202,6 +209,7 @@ export class NotebookListen {
   ) {
     console.log("moving cell", oldIndex, newIndex, newValues);
     //TODO
+    //this._cellStructureChanged.emit(null)
   }
 
   private _ready = new PromiseDelegate<void>();

@@ -6,6 +6,7 @@ import { Nodey, NodeyMarkdown } from "../nodey";
 
 import { Wishbone } from "./wishbone";
 
+const INSPECT = "v-VerdantPanel-inspect"
 const INSPECT_ICON = "v-VerdantPanel-inspect-icon";
 const INSPECT_HEADER = "v-VerdantPanel-inspect-header";
 const INSPECT_TITLE = "v-VerdantPanel-inspect-title";
@@ -22,6 +23,7 @@ export class InspectWidget extends Widget {
   constructor(historyModel: HistoryModel) {
     super();
     this._historyModel = historyModel;
+    this.addClass(INSPECT)
 
     let inspectHeader = document.createElement("div");
     inspectHeader.classList.add(INSPECT_HEADER);
@@ -83,7 +85,7 @@ export class InspectWidget extends Widget {
 
   public changeTarget(sender: any, target: Nodey) {
     if (this._active) {
-      this.header.textContent = target.typeName + " node " + target.name;
+      this.header.textContent = "versions of "+target.typeName + " node " + target.name;
       this.content.innerHTML = "";
       this.fillContent(target, this.inspector.versionsOfTarget);
     }

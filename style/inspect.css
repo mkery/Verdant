@@ -1,3 +1,11 @@
+.v-VerdantPanel-inspect {
+  flex: 2 1 auto;
+}
+
+.v-VerdantPanel-inspect-header{
+  padding: 3px;
+}
+
 .v-VerdantPanel-inspect-icon {
   padding: 5px;
   margin: 5px;
@@ -6,8 +14,8 @@
   border: 1px solid var(--verdant-highlight-color1);
   border-radius: 5px;
   display: inline-block;
-  width: 1em;
-  height: 1em;
+  width: 0.75em;
+  height: 0.75em;
 }
 .v-VerdantPanel-inspect-icon.active {
   background-image: var(--verdant-icon-timeinspect-active);
@@ -16,7 +24,7 @@
 
 .v-VerdantPanel-inspect-title {
   display: inline-block;
-  margin-left: 5px;
+  margin-left: 4px;
   font-style: italic;
   vertical-align: top;
   margin-top: 10px;

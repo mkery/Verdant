@@ -1,5 +1,7 @@
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
+import { PromiseDelegate } from "@phosphor/coreutils";
+
 import { nbformat } from "@jupyterlab/coreutils";
 
 import { JSONObject } from "@phosphor/coreutils";
@@ -7,6 +9,7 @@ import { JSONObject } from "@phosphor/coreutils";
 import {
   Nodey,
   NodeyCode,
+  NodeyCell,
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
@@ -29,9 +32,11 @@ import { Signal } from "@phosphor/signaling";
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 export class Inspect {
+  private _ready = new PromiseDelegate<void>();
   private _notebook: NotebookListen;
   private _historyModel: HistoryModel;
   private _targetChanged = new Signal<this, Nodey>(this);
+  private _cellStructureChanged = new Signal<this, [number, NodeyCell]>(this);
   private _target: Nodey;
   renderBaby: RenderBaby;
 
@@ -47,6 +52,17 @@ export class Inspect {
         this.changeTarget([cell.nodey]);
       }
     );
+    this._notebook.cellStructureChanged.connect(
+      (sender: any, cell: [number, CellListen]) =>
+      {
+        this._cellStructureChanged.emit([cell[0], cell[1].nodey])
+      }
+    )
+    this._ready.resolve(undefined);
+  }
+
+  get ready(): Promise<void> {
+    return this._ready.promise;
   }
 
   public diffNodey(
@@ -222,9 +238,12 @@ export class Inspect {
     this._historyModel.fileManager.openGhost(file, this._notebook);
   }
 
-  get target()
-  {
+  get target() {
     return this._target
+  }
+
+  get cellStructureChanged(): Signal<this,[number, NodeyCell]> {
+    return  this._cellStructureChanged
   }
 
   get targetChanged(): Signal<this, Nodey> {
