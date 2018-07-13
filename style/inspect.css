@@ -1,5 +1,7 @@
 .v-VerdantPanel-inspect {
   flex: 2 1 auto;
+  border-bottom: 1px solid var(--jp-border-color1);
+  box-shadow: var(--jp-toolbar-box-shadow);
 }
 
 .v-VerdantPanel-inspect-header {
@@ -53,6 +55,11 @@
   width: max-content;
   padding-left: 8px;
   font-family: var(--jp-cell-prompt-font-family);
+}
+.v-VerdantPanel-inspect-version-content.markdown {
+  font-family: var(--jp-content-font-family);
+  width: calc(100% - 8px);
+  overflow: hidden;
 }
 
 .v-VerdantPanel-inspect-version {

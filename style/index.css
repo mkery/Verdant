@@ -12,6 +12,10 @@
   --verdant-icon-caretup-highlight: url("img/chevron-less-highlight.svg");
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-edit: url("img/pen.svg");
+  --verdant-icon-star: url("img/star.svg");
+  --verdant-icon-star-highlight: url("img/star-highlight.svg");
+  --verdant-icon-comment: url("img/comment.svg");
+  --verdant-icon-comment-highlight: url("img/comment-highlight.svg");
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
   --verdant-icon-cell-changed: url("img/cell-changed.svg");

@@ -31,16 +31,16 @@ export class CellPanel extends Widget {
     this.inspectWidget = new InspectWidget(historyModel);
     this.node.appendChild(this.inspectWidget.node);
 
-    let currentCells = this.buildCellHeaders();
+    let currentCells = this.buildCellHeader();
     this.node.appendChild(currentCells);
     let cellContent = document.createElement("div");
     cellContent.classList.add(CELL_CONTAINERS);
     this.node.appendChild(cellContent);
-    let deletedCells = this.buidDeletedList();
-    deletedCells.classList.add(CELL_CONTAINERS);
+    let deletedCells = this.buildDeleteHeader();
     let deletedContent = document.createElement("div");
-    this.node.appendChild(deletedContent);
+    deletedContent.classList.add(CELL_CONTAINERS);
     this.node.appendChild(deletedCells);
+    this.node.appendChild(deletedContent);
 
     this.historyModel.inspector.ready.then(async () => {
       await this.historyModel.notebook.ready;
@@ -59,6 +59,22 @@ export class CellPanel extends Widget {
   show() {
     super.show();
     this.inspectWidget.show();
+  }
+
+  get cellCaret() {
+    return this.node.getElementsByClassName(CELLHEADER_CARET)[0] as HTMLElement;
+  }
+
+  get deleteCaret() {
+    return this.node.getElementsByClassName(CELLHEADER_CARET)[1] as HTMLElement;
+  }
+
+  get cellListContainer() {
+    return this.node.getElementsByClassName(CELL_CONTAINERS)[0] as HTMLElement;
+  }
+
+  get deletedListContainer() {
+    return this.node.getElementsByClassName(CELL_CONTAINERS)[1] as HTMLElement;
   }
 
   updateCellDisplay(sender: any, cell: [number, NodeyCell]) {
@@ -114,9 +130,10 @@ export class CellPanel extends Widget {
     return cellContainer;
   }
 
-  buildCellHeaders(): HTMLElement {
+  buildCellHeader(): HTMLElement {
     let header = document.createElement("div");
     header.classList.add(CELLHEADER_CLASS);
+    header.classList.add("cells");
 
     let tag = document.createElement("div");
     tag.textContent = "Current cells (?)";
@@ -124,6 +141,7 @@ export class CellPanel extends Widget {
 
     let caret = document.createElement("div");
     caret.classList.add(CELLHEADER_CARET);
+    caret.addEventListener("click", this.toggleCellList.bind(this));
 
     header.appendChild(tag);
     header.appendChild(caret);
@@ -131,9 +149,10 @@ export class CellPanel extends Widget {
     return header;
   }
 
-  buidDeletedList(): HTMLElement {
+  buildDeleteHeader(): HTMLElement {
     let header = document.createElement("div");
     header.classList.add(CELLHEADER_CLASS);
+    header.classList.add("cells");
 
     let tag = document.createElement("div");
     tag.textContent = "Deleted cells (?)";
@@ -141,10 +160,34 @@ export class CellPanel extends Widget {
 
     let caret = document.createElement("div");
     caret.classList.add(CELLHEADER_CARET);
+    caret.classList.add("closed");
+    caret.addEventListener("click", this.toggleDeleteList.bind(this));
 
     header.appendChild(tag);
     header.appendChild(caret);
 
     return header;
+  }
+
+  toggleCellList() {
+    let caret = this.cellCaret;
+    if (caret.classList.contains("closed")) {
+      caret.classList.remove("closed");
+      this.cellListContainer.style.display = "";
+    } else {
+      caret.classList.add("closed");
+      this.cellListContainer.style.display = "none";
+    }
+  }
+
+  toggleDeleteList() {
+    let caret = this.deleteCaret;
+    if (caret.classList.contains("closed")) {
+      caret.classList.remove("closed");
+      this.deletedListContainer.style.display = "";
+    } else {
+      caret.classList.add("closed");
+      this.deletedListContainer.style.display = "none";
+    }
   }
 }

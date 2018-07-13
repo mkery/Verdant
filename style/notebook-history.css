@@ -128,19 +128,19 @@
 .v-VerdantPanel-runList-caret {
   height: 1.5em;
   width: 1.5em;
-  background-image: var(--verdant-icon-caretdown);
+  background-image: var(--verdant-icon-caretup);
   display: inline-block;
   vertical-align: bottom;
   margin-left: 8px;
 }
 .v-VerdantPanel-runList-caret.closed {
-  background-image: var(--verdant-icon-caretup);
+  background-image: var(--verdant-icon-caretdown);
 }
 
 .v-VerdantPanel-runList-header {
   padding-left: 8px;
   padding-top: 8px;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
   max-height: calc(1em + 15px);
 }

@@ -36,8 +36,54 @@
 }
 
 .v-VerdantPanel-search-input {
+  background: transparent;
   width: 100%;
+  float: left;
   border: none;
   outline: none;
-  font-size: 16px;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color0);
+  line-height: var(--jp-private-commandpalette-search-height);
+}
+
+.v-VerdantPanel-search-container {
+  padding: 2px;
+  padding-top: 4px;
+  padding-left: 6px;
+  background-color: var(--jp-layout-color2);
+  border-bottom: 1px solid var(--jp-border-color1);
+  box-shadow: var(--jp-toolbar-box-shadow);
+  z-index: 2;
+}
+
+.v-VerdantPanel-search-box {
+  overflow: overlay;
+  width: 60%;
+  padding: 0px 8px;
+  border: 1px solid var(--jp-border-color0);
+  background-color: var(--jp-input-active-background);
+  height: 30px;
+  display: inline-block;
+}
+
+.v-VerdantPanel-search-filter {
+  width: 36px;
+  margin-bottom: 4px;
+  height: 24px;
+  margin-left: 5px;
+  display: inline-block;
+  background-size: 16px;
+  border: 1px solid transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.v-VerdantPanel-search-filter:hover {
+  border: 1px solid var(--jp-toolbar-border-color);
+  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.24);
+}
+.v-VerdantPanel-search-filter.star {
+  background-image: var(--verdant-icon-star);
+}
+.v-VerdantPanel-search-filter.comment {
+  background-image: var(--verdant-icon-comment);
 }
