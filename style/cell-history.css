@@ -1,9 +1,57 @@
-
-
 .v-VerdantPanel-cellPanel {
   font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color1);
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+}
+
+.v-VerdantPanel-cellList-li {
+  display: inline-flex;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.v-VerdantPanel-cellList-sample {
+  padding: 8px;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  margin-left: 0.5em;
+  background-color: var(--jp-layout-color2);
+  border-left: 2px solid var(--jp-border-color0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v-VerdantPanel-cellList-sample.markdown {
+  background: var(--jp-layout-color);
+}
+
+.v-VerdantPanel-cellList-container {
+  width: 100%;
+  display: inline-block;
+  flex: 1 1 auto;
+  max-height: 40em;
+  overflow: auto;
+  padding-left: 0.5em;
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color3);
+}
+
+.v-VerdantPanel-cellList-versionNumber {
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 400;
+  letter-spacing: 1px;
+  display: inline-block;
+  margin-right: 0.25em;
+  padding-top: calc(4px + 0.25em);
+  white-space: nowrap;
+}
+
+.v-VerdantPanel-cellList-cellType {
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--jp-ui-font-color2);
+  padding-top: calc(4px + 0.5em);
+  display: inline-block;
 }

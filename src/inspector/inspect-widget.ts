@@ -6,12 +6,14 @@ import { Nodey, NodeyMarkdown } from "../nodey";
 
 import { Wishbone } from "./wishbone";
 
-const INSPECT = "v-VerdantPanel-inspect"
+const INSPECT = "v-VerdantPanel-inspect";
 const INSPECT_ICON = "v-VerdantPanel-inspect-icon";
 const INSPECT_HEADER = "v-VerdantPanel-inspect-header";
 const INSPECT_TITLE = "v-VerdantPanel-inspect-title";
 const INSPECT_CONTENT = "v-VerdantPanel-inspect-content";
 const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
+const INSPECT_VERSION_LABEL = "v-VerdantPanel-inspect-version-label";
+const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
 
 /**
  * A widget which displays cell-level history information
@@ -23,7 +25,7 @@ export class InspectWidget extends Widget {
   constructor(historyModel: HistoryModel) {
     super();
     this._historyModel = historyModel;
-    this.addClass(INSPECT)
+    this.addClass(INSPECT);
 
     let inspectHeader = document.createElement("div");
     inspectHeader.classList.add(INSPECT_HEADER);
@@ -85,27 +87,41 @@ export class InspectWidget extends Widget {
 
   public changeTarget(sender: any, target: Nodey) {
     if (this._active) {
-      this.header.textContent = "versions of "+target.typeName + " node " + target.name;
+      this.header.textContent =
+        "versions of " + target.typeName + " node " + target.name;
       this.content.innerHTML = "";
       this.fillContent(target, this.inspector.versionsOfTarget);
     }
   }
 
-  private fillContent(target: Nodey, verList: any[]) {
+  private fillContent(
+    target: Nodey,
+    verList: { version: number; runs: any; text: string }[]
+  ) {
     var contentDiv = this.content;
     verList.map(item => {
-      var text = item as string;
-      var li = document.createElement("div");
+      let text = item.text;
+      let li = document.createElement("div");
       li.classList.add(INSPECT_VERSION);
-      li.textContent = text;
+
+      let label = document.createElement("div");
+      label.classList.add(INSPECT_VERSION_LABEL);
+      label.textContent = "version " + item.version + ":";
+      li.appendChild(label);
+
+      let content = document.createElement("div");
+      content.classList.add(INSPECT_VERSION_CONTENT);
+      content.textContent = text;
+      li.appendChild(content);
 
       if (target instanceof NodeyMarkdown) {
-        li.classList.add("markdown");
-        this.inspector.renderBaby.renderMarkdown(li, text);
+        content.classList.add("markdown");
+        this.inspector.renderBaby.renderMarkdown(content, text);
       }
 
       contentDiv.appendChild(li);
     });
+    contentDiv.lastElementChild.classList.add("last");
   }
 
   public toggleWishbone() {

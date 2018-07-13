@@ -117,7 +117,7 @@ export class CodeCellListen extends CellListen {
       ] as NodeyCodeCell; //TODO could easily fail!!!
       nodeyCell.cell = this;
       this._nodey = nodeyCell.id;
-      this.astUtils.matchASTOnInit(nodeyCell, text);
+      await this.astUtils.matchASTOnInit(nodeyCell, text);
       //TODO match output too
     } else {
       var outNode = Nodey.outputToNodey(cell, this.historyModel);

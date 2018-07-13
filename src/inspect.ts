@@ -53,16 +53,50 @@ export class Inspect {
       }
     );
     this._notebook.cellStructureChanged.connect(
-      (sender: any, cell: [number, CellListen]) =>
-      {
-        this._cellStructureChanged.emit([cell[0], cell[1].nodey])
+      (sender: any, cell: [number, CellListen]) => {
+        this._cellStructureChanged.emit([cell[0], cell[1].nodey]);
       }
-    )
+    );
     this._ready.resolve(undefined);
   }
 
   get ready(): Promise<void> {
     return this._ready.promise;
+  }
+
+  public sampleNode(nodey: Nodey): string {
+    console.log("SAMPLE", nodey);
+    // goal get the first line of the node
+    if (nodey instanceof NodeyMarkdown) {
+      let lines = nodey.markdown.split("\n");
+      return lines[0];
+    } else {
+      let nodeyCode = nodey as NodeyCode;
+      let lineNum = nodeyCode.start.line;
+      let line = "";
+      return this.getLineContent(lineNum, line, nodeyCode);
+    }
+  }
+
+  private getLineContent(
+    lineNum: number,
+    line: string,
+    nodeyCode: NodeyCode
+  ): string {
+    if (nodeyCode.literal) {
+      line += nodeyCode.literal.split("\n")[0];
+    } else if (nodeyCode.content) {
+      nodeyCode.content.forEach(name => {
+        if (name instanceof SyntaxToken) {
+          line += name.tokens;
+        } else {
+          var child = this._historyModel.getNodey(name) as NodeyCode;
+          if (child.start.line === lineNum)
+            line = this.getLineContent(lineNum, line, child);
+        }
+      });
+    }
+    return line;
   }
 
   public diffNodey(
@@ -142,7 +176,7 @@ export class Inspect {
 
   private _nodeDeleted(name: string): NodeChangeDesc {
     var node = this._historyModel.getNodey(name) as NodeyCode;
-    var text = this.renderNode(node);
+    var text = this.renderNode(node).text;
     return {
       change: ChangeType.CELL_REMOVED,
       start: node.start,
@@ -191,7 +225,7 @@ export class Inspect {
           }
         }
       }
-      var str = (this.renderNode(nodey) || "").split("\n");
+      var str = (this.renderNode(nodey).text || "").split("\n");
       jsn.source = str.map((str: string, index: number) => {
         if (index !== jsn.source.length - 1) return str + "\n";
         else return str;
@@ -239,11 +273,11 @@ export class Inspect {
   }
 
   get target() {
-    return this._target
+    return this._target;
   }
 
-  get cellStructureChanged(): Signal<this,[number, NodeyCell]> {
-    return  this._cellStructureChanged
+  get cellStructureChanged(): Signal<this, [number, NodeyCell]> {
+    return this._cellStructureChanged;
   }
 
   get targetChanged(): Signal<this, Nodey> {
@@ -322,11 +356,27 @@ export class Inspect {
     return el;
   }
 
-  public renderNode(nodey: Nodey): any {
-    if (nodey instanceof NodeyCode) return this.renderCodeNode(nodey);
+  public renderNode(
+    nodey: Nodey
+  ): { version: number; runs: any; text: string } {
+    if (nodey instanceof NodeyCode)
+      return {
+        version: parseInt(nodey.version),
+        runs: nodey.run,
+        text: this.renderCodeNode(nodey)
+      };
     else if (nodey instanceof NodeyMarkdown)
-      return this.renderMarkdownNode(nodey);
-    else if (nodey instanceof NodeyOutput) return this.renderOutputNode(nodey);
+      return {
+        version: parseInt(nodey.version),
+        runs: nodey.run,
+        text: this.renderMarkdownNode(nodey)
+      };
+    else if (nodey instanceof NodeyOutput)
+      return {
+        version: parseInt(nodey.version),
+        runs: nodey.run,
+        text: this.renderOutputNode(nodey)
+      };
   }
 
   private renderCodeNode(nodey: NodeyCode): string {

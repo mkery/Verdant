@@ -142,7 +142,7 @@
   padding-top: 8px;
   padding-bottom: 2px;
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
-  margin-bottom: 5px;
+  max-height: calc(1em + 15px);
 }
 
 .v-VerdantPanel-runList-header:hover:not(.jp-mod-active) {
