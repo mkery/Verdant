@@ -102,6 +102,11 @@ export class CellPanel extends Widget {
       sample.classList.add(CELL_SAMPLE);
       sample.classList.add(cell.typeName);
       sample.textContent = this.historyModel.inspector.sampleNode(cell);
+      if (cell.typeName === "markdown")
+        this.historyModel.inspector.renderBaby.renderMarkdown(
+          sample,
+          sample.textContent
+        );
       listItem.appendChild(sample);
 
       cellContainer.appendChild(listItem);

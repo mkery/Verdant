@@ -13,8 +13,8 @@
 }
 
 .v-VerdantPanel-cellList-sample {
-  padding: 8px;
   white-space: nowrap;
+  padding: 2px;
   flex: 1 1 auto;
   margin-left: 0.5em;
   background-color: var(--jp-layout-color2);
@@ -24,6 +24,12 @@
 }
 .v-VerdantPanel-cellList-sample.markdown {
   background: var(--jp-layout-color);
+}
+.v-VerdantPanel-cellList-sample.code {
+  padding: 8px;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: var(--jp-code-line-height);
 }
 
 .v-VerdantPanel-cellList-container {
@@ -52,6 +58,6 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--jp-ui-font-color2);
-  padding-top: calc(4px + 0.5em);
+  padding-top: calc(4px + var(--jp-ui-font-size1) / 2);
   display: inline-block;
 }

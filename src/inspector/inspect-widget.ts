@@ -106,7 +106,7 @@ export class InspectWidget extends Widget {
 
       let label = document.createElement("div");
       label.classList.add(INSPECT_VERSION_LABEL);
-      label.textContent = "version " + item.version + ":";
+      label.textContent = "version " + (item.version + 1) + ":";
       li.appendChild(label);
 
       let content = document.createElement("div");
