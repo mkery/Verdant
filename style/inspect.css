@@ -1,7 +1,7 @@
 .v-VerdantPanel-inspect {
   flex: 2 1 auto;
   border-bottom: 1px solid var(--jp-border-color1);
-  box-shadow: var(--jp-toolbar-box-shadow);
+  height: 10em;
 }
 
 .v-VerdantPanel-inspect-header {

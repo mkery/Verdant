@@ -59,7 +59,7 @@ export class ASTResolve {
 
     if (affected) {
       //some types cannot be parsed alone by Python TODO
-      var unparsable = ["Str", "STRING", "keyword", "NUMBER", "Num"];
+      var unparsable = ["Str", "STRING", "keyword", "NUMBER", "Num", "COMMENT"];
       while (unparsable.indexOf(affected.type) !== -1) {
         console.log("affected is", affected);
         affected = this.historyModel.getNodey(affected.parent) as NodeyCode;

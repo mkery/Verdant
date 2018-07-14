@@ -44,6 +44,7 @@
   font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color0);
   line-height: var(--jp-private-commandpalette-search-height);
+  margin-top: -0.25em;
 }
 
 .v-VerdantPanel-search-container {
@@ -52,8 +53,9 @@
   padding-left: 6px;
   background-color: var(--jp-layout-color2);
   border-bottom: 1px solid var(--jp-border-color1);
-  box-shadow: var(--jp-toolbar-box-shadow);
+  overflow: visible;
   z-index: 2;
+  display: inline-block;
 }
 
 .v-VerdantPanel-search-box {
@@ -62,15 +64,13 @@
   padding: 0px 8px;
   border: 1px solid var(--jp-border-color0);
   background-color: var(--jp-input-active-background);
-  height: 30px;
+  height: 24px;
   display: inline-block;
 }
 
 .v-VerdantPanel-search-filter {
   width: 36px;
-  margin-bottom: 4px;
   height: 24px;
-  margin-left: 5px;
   display: inline-block;
   background-size: 16px;
   border: 1px solid transparent;

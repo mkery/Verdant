@@ -65,7 +65,6 @@ export class Inspect {
   }
 
   public sampleNode(nodey: Nodey): string {
-    console.log("SAMPLE", nodey);
     // goal get the first line of the node
     if (nodey instanceof NodeyMarkdown) {
       let lines = nodey.markdown.split("\n");

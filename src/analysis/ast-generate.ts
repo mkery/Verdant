@@ -223,6 +223,8 @@ def main(text):
       nodey['content'].pop() #remove end marker
       nodey['start'] = nodey['content'][0]['start']
       nodey['end'] = nodey['content'][-1]['end']
+      if nodey.get('type', None) == None:
+        nodey['type'] = "Module" #to be consistent, the outer shell should be Module
       print (json.dumps(nodey, indent=2))
 `;
   }
