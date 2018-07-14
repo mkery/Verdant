@@ -14,13 +14,13 @@ import {
   NodeyOutput,
   SyntaxToken,
   NodeyCodeCell
-} from "./nodey";
+} from "./model/nodey";
 
-import { Run, CellRunData, ChangeType } from "./run";
+import { Run, CellRunData, ChangeType } from "./model/run";
 
 import { CodeCell } from "@jupyterlab/cells";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "./model/history";
 
 import { CellListen } from "./jupyter-hooks/cell-listen";
 
@@ -177,7 +177,7 @@ export class Inspect {
     var node = this._historyModel.getNodey(name) as NodeyCode;
     var text = this.renderNode(node).text;
     return {
-      change: ChangeType.CELL_REMOVED,
+      change: ChangeType.REMOVED,
       start: node.start,
       end: node.end,
       text: text
@@ -187,7 +187,7 @@ export class Inspect {
   private _nodeAdded(name: string): NodeChangeDesc {
     var node = this._historyModel.getNodey(name) as NodeyCode;
     return {
-      change: ChangeType.CELL_ADDED,
+      change: ChangeType.ADDED,
       start: node.start,
       end: node.end
     };
@@ -196,7 +196,7 @@ export class Inspect {
   private _literalChanged(prior: NodeyCode, nodey: NodeyCode): NodeChangeDesc {
     //TODO better comparison
     return {
-      change: ChangeType.CELL_CHANGED,
+      change: ChangeType.CHANGED,
       start: nodey.start,
       end: nodey.end,
       text: prior.literal
@@ -213,10 +213,10 @@ export class Inspect {
         metadata: {},
         source: [] as string[]
       };
-      if (cellDat.changeType !== ChangeType.CELL_SAME) {
+      if (cellDat.changeType !== ChangeType.SAME) {
         // this nodey was run
         jsn.metadata["change"] = cellDat.changeType;
-        if (cellDat.changeType === ChangeType.CELL_CHANGED) {
+        if (cellDat.changeType === ChangeType.CHANGED) {
           var changes = this.getChangesInRun(nodey as NodeyCode, run.id);
           jsn.metadata["edits"] = changes;
           for (var i = 0; i < changes.length; i++) {

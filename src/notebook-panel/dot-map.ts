@@ -1,4 +1,4 @@
-import { CellRunData, ChangeType } from "../run";
+import { CellRunData, ChangeType } from "../model/run";
 
 const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
 const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
@@ -21,13 +21,13 @@ export class DotMap {
       let div = document.createElement("div");
       div.classList.add(RUN_CELL_MAP_CELL);
       switch (cell.changeType) {
-        case ChangeType.CELL_CHANGED:
+        case ChangeType.CHANGED:
           div.classList.add(RUN_CELL_MAP_CHANGED);
           break;
-        case ChangeType.CELL_REMOVED:
+        case ChangeType.REMOVED:
           div.classList.add(RUN_CELL_MAP_REMOVED);
           break;
-        case ChangeType.CELL_ADDED:
+        case ChangeType.ADDED:
           div.classList.add(RUN_CELL_MAP_ADDED);
           break;
         default:

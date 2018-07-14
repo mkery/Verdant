@@ -6,13 +6,13 @@ import { Session, KernelMessage } from "@jupyterlab/services";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
-import { Nodey, NodeyCode, NodeyCodeCell, NodeyMarkdown } from "../nodey";
+import { Nodey, NodeyCode, NodeyCodeCell, NodeyMarkdown } from "../model/nodey";
 
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 
 import { ASTResolve } from "./ast-resolve";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 export class ASTGenerate {
   //Properties

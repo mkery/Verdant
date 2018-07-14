@@ -1,6 +1,6 @@
-import { NodeyCode } from "../nodey";
+import { NodeyCode } from "../model/nodey";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 /*
 *

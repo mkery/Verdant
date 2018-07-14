@@ -2,7 +2,7 @@ import { NotebookPanel, Notebook } from "@jupyterlab/notebook";
 
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { ChangeType } from "../run";
+import { ChangeType } from "../model/run";
 
 import { IObservableJSON } from "@jupyterlab/observables";
 
@@ -20,7 +20,7 @@ import { CellListen, CodeCellListen, MarkdownCellListen } from "./cell-listen";
 
 import { KernelListen } from "./kernel-listen";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
@@ -188,7 +188,7 @@ export class NotebookListen {
       var cell: Cell = this._notebook.widgets[newIndex + index];
       console.log("adding a new cell!", cell, newIndex, newValues);
       var cellListen = this.createCodeCellListen(cell, newIndex, false);
-      cellListen.status = ChangeType.CELL_ADDED;
+      cellListen.status = ChangeType.ADDED;
       this._cellStructureChanged.emit([index, cellListen])
     });
   }
@@ -197,7 +197,7 @@ export class NotebookListen {
     console.log("removing cells", oldIndex, oldValues);
     oldValues.forEach((removed) => {
       var cellListen: CellListen = this.cells.get(removed.id);
-      cellListen.status = ChangeType.CELL_REMOVED;
+      cellListen.status = ChangeType.REMOVED;
       this._cellStructureChanged.emit([oldIndex, cellListen])
     });
   }

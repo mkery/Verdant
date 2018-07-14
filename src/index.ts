@@ -29,7 +29,7 @@ import { ASTGenerate } from "./analysis/ast-generate";
 
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "./model/history";
 
 import { VerdantPanel } from "./panel/verdant-panel";
 

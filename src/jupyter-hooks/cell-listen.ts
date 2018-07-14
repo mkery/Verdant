@@ -12,17 +12,17 @@ import {
   NodeyCodeCell,
   NodeyOutput,
   NodeyMarkdown
-} from "../nodey";
+} from "../model/nodey";
 
 import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 import { IChangedArgs } from "@jupyterlab/coreutils";
 
-import { ChangeType } from "../run";
+import { ChangeType } from "../model/run";
 
 export abstract class CellListen {
   cell: Cell;
@@ -43,7 +43,7 @@ export abstract class CellListen {
     this.astUtils = astUtils;
     this.historyModel = historyModel;
     this.position = position;
-    this.status = ChangeType.CELL_SAME;
+    this.status = ChangeType.SAME;
     this.init(matchPrior);
   }
 
@@ -60,7 +60,7 @@ export abstract class CellListen {
   }
 
   public clearStatus(): void {
-    this.status = ChangeType.CELL_SAME;
+    this.status = ChangeType.SAME;
   }
 
   /**
@@ -82,8 +82,8 @@ export abstract class CellListen {
   public cellRun(exec: number = null) {
     var node = this.nodey;
     if (node.id === "*" || node.version === "*")
-      if (this.status === ChangeType.CELL_SAME)
-        this.status = ChangeType.CELL_CHANGED;
+      if (this.status === ChangeType.SAME)
+        this.status = ChangeType.CHANGED;
     console.log("Running cell!", this.cell, exec, typeof node);
     this.historyModel.handleCellRun(exec, node);
   }

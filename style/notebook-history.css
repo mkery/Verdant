@@ -380,7 +380,7 @@
   overflow: auto;
   width: 75%;
   padding: 0px 8px;
-  border: 1px solid var(--jp-border-color0);
+  border: 1px solid var(--jp-border-color3);
   background-color: var(--jp-input-active-background);
   min-height: 1.5em;
   display: inline-block;

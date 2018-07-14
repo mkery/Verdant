@@ -2,7 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { Run, ChangeType } from "../run";
+import { Run, ChangeType } from "../model/run";
 
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -51,9 +51,9 @@ const GHOST_BOOK_TOOLBAR_LABEL_TEXT = "v-Verdant-GhostBook-toolbar-label-text";
 const GHOST_BOOK_TOOLBAR_EDIT_ICON = "v-Verdant-GhostBook-toolbar-edit-icon";
 const GHOST_BOOK_CELL_AREA = "v-Verdant-GhostBook-cell-area";
 const GHOST_BOOK_CELL_CLASS = "v-Verdant-GhostBook-cell";
-const GHOST_CELL_CHANGED = "v-Verdant-GhostBook-cell-changed";
-const GHOST_CELL_REMOVED = "v-Verdant-GhostBook-cell-removed";
-const GHOST_CELL_ADDED = "v-Verdant-GhostBook-cell-added";
+const GHOST_CHANGED = "v-Verdant-GhostBook-cell-changed";
+const GHOST_REMOVED = "v-Verdant-GhostBook-cell-removed";
+const GHOST_ADDED = "v-Verdant-GhostBook-cell-added";
 const GHOST_CODE_REMOVED = "v-Verdant-GhostBook-code-removed";
 const GHOST_CODE_ADDED = "v-Verdant-GhostBook-code-added";
 
@@ -283,17 +283,17 @@ export class GhostBook extends Widget {
     change: number
   ) {
     switch (change) {
-      case ChangeType.CELL_CHANGED:
-        widget.inputArea.node.classList.add(GHOST_CELL_CHANGED);
+      case ChangeType.CHANGED:
+        widget.inputArea.node.classList.add(GHOST_CHANGED);
         this._decorateChanges_code(widget, model.metadata.get(
           "edits"
         ) as NodeChangeDesc[]);
         break;
-      case ChangeType.CELL_REMOVED:
-        widget.inputArea.node.classList.add(GHOST_CELL_REMOVED);
+      case ChangeType.REMOVED:
+        widget.inputArea.node.classList.add(GHOST_REMOVED);
         break;
-      case ChangeType.CELL_ADDED:
-        widget.inputArea.node.classList.add(GHOST_CELL_ADDED);
+      case ChangeType.ADDED:
+        widget.inputArea.node.classList.add(GHOST_ADDED);
         break;
     }
   }
@@ -303,7 +303,7 @@ export class GhostBook extends Widget {
     changes.forEach((edit: NodeChangeDesc) => {
       var codemirror = widget.editor as CodeMirrorEditor;
       switch (edit.change) {
-        case ChangeType.CELL_CHANGED:
+        case ChangeType.CHANGED:
           codemirror.doc.markText(edit.start, edit.end, {
             className: GHOST_CODE_ADDED
           });
@@ -317,9 +317,9 @@ export class GhostBook extends Widget {
             }
           );
           break;
-        case ChangeType.CELL_REMOVED:
+        case ChangeType.REMOVED:
           break;
-        case ChangeType.CELL_ADDED:
+        case ChangeType.ADDED:
           codemirror.doc.markText(
             edit.start,
             { line: edit.start.line, ch: edit.start.ch + edit.text.length },

@@ -1,10 +1,10 @@
 import { Widget } from "@phosphor/widgets";
 
-import { NodeyCell } from "../nodey";
+import { NodeyCell } from "../model/nodey";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
-import { InspectWidget } from "../inspector/inspect-widget";
+import { InspectWidget } from "../inspector-panel/inspect-widget";
 
 const CELL_PANEL = "v-VerdantPanel-cellPanel";
 const CELLHEADER_CLASS = "v-VerdantPanel-runList-header";

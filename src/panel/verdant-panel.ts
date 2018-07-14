@@ -2,7 +2,7 @@ import { Widget, TabBar, PanelLayout } from "@phosphor/widgets";
 
 import { NotebookPanel } from "@jupyterlab/notebook";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 import { SearchBar } from "./search-bar";
 

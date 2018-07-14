@@ -1,8 +1,8 @@
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
-import { Run, RunDateList } from "../run";
+import { Run, RunDateList } from "../model/run";
 
 import { RunItem } from "./run-item";
 

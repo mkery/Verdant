@@ -1,5 +1,5 @@
-import { HistoryModel } from "../history-model";
-import { Nodey, NodeyCodeCell } from "../nodey";
+import { HistoryModel } from "../model/history";
+import { Nodey, NodeyCodeCell } from "../model/nodey";
 import { Inspect } from "../inspect";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { CodeCell } from "@jupyterlab/cells";

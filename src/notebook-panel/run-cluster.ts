@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { Run, ChangeType, CellRunData } from "../run";
+import { Run, ChangeType, CellRunData } from "../model/run";
 
 import { RunItem } from "./run-item";
 
@@ -83,14 +83,14 @@ export class RunCluster extends Widget implements VerdantListItem {
       runItem.run.cells.forEach((cell, index) => {
         var change: CellRunData = {
           node: "",
-          changeType: ChangeType.CELL_SAME,
+          changeType: ChangeType.SAME,
           run: false
         };
         if (runMap[index]) change = runMap[index];
         runMap[index] = {
           node: "",
           changeType: Math.min(
-            ChangeType.CELL_CHANGED,
+            ChangeType.CHANGED,
             change.changeType + cell.changeType
           ),
           run: (change.run as boolean) || cell.run

@@ -1,8 +1,8 @@
-import { Run, ChangeType } from "../run";
+import { Run, ChangeType } from "../model/run";
 
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 import { VerdantListItem } from "./run-list";
 
@@ -53,7 +53,7 @@ export class RunItem extends Widget implements VerdantListItem {
 
     this.dotMap = new DotMap(this.run.cells);
 
-    this.notes = new RunNotes(this.run);
+    this.notes = new RunNotes(this.run, this.historyModel);
 
     this.header = document.createElement("div");
     this.header.classList.add(RUN_ITEM_CLASS);
@@ -102,7 +102,7 @@ export class RunItem extends Widget implements VerdantListItem {
       dropdown.classList.add(SUB_RUNLIST_CLASS);
       this.run.cells.forEach(cell => {
         var cellVer = this.historyModel.getNodey(cell.node).version + 1;
-        if (cell.changeType === ChangeType.CELL_SAME) {
+        if (cell.changeType === ChangeType.SAME) {
           if (cell.run) {
             dropdown.appendChild(
               this.createCellDetail(
@@ -116,17 +116,17 @@ export class RunItem extends Widget implements VerdantListItem {
         }
 
         switch (cell.changeType) {
-          case ChangeType.CELL_ADDED:
+          case ChangeType.ADDED:
             dropdown.appendChild(
               this.createCellDetail("added", ["cell created"], [])
             );
             break;
-          case ChangeType.CELL_REMOVED:
+          case ChangeType.REMOVED:
             dropdown.appendChild(
               this.createCellDetail("removed", ["cell deleted"], ["restore"])
             );
             break;
-          case ChangeType.CELL_CHANGED:
+          case ChangeType.CHANGED:
             dropdown.appendChild(
               this.createCellDetail(
                 "changed",

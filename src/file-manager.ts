@@ -8,13 +8,13 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { CellRunData } from "./run";
+import { CellRunData } from "./model/run";
 
-import { NodeyCode } from "./nodey";
+import { NodeyCode } from "./model/nodey";
 
 import { GhostBook } from "./ghost-book/ghost-book";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "./model/history";
 
 export class FileManager {
   readonly docManager: IDocumentManager;

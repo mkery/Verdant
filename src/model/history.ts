@@ -8,23 +8,25 @@ import {
   SyntaxToken
 } from "./nodey";
 
-import { ChangeType } from "./run";
+import {Star} from "./star"
 
-import { NotebookListen } from "./jupyter-hooks/notebook-listen";
+import {Notes} from "./notes"
 
-import { RenderBaby } from "./jupyter-hooks/render-baby";
+import { ChangeType, RunModel  } from "./run";
 
-import { RunModel } from "./run-model";
+import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
-import { Inspect } from "./inspect";
+import { RenderBaby } from "../jupyter-hooks/render-baby";
 
-import { FileManager } from "./file-manager";
+import { Inspect } from "../inspect";
+
+import { FileManager } from "../file-manager";
 
 import {
   serialized_NodeyHistory,
   serialized_Nodey,
   serialized_NodeyOutput
-} from "./file-manager";
+} from "../file-manager";
 
 import { CodeCell } from "@jupyterlab/cells";
 
@@ -44,6 +46,8 @@ export class HistoryModel {
   private _cellList: number[] = [];
   private _outputStore: NodeHistory[] = [];
   private _deletedCellList: number[] = [];
+  private _starStore: Star[] = [];
+  private _notesStore: Notes[] = [];
 
   public async init(): Promise<boolean> {
     // check if there is an existing history file for this notebook
@@ -142,6 +146,32 @@ export class HistoryModel {
     this._runModel.cellRun(executionCount, nodey);
   }
 
+  getStar(id: number)
+  {
+    return this._starStore[id]
+  }
+
+  getNote(id: number)
+  {
+    return this._notesStore[id]
+  }
+
+  public registerNote(text: string, target: any) : Notes
+  {
+    let note = new Notes(target, typeof(target), text)
+    let id = this._notesStore.push(note) - 1
+    note.id = id
+    return note
+  }
+
+  public registerStar(target: any) : Star
+  {
+    let star = new Star(target, typeof(target))
+    let id = this._starStore.push(star) - 1
+    star.id = id
+    return star
+  }
+
   public registerNodey(nodey: Nodey): void {
     let id = this._nodeyStore.push(new NodeHistory()) - 1;
     nodey.id = id;
@@ -166,7 +196,7 @@ export class HistoryModel {
 
   public clearCellStatus(cell: NodeyCell) {
     var status = cell.cell.status;
-    if (status !== ChangeType.CELL_REMOVED) cell.cell.clearStatus();
+    if (status !== ChangeType.REMOVED) cell.cell.clearStatus();
     else {
       cell.cell.dispose();
       cell.cell = null;

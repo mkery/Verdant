@@ -1,8 +1,8 @@
-import { CellListen } from "./jupyter-hooks/cell-listen";
+import { CellListen } from "../jupyter-hooks/cell-listen";
 
 import { CodeCell } from "@jupyterlab/cells";
 
-import { HistoryModel } from "./history-model";
+import { HistoryModel } from "./history";
 
 import {
   serialized_NodeyOutput,
@@ -10,7 +10,7 @@ import {
   serialized_NodeyCode,
   serialized_NodeyMarkdown,
   serialized_NodeyCodeCell
-} from "./file-manager";
+} from "../file-manager";
 
 export abstract class Nodey {
   private node_id: number; //id for this node

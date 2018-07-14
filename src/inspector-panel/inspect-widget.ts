@@ -1,8 +1,8 @@
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
-import { Nodey, NodeyMarkdown } from "../nodey";
+import { Nodey, NodeyMarkdown } from "../model/nodey";
 
 import { Wishbone } from "./wishbone";
 

@@ -1,10 +1,10 @@
-import { NodeyCode, NodeyCodeCell, NodeyMarkdown, SyntaxToken } from "../nodey";
+import { NodeyCode, NodeyCodeCell, NodeyMarkdown, SyntaxToken } from "../model/nodey";
 
 import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "../history-model";
+import { HistoryModel } from "../model/history";
 
 import { ASTUtils } from "./ast-utils";
 
