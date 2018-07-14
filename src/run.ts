@@ -24,17 +24,20 @@ export class Run {
   readonly id: number;
   readonly cells: CellRunData[];
   readonly checkpointType: string;
+  note: string = "";
 
   constructor(
     timestamp: number,
     cells: CellRunData[],
     id: number,
+    note: string = "",
     type: string = CheckpointType.RUN
   ) {
     this.timestamp = timestamp;
     this.cells = cells;
     this.id = id;
     this.checkpointType = type;
+    this.note = note;
   }
 
   public hasEdits() {

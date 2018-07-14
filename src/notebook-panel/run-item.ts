@@ -8,6 +8,8 @@ import { VerdantListItem } from "./run-list";
 
 import { DotMap } from "./dot-map";
 
+import { RunNotes } from "./run-notes";
+
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
@@ -24,14 +26,15 @@ const MAP_CELLBOX_ICON = "v-VerdantPanel-runCellMap-cellbox-icon";
 
 export class RunItem extends Widget implements VerdantListItem {
   readonly run: Run;
+  readonly header: HTMLElement;
   readonly dotMap: DotMap;
+  readonly notes: RunNotes;
   readonly historyModel: HistoryModel;
 
   constructor(run: Run, historyModel: HistoryModel) {
     super();
     this.historyModel = historyModel;
     this.run = run;
-    this.addClass(RUN_ITEM_CLASS);
 
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
@@ -50,25 +53,34 @@ export class RunItem extends Widget implements VerdantListItem {
 
     this.dotMap = new DotMap(this.run.cells);
 
-    this.node.appendChild(caret);
-    this.node.appendChild(number);
-    this.node.appendChild(eventLabel);
-    this.node.appendChild(time);
-    this.node.appendChild(this.dotMap.node);
+    this.notes = new RunNotes(this.run);
+
+    this.header = document.createElement("div");
+    this.header.classList.add(RUN_ITEM_CLASS);
+    this.header.appendChild(caret);
+    this.header.appendChild(number);
+    this.header.appendChild(eventLabel);
+    this.header.appendChild(time);
+    this.header.appendChild(this.dotMap.node);
+
+    this.node.appendChild(this.header);
   }
 
   blur() {
     this.dotMap.blur();
-    let caret = this.node.firstElementChild;
+    let caret = this.header.firstElementChild;
     caret.classList.remove("highlight");
-    this.node.classList.remove(RUN_ITEM_ACTIVE);
+    this.header.classList.remove(RUN_ITEM_ACTIVE);
+    var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
+    for (var i = 0; i < icons.length; i++)
+      icons[i].classList.remove("highlight");
   }
 
   nodeClicked() {
-    let caret = this.node.firstElementChild;
+    let caret = this.header.firstElementChild;
     caret.classList.add("highlight");
-    this.node.classList.add(RUN_ITEM_ACTIVE);
-    var icons = this.node.getElementsByClassName(MAP_CELLBOX_ICON);
+    this.header.classList.add(RUN_ITEM_ACTIVE);
+    var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
     this.dotMap.highlight();
     return this;
@@ -125,6 +137,7 @@ export class RunItem extends Widget implements VerdantListItem {
             break;
         }
       });
+      dropdown.appendChild(this.notes.buildNotes());
       this.node.appendChild(dropdown);
     }
   }

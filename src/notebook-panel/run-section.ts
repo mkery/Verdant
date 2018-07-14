@@ -58,7 +58,7 @@ export class RunSection extends Widget {
     this.runItemList = document.createElement("ul");
     this.runItemList.classList.add(RUNLIST_UL);
     for (var i = runData.length - 1; i > -1; i--) {
-      this.addNewRun(runData[i], selectionHandler.bind(this));
+      this.addNewRun(runData[i], selectionHandler);
     }
 
     caret.addEventListener(
@@ -81,7 +81,7 @@ export class RunSection extends Widget {
     console.log("adding new run Widget!", run);
     let runItemData = run;
     let runItem = new RunItem(runItemData, this.historyModel);
-    runItem.node.addEventListener(
+    runItem.header.addEventListener(
       "click",
       selectionHandler.bind(this, runItem)
     );
