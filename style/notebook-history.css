@@ -114,6 +114,7 @@
   text-transform: uppercase;
   color: var(--jp-ui-font-color2);
   display: inline-block;
+  margin-top: 0.25em;
 }
 
 .v-VerdantPanel-runList-dateLabel {
@@ -160,6 +161,8 @@
 .v-VerdantPanel-runItem {
   padding-bottom: 2px;
   padding-top: 2px;
+  display: flex;
+  flex-direction: row;
 }
 
 .v-VerdantPanel-runItem.jp-mod-active {
@@ -175,8 +178,10 @@
   display: inline-block;
   float: left;
   padding-top: 0.25em;
-  background-position: center;
+  background-size: 1.25em;
+  background-position: left;
   border: 1px solid transparent;
+  flex: 1 1 auto;
 }
 .v-VerdantPanel-runItem-caret.highlight {
   background-image: var(--verdant-icon-caretdown-highlight);
@@ -211,15 +216,16 @@
   display: inline-block;
   padding-left: 6px;
   vertical-align: text-top;
+  flex: 1 1 auto;
 }
 
 .v-VerdantPanel-runCellMap {
   display: inline-block;
   text-align: left;
   padding-left: 5px;
-  max-width: calc(100% - 12em);
+  flex: 1 1 auto;
   vertical-align: top;
-  min-width: 9em;
+  max-width: calc(100% - 11em);
 }
 
 .v-VerdantPanel-runCellMap-cell {
@@ -360,43 +366,82 @@
 }
 
 .v-VerdantPanel-starButton {
-  width: 1.25em;
+  min-width: 1.25em;
   vertical-align: top;
-  height: 1.25em;
+  min-height: 1.25em;
   margin-bottom: 0.25em;
   margin-left: calc(1em - 1px);
   display: inline-block;
   background-size: 100%;
   border: 1px solid transparent;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position-x: center;
+  background-position-y: top;
   background-image: var(--verdant-icon-star);
 }
 .v-VerdantPanel-starButton.highlight {
   background-image: var(--verdant-icon-star-highlight);
 }
+.v-VerdantPanel-starButton.header {
+  background-image: var(--verdant-icon-star-highlight);
+  min-width: 1em;
+  min-height: 1em;
+  margin: 0px;
+}
+
+.v-VerdantPanel-noteIcon {
+  min-width: 1.25em;
+  vertical-align: top;
+  min-height: 1.25em;
+  margin-bottom: 0.25em;
+  margin-left: calc(1em - 1px);
+  display: inline-block;
+  background-size: 100%;
+  border: 1px solid transparent;
+  background-repeat: no-repeat;
+  background-position-x: center;
+  background-position-y: top;
+  background-image: var(--verdant-icon-comment);
+}
+.v-VerdantPanel-noteIcon.header {
+  background-image: var(--verdant-icon-comment-highlight);
+  margin: 0px;
+}
 
 .v-VerdantPanel-noteInput-box {
   overflow: auto;
-  width: 75%;
-  padding: 0px 8px;
+  padding: 0px 2px;
   border: 1px solid var(--jp-border-color3);
   background-color: var(--jp-input-active-background);
-  min-height: 1.5em;
+  height: min-content;
   display: inline-block;
   resize: vertical;
+  min-height: 1.5em;
   margin-left: 8px;
+  width: calc(100% - 3em - 8px);
+}
+
+.v-VerdantPanel-noteContainer {
+  margin-bottom: 1em;
+  width: calc(100% - 1.5em);
+  display: flex;
+  flex-direction: row;
+}
+.v-VerdantPanel-noteContainer.header {
+  margin-left: 1.25em;
 }
 
 .v-VerdantPanel-noteInput {
-  background: transparent;
+  background: aliceblue;
   display: inline-block;
-  width: 100%;
-  height: calc(100% - 0.5em);
+  flex: 1 1 auto;
   float: left;
   border: none;
+  margin-left: 0.5em;
   resize: none;
   outline: none;
+  height: 1.5em;
+  font-style: italic;
   font-size: var(--jp-ui-font-size1);
-  color: var(--jp-ui-font-color0);
+  color: var(--jp-ui-font-color);
 }

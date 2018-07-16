@@ -21,17 +21,23 @@ export class RunCluster extends Widget implements VerdantListItem {
   runs: RunItem[];
   header: HTMLElement;
   dotMap: DotMap;
+  clusterEvent: (item: RunItem) => void;
 
-  constructor(runs: RunItem[]) {
+  constructor(runs: RunItem[], runEvents: (item: RunItem) => void) {
     super();
     this.runs = runs || [];
-    this.addClass(RUN_ITEM_CLASS);
-    this.addClass("cluster");
+    this.clusterEvent = runEvents;
+
+    this.runs.map(item => {
+      item.cluster = this;
+    });
 
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
 
     this.header = this.buildHeader(runs);
+    this.header.classList.add(RUN_ITEM_CLASS);
+    this.header.classList.add("cluster");
 
     this.node.appendChild(caret);
     this.node.appendChild(this.header);
@@ -140,12 +146,15 @@ export class RunCluster extends Widget implements VerdantListItem {
 
 export namespace RunCluster {
   export function shouldCluster(run: Run, prior: Widget): boolean {
+    if (run.star > -1 || run.note > -1) return false;
     var priorRun;
     if (prior instanceof RunItem) {
       priorRun = prior.run;
     } else if (prior instanceof RunCluster) {
       priorRun = prior.runs[0].run;
     } else return false;
+
+    if (priorRun.star > -1 || priorRun.note > -1) return false;
 
     return (
       Run.sameDay(new Date(run.timestamp), new Date(priorRun.timestamp)) &&

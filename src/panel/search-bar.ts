@@ -18,7 +18,7 @@ export class SearchBar extends Widget {
     let input = document.createElement("input");
     wrapper.className = SEARCH_BOX_CLASS;
     input.className = SEARCH_INPUT_CLASS;
-    input.placeholder = "SEARCH";
+    input.placeholder = "Filter";
     input.spellcheck = false;
     wrapper.appendChild(input);
     this.node.appendChild(wrapper);

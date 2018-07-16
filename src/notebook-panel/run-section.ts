@@ -77,6 +77,56 @@ export class RunSection extends Widget {
     this._workingItem = item;
   }
 
+  public checkCluster(selectionHandler: () => any, runItem: RunItem) {
+    // need to check if runItem still belongs in this cluster
+    if (runItem.run.star > -1 || runItem.run.note > -1) {
+      let cluster = runItem.cluster;
+      console.log("run item and cluster check", runItem, cluster);
+      // split up cluster
+      let index = cluster.runs.indexOf(runItem);
+      let runs2 = cluster.runs.splice(
+        Math.min(index + 1, cluster.runs.length - 1)
+      );
+      let runs1 = cluster.runs.splice(0, index);
+
+      if (runs2.length > 1) {
+        let after = new RunCluster(
+          runs2,
+          this.checkCluster.bind(this, selectionHandler)
+        );
+        this.runItemList.insertBefore(after.node, cluster.node);
+        after.caret.addEventListener(
+          "click",
+          selectionHandler.bind(this, after)
+        );
+      } else if (runs2.length === 1) {
+        let after = runs2[0];
+        this.runItemList.insertBefore(after.node, cluster.node);
+      }
+
+      this.runItemList.insertBefore(runItem.node, cluster.node);
+      runItem.cluster = null;
+
+      if (runs1.length > 1) {
+        let before = new RunCluster(
+          runs1,
+          this.checkCluster.bind(this, selectionHandler)
+        );
+        this.runItemList.insertBefore(before.node, cluster.node);
+        before.caret.addEventListener(
+          "click",
+          selectionHandler.bind(this, before)
+        );
+      } else if (runs1.length === 1) {
+        let before = runs1[0];
+        this.runItemList.insertBefore(before.node, cluster.node);
+      }
+
+      this.runItemList.removeChild(cluster.node);
+      cluster = null;
+    }
+  }
+
   public addNewRun(run: Run, selectionHandler: () => any) {
     console.log("adding new run Widget!", run);
     let runItemData = run;
@@ -96,7 +146,10 @@ export class RunSection extends Widget {
           priorRun.runs.push(runItem);
           runs = priorRun.runs;
         } else runs = [priorRun as RunItem, runItem];
-        cluster = new RunCluster(runs);
+        cluster = new RunCluster(
+          runs,
+          this.checkCluster.bind(this, selectionHandler)
+        );
         cluster.caret.addEventListener(
           "click",
           selectionHandler.bind(this, cluster)

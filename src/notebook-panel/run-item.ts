@@ -10,12 +10,17 @@ import { DotMap } from "./dot-map";
 
 import { RunNotes } from "./run-notes";
 
+import { RunCluster } from "./run-cluster";
+
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
+
+const RUN_ITEM_STAR = "v-VerdantPanel-starButton";
+const NOTES = "v-VerdantPanel-noteContainer";
 
 const SUB_RUNLIST_CLASS = "v-VerdantPanel-runCluster-list";
 const MAP_CELLBOX = "v-VerdantPanel-runCellMap-cellBox";
@@ -30,6 +35,7 @@ export class RunItem extends Widget implements VerdantListItem {
   readonly dotMap: DotMap;
   readonly notes: RunNotes;
   readonly historyModel: HistoryModel;
+  cluster: RunCluster = null;
 
   constructor(run: Run, historyModel: HistoryModel) {
     super();
@@ -86,60 +92,99 @@ export class RunItem extends Widget implements VerdantListItem {
     return this;
   }
 
+  get caret() {
+    return this.header.firstElementChild as HTMLElement;
+  }
+
   caretClicked() {
     console.log("Caret was clicked!");
-    var caret = this.node.firstElementChild;
-    if (this.hasClass("open")) {
-      caret.classList.remove("open");
-      this.removeClass("open");
-      this.node.removeChild(
-        this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
-      );
-    } else {
-      caret.classList.add("open");
-      this.addClass("open");
-      let dropdown = document.createElement("ul");
-      dropdown.classList.add(SUB_RUNLIST_CLASS);
-      this.run.cells.forEach(cell => {
-        var cellVer = this.historyModel.getNodey(cell.node).version + 1;
-        if (cell.changeType === ChangeType.SAME) {
-          if (cell.run) {
-            dropdown.appendChild(
-              this.createCellDetail(
-                "same",
-                ["ran version " + cellVer + " of cell"],
-                []
-              )
-            );
-          }
-          return;
-        }
+    if (this.hasClass("open")) this.closeHeader();
+    else this.openHeader();
+    if (this.cluster) this.cluster.clusterEvent(this);
+  }
 
-        switch (cell.changeType) {
-          case ChangeType.ADDED:
-            dropdown.appendChild(
-              this.createCellDetail("added", ["cell created"], [])
-            );
-            break;
-          case ChangeType.REMOVED:
-            dropdown.appendChild(
-              this.createCellDetail("removed", ["cell deleted"], ["restore"])
-            );
-            break;
-          case ChangeType.CHANGED:
-            dropdown.appendChild(
-              this.createCellDetail(
-                "changed",
-                ["++N --K", "ran version " + cellVer + " of cell"],
-                ["compare"]
-              )
-            );
-            break;
-        }
-      });
-      dropdown.appendChild(this.notes.buildNotes());
-      this.node.appendChild(dropdown);
+  private openHeader() {
+    this.caret.classList.add("open");
+    this.addClass("open");
+    this.hideHeaderAnnotations();
+
+    let dropdown = document.createElement("ul");
+    dropdown.classList.add(SUB_RUNLIST_CLASS);
+    this.buildDetailList(dropdown);
+    dropdown.appendChild(this.notes.buildDetailNotes());
+    this.node.appendChild(dropdown);
+  }
+
+  private closeHeader() {
+    this.caret.classList.remove("open");
+    this.removeClass("open");
+    this.node.removeChild(
+      this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
+    );
+    this.buildHeaderAnnotations();
+  }
+
+  private hideHeaderAnnotations() {
+    let next = this.caret.nextElementSibling;
+    if (next.classList.contains(RUN_ITEM_STAR)) next.remove();
+    let notes = this.node.getElementsByClassName(NOTES);
+    if (notes.length > 0) this.node.removeChild(notes[0]);
+  }
+
+  private buildHeaderAnnotations() {
+    let next = this.caret.nextElementSibling;
+    if (this.run.star > -1 && !next.classList.contains(RUN_ITEM_STAR)) {
+      let star = document.createElement("div");
+      star.classList.add(RUN_ITEM_STAR);
+      star.classList.add("header");
+      this.header.insertBefore(star, next);
     }
+
+    if (this.run.note > -1) {
+      let noteText = this.notes.buildHeaderNotes();
+      noteText.classList.add("header");
+      this.node.appendChild(noteText);
+    }
+  }
+
+  private buildDetailList(dropdown: HTMLElement) {
+    this.run.cells.forEach(cell => {
+      var cellVer = this.historyModel.getNodey(cell.node).version + 1;
+      if (cell.changeType === ChangeType.SAME) {
+        if (cell.run) {
+          dropdown.appendChild(
+            this.createCellDetail(
+              "same",
+              ["ran version " + cellVer + " of cell"],
+              []
+            )
+          );
+        }
+        return;
+      }
+
+      switch (cell.changeType) {
+        case ChangeType.ADDED:
+          dropdown.appendChild(
+            this.createCellDetail("added", ["cell created"], [])
+          );
+          break;
+        case ChangeType.REMOVED:
+          dropdown.appendChild(
+            this.createCellDetail("removed", ["cell deleted"], ["restore"])
+          );
+          break;
+        case ChangeType.CHANGED:
+          dropdown.appendChild(
+            this.createCellDetail(
+              "changed",
+              ["++N --K", "ran version " + cellVer + " of cell"],
+              ["compare"]
+            )
+          );
+          break;
+      }
+    });
   }
 
   private createCellDetail(
