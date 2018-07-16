@@ -433,6 +433,7 @@
 
 .v-VerdantPanel-noteInput {
   background: aliceblue;
+  border-radius: 2px;
   display: inline-block;
   flex: 1 1 auto;
   float: left;

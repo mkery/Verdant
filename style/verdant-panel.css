@@ -56,6 +56,7 @@
   overflow: visible;
   z-index: 2;
   display: inherit;
+  min-height: 33px;
 }
 
 .v-VerdantPanel-search-box {

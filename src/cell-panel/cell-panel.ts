@@ -7,6 +7,9 @@ import { HistoryModel } from "../model/history";
 import { InspectWidget } from "../inspector-panel/inspect-widget";
 
 const CELL_PANEL = "v-VerdantPanel-cellPanel";
+
+const CELL_SECTION = "v-VerdantPanel-cellPanel-section";
+const PARTITION = "v-VerdantPanel-cellPanel-partition";
 const CELLHEADER_CLASS = "v-VerdantPanel-runList-header";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const CELLHEADER_CARET = "v-VerdantPanel-runList-caret";
@@ -23,6 +26,8 @@ const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 export class CellPanel extends Widget {
   inspectWidget: InspectWidget;
   historyModel: HistoryModel;
+  dragStart: number;
+  dragHeight: number;
 
   constructor(historyModel: HistoryModel) {
     super();
@@ -31,16 +36,36 @@ export class CellPanel extends Widget {
     this.inspectWidget = new InspectWidget(historyModel);
     this.node.appendChild(this.inspectWidget.node);
 
+    let cellSection = document.createElement("div");
+    cellSection.classList.add(CELL_SECTION);
+
+    let partition = document.createElement("div");
+    partition.classList.add(PARTITION);
+    cellSection.appendChild(partition);
+    let drag = this.dragPartition.bind(this);
+    partition.addEventListener("mousedown", (ev: MouseEvent) => {
+      this.dragStart = ev.clientY;
+      this.dragHeight = this.cellSection.offsetHeight + 0;
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", () => {
+        document.removeEventListener("mousemove", drag);
+      });
+    });
+
     let currentCells = this.buildCellHeader();
-    this.node.appendChild(currentCells);
+    cellSection.appendChild(currentCells);
+
     let cellContent = document.createElement("div");
     cellContent.classList.add(CELL_CONTAINERS);
-    this.node.appendChild(cellContent);
+    cellSection.appendChild(cellContent);
+
     let deletedCells = this.buildDeleteHeader();
     let deletedContent = document.createElement("div");
     deletedContent.classList.add(CELL_CONTAINERS);
-    this.node.appendChild(deletedCells);
-    this.node.appendChild(deletedContent);
+    cellSection.appendChild(deletedCells);
+    cellSection.appendChild(deletedContent);
+
+    this.node.appendChild(cellSection);
 
     this.historyModel.inspector.ready.then(async () => {
       await this.historyModel.notebook.ready;
@@ -69,12 +94,36 @@ export class CellPanel extends Widget {
     return this.node.getElementsByClassName(CELLHEADER_CARET)[1] as HTMLElement;
   }
 
+  get cellSection() {
+    return this.node.getElementsByClassName(CELL_SECTION)[0] as HTMLElement;
+  }
+
   get cellListContainer() {
     return this.node.getElementsByClassName(CELL_CONTAINERS)[0] as HTMLElement;
   }
 
   get deletedListContainer() {
     return this.node.getElementsByClassName(CELL_CONTAINERS)[1] as HTMLElement;
+  }
+
+  dragPartition(ev: MouseEvent) {
+    let y = ev.clientY;
+    if (this.cellListContainer.style.display !== "none") {
+      // first try to shrink this
+      let height = this.dragStart - y + this.dragHeight;
+      console.log(
+        "drag!",
+        ev,
+        y,
+        this.dragStart,
+        this.dragStart - y,
+        this.dragHeight,
+        this.cellSection.offsetHeight
+      );
+      //TODO add drag min & max
+      this.cellSection.style.minHeight = height + "px";
+      this.cellSection.style.maxHeight = height + "px";
+    }
   }
 
   updateCellDisplay(sender: any, cell: [number, NodeyCell]) {
