@@ -26,12 +26,40 @@ export class SearchBar extends Widget {
     let starFilter = document.createElement("div");
     starFilter.classList.add(SEARCH_FILTER);
     starFilter.classList.add("star");
+    starFilter.addEventListener("click", this.filterByStar.bind(this));
 
     let commentFilter = document.createElement("div");
     commentFilter.classList.add(SEARCH_FILTER);
     commentFilter.classList.add("comment");
+    commentFilter.addEventListener("click", this.filterByComment.bind(this));
 
     this.node.appendChild(starFilter);
     this.node.appendChild(commentFilter);
+  }
+
+  get starButton() {
+    return this.node.getElementsByClassName("star")[0];
+  }
+
+  get commentButton() {
+    return this.node.getElementsByClassName("comment")[0];
+  }
+
+  filterByComment() {
+    let comment = this.commentButton;
+    if (comment.classList.contains("highlight")) {
+      comment.classList.remove("highlight");
+    } else {
+      comment.classList.add("highlight");
+    }
+  }
+
+  filterByStar() {
+    let star = this.starButton;
+    if (star.classList.contains("highlight")) {
+      star.classList.remove("highlight");
+    } else {
+      star.classList.add("highlight");
+    }
   }
 }

@@ -88,3 +88,13 @@
 .v-VerdantPanel-search-filter.comment {
   background-image: var(--verdant-icon-comment);
 }
+.v-VerdantPanel-search-filter.highlight {
+  background-color: var(--jp-layout-color1);
+  border: 1px solid var(--jp-toolbar-border-color);
+}
+.v-VerdantPanel-search-filter.star.highlight {
+  background-image: var(--verdant-icon-star-highlight);
+}
+.v-VerdantPanel-search-filter.comment.highlight {
+  background-image: var(--verdant-icon-comment-highlight);
+}

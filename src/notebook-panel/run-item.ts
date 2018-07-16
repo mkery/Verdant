@@ -100,7 +100,6 @@ export class RunItem extends Widget implements VerdantListItem {
     console.log("Caret was clicked!");
     if (this.hasClass("open")) this.closeHeader();
     else this.openHeader();
-    if (this.cluster) this.cluster.clusterEvent(this);
   }
 
   private openHeader() {
@@ -113,15 +112,18 @@ export class RunItem extends Widget implements VerdantListItem {
     this.buildDetailList(dropdown);
     dropdown.appendChild(this.notes.buildDetailNotes());
     this.node.appendChild(dropdown);
+    if (this.cluster) this.cluster.clusterEvent(this);
   }
 
-  private closeHeader() {
+  public closeHeader() {
     this.caret.classList.remove("open");
     this.removeClass("open");
-    this.node.removeChild(
-      this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
-    );
+    if (this.node.children.length > 1)
+      this.node.removeChild(
+        this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
+      );
     this.buildHeaderAnnotations();
+    if (this.cluster) this.cluster.clusterEvent(this);
   }
 
   private hideHeaderAnnotations() {

@@ -128,6 +128,7 @@ export class RunCluster extends Widget implements VerdantListItem {
       this.removeClass("open");
       this.header.style.display = "";
       caret.classList.remove("open");
+      this.runs.map(runItem => runItem.closeHeader());
       this.node.removeChild(
         this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
       );
