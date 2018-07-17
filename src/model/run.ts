@@ -110,6 +110,8 @@ export class RunModel {
   public fromJSON(data: serialized_Run[]) {
     data.map((run: serialized_Run) => {
       var r = new Run(run.timestamp, run.cells, run.run);
+      if (run.star) r.star = run.star;
+      if (run.note) r.note = run.note;
       this._runList[r.id] = r;
       this.categorizeRun(r);
       this._newRun.emit(r);
@@ -119,7 +121,14 @@ export class RunModel {
 
   public toJSON(): serialized_Run[] {
     return this._runList.map(run => {
-      return { run: run.id, timestamp: run.timestamp, cells: run.cells };
+      let jsn: serialized_Run = {
+        run: run.id,
+        timestamp: run.timestamp,
+        cells: run.cells
+      };
+      if (run.star > -1) jsn.star = run.star;
+      if (run.note > -1) jsn["note"] = run.note;
+      return jsn;
     });
   }
 }

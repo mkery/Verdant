@@ -57,9 +57,7 @@ export class RunSection extends Widget {
 
     this.runItemList = document.createElement("ul");
     this.runItemList.classList.add(RUNLIST_UL);
-    for (var i = runData.length - 1; i > -1; i--) {
-      this.addNewRun(runData[i], selectionHandler);
-    }
+    runData.forEach(item => this.addNewRun(item, selectionHandler));
 
     caret.addEventListener(
       "click",
@@ -137,7 +135,7 @@ export class RunSection extends Widget {
     );
 
     let cluster: RunCluster = null;
-    let priorRun = this.runList[this.runList.length - 1];
+    let priorRun = this.runList[0];
     if (priorRun) {
       var toCluster = RunCluster.shouldCluster(run, priorRun);
       if (toCluster) {
@@ -154,24 +152,24 @@ export class RunSection extends Widget {
           "click",
           selectionHandler.bind(this, cluster)
         );
-        this.runList[this.runList.length - 1] = cluster;
+        this.runList[0] = cluster;
       }
     }
 
     var toAdd = cluster || runItem;
-    /*if (this._workingItem) {
+    if (this._workingItem) {
       if (cluster)
         this.runItemList.removeChild(this._workingItem.node.nextSibling);
       this.runItemList.insertBefore(
         toAdd.node,
         this._workingItem.node.nextSibling
       );
-    } else {*/
-    if (cluster) this.runItemList.removeChild(this.runItemList.firstChild);
-    this.runItemList.appendChild(toAdd.node);
-    //}
+    } else {
+      if (cluster) this.runItemList.removeChild(this.runItemList.firstChild);
+      this.runItemList.insertBefore(toAdd.node, this.runItemList.firstChild);
+    }
 
-    if (!cluster) this.runList.push(runItem);
+    if (!cluster) this.runList.unshift(runItem);
   }
 
   private toggleSection(sectionDiv: HTMLElement, caret: HTMLElement) {

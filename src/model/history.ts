@@ -8,11 +8,11 @@ import {
   SyntaxToken
 } from "./nodey";
 
-import {Star} from "./star"
+import { Star } from "./star";
 
-import {Notes} from "./notes"
+import { Notes } from "./notes";
 
-import { ChangeType, RunModel  } from "./run";
+import { ChangeType, RunModel, Run } from "./run";
 
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
@@ -82,11 +82,11 @@ export class HistoryModel {
   }
 
   get cellIndices(): number[] {
-    return this._cellList
+    return this._cellList;
   }
 
-  get deletedCellIndices(): number[]{
-    return this._deletedCellList
+  get deletedCellIndices(): number[] {
+    return this._deletedCellList;
   }
 
   public getVersionsFor(nodey: Nodey) {
@@ -146,30 +146,26 @@ export class HistoryModel {
     this._runModel.cellRun(executionCount, nodey);
   }
 
-  getStar(id: number)
-  {
-    return this._starStore[id]
+  getStar(id: number) {
+    return this._starStore[id];
   }
 
-  getNote(id: number)
-  {
-    return this._notesStore[id]
+  getNote(id: number) {
+    return this._notesStore[id];
   }
 
-  public registerNote(text: string, target: any) : Notes
-  {
-    let note = new Notes(target, typeof(target), text)
-    let id = this._notesStore.push(note) - 1
-    note.id = id
-    return note
+  public registerNote(text: string, target: any): Notes {
+    let note = new Notes(target, typeof target, text);
+    let id = this._notesStore.push(note) - 1;
+    note.id = id;
+    return note;
   }
 
-  public registerStar(target: any) : Star
-  {
-    let star = new Star(target, typeof(target))
-    let id = this._starStore.push(star) - 1
-    star.id = id
-    return star
+  public registerStar(target: Run): Star {
+    let star = new Star(target.id + "", typeof target);
+    let id = this._starStore.push(star) - 1;
+    star.id = id;
+    return star;
   }
 
   public registerNodey(nodey: Nodey): void {
@@ -344,6 +340,10 @@ export class HistoryModel {
   }
 
   private fromJSON(data: serialized_NodeyHistory) {
+    // annotations come first since runs depend on them
+    this._starStore = data.stars.map(item => Star.fromJSON(item));
+    this._notesStore = data.notes.map(item => Notes.fromJSON(item));
+
     this._runModel.fromJSON(data.runs);
     this._cellList = data.cells;
     data.nodey.map(item => {
@@ -395,6 +395,8 @@ export class HistoryModel {
       }
     ) as { output: number; versions: serialized_NodeyOutput[] }[];
     jsn["deletedCells"] = this._deletedCellList;
+    jsn["stars"] = this._starStore.map(item => item.toJSON());
+    jsn["notes"] = this._notesStore.map(item => item.toJSON());
     return jsn;
   }
 

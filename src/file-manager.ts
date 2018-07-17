@@ -206,6 +206,19 @@ export interface serialized_Run {
   run: number;
   timestamp: number;
   cells: CellRunData[];
+  star?: number;
+  note?: number;
+}
+
+export interface serialized_Star {
+  target_type: string;
+  target: string;
+}
+
+export interface serialized_Note {
+  target_type: string;
+  target: string;
+  note: string;
 }
 
 export interface serialized_NodeyHistory {
@@ -214,4 +227,6 @@ export interface serialized_NodeyHistory {
   nodey: { nodey: number; versions: serialized_Nodey[] }[];
   output: { output: number; versions: serialized_NodeyOutput[] }[];
   deletedCells: number[];
+  stars: serialized_Star[];
+  notes: serialized_Note[];
 }
