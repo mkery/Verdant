@@ -1,5 +1,6 @@
 *.bundle.*
 lib/
 node_modules/
+notebooks_test/
 *.egg-info/
 .ipynb_checkpoints
