@@ -6,7 +6,7 @@ import { HistoryModel } from "../model/history";
 
 import { SearchBar } from "./search-bar";
 
-import { RunList } from "../notebook-panel/run-list";
+import { RunPanel } from "../run-panel/run-panel";
 
 import { CellPanel } from "../cell-panel/cell-panel";
 
@@ -22,7 +22,7 @@ export class VerdantPanel extends Widget {
   readonly historyModel: HistoryModel;
   readonly fileTabs: TabBar<Widget>;
   readonly searchBar: SearchBar;
-  readonly runList: RunList;
+  readonly runList: RunPanel;
   readonly cellPanel: CellPanel;
   readonly layout: PanelLayout;
 
@@ -34,9 +34,9 @@ export class VerdantPanel extends Widget {
     this.fileTabs = new TabBar<Widget>({ orientation: "vertical" });
     this.fileTabs.id = TABS_ID;
 
-    this.searchBar = new SearchBar();
+    this.searchBar = new SearchBar(this);
 
-    this.runList = new RunList(this.historyModel);
+    this.runList = new RunPanel(this.historyModel);
     this.cellPanel = new CellPanel(this.historyModel);
 
     let layout = new PanelLayout();

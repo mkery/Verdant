@@ -87,13 +87,24 @@ export class RunModel {
   }
 
   private categorizeRun(run: Run) {
-    var today = Run.dateNow();
-    var latestDate = this._dateList[Math.max(this._dateList.length - 1, 0)];
-    if (!latestDate || latestDate.date !== today) {
-      var todaysRuns = new RunDateList(today, [], this);
-      this._dateList.push(todaysRuns);
-    } else var todaysRuns = latestDate;
-    todaysRuns.addRun(run);
+    let runDate = new Date(run.timestamp);
+    let matchDate: RunDateList;
+
+    for (let i = this._dateList.length - 1; i > -1; i--) {
+      let dateList = this._dateList[i];
+      if (Run.sameDay(dateList.date, runDate)) {
+        matchDate = dateList;
+        break;
+      }
+      if (Run.beforeDay(dateList.date, runDate)) break;
+    }
+
+    if (!matchDate) {
+      matchDate = new RunDateList(runDate, [], this);
+      this._dateList.push(matchDate);
+    }
+
+    matchDate.addRun(run);
   }
 
   public fromJSON(data: serialized_Run[]) {
@@ -103,6 +114,7 @@ export class RunModel {
       this.categorizeRun(r);
       this._newRun.emit(r);
     });
+    console.log("RUNS FROM JSON", this._dateList);
   }
 
   public toJSON(): serialized_Run[] {
@@ -136,8 +148,8 @@ export class Run {
   readonly id: number;
   readonly cells: CellRunData[];
   readonly checkpointType: string;
-  note: number = -1
-  star: number = -1
+  note: number = -1;
+  star: number = -1;
 
   constructor(
     timestamp: number,
@@ -229,6 +241,15 @@ export namespace Run {
       d1.getFullYear() === d2.getFullYear() &&
       d1.getMonth() === d2.getMonth() &&
       d1.getDate() === d2.getDate()
+    );
+  }
+
+  export function beforeDay(d1: Date, d2: Date) {
+    return (
+      !this.sameDay(d1, d2) &&
+      d1.getFullYear() <= d2.getFullYear() &&
+      d1.getMonth() <= d2.getMonth() &&
+      d1.getDate() <= d2.getDate()
     );
   }
 

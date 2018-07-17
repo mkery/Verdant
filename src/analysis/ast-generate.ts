@@ -264,7 +264,7 @@ def main(text):
     options: { [key: string]: any }
   ): Promise<number> {
     return new Promise<number>((accept, reject) => {
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
+      var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
         //console.log(code, "R: ", msg)
       };
       var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
@@ -304,7 +304,7 @@ def main(text):
     });
 
     // remove any triple quotes, which will mess us up
-    code = code.replace(/"""/g, "'''")
+    code = code.replace(/"""/g, "'''");
 
     // make sure newline inside strings doesn't cause an EOL error
     // and make sure any special characters are escaped correctly

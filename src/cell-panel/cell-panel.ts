@@ -126,7 +126,7 @@ export class CellPanel extends Widget {
     }
   }
 
-  updateCellDisplay(sender: any, cell: [number, NodeyCell]) {
+  updateCellDisplay(_: any, cell: [number, NodeyCell]) {
     // OPTIMIZE: don't rebuild the cell list every time!
     console.log("UPDATE CELL DISPLAY");
     let cellCount = this.historyModel.cellIndices.length;

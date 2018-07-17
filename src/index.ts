@@ -22,7 +22,7 @@ import "../style/index.css";
 import "../style/ghost-book.css";
 import "../style/cell-history.css";
 import "../style/inspect.css";
-import "../style/notebook-history.css";
+import "../style/run-history.css";
 import "../style/verdant-panel.css";
 
 import { ASTGenerate } from "./analysis/ast-generate";
