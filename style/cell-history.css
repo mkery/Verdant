@@ -44,6 +44,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.v-VerdantPanel-cellList-sample.highlight {
+  margin-left: calc(0.5em - 2px);
+  border-color: var(--jp-brand-color1);
+  border-width: 4px;
+  border-radius: var(--jp-border-radius);
+}
 .v-VerdantPanel-cellList-sample.markdown {
   background: var(--jp-layout-color);
 }

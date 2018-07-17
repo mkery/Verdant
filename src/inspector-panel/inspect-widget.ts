@@ -47,10 +47,6 @@ export class InspectWidget extends Widget {
     this.node.appendChild(inspectHeader);
     this.node.appendChild(content);
 
-    this._historyModel.inspector.targetChanged.connect(
-      this.changeTarget.bind(this)
-    );
-
     // look for jp-OutputArea-output
   }
 
@@ -82,10 +78,10 @@ export class InspectWidget extends Widget {
   }
 
   public retrieveTarget() {
-    this.changeTarget(this, this.inspector.target);
+    this.changeTarget(this.inspector.target);
   }
 
-  public changeTarget(sender: any, target: Nodey) {
+  public changeTarget(target: Nodey) {
     if (this._active) {
       this.header.textContent =
         "versions of " + target.typeName + " node " + target.name;

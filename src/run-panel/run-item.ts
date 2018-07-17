@@ -4,6 +4,8 @@ import { Widget } from "@phosphor/widgets";
 
 import { HistoryModel } from "../model/history";
 
+import { NodeyCode } from "../model/nodey";
+
 import { VerdantListItem } from "./run-panel";
 
 import { DotMap } from "./dot-map";
@@ -154,7 +156,8 @@ export class RunItem extends Widget implements VerdantListItem {
 
   private buildDetailList(dropdown: HTMLElement) {
     this.run.cells.forEach(cell => {
-      var cellVer = this.historyModel.getNodey(cell.node).version + 1;
+      let nodey = this.historyModel.getNodey(cell.node) as NodeyCode;
+      var cellVer = nodey.version + 1;
       if (cell.changeType === ChangeType.SAME) {
         if (cell.run) {
           dropdown.appendChild(
@@ -180,10 +183,14 @@ export class RunItem extends Widget implements VerdantListItem {
           );
           break;
         case ChangeType.CHANGED:
+          let changes = this.historyModel.inspector.getRunChangeCount(nodey);
           dropdown.appendChild(
             this.createCellDetail(
               "changed",
-              ["++N --K", "ran version " + cellVer + " of cell"],
+              [
+                "++" + changes.added + " --" + changes.deleted,
+                "ran version " + cellVer + " of cell"
+              ],
               ["compare"]
             )
           );

@@ -298,7 +298,6 @@
   border-radius: 2px;
   border: var(--jp-border-width) solid transparent;
   margin: 4px;
-  margin-left: 8px;
   margin-right: 0px;
   display: inline-block;
   padding-left: 5px;
@@ -309,15 +308,18 @@
   padding: 1px;
   border-radius: 2px;
   border: var(--jp-border-width) solid var(--jp-border-color1);
+  font-size: var(--jp-content-font-size0);
   margin: 4px;
-  margin-left: 8px;
-  margin-right: 0px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--jp-ui-font-color2);
   display: inline-block;
   padding-left: 5px;
   padding-right: 5px;
 }
 .v-VerdantPanel-runCellMap-button:hover {
   border-color: var(--jp-content-font-color1);
+  color: var(--jp-ui-font-color1);
 }
 
 .v-VerdantPanel-runCellMap-cell-changed {

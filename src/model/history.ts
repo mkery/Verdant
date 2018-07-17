@@ -232,17 +232,17 @@ export class HistoryModel {
   }
 
   public addStarNode(starNode: NodeyCode, relativeTo: NodeyCode): string {
-    let cell = this._getCellParent(relativeTo);
+    let cell = this.getCellParent(relativeTo);
     console.log("adding star node to", relativeTo, cell, starNode);
     cell.starNodes.push(starNode);
     let num = cell.starNodes.length;
     return cell.id + "." + num;
   }
 
-  private _getCellParent(relativeTo: NodeyCode): NodeyCodeCell {
+  public getCellParent(relativeTo: NodeyCode): NodeyCodeCell {
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
-      return this._getCellParent(this.getNodey(relativeTo.parent) as NodeyCode);
+      return this.getCellParent(this.getNodey(relativeTo.parent) as NodeyCode);
   }
 
   public commitChanges(cell: NodeyCell, runId: number) {

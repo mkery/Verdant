@@ -6,6 +6,8 @@ import { nbformat } from "@jupyterlab/coreutils";
 
 import { JSONObject } from "@phosphor/coreutils";
 
+import * as JSDiff from "diff";
+
 import {
   Nodey,
   NodeyCode,
@@ -94,6 +96,25 @@ export class Inspect {
       });
     }
     return line;
+  }
+
+  public getRunChangeCount(
+    nodey: NodeyCode
+  ): { added: number; deleted: number } {
+    let prior = this._historyModel.getPriorVersion(nodey) as NodeyCode;
+    let newText = this.renderCodeNode(nodey);
+    if (!prior) return { added: newText.length, deleted: 0 };
+    else {
+      let priorText = this.renderCodeNode(prior);
+      let diff = JSDiff.diffChars(priorText, newText);
+      let added = 0;
+      let deleted = 0;
+      diff.forEach(part => {
+        if (part.added) added += part.value.length;
+        if (part.removed) deleted += part.value.length;
+      });
+      return { added, deleted };
+    }
   }
 
   public diffNodey(

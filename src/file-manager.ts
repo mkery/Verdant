@@ -18,6 +18,7 @@ import { HistoryModel } from "./model/history";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
+  private ghostPath: string;
 
   constructor(docManager: IDocumentManager) {
     this.docManager = docManager;
@@ -63,19 +64,22 @@ export class FileManager {
     });
   }
 
-  public openGhost(
+  public async openGhost(
     data: nbformat.INotebookContent,
-    notebook: NotebookListen,
-    path: string = ""
+    notebook: NotebookListen
   ) {
-    if (!path) {
+    if (!this.ghostPath) {
+      let path = "";
       var name = notebook.name;
       path = notebook.path;
       name = name.substring(0, name.indexOf(".")) + ".ghost";
-      var path = "/" + path.substring(0, path.lastIndexOf("/") + 1) + name;
+      path = "/" + path.substring(0, path.lastIndexOf("/") + 1) + name;
+      await this.writeGhostFile(notebook, data);
+      this.ghostPath = path;
     }
+
     //let widget = this.docManager.findWidget(path);
-    let widget = this.docManager.openOrReveal(path);
+    let widget = this.docManager.openOrReveal(this.ghostPath);
     if (widget) {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
       (widget.content as GhostBook).feedNewData(data);

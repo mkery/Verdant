@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { NodeyCell } from "../model/nodey";
+import { Nodey, NodeyCell, NodeyCode } from "../model/nodey";
 
 import { HistoryModel } from "../model/history";
 
@@ -74,6 +74,13 @@ export class CellPanel extends Widget {
         this.updateCellDisplay.bind(this)
       );
     });
+
+    this.historyModel.inspector.targetChanged.connect(
+      (_: any, nodey: Nodey) => {
+        this.changetTarget(nodey);
+        this.inspectWidget.changeTarget(nodey);
+      }
+    );
   }
 
   hide() {
@@ -104,6 +111,22 @@ export class CellPanel extends Widget {
 
   get deletedListContainer() {
     return this.node.getElementsByClassName(CELL_CONTAINERS)[1] as HTMLElement;
+  }
+
+  changetTarget(nodey: Nodey) {
+    let cell: NodeyCell;
+    if (nodey instanceof NodeyCode)
+      cell = this.historyModel.getCellParent(nodey);
+    else cell = nodey as NodeyCell;
+
+    let position = cell.cell.position;
+
+    let sampleList = this.cellListContainer.getElementsByClassName(CELL_SAMPLE);
+    for (let i = 0; i < sampleList.length; i++)
+      sampleList[i].classList.remove("highlight");
+
+    let sample = sampleList[position] as HTMLElement;
+    sample.classList.add("highlight");
   }
 
   dragPartition(ev: MouseEvent) {
