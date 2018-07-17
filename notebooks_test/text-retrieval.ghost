@@ -29,7 +29,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "import os #for loading file in\n"
+    "import os\n"
    ]
   },
   {
@@ -47,7 +47,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "data_dir = './data/Reuters21578-Apte-90Cat' #jjjjj\n"
+    "data_dir = './data/Reuters21578-Apte-90Cat'\n"
    ]
   },
   {
@@ -288,7 +288,16 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "\n"
+    "# end of notebook\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#comment yah\n"
    ]
   },
   {
@@ -321,8 +330,8 @@
    "version": "3.6.5"
   },
   "origin": "text-retrieval.ipynb",
-  "run": 5,
-  "timestamp": 1531790037390,
+  "run": 8,
+  "timestamp": 1531854330783,
   "totalChanges": []
  },
  "nbformat": 4,

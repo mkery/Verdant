@@ -164,7 +164,7 @@ export class RunItem extends Widget implements VerdantListItem {
             this.createCellDetail(
               "same",
               ["ran version " + cellVer + " of cell"],
-              []
+              ["DIFF"]
             )
           );
         }
@@ -174,7 +174,7 @@ export class RunItem extends Widget implements VerdantListItem {
       switch (cell.changeType) {
         case ChangeType.ADDED:
           dropdown.appendChild(
-            this.createCellDetail("added", ["cell created"], [])
+            this.createCellDetail("added", ["cell created"], ["DIFF"])
           );
           break;
         case ChangeType.REMOVED:
@@ -191,7 +191,7 @@ export class RunItem extends Widget implements VerdantListItem {
                 "++" + changes.added + " --" + changes.deleted,
                 "ran version " + cellVer + " of cell"
               ],
-              ["compare"]
+              ["DIFF"]
             )
           );
           break;

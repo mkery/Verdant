@@ -101,3 +101,17 @@
 .v-VerdantPanel-wishbone-code-highlight {
   background-color: var(--verdant-highlight-color1);
 }
+
+.v-Verdant-inspect-code-same {
+  display: inline-block;
+}
+.v-Verdant-inspect-code-added {
+  /*tested for accessibility */
+  color: #1a4936;
+  display: inline-block;
+}
+.v-Verdant-inspect-code-removed {
+  color: red;
+  text-decoration: line-through;
+  display: inline-block;
+}

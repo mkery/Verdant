@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { Nodey, NodeyCell, NodeyCode } from "../model/nodey";
+import { Nodey, NodeyCell, NodeyCode, NodeyMarkdown } from "../model/nodey";
 
 import { HistoryModel } from "../model/history";
 
@@ -191,10 +191,12 @@ export class CellPanel extends Widget {
       sample.classList.add(cell.typeName);
       sample.textContent = this.historyModel.inspector.sampleNode(cell);
       if (cell.typeName === "markdown")
-        this.historyModel.inspector.renderBaby.renderMarkdown(
-          sample,
-          sample.textContent
+        this.historyModel.inspector.renderMarkdownVersionDiv(
+          cell as NodeyMarkdown,
+          sample.textContent,
+          sample
         );
+
       listItem.appendChild(sample);
 
       cellContainer.appendChild(listItem);

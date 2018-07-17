@@ -40,7 +40,7 @@ export class Inspect {
   private _targetChanged = new Signal<this, Nodey>(this);
   private _cellStructureChanged = new Signal<this, [number, NodeyCell]>(this);
   private _target: Nodey;
-  renderBaby: RenderBaby;
+  private renderBaby: RenderBaby;
 
   constructor(historyModel: HistoryModel, renderBaby: RenderBaby) {
     this._historyModel = historyModel;
@@ -419,6 +419,73 @@ export class Inspect {
   private renderOutputNode(nodey: NodeyOutput): string {
     return JSON.stringify(nodey.raw);
   }
+
+  public renderCodeVerisonDiv(
+    nodey: NodeyCode,
+    newText: string,
+    elem: HTMLElement,
+    diffKind: number = Inspect.NO_DIFF
+  ) {
+    if (diffKind === Inspect.NO_DIFF) elem.textContent = newText;
+    else if (diffKind === Inspect.CHANGE_DIFF) {
+      let prior = this._historyModel.getPriorVersion(nodey) as NodeyCode;
+      if (!prior) {
+        // easy, everything is added
+        elem.textContent = newText;
+        elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
+      } else {
+        let priorText = this.renderCodeNode(prior);
+        let diff = JSDiff.diffChars(priorText, newText);
+        diff.forEach(part => {
+          let partDiv = document.createElement("div");
+          partDiv.classList.add(Inspect.CHANGE_NONE_CLASS);
+          partDiv.textContent = part.value;
+
+          if (part.added) {
+            partDiv.classList.add(Inspect.CHANGE_ADDED_CLASS);
+          }
+          if (part.removed) {
+            partDiv.classList.add(Inspect.CHANGE_REMOVED_CLASS);
+          }
+          elem.appendChild(partDiv);
+        });
+      }
+    }
+  }
+
+  public renderMarkdownVersionDiv(
+    nodey: NodeyMarkdown,
+    newText: string,
+    elem: HTMLElement,
+    diffKind: number = Inspect.NO_DIFF
+  ) {
+    if (diffKind === Inspect.NO_DIFF)
+      this.renderBaby.renderMarkdown(elem, newText);
+    else if (diffKind === Inspect.CHANGE_DIFF) {
+      let prior = this._historyModel.getPriorVersion(nodey) as NodeyMarkdown;
+      if (!prior) {
+        // easy, everything is added
+        this.renderBaby.renderMarkdown(elem, newText);
+        elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
+      } else {
+        let priorText = prior.markdown;
+        let diff = JSDiff.diffChars(priorText, newText);
+        diff.forEach(part => {
+          let partDiv = document.createElement("div");
+          this.renderBaby.renderMarkdown(partDiv, part.value);
+          partDiv.classList.add(Inspect.CHANGE_NONE_CLASS);
+
+          if (part.added) {
+            partDiv.classList.add(Inspect.CHANGE_ADDED_CLASS);
+          } else if (part.removed) {
+            partDiv.classList.add(Inspect.CHANGE_REMOVED_CLASS);
+          }
+
+          elem.appendChild(partDiv);
+        });
+      }
+    }
+  }
 }
 
 export interface NodeChangeDesc extends JSONObject {
@@ -426,4 +493,14 @@ export interface NodeChangeDesc extends JSONObject {
   start: { line: number; ch: number };
   end: { line: number; ch: number };
   text?: string;
+}
+
+export namespace Inspect {
+  export const CHANGE_NONE_CLASS = "v-Verdant-inspect-code-same";
+  export const CHANGE_ADDED_CLASS = "v-Verdant-inspect-code-added";
+  export const CHANGE_REMOVED_CLASS = "v-Verdant-inspect-code-removed";
+
+  export const NO_DIFF = -1;
+  export const CHANGE_DIFF = 0;
+  export const CURRENT_DIFF = 1;
 }

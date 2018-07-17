@@ -2,7 +2,9 @@ import { Widget } from "@phosphor/widgets";
 
 import { HistoryModel } from "../model/history";
 
-import { Nodey, NodeyMarkdown } from "../model/nodey";
+import { Inspect } from "../inspect";
+
+import { Nodey, NodeyMarkdown, NodeyCode } from "../model/nodey";
 
 import { Wishbone } from "./wishbone";
 
@@ -107,12 +109,18 @@ export class InspectWidget extends Widget {
 
       let content = document.createElement("div");
       content.classList.add(INSPECT_VERSION_CONTENT);
-      content.textContent = text;
       li.appendChild(content);
 
       if (target instanceof NodeyMarkdown) {
         content.classList.add("markdown");
-        this.inspector.renderBaby.renderMarkdown(content, text);
+        this.inspector.renderMarkdownVersionDiv(target, text, content);
+      } else if (target instanceof NodeyCode) {
+        this.inspector.renderCodeVerisonDiv(
+          target,
+          text,
+          content,
+          Inspect.CHANGE_DIFF
+        );
       }
 
       contentDiv.appendChild(li);
