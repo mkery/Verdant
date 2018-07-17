@@ -142,8 +142,8 @@ export class HistoryModel {
     }
   }
 
-  handleCellRun(executionCount: number, nodey: NodeyCell) {
-    this._runModel.cellRun(executionCount, nodey);
+  handleCellRun(nodey: NodeyCell) {
+    this._runModel.cellRun(nodey);
   }
 
   getStar(id: number) {

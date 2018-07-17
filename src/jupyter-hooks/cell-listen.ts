@@ -1,4 +1,4 @@
-import { Cell, CodeCell, ICellModel } from "@jupyterlab/cells";
+import { Cell, CodeCell } from "@jupyterlab/cells";
 
 import { OutputArea } from "@jupyterlab/outputarea";
 
@@ -19,8 +19,6 @@ import * as CodeMirror from "codemirror";
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 import { HistoryModel } from "../model/history";
-
-import { IChangedArgs } from "@jupyterlab/coreutils";
 
 import { ChangeType } from "../model/run";
 
@@ -79,25 +77,14 @@ export abstract class CellListen {
     this._ready.resolve(undefined);
   }
 
-  public cellRun(exec: number = null) {
+  public cellRun() {
     var node = this.nodey;
     if (node.id === "*" || node.version === "*")
-      if (this.status === ChangeType.SAME)
-        this.status = ChangeType.CHANGED;
-    console.log("Running cell!", this.cell, exec, typeof node);
-    this.historyModel.handleCellRun(exec, node);
+      if (this.status === ChangeType.SAME) this.status = ChangeType.CHANGED;
+    this.historyModel.handleCellRun(node);
   }
 
-  protected listen(): void {
-    this.cell.model.stateChanged.connect(
-      (model: ICellModel, change: IChangedArgs<any>) => {
-        if (change.name === "executionCount") {
-          this.cellRun(change.newValue);
-        }
-      },
-      this
-    );
-  }
+  protected listen(): void {}
 
   protected _ready = new PromiseDelegate<void>();
 }

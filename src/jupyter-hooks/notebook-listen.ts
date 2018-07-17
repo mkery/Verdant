@@ -1,4 +1,4 @@
-import { NotebookPanel, Notebook } from "@jupyterlab/notebook";
+import { NotebookPanel, Notebook, NotebookActions } from "@jupyterlab/notebook";
 
 import { PathExt } from "@jupyterlab/coreutils";
 
@@ -66,7 +66,7 @@ export class NotebookListen {
   }
 
   get cellStructureChanged(): Signal<this, [number, CellListen]> {
-    return this._cellStructureChanged
+    return this._cellStructureChanged;
   }
 
   get path(): string {
@@ -116,8 +116,8 @@ export class NotebookListen {
 
   async focusCell(cell: Cell): Promise<void> {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
-      let cellListen = this.cells.get(cell.model.id)
-      await cellListen.ready
+      let cellListen = this.cells.get(cell.model.id);
+      await cellListen.ready;
       this._activeCellChanged.emit(cellListen);
       cellListen.focus();
     }
@@ -149,15 +149,17 @@ export class NotebookListen {
       }
     );
 
-    this._notebook.activeCellChanged.connect((sender: any, cell: Cell) => {
-      this.focusCell(cell)
+    this._notebook.activeCellChanged.connect((_: any, cell: Cell) => {
+      this.focusCell(cell);
     });
 
-    var runButton = this._notebookPanel.toolbar.node.getElementsByClassName(
-      "p-Widget jp-mod-styled jp-Toolbar-button jp-RunIcon jp-Toolbar-item"
-    )[0];
-    runButton.addEventListener("mousedown", () => {
-      if (this.activeCell) this.cells.get(this.activeCell.model.id).cellRun();
+    NotebookActions.executed.connect((_, args) => {
+      const { notebook, cell } = args;
+
+      console.log("Executed cell:", cell);
+      console.log("Parent notebook:", notebook);
+      let cellListen = this.cells.get(cell.model.id);
+      cellListen.cellRun();
     });
   }
 
@@ -189,16 +191,16 @@ export class NotebookListen {
       console.log("adding a new cell!", cell, newIndex, newValues);
       var cellListen = this.createCodeCellListen(cell, newIndex, false);
       cellListen.status = ChangeType.ADDED;
-      this._cellStructureChanged.emit([index, cellListen])
+      this._cellStructureChanged.emit([index, cellListen]);
     });
   }
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
     console.log("removing cells", oldIndex, oldValues);
-    oldValues.forEach((removed) => {
+    oldValues.forEach(removed => {
       var cellListen: CellListen = this.cells.get(removed.id);
       cellListen.status = ChangeType.REMOVED;
-      this._cellStructureChanged.emit([oldIndex, cellListen])
+      this._cellStructureChanged.emit([oldIndex, cellListen]);
     });
   }
 

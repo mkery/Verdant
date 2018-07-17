@@ -303,6 +303,9 @@ def main(text):
       return "'" + str + "'";
     });
 
+    // turn ipython magics commands into comments
+    code = code.replace(/%/g, "#");
+
     // remove any triple quotes, which will mess us up
     code = code.replace(/"""/g, "'''");
 

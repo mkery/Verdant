@@ -34,26 +34,19 @@ export class RunModel {
     return this._newRun;
   }
 
-  onRunStarted(execCount: number, nodey: NodeyCell) {
-    // TODO
-  }
-
-  cellRun(execCount: number, nodey: NodeyCell) {
-    if (execCount === null) this.onRunStarted(execCount, nodey);
-    else {
-      console.log("Cell run!", execCount, nodey);
-      var runID = this._runList.length;
-      var timestamp = Date.now();
-      this._historyModel.commitChanges(nodey, runID);
-      //this._historyModel.dump();
-      var run = this.recordRun(
-        runID,
-        timestamp,
-        this._historyModel.getNodeyCell(nodey.id)
-      );
-      console.log("Run committed ", run);
-      this._newRun.emit(run);
-    }
+  cellRun(nodey: NodeyCell) {
+    console.log("Cell run!", nodey);
+    var runID = this._runList.length;
+    var timestamp = Date.now();
+    this._historyModel.commitChanges(nodey, runID);
+    //this._historyModel.dump();
+    var run = this.recordRun(
+      runID,
+      timestamp,
+      this._historyModel.getNodeyCell(nodey.id)
+    );
+    console.log("Run committed ", run);
+    this._newRun.emit(run);
   }
 
   private recordRun(runId: number, timestamp: number, nodey: NodeyCell) {
