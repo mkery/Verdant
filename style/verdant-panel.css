@@ -98,3 +98,14 @@
 .v-VerdantPanel-search-filter.comment.highlight {
   background-image: var(--verdant-icon-comment-highlight);
 }
+
+.v-VerdantPanel-search-results-label {
+  display: inline-block;
+  margin-left: 4px;
+  font-style: italic;
+  vertical-align: top;
+  margin-top: 0.25em;
+  margin-bottom: 0.5em;
+  text-align: center;
+  color: var(--jp-brand-color0);
+}
