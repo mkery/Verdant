@@ -1,4 +1,9 @@
-import { NodeyCode, NodeyCodeCell, NodeyMarkdown, SyntaxToken } from "../model/nodey";
+import {
+  NodeyCode,
+  NodeyCodeCell,
+  NodeyMarkdown,
+  SyntaxToken
+} from "../model/nodey";
 
 import * as CodeMirror from "codemirror";
 
@@ -68,7 +73,10 @@ export class ASTResolve {
       // shift all nodey positions after affected
       var newEnd = this.repairPositions(affected, change);
       // return the text from this node's new range
-      var text = editor.doc.getRange(affected.start, newEnd);
+      var text = editor.doc.getRange(
+        { line: affected.start.line, ch: Math.max(affected.start.ch - 1, 0) },
+        newEnd
+      );
       console.log(
         "The exact affected nodey is",
         affected,

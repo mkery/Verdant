@@ -35,6 +35,7 @@ export class CellPanel extends Widget {
     this.historyModel = historyModel;
     this.inspectWidget = new InspectWidget(historyModel);
     this.node.appendChild(this.inspectWidget.node);
+    this.node.appendChild(this.inspectWidget.header);
 
     let cellSection = document.createElement("div");
     cellSection.classList.add(CELL_SECTION);
@@ -73,14 +74,13 @@ export class CellPanel extends Widget {
       this.historyModel.inspector.cellStructureChanged.connect(
         this.updateCellDisplay.bind(this)
       );
+      this.historyModel.inspector.targetChanged.connect(
+        (_: any, nodey: Nodey) => {
+          this.changetTarget(nodey);
+          this.inspectWidget.changeTarget(nodey);
+        }
+      );
     });
-
-    this.historyModel.inspector.targetChanged.connect(
-      (_: any, nodey: Nodey) => {
-        this.changetTarget(nodey);
-        this.inspectWidget.changeTarget(nodey);
-      }
-    );
   }
 
   hide() {

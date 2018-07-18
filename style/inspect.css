@@ -2,10 +2,14 @@
   flex: 1 1 auto;
   border-bottom: 1px solid var(--jp-border-color1);
   min-height: 10em;
+  overflow: auto;
+  order: 1;
 }
 
 .v-VerdantPanel-inspect-header {
   padding: 3px;
+  order: 0;
+  box-shadow: var(--jp-toolbar-box-shadow);
 }
 
 .v-VerdantPanel-inspect-icon {
@@ -69,8 +73,8 @@
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
   font-family: var(--jp-cell-prompt-font-family);
   margin-top: 10px;
-  overflow: auto;
-  width: 100%;
+  overflow: visible;
+  width: max-content;
   text-align: left;
   padding-bottom: 1em;
 }

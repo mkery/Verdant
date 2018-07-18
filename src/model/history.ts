@@ -10,6 +10,8 @@ import {
 
 import { Star } from "./star";
 
+import * as levenshtein from "fast-levenshtein";
+
 import { Notes } from "./notes";
 
 import { ChangeType, RunModel, Run } from "./run";
@@ -135,11 +137,10 @@ export class HistoryModel {
     return nodeHist.versions[parseInt(ver)] as NodeyOutput;
   }
 
-  getPriorVersion(nodey: Nodey) {
-    if (nodey.version !== 0) {
-      let nodeHist = this._nodeyStore[nodey.id];
-      return nodeHist.versions[nodey.version - 1];
-    }
+  getPriorVersion(nodey: Nodey, prior: number = -1) {
+    let nodeHist = this._nodeyStore[nodey.id];
+    if (prior > -1) return nodeHist.versions[prior];
+    if (nodey.version !== 0) return nodeHist.versions[nodey.version - 1];
   }
 
   handleCellRun(nodey: NodeyCell) {
@@ -256,7 +257,9 @@ export class HistoryModel {
         this._deStar.bind(this)
       ) as NodeyCodeCell;
       newNode.starNodes = [];
-    } else if (cell instanceof NodeyMarkdown) this._commitMarkdown(cell, runId);
+    } else if (cell instanceof NodeyMarkdown) {
+      this._commitMarkdown(cell, runId);
+    }
   }
 
   private _deStar(nodey: Nodey, runId: number, output: string[]) {
@@ -270,8 +273,14 @@ export class HistoryModel {
   }
 
   private _commitMarkdown(nodey: NodeyMarkdown, runId: number) {
-    if (nodey.version === "*") {
+    let priorText = nodey.markdown;
+    let newText = nodey.cell.cell.model.value.text;
+    let score = levenshtein.get(priorText, newText);
+    if (score > 0) {
       let history = this.getVersionsFor(nodey);
+      let newNodey = nodey.clone() as NodeyMarkdown;
+      newNodey.markdown = newText;
+      history.starNodey = newNodey;
       return history.deStar(runId) as NodeyMarkdown;
     }
   }

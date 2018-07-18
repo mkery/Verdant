@@ -23,14 +23,15 @@ const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
 export class InspectWidget extends Widget {
   private _historyModel: HistoryModel;
   private _active: boolean = false;
+  private _header: HTMLElement;
 
   constructor(historyModel: HistoryModel) {
     super();
     this._historyModel = historyModel;
     this.addClass(INSPECT);
 
-    let inspectHeader = document.createElement("div");
-    inspectHeader.classList.add(INSPECT_HEADER);
+    this._header = document.createElement("div");
+    this._header.classList.add(INSPECT_HEADER);
 
     let icon = document.createElement("div");
     icon.classList.add(INSPECT_ICON);
@@ -40,13 +41,12 @@ export class InspectWidget extends Widget {
     title.classList.add(INSPECT_TITLE);
     title.textContent = "nothing selected to inspect";
 
-    inspectHeader.appendChild(icon);
-    inspectHeader.appendChild(title);
+    this._header.appendChild(icon);
+    this._header.appendChild(title);
 
     let content = document.createElement("ul");
     content.classList.add(INSPECT_CONTENT);
 
-    this.node.appendChild(inspectHeader);
     this.node.appendChild(content);
 
     // look for jp-OutputArea-output
@@ -68,7 +68,11 @@ export class InspectWidget extends Widget {
   }
 
   get header() {
-    return this.node.getElementsByClassName(INSPECT_TITLE)[0];
+    return this._header;
+  }
+
+  get headerTitle() {
+    return this.header.getElementsByClassName(INSPECT_TITLE)[0];
   }
 
   get icon() {
@@ -85,7 +89,7 @@ export class InspectWidget extends Widget {
 
   public changeTarget(target: Nodey) {
     if (this._active) {
-      this.header.textContent =
+      this.headerTitle.textContent =
         "versions of " + target.typeName + " node " + target.name;
       this.content.innerHTML = "";
       this.fillContent(target, this.inspector.versionsOfTarget);
@@ -111,19 +115,20 @@ export class InspectWidget extends Widget {
       content.classList.add(INSPECT_VERSION_CONTENT);
       li.appendChild(content);
 
-      if (target instanceof NodeyMarkdown) {
+      let nodey = this._historyModel.getPriorVersion(target, item.version);
+      if (nodey instanceof NodeyMarkdown) {
         content.classList.add("markdown");
-        this.inspector.renderMarkdownVersionDiv(target, text, content);
-      } else if (target instanceof NodeyCode) {
+        this.inspector.renderMarkdownVersionDiv(nodey, text, content);
+      } else if (nodey instanceof NodeyCode) {
         this.inspector.renderCodeVerisonDiv(
-          target,
+          nodey,
           text,
           content,
           Inspect.CHANGE_DIFF
         );
       }
 
-      contentDiv.appendChild(li);
+      contentDiv.insertBefore(li, contentDiv.firstElementChild);
     });
     contentDiv.lastElementChild.classList.add("last");
   }

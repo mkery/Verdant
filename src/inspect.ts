@@ -426,9 +426,16 @@ export class Inspect {
     elem: HTMLElement,
     diffKind: number = Inspect.NO_DIFF
   ) {
+    console.log("rendering code versions!");
     if (diffKind === Inspect.NO_DIFF) elem.textContent = newText;
     else if (diffKind === Inspect.CHANGE_DIFF) {
       let prior = this._historyModel.getPriorVersion(nodey) as NodeyCode;
+      console.log(
+        "PRIOR?",
+        prior,
+        this._historyModel.getVersionsFor(nodey),
+        nodey
+      );
       if (!prior) {
         // easy, everything is added
         elem.textContent = newText;
@@ -436,19 +443,22 @@ export class Inspect {
       } else {
         let priorText = this.renderCodeNode(prior);
         let diff = JSDiff.diffChars(priorText, newText);
+        let innerHTML = "";
         diff.forEach(part => {
-          let partDiv = document.createElement("div");
-          partDiv.classList.add(Inspect.CHANGE_NONE_CLASS);
+          let partDiv = document.createElement("span");
           partDiv.textContent = part.value;
-
           if (part.added) {
             partDiv.classList.add(Inspect.CHANGE_ADDED_CLASS);
-          }
-          if (part.removed) {
+            innerHTML += partDiv.outerHTML;
+          } else if (part.removed) {
             partDiv.classList.add(Inspect.CHANGE_REMOVED_CLASS);
+            innerHTML += partDiv.outerHTML;
+          } else {
+            innerHTML += part.value;
           }
-          elem.appendChild(partDiv);
         });
+        console.log(innerHTML);
+        elem.innerHTML = innerHTML;
       }
     }
   }
