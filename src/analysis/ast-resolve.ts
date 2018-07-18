@@ -77,10 +77,12 @@ export class ASTResolve {
         { line: affected.start.line, ch: Math.max(affected.start.ch - 1, 0) },
         newEnd
       );
+      let textOrig = this.historyModel.inspector.renderNode(affected).text;
       console.log(
         "The exact affected nodey is",
         affected,
         text,
+        textOrig,
         range.start,
         newEnd
       );
@@ -209,7 +211,8 @@ export class ASTResolve {
       row: row
     };
 
-    if ("literal" in dict) {
+    if ("literal" in dict || SyntaxToken.KEY in dict) {
+      //gotta check non-space Syntax tokens like brakets
       var index = nodeyList.push(option) - 1;
       leaves.push(index);
       return [nodeyList, leaves, [index]];
@@ -223,7 +226,8 @@ export class ASTResolve {
     var children: any[] = [];
     var kidRow = 0;
     dict.content.forEach((d: ParserNodey) => {
-      if (SyntaxToken.KEY in d) {
+      if (SyntaxToken.KEY in d && d[SyntaxToken.KEY] === " ") {
+        // don't care about spacing
         children.push(new SyntaxToken(d[SyntaxToken.KEY]));
       } else {
         let kids = [];
@@ -277,7 +281,22 @@ export class ASTResolve {
     else if (nodey.content) {
       var kidRow = 0;
       nodey.content.forEach(name => {
-        if (!(name instanceof SyntaxToken)) {
+        if (name instanceof SyntaxToken) {
+          if (name.tokens !== " ") {
+            //ignore spaces
+            var toktok: NodeyOptions = new NodeyOptions({
+              nodey: name.tokens,
+              syntok: true,
+              match: null,
+              possibleMatches: [],
+              level: level,
+              row: row,
+              parentIndex: index
+            });
+            let tokIndex = nodeyList.push(toktok) - 1;
+            leaves.push(tokIndex);
+          }
+        } else {
           var child = this.historyModel.getNodey(name) as NodeyCode;
           [nodeyList, leaves] = this.nodeyToLeaves(
             child,
@@ -307,7 +326,7 @@ export class ASTResolve {
         dict = {
           start: { line: 0, ch: 0 },
           end: { line: 0, ch: 0 },
-          type: "Module"
+          type: "_"
         };
         var parsedList: ParsedNodeOptions[] = [
           {
@@ -413,7 +432,8 @@ export class ASTResolve {
       if (parsedNode.content && (match.score !== 0 || !nodeyEdited.end)) {
         //TODO optimize
         var content = parsedNode.content.map(num => {
-          if (num instanceof SyntaxToken) return num;
+          if (num instanceof SyntaxToken || "syntok" in parsedList[num].nodey)
+            return num;
 
           let child = this.finalizeMatch(
             num,
@@ -557,7 +577,6 @@ export class ASTResolve {
     */
     var score = 0;
     var parsedNode = parsedProfile.nodey;
-    var nodeyNode = this.historyModel.getNodey(nodeyProfile.nodey) as NodeyCode;
 
     /*
     * Distance score
@@ -566,18 +585,33 @@ export class ASTResolve {
     score += Math.abs(parsedProfile.row - nodeyProfile.row);
 
     /*
+    * SyntaxToken match score for non-space tokens
+    * no kids
+    */
+    if ("syntok" in parsedNode || nodeyProfile.syntok === true) {
+      if (nodeyProfile.syntok === false || "syntok" in parsedNode == false)
+        score = NO_MATCH_SCORE;
+      else score = this.matchLiterals(parsedNode.syntok, nodeyProfile.nodey);
+      return score;
+    }
+
+    var nodeyNode = this.historyModel.getNodey(nodeyProfile.nodey) as NodeyCode;
+
+    /*
     * Literal match score
     * Literal nodes do not score for type or children
     */
-    if ("literal" in parsedNode && nodeyNode.literal) {
-      score += this.matchLiteralNode(parsedNode, nodeyNode);
+    if ("literal" in parsedNode || nodeyNode.literal) {
+      if ("literal" in parsedNode === false || !nodeyNode.literal)
+        score = NO_MATCH_SCORE;
+      else score += this.matchLiterals(parsedNode.literal, nodeyNode.literal);
       return score;
     }
 
     /*
-    * Type score
+    * Type score, need to have wildcard _ when type is unknown
     */
-    if (nodeyNode.type !== parsedNode.type) {
+    if (parsedNode.type != "_" && nodeyNode.type !== parsedNode.type) {
       score = NO_MATCH_SCORE;
       return score; //TODO some cases can change type
     }
@@ -602,7 +636,13 @@ export class ASTResolve {
             score += 1; //new child
             console.log("leaf has no match, ", leaf, index); //DEBUG only
           }
-        }
+        } //handle syntax token matches
+        /*else {
+          let syn2 = nodeyNode.content[index]; // super conservative matching. may need to fix
+          if (syn2 instanceof SyntaxToken && index.tokens === syn2.tokens)
+            score -= 1;
+          else score += 1;
+        }*/
       });
     }
 
@@ -713,23 +753,11 @@ export class ASTResolve {
     return n;
   }
 
-  private matchLiteralNode(
-    node: ParserNodey,
-    potentialMatch: NodeyCode
-  ): number {
-    if (!(potentialMatch.literal && "literal" in node)) return -1; // no match possible
-    //leaf nodes
-    var score =
-      levenshtein.get(node.literal, potentialMatch.literal) /
-      Math.max(node.literal.length, potentialMatch.literal.length);
+  private matchLiterals(a: string, b: string) {
+    let score = levenshtein.get(a, b) / Math.max(a.length, b.length);
     if (score !== 0.0) {
       // not a perfect match
-      console.log(
-        "maybe change literal",
-        node.literal,
-        potentialMatch.literal,
-        score
-      );
+      console.log("maybe change literal", a, b, score);
     }
     return score;
   }
@@ -747,6 +775,7 @@ export class NodeyOptions {
   nodey: string;
   parentIndex?: number;
   match: Match;
+  syntok: boolean = false;
   possibleMatches: Match[];
   level: number;
   row: number;
@@ -759,6 +788,7 @@ export class NodeyOptions {
     this.possibleMatches = options.possibleMatches || [];
     this.level = options.level;
     this.row = options.row;
+    this.syntok = options.syntok || false;
   }
 
   isTopChoice(index: number, parsedList: ParsedNodeOptions[]) {

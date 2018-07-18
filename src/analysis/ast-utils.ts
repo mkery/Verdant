@@ -53,7 +53,7 @@ export namespace ASTUtils {
   }
 
   /*
-  *
+  * goal: get rid of wrappers or any types called Module
   */
   export function reduceASTDict(ast: {
     [key: string]: any;
@@ -68,7 +68,7 @@ export namespace ASTUtils {
         child.end.ch === ast.end.ch
       )
         return reduceASTDict(child);
-    }
+    } else if (ast.type === "Module") ast.type = "_"; // wildcard
     return ast;
   }
 }
