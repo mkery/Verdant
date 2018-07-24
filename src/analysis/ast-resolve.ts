@@ -64,15 +64,7 @@ export class ASTResolve {
 
     if (affected) {
       //some types cannot be parsed alone by Python TODO
-      var unparsable = [
-        "Str",
-        "STRING",
-        "keyword",
-        "NUMBER",
-        "Num",
-        "COMMENT",
-        "List"
-      ];
+      var unparsable = ["Str", "STRING", "keyword", "NUMBER", "Num"];
       while (unparsable.indexOf(affected.type) !== -1) {
         console.log("affected is", affected);
         affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
@@ -89,8 +81,8 @@ export class ASTResolve {
       console.log(
         "The exact affected nodey is",
         affected,
-        text,
-        textOrig,
+        "|" + text + "|",
+        "|" + textOrig + "|",
         range.start,
         newEnd
       );
@@ -734,6 +726,7 @@ export class ASTResolve {
     prior: NodeyCode = null
   ): NodeyCode {
     var n = new NodeyCode(node);
+    console.log("Building star node for ", node, n);
     n.id = "*";
     n.start.line -= 1; // convert the coordinates of the range to code mirror style
     n.end.line -= 1;
@@ -750,11 +743,14 @@ export class ASTResolve {
         n.content.push(node.content[item]);
       else {
         var leaf = newNodeList[node.content[item]].nodey;
-        var child = this.buildStarNode(leaf, target, newNodeList, prior);
-        child.parent = n.name;
-        if (prior) prior.right = child.name;
-        n.content.push(child.name);
-        prior = child;
+        if ("syntok" in leaf) n.content.push(new SyntaxToken(leaf.syntok));
+        else {
+          var child = this.buildStarNode(leaf, target, newNodeList, prior);
+          child.parent = n.name;
+          if (prior) prior.right = child.name;
+          n.content.push(child.name);
+          prior = child;
+        }
       }
     }
 

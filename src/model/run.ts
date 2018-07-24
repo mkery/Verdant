@@ -36,8 +36,8 @@ export class RunModel {
 
   cellRun(nodey: NodeyCell) {
     console.log("Cell run!", nodey);
-    var runID = this._runList.length;
-    var timestamp = Date.now();
+    let runID = this._runList.length;
+    let timestamp = Date.now();
     this._historyModel.commitChanges(nodey, runID);
     //this._historyModel.dump();
     var run = this.recordRun(

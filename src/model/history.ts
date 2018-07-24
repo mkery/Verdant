@@ -277,6 +277,7 @@ export class HistoryModel {
     let newText = nodey.cell.cell.model.value.text;
     let score = levenshtein.get(priorText, newText);
     if (score > 0) {
+      nodey.cell.status = ChangeType.CHANGED;
       let history = this.getVersionsFor(nodey);
       let newNodey = nodey.clone() as NodeyMarkdown;
       newNodey.markdown = newText;
