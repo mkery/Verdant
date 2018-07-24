@@ -64,7 +64,15 @@ export class ASTResolve {
 
     if (affected) {
       //some types cannot be parsed alone by Python TODO
-      var unparsable = ["Str", "STRING", "keyword", "NUMBER", "Num", "COMMENT"];
+      var unparsable = [
+        "Str",
+        "STRING",
+        "keyword",
+        "NUMBER",
+        "Num",
+        "COMMENT",
+        "List"
+      ];
       while (unparsable.indexOf(affected.type) !== -1) {
         console.log("affected is", affected);
         affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
@@ -432,8 +440,9 @@ export class ASTResolve {
       if (parsedNode.content && (match.score !== 0 || !nodeyEdited.end)) {
         //TODO optimize
         var content = parsedNode.content.map(num => {
-          if (num instanceof SyntaxToken || "syntok" in parsedList[num].nodey)
-            return num;
+          if (num instanceof SyntaxToken) return num;
+          if ("syntok" in parsedList[num].nodey)
+            return new SyntaxToken(parsedList[num].nodey.syntok);
 
           let child = this.finalizeMatch(
             num,
@@ -596,7 +605,6 @@ export class ASTResolve {
     }
 
     var nodeyNode = this.historyModel.getNodey(nodeyProfile.nodey) as NodeyCode;
-
     /*
     * Literal match score
     * Literal nodes do not score for type or children
@@ -755,10 +763,7 @@ export class ASTResolve {
 
   private matchLiterals(a: string, b: string) {
     let score = levenshtein.get(a, b) / Math.max(a.length, b.length);
-    if (score !== 0.0) {
-      // not a perfect match
-      console.log("maybe change literal", a, b, score);
-    }
+    console.log("maybe change literal", a, b, score);
     return score;
   }
 }

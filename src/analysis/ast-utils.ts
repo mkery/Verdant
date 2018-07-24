@@ -61,13 +61,7 @@ export namespace ASTUtils {
     if (ast.content && ast.content.length === 1) {
       // check if this node is a wrapper or not
       var child = ast.content[0];
-      if (
-        child.start.line === ast.start.line &&
-        child.start.ch === ast.start.ch &&
-        child.end.line === ast.end.line &&
-        child.end.ch === ast.end.ch
-      )
-        return reduceASTDict(child);
+      return reduceASTDict(child);
     } else if (ast.type === "Module") ast.type = "_"; // wildcard
     return ast;
   }
@@ -88,6 +82,7 @@ namespace Private {
     if (children.length < 1) return null;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
+    console.log("CHILDREN", children, mid, children[mid]);
     var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
     //console.log("checking mid range", midNodey, direction);

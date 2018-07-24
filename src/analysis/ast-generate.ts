@@ -294,7 +294,7 @@ def visitImportFrom(node, text, textStart, textEnd):
         end, spaces = getSpacing(text, end, textEnd)
         me['content'] += spaces
         module = str(node.module)
-        me['content'].append({"sytnok": module})
+        me['content'].append({"syntok": module})
         end += len(module)
         end, spaces = getSpacing(text, end, textEnd)
         me['content'] += spaces
@@ -920,7 +920,8 @@ def parse(text):
     else:
         node = ast.parse(text)
         if(debug): print(ast.dump(node, True, True))
-        print( json.dumps(visit(node, text, 0, len(text), None)))
+        end, res = visit(node, text, 0, len(text), None)
+        print( json.dumps(res))
 
 
 # In[2]:
