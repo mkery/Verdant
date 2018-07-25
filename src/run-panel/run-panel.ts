@@ -30,8 +30,17 @@ export class RunPanel extends Widget {
     super();
     this.historyModel = historyModel;
     this.sections = [];
-
     this.addClass(NOTEBOOK_HISTORY);
+
+    // got to give a chance for new versions to load in
+    this.historyModel.inspector.ready.then(async () => {
+      this.historyModel.notebook.ready.then(async () => {
+        this.init();
+      });
+    });
+  }
+
+  private init() {
     this.listContainer = this.buildRunList();
     this.node.appendChild(this.listContainer);
 
@@ -55,7 +64,7 @@ export class RunPanel extends Widget {
     let target = event.target as HTMLElement;
     if (target.classList.contains("v-VerdantPanel-runItem-caret")) {
       runItem.caretClicked();
-    } else if (runItem) {
+    } else if (target.classList.contains("v-VerdantPanel-runItem-number")) {
       if (this.selectedRun) this.selectedRun.blur();
 
       this.selectedRun = runItem.nodeClicked();

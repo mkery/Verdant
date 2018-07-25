@@ -21,7 +21,9 @@
 }
 
 .v-VerdantPanel-workingItem-label {
+  color: var(--jp-brand-color0);
   display: inline-block;
+  text-decoration: underline;
 }
 
 .v-VerdantPanel-runContainer {
@@ -163,6 +165,7 @@
   padding-top: 2px;
   display: flex;
   flex-direction: row;
+  margin-top: 1em;
 }
 
 .v-VerdantPanel-runItem.jp-mod-active {
@@ -179,9 +182,12 @@
   float: left;
   padding-top: 0.25em;
   background-size: 1.25em;
-  background-position: left;
+  background-position: right;
   border: 1px solid transparent;
   flex: 1 1 auto;
+}
+.v-VerdantPanel-runItem-caret.cluster {
+  margin-top: 1em;
 }
 .v-VerdantPanel-runItem-caret.highlight {
   background-image: var(--verdant-icon-caretdown-highlight);
@@ -198,6 +204,8 @@
 }
 
 .v-VerdantPanel-runItem-number {
+  color: var(--jp-brand-color0);
+  text-decoration: underline;
   width: calc(var(--jp-ui-font-size1) * 2);
   font-size: var(--jp-ui-font-size1);
   font-weight: 400;
@@ -209,30 +217,36 @@
 }
 
 .v-VerdantPanel-runItem-time {
-  width: calc(var(--jp-ui-font-size1) * 5);
+  max-width: 5em;
   font-size: var(--jp-ui-font-size1);
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
   padding-left: 6px;
   vertical-align: text-top;
-  flex: 1 1 auto;
+  flex: 1 1 5em;
 }
 
 .v-VerdantPanel-runCellMap {
+  line-height: 2px;
   display: inline-block;
   text-align: left;
   padding-left: 5px;
-  flex: 1 1 auto;
+  padding-right: 5px;
+  flex: 1 1 calc(100% - 11em);
   vertical-align: top;
-  max-width: calc(100% - 11em);
 }
 
 .v-VerdantPanel-runCellMap-cell {
   display: inline-block;
-  width: calc(var(--jp-ui-font-size1) * 0.75);
-  border-bottom: 1px solid #808080;
+  width: 3px;
+  color: var(--jp-content-font-color0);
+  border-bottom: 1px solid #999;
   margin-left: 2px;
+}
+.v-VerdantPanel-runCellMap-cell.run {
+  line-height: 1em;
+  width: var(--jp-ui-font-size1);
 }
 .v-VerdantPanel-runCellMap-cell.highlight {
   border-color: white;
@@ -322,7 +336,9 @@
 }
 
 .v-VerdantPanel-runCellMap-cell-changed {
+  content: none;
   background-color: var(--verdant-cell-change-color1);
+  width: var(--jp-ui-font-size1);
   height: 4px;
   border-bottom: 5px solid var(--verdant-cell-change-color2);
 }
@@ -336,6 +352,8 @@
 }
 
 .v-VerdantPanel-runCellMap-cell-removed {
+  content: none;
+  width: var(--jp-ui-font-size1);
   background-color: var(--verdant-cell-remove-color1);
   border-bottom: 5px solid var(--verdant-cell-remove-color2);
   height: 4px;
@@ -350,6 +368,8 @@
   border-bottom: 4px solid var(--verdant-cell-add-color2);
 }
 .v-VerdantPanel-runCellMap-cell-added {
+  width: var(--jp-ui-font-size1);
+  content: none;
   background-color: var(--verdant-cell-add-color1);
   height: 4px;
   border-bottom: 5px solid var(--verdant-cell-add-color2);

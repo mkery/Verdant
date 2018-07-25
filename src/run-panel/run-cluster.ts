@@ -2,6 +2,8 @@ import { Widget } from "@phosphor/widgets";
 
 import { Run, ChangeType, CellRunData } from "../model/run";
 
+import { HistoryModel } from "../model/history";
+
 import { RunItem } from "./run-item";
 
 import { DotMap } from "./dot-map";
@@ -18,13 +20,19 @@ const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 const SUB_RUNLIST_CLASS = "v-VerdantPanel-runCluster-list";
 
 export class RunCluster extends Widget implements VerdantListItem {
+  historyModel: HistoryModel;
   runs: RunItem[];
   header: HTMLElement;
   dotMap: DotMap;
   clusterEvent: (item: RunItem) => void;
 
-  constructor(runs: RunItem[], runEvents: (item: RunItem) => void) {
+  constructor(
+    historyModel: HistoryModel,
+    runs: RunItem[],
+    runEvents: (item: RunItem) => void
+  ) {
     super();
+    this.historyModel = historyModel;
     this.runs = runs || [];
     this.clusterEvent = runEvents;
 
@@ -34,6 +42,7 @@ export class RunCluster extends Widget implements VerdantListItem {
 
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
+    caret.classList.add("cluster");
 
     this.header = this.buildHeader(runs);
     this.header.classList.add(RUN_ITEM_CLASS);
@@ -94,7 +103,7 @@ export class RunCluster extends Widget implements VerdantListItem {
         };
         if (runMap[index]) change = runMap[index];
         runMap[index] = {
-          node: "",
+          node: cell.node,
           changeType: Math.min(
             ChangeType.CHANGED,
             change.changeType + cell.changeType
@@ -104,7 +113,7 @@ export class RunCluster extends Widget implements VerdantListItem {
       });
     });
 
-    let dotMap = new DotMap(runMap);
+    let dotMap = new DotMap(this.historyModel, runMap);
     return dotMap;
   }
 

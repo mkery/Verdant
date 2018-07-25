@@ -89,6 +89,7 @@ export class RunSection extends Widget {
 
       if (runs2.length > 1) {
         let after = new RunCluster(
+          this.historyModel,
           runs2,
           this.checkCluster.bind(this, selectionHandler)
         );
@@ -107,6 +108,7 @@ export class RunSection extends Widget {
 
       if (runs1.length > 1) {
         let before = new RunCluster(
+          this.historyModel,
           runs1,
           this.checkCluster.bind(this, selectionHandler)
         );
@@ -145,6 +147,7 @@ export class RunSection extends Widget {
           runs = priorRun.runs;
         } else runs = [priorRun as RunItem, runItem];
         cluster = new RunCluster(
+          this.historyModel,
           runs,
           this.checkCluster.bind(this, selectionHandler)
         );

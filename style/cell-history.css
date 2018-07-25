@@ -35,10 +35,17 @@
   width: 100%;
 }
 
+.v-VerdantPanel-cellList-labels {
+  display: inline-block;
+  flex: 1 1 6em;
+  text-align: right;
+  max-width: 6em;
+}
+
 .v-VerdantPanel-cellList-sample {
   white-space: nowrap;
   padding: 2px;
-  flex: 1 1 auto;
+  flex: 1 1 calc(100% - 6em);
   margin-left: 0.5em;
   background-color: var(--jp-cell-editor-background);
   border-left: 2px solid var(--jp-brand-color3);
@@ -79,6 +86,7 @@
   margin-right: 0.25em;
   padding-top: calc(4px + 0.25em);
   white-space: nowrap;
+  color: var(--jp-brand-color0);
 }
 
 .v-VerdantPanel-cellList-cellType {

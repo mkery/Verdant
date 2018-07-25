@@ -34,13 +34,13 @@ export class RunModel {
     return this._newRun;
   }
 
-  cellRun(nodey: NodeyCell) {
+  public async cellRun(nodey: NodeyCell) {
     console.log("Cell run!", nodey);
     let runID = this._runList.length;
     let timestamp = Date.now();
     this._historyModel.commitChanges(nodey, runID);
     //this._historyModel.dump();
-    var run = this.recordRun(
+    var run = await this.recordRun(
       runID,
       timestamp,
       this._historyModel.getNodeyCell(nodey.id)
@@ -49,7 +49,7 @@ export class RunModel {
     this._newRun.emit(run);
   }
 
-  private recordRun(runId: number, timestamp: number, nodey: NodeyCell) {
+  private async recordRun(runId: number, timestamp: number, nodey: NodeyCell) {
     var cellDat: CellRunData[] = [];
     this._historyModel.cellList.forEach(cell => {
       var dat = {

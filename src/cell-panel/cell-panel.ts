@@ -16,9 +16,9 @@ const CELLHEADER_CARET = "v-VerdantPanel-runList-caret";
 const CELL_CONTAINERS = "v-VerdantPanel-cellList-container";
 const CELLS_UL = "v-VerdantPanel-runList-ul";
 const CELL_LI = "v-VerdantPanel-cellList-li";
+const CELL_LABELS = "v-VerdantPanel-cellList-labels";
 const CELL_VER_COUNT = "v-VerdantPanel-cellList-versionNumber";
 const CELL_TYPE = "v-VerdantPanel-cellList-cellType";
-const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 
 /**
  * A widget which displays cell-level history information
@@ -173,18 +173,23 @@ export class CellPanel extends Widget {
       let listItem = document.createElement("div");
       listItem.classList.add(CELL_LI);
 
-      let versionCount = this.historyModel.getVersionsFor(cell).versions.length;
-      let versionLabel = document.createElement("div");
-      let versions = "version";
-      if (versionCount > 1) versions = "versions";
-      versionLabel.textContent = versionCount + " " + versions;
-      versionLabel.classList.add(CELL_VER_COUNT);
-      listItem.appendChild(versionLabel);
+      let labels = document.createElement("div");
+      labels.classList.add(CELL_LABELS);
 
       let cellType = document.createElement("div");
       cellType.classList.add(CELL_TYPE);
       cellType.textContent = cell.typeName;
-      listItem.appendChild(cellType);
+      labels.appendChild(cellType);
+
+      let versionCount = this.historyModel.getVersionsFor(cell).versions.length;
+      let versionLabel = document.createElement("div");
+      let versions = "ver";
+      //if (versionCount > 1) versions = "ver";
+      versionLabel.textContent = versionCount + " " + versions;
+      versionLabel.classList.add(CELL_VER_COUNT);
+      labels.appendChild(versionLabel);
+
+      listItem.appendChild(labels);
 
       let sample = document.createElement("div");
       sample.classList.add(CELL_SAMPLE);

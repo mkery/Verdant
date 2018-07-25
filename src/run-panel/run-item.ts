@@ -14,7 +14,6 @@ import { AddAnnotations } from "./add-annotations";
 
 import { RunCluster } from "./run-cluster";
 
-const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
@@ -59,7 +58,7 @@ export class RunItem extends Widget implements VerdantListItem {
     time.textContent = Run.formatTime(new Date(this.run.timestamp));
     time.classList.add(RUN_ITEM_TIME);
 
-    this.dotMap = new DotMap(this.run.cells);
+    this.dotMap = new DotMap(this.historyModel, this.run.cells);
 
     this.notes = new AddAnnotations(this.run, this.historyModel);
 
@@ -76,23 +75,27 @@ export class RunItem extends Widget implements VerdantListItem {
   }
 
   blur() {
-    this.dotMap.blur();
+    /*this.dotMap.blur();
     let caret = this.header.firstElementChild;
     caret.classList.remove("highlight");
     this.header.classList.remove(RUN_ITEM_ACTIVE);
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++)
-      icons[i].classList.remove("highlight");
+      icons[i].classList.remove("highlight");*/
   }
 
   nodeClicked() {
-    let caret = this.header.firstElementChild;
+    /*let caret = this.header.firstElementChild;
     caret.classList.add("highlight");
     this.header.classList.add(RUN_ITEM_ACTIVE);
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
-    this.dotMap.highlight();
+    this.dotMap.highlight();*/
     return this;
+  }
+
+  get link() {
+    return this.node.getElementsByClassName(RUN_ITEM_NUMBER)[0] as HTMLElement;
   }
 
   get caret() {
