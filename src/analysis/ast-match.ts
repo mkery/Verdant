@@ -153,8 +153,16 @@ export class ASTMatch {
         //console.log("edited node is ", nodeyEdited);
       }
       //fix position
-      nodeyEdited.start = parsedNode.start;
-      nodeyEdited.end = parsedNode.end;
+      if (!nodeyEdited.end) {
+        nodeyEdited.start = parsedNode.start;
+        nodeyEdited.end = parsedNode.end;
+      } else {
+        // fix position but be sure it's relative to this node snippet
+        // because may not be the whole cell, so does not start at 0
+        nodeyEdited.start = parsedNode.start;
+        nodeyEdited.end = parsedNode.end;
+        nodeyEdited.positionRelativeTo(relativeTo);
+      }
     } else {
       console.log("New Node!", parsedNode);
       nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
@@ -462,7 +470,8 @@ export class ASTMatch {
   }
 
   private matchLiterals(a: string, b: string) {
-    let score = levenshtein.get(a, b) / Math.max(a.length, b.length);
+    let score = levenshtein.get(a, b); // / Math.max(a.length, b.length);
+    if (score / Math.max(a.length, b.length) > 0.8) score = NO_MATCH_SCORE;
     console.log("maybe change literal", a, b, score);
     return score;
   }

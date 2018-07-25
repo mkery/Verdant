@@ -51,23 +51,17 @@ export class ASTResolve {
     change: CodeMirror.EditorChange,
     editor: CodeMirrorEditor
   ) {
-    var range = {
-      start: change.from,
-      end: change.to
-    }; // first convert code mirror coordinates to our coordinates
+    var pos = editor.getCursorPosition();
+    var addedLines = change.text;
+    var removedLines = change.removed;
+    var line = pos.line - (addedLines.length - 1) + (removedLines.length - 1);
+    var ch = pos.column - addedLines[0].length + removedLines[0].length;
 
-    //check that the line numbers are accurate
-    // code mirror's "sticky" system can cause problems
-    if (
-      (change.from as any).sticky === "before" &&
-      (change.to as any).sticky === "before"
-    ) {
-      var lines = change.text.length - 1;
-      if (range.end.line - range.start.line < lines) {
-        range.end.line = range.start.line + lines;
-        range.end.ch = change.text[lines].length;
-      }
-    }
+    var range = {
+      start: { line: line, ch: ch },
+      end: { line: pos.line, ch: pos.column }
+    }; // first convert code mirror coordinates to our coordinates
+    console.log("cursor pos is now", pos, range);
 
     var affected = ASTUtils.findNodeAtRange(nodey, range, this.historyModel);
 
@@ -80,7 +74,7 @@ export class ASTResolve {
       }
 
       // shift all nodey positions after affected
-      var newEnd = this.repairPositions(affected, change);
+      var newEnd = this.repairPositions(affected, change, range);
       // return the text from this node's new range
       var text = editor.doc.getRange(affected.start, newEnd);
       let textOrig = this.historyModel.inspector.renderNode(affected).text;
@@ -104,7 +98,7 @@ export class ASTResolve {
     affected.pendingUpdate = updateID;
 
     var kernel_reply = this.match.recieve_newVersion.bind(
-      this,
+      this.match,
       affected,
       updateID
     );
@@ -116,7 +110,7 @@ export class ASTResolve {
     nodey.pendingUpdate = updateID;
 
     var kernel_reply = this.match.recieve_newVersion.bind(
-      this,
+      this.match,
       nodey,
       updateID
     );
@@ -125,10 +119,15 @@ export class ASTResolve {
 
   repairPositions(
     affected: NodeyCode,
-    change: CodeMirror.EditorChange
+    change: CodeMirror.EditorChange,
+    range: {
+      start: { line: number; ch: number };
+      end: { line: number; ch: number };
+    }
   ): { line: number; ch: number } {
     // shift all nodes after this changed node
-    var [nodeEnd, deltaLine, deltaCh] = this.calcShift(affected, change);
+    var [nodeEnd, deltaLine, deltaCh] = this.calcShift(affected, change, range);
+    console.log("SHIFT IS", nodeEnd, deltaLine, deltaCh, affected.end);
     if (affected.right) {
       var right = this.historyModel.getNodeyHead(affected.right) as NodeyCode;
       if (right.start.line !== nodeEnd.line) deltaCh = 0;
@@ -139,7 +138,11 @@ export class ASTResolve {
 
   calcShift(
     affected: NodeyCode,
-    change: CodeMirror.EditorChange
+    change: CodeMirror.EditorChange,
+    range: {
+      start: { line: number; ch: number };
+      end: { line: number; ch: number };
+    }
   ): [{ line: number; ch: number }, number, number] {
     var nodeEnd = affected.end;
 
@@ -159,7 +162,7 @@ export class ASTResolve {
     deltaCh = added_ch - removed_ch;
 
     // need to calculate: change 'to' line is not dependable because it is before coordinates only
-    var endLine = change.from.line + deltaLine;
+    var endLine = range.end.line;
 
     // update this node's coordinates
     if (endLine === nodeEnd.line) nodeEnd.ch = nodeEnd.ch + deltaCh;
