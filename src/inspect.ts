@@ -71,7 +71,8 @@ export class Inspect {
       return lines[0];
     } else {
       let nodeyCode = nodey as NodeyCode;
-      let lineNum = nodeyCode.start.line;
+      let lineNum = 0;
+      if (nodeyCode.start) lineNum = nodeyCode.start.line;
       let line = "";
       return this.getLineContent(lineNum, line, nodeyCode);
     }
@@ -90,8 +91,14 @@ export class Inspect {
           line += name.tokens;
         } else {
           var child = this._historyModel.getNodey(name) as NodeyCode;
-          if (child.start.line === lineNum)
+          if (child.start) {
+            if (child.start.line === lineNum)
+              line = this.getLineContent(lineNum, line, child);
+          } else {
             line = this.getLineContent(lineNum, line, child);
+            let ls = line.split("\n");
+            if (ls.length > 1) return ls[0];
+          }
         }
       });
     }

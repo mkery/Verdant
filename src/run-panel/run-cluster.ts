@@ -54,16 +54,11 @@ export class RunCluster extends Widget implements VerdantListItem {
 
   buildHeader(runs: RunItem[]): HTMLElement {
     let number = document.createElement("div");
-    if (runs.length > 2)
-      number.textContent =
-        runs[runs.length - 1].run.id + " ... " + runs[0].run.id;
-    else if (runs.length > 1)
-      number.textContent = runs[runs.length - 1].run.id + " " + runs[0].run.id;
-    else number.textContent = "" + runs[0].run.id;
+    number.textContent = "(" + runs.length + ")";
     number.classList.add(RUN_ITEM_NUMBER);
 
     let eventLabel = document.createElement("div");
-    eventLabel.textContent = runs[0].run.checkpointType;
+    eventLabel.textContent = runs[0].run.checkpointType + "S";
     eventLabel.classList.add(RUN_LABEL);
 
     let time = document.createElement("div");

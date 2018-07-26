@@ -4,7 +4,9 @@ import { Widget } from "@phosphor/widgets";
 
 import { HistoryModel } from "../model/history";
 
-import { NodeyCode } from "../model/nodey";
+import { Sampler } from "../inspector-panel/sampler";
+
+import { NodeyCode, NodeyCell } from "../model/nodey";
 
 import { VerdantListItem } from "./run-panel";
 
@@ -17,17 +19,15 @@ import { RunCluster } from "./run-cluster";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
-const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
+const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 
 const RUN_ITEM_STAR = "v-VerdantPanel-starButton";
 const NOTES = "v-VerdantPanel-noteContainer";
 
 const SUB_RUNLIST_CLASS = "v-VerdantPanel-runCluster-list";
-const MAP_CELLBOX = "v-VerdantPanel-runCellMap-cellBox";
 const MAP_CELLBOX_DESCCONTAINER = "v-VerdantPanel-runCellMap-cellBox-descBox";
 const MAP_CELLBOX_LABEL = "v-VerdantPanel-runCellMap-label";
-const MAP_CELLBOX_BUTTON = "v-VerdantPanel-runCellMap-button";
 const MAP_CELLBOX_ICON = "v-VerdantPanel-runCellMap-cellbox-icon";
 
 export class RunItem extends Widget implements VerdantListItem {
@@ -46,10 +46,6 @@ export class RunItem extends Widget implements VerdantListItem {
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
 
-    let number = document.createElement("div");
-    number.textContent = "" + run.id;
-    number.classList.add(RUN_ITEM_NUMBER);
-
     let eventLabel = document.createElement("div");
     eventLabel.textContent = run.checkpointType;
     eventLabel.classList.add(RUN_LABEL);
@@ -65,7 +61,6 @@ export class RunItem extends Widget implements VerdantListItem {
     this.header = document.createElement("div");
     this.header.classList.add(RUN_ITEM_CLASS);
     this.header.appendChild(caret);
-    this.header.appendChild(number);
     this.header.appendChild(eventLabel);
     this.header.appendChild(time);
     this.header.appendChild(this.dotMap.node);
@@ -75,27 +70,27 @@ export class RunItem extends Widget implements VerdantListItem {
   }
 
   blur() {
-    /*this.dotMap.blur();
+    this.dotMap.blur();
     let caret = this.header.firstElementChild;
     caret.classList.remove("highlight");
     this.header.classList.remove(RUN_ITEM_ACTIVE);
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++)
-      icons[i].classList.remove("highlight");*/
+      icons[i].classList.remove("highlight");
   }
 
   nodeClicked() {
-    /*let caret = this.header.firstElementChild;
+    let caret = this.header.firstElementChild;
     caret.classList.add("highlight");
     this.header.classList.add(RUN_ITEM_ACTIVE);
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
-    this.dotMap.highlight();*/
+    this.dotMap.highlight();
     return this;
   }
 
   get link() {
-    return this.node.getElementsByClassName(RUN_ITEM_NUMBER)[0] as HTMLElement;
+    return this.header;
   }
 
   get caret() {
@@ -166,8 +161,8 @@ export class RunItem extends Widget implements VerdantListItem {
           dropdown.appendChild(
             this.createCellDetail(
               "same",
-              ["ran version " + cellVer + " of cell"],
-              ["DIFF"]
+              ["ran version " + cellVer + " of cell. No changes."],
+              cell.node
             )
           );
         }
@@ -177,12 +172,12 @@ export class RunItem extends Widget implements VerdantListItem {
       switch (cell.changeType) {
         case ChangeType.ADDED:
           dropdown.appendChild(
-            this.createCellDetail("added", ["cell created"], ["DIFF"])
+            this.createCellDetail("added", ["cell created"], cell.node)
           );
           break;
         case ChangeType.REMOVED:
           dropdown.appendChild(
-            this.createCellDetail("removed", ["cell deleted"], ["restore"])
+            this.createCellDetail("removed", ["cell deleted"], cell.node)
           );
           break;
         case ChangeType.CHANGED:
@@ -191,10 +186,10 @@ export class RunItem extends Widget implements VerdantListItem {
             this.createCellDetail(
               "changed",
               [
-                "++" + changes.added + " --" + changes.deleted,
-                "ran version " + cellVer + " of cell"
+                "ran version " + cellVer + " of cell. Changes: ",
+                "++" + changes.added + " --" + changes.deleted
               ],
-              ["DIFF"]
+              cell.node
             )
           );
           break;
@@ -202,43 +197,25 @@ export class RunItem extends Widget implements VerdantListItem {
     });
   }
 
-  private createCellDetail(
-    changeClass: string,
-    descLabels: string[],
-    buttonLabels: string[]
-  ) {
+  private createCellDetail(_: string, descLabels: string[], nodeName: string) {
     let cellContainer = document.createElement("div");
 
-    //cell box
-    let cellBox = document.createElement("div");
-    let cellIcon = document.createElement("div");
-    cellBox.classList.add(MAP_CELLBOX);
-    cellBox.classList.add(changeClass);
-    cellIcon.classList.add(MAP_CELLBOX_ICON);
-    cellIcon.classList.add(changeClass);
-    cellBox.appendChild(cellIcon);
-    cellContainer.appendChild(cellBox);
-
+    //descriptions
     let descContainer = document.createElement("div");
     descContainer.classList.add(MAP_CELLBOX_DESCCONTAINER);
 
-    //descriptions
     descLabels.forEach(desc => {
       let label = document.createElement("div");
       label.textContent = desc;
       label.classList.add(MAP_CELLBOX_LABEL);
       descContainer.appendChild(label);
     });
-
-    //buttons
-    buttonLabels.forEach(label => {
-      let actionLabel = document.createElement("div");
-      actionLabel.textContent = label;
-      actionLabel.classList.add(MAP_CELLBOX_BUTTON);
-      descContainer.appendChild(actionLabel);
-    });
-
     cellContainer.appendChild(descContainer);
+
+    //cell sample
+    let node = this.historyModel.getNodey(nodeName) as NodeyCell;
+    let sample = Sampler.sampleCell(this.historyModel, node);
+    cellContainer.appendChild(sample);
 
     return cellContainer;
   }

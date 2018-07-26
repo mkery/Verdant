@@ -204,8 +204,6 @@
 }
 
 .v-VerdantPanel-runItem-number {
-  color: var(--jp-brand-color0);
-  text-decoration: underline;
   width: calc(var(--jp-ui-font-size1) * 2);
   font-size: var(--jp-ui-font-size1);
   font-weight: 400;

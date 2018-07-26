@@ -61,11 +61,11 @@ export class VerdantPanel extends Widget {
     let header = document.createElement("header");
 
     let title = document.createElement("span");
-    title.textContent = "history of";
+    title.textContent = "history:";
     title.classList.add(HEADER_TITLE);
 
     let notebookLabel = document.createElement("div");
-    notebookLabel.textContent = "notebook";
+    notebookLabel.textContent = "Checkpoints";
     notebookLabel.classList.add(HEADER_NOTEBOOK_LABEL);
     notebookLabel.addEventListener(
       "click",
@@ -73,7 +73,7 @@ export class VerdantPanel extends Widget {
     );
 
     let cellLabel = document.createElement("div");
-    cellLabel.textContent = "cell";
+    cellLabel.textContent = "inspector";
     cellLabel.classList.add(HEADER_CELL_LABEL);
     cellLabel.classList.add("closed");
     cellLabel.addEventListener("click", this.switchToCellHistory.bind(this));
