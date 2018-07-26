@@ -29,6 +29,18 @@ export class SearchBar extends Widget {
     wrapper.appendChild(input);
     this.node.appendChild(wrapper);
 
+    let addFilter = document.createElement("div");
+    addFilter.classList.add(SEARCH_FILTER);
+    addFilter.classList.add("added");
+
+    let removeFilter = document.createElement("div");
+    removeFilter.classList.add(SEARCH_FILTER);
+    removeFilter.classList.add("removed");
+
+    let changeFilter = document.createElement("div");
+    changeFilter.classList.add(SEARCH_FILTER);
+    changeFilter.classList.add("changed");
+
     let starFilter = document.createElement("div");
     starFilter.classList.add(SEARCH_FILTER);
     starFilter.classList.add("star");

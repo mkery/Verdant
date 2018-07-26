@@ -88,6 +88,15 @@
 .v-VerdantPanel-search-filter.comment {
   background-image: var(--verdant-icon-comment);
 }
+.v-VerdantPanel-search-filter.added {
+  background-image: var(--verdant-icon-add-filter);
+}
+.v-VerdantPanel-search-filter.removed {
+  background-image: var(--verdant-icon-remove-filter);
+}
+.v-VerdantPanel-search-filter.changed {
+  background-image: var(--verdant-icon-mod-filter);
+}
 .v-VerdantPanel-search-filter.highlight {
   background-color: var(--jp-layout-color1);
   border: 1px solid var(--jp-toolbar-border-color);
