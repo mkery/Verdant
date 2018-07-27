@@ -106,13 +106,13 @@ export class Inspect {
   }
 
   public getRunChangeCount(
-    nodey: NodeyCode
+    nodey: NodeyCell
   ): { added: number; deleted: number } {
-    let prior = this._historyModel.getPriorVersion(nodey) as NodeyCode;
-    let newText = this.renderCodeNode(nodey);
+    let prior = this._historyModel.getPriorVersion(nodey);
+    let newText = this.renderNode(nodey).text;
     if (!prior) return { added: newText.length, deleted: 0 };
     else {
-      let priorText = this.renderCodeNode(prior);
+      let priorText = this.renderNode(prior).text;
       let diff = JSDiff.diffChars(priorText, newText);
       let added = 0;
       let deleted = 0;
@@ -423,7 +423,7 @@ export class Inspect {
     return nodey.markdown;
   }
 
-  private renderOutputNode(nodey: NodeyOutput): string {
+  public renderOutputNode(nodey: NodeyOutput): string {
     return JSON.stringify(nodey.raw);
   }
 

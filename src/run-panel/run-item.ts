@@ -1,4 +1,4 @@
-import { Run, ChangeType } from "../model/run";
+import { Run, ChangeType, CellRunData } from "../model/run";
 
 import { Widget } from "@phosphor/widgets";
 
@@ -6,7 +6,7 @@ import { HistoryModel } from "../model/history";
 
 import { Sampler } from "../inspector-panel/sampler";
 
-import { NodeyCode, NodeyCell } from "../model/nodey";
+import { NodeyCell } from "../model/nodey";
 
 import { VerdantListItem } from "./run-panel";
 
@@ -22,6 +22,8 @@ const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 
+const RUN_SAMPLE_ROW = "v-VerdantPanel-runItem-sampleRow";
+const RUN_SAMPLE_BUTTON = "v-VerdantPanel-runItem-sampleButton";
 const RUN_ITEM_STAR = "v-VerdantPanel-starButton";
 const NOTES = "v-VerdantPanel-noteContainer";
 
@@ -110,8 +112,8 @@ export class RunItem extends Widget implements VerdantListItem {
 
     let dropdown = document.createElement("ul");
     dropdown.classList.add(SUB_RUNLIST_CLASS);
-    this.buildDetailList(dropdown);
     dropdown.appendChild(this.notes.buildDetailNotes());
+    this.buildDetailList(dropdown);
     this.node.appendChild(dropdown);
     if (this.cluster) this.cluster.clusterEvent(this);
   }
@@ -154,16 +156,12 @@ export class RunItem extends Widget implements VerdantListItem {
 
   private buildDetailList(dropdown: HTMLElement) {
     this.run.cells.forEach(cell => {
-      let nodey = this.historyModel.getNodey(cell.node) as NodeyCode;
-      var cellVer = nodey.version + 1;
+      let nodey = this.historyModel.getNodey(cell.node) as NodeyCell;
+      //var cellVer = nodey.version + 1;
       if (cell.changeType === ChangeType.SAME) {
         if (cell.run) {
           dropdown.appendChild(
-            this.createCellDetail(
-              "same",
-              ["ran version " + cellVer + " of cell. No changes."],
-              cell.node
-            )
+            this.createCellDetail("same", ["No changes to cell."], nodey, cell)
           );
         }
         return;
@@ -172,12 +170,12 @@ export class RunItem extends Widget implements VerdantListItem {
       switch (cell.changeType) {
         case ChangeType.ADDED:
           dropdown.appendChild(
-            this.createCellDetail("added", ["cell created"], cell.node)
+            this.createCellDetail("added", ["Cell created"], nodey, cell)
           );
           break;
         case ChangeType.REMOVED:
           dropdown.appendChild(
-            this.createCellDetail("removed", ["cell deleted"], cell.node)
+            this.createCellDetail("removed", ["Cell deleted"], nodey, cell)
           );
           break;
         case ChangeType.CHANGED:
@@ -186,10 +184,11 @@ export class RunItem extends Widget implements VerdantListItem {
             this.createCellDetail(
               "changed",
               [
-                "ran version " + cellVer + " of cell. Changes: ",
+                "Cell changes: ",
                 "++" + changes.added + " --" + changes.deleted
               ],
-              cell.node
+              nodey,
+              cell
             )
           );
           break;
@@ -197,7 +196,12 @@ export class RunItem extends Widget implements VerdantListItem {
     });
   }
 
-  private createCellDetail(_: string, descLabels: string[], nodeName: string) {
+  private createCellDetail(
+    _: string,
+    descLabels: string[],
+    nodey: NodeyCell,
+    dat: CellRunData
+  ) {
     let cellContainer = document.createElement("div");
 
     //descriptions
@@ -213,9 +217,38 @@ export class RunItem extends Widget implements VerdantListItem {
     cellContainer.appendChild(descContainer);
 
     //cell sample
-    let node = this.historyModel.getNodey(nodeName) as NodeyCell;
-    let sample = Sampler.sampleCell(this.historyModel, node);
-    cellContainer.appendChild(sample);
+    let sampleRow = document.createElement("div");
+    sampleRow.classList.add(RUN_SAMPLE_ROW);
+    let sample = Sampler.sampleCell(this.historyModel, nodey);
+    let button = document.createElement("div");
+    button.classList.add(RUN_SAMPLE_BUTTON);
+    sampleRow.appendChild(button);
+    sampleRow.appendChild(sample);
+    cellContainer.appendChild(sampleRow);
+
+    //output sample
+    if (dat.newOutput) {
+      //descriptions
+      let descOut = document.createElement("div");
+      descOut.classList.add(MAP_CELLBOX_DESCCONTAINER);
+      let outLabel = document.createElement("div");
+      outLabel.textContent = "New cell outputs:";
+      outLabel.classList.add(MAP_CELLBOX_LABEL);
+      descOut.appendChild(outLabel);
+      cellContainer.appendChild(descOut);
+
+      dat.newOutput.forEach(num => {
+        let out = this.historyModel.getOutput(num);
+        let outputRow = document.createElement("div");
+        outputRow.classList.add(RUN_SAMPLE_ROW);
+        let sampleOut = Sampler.sampleOutput(this.historyModel, out);
+        let outButton = document.createElement("div");
+        outButton.classList.add(RUN_SAMPLE_BUTTON);
+        outputRow.appendChild(outButton);
+        outputRow.appendChild(sampleOut);
+        cellContainer.appendChild(outputRow);
+      });
+    }
 
     return cellContainer;
   }

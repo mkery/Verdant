@@ -101,10 +101,10 @@
 
 .v-VerdantPanel-runCluster-list {
   display: inline-block;
-  margin-left: calc(1em - 2px);
-  border-left: 1px solid var(--jp-content-font-color3);
-  padding-left: 0.25em;
-  margin-bottom: 5px;
+  margin-left: 1em;
+  border-left: 1px solid var(--jp-content-font-color1);
+  padding-left: 0.5em;
+  margin-bottom: 1em;
   cursor: default;
   width: calc(100% - 1.25em + 2px);
 }
@@ -303,16 +303,14 @@
   display: inline-block;
   width: calc(100% - 2em - 9px);
   padding-right: 5px;
+  margin-bottom: 4px;
 }
 
 .v-VerdantPanel-runCellMap-label {
-  padding: 1px;
   border-radius: 2px;
   border: var(--jp-border-width) solid transparent;
-  margin: 4px;
-  margin-right: 0px;
   display: inline-block;
-  padding-right: 5px;
+  margin-top: 0.5em;
 }
 
 .v-VerdantPanel-runCellMap-button {
@@ -441,7 +439,7 @@
 }
 
 .v-VerdantPanel-noteContainer {
-  margin-bottom: 1em;
+  margin-left: -0.5em;
   width: calc(100% - 1.5em);
   display: flex;
   flex-direction: row;
@@ -451,7 +449,6 @@
 }
 
 .v-VerdantPanel-noteInput {
-  background: aliceblue;
   border-radius: 2px;
   display: inline-block;
   flex: 1 1 auto;
@@ -464,4 +461,28 @@
   font-style: italic;
   font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color);
+}
+
+.v-VerdantPanel-runItem-sampleRow {
+  display: inline-flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  max-width: 100%;
+  margin-left: -0.5em;
+}
+
+.v-VerdantPanel-runItem-sampleButton {
+  font-size: var(--jp-ui-font-size1);
+  display: inline-block;
+  max-width: 1.25em;
+  flex: 1 1 1.25em;
+  margin-bottom: 0.5em;
+  background-color: var(--verdant-ghost-color1);
+  background-image: var(--verdant-icon-time);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 0.85em;
+}
+.v-VerdantPanel-runItem-sampleButton:hover {
+  background-color: var(--jp-brand-color2);
 }

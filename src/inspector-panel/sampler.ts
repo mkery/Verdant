@@ -1,6 +1,6 @@
 import { HistoryModel } from "../model/history";
 
-import { NodeyCell, NodeyMarkdown } from "../model/nodey";
+import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../model/nodey";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 
@@ -23,6 +23,16 @@ export namespace Sampler {
     sample.addEventListener("click", () => {
       //Try to get notebook to scroll to the cell clicked on
     });
+    return sample;
+  }
+
+  export function sampleOutput(
+    historyModel: HistoryModel,
+    output: NodeyOutput
+  ): HTMLElement {
+    let sample = document.createElement("div");
+    sample.classList.add(CELL_SAMPLE);
+    sample.innerHTML = historyModel.inspector.renderOutputNode(output);
     return sample;
   }
 }

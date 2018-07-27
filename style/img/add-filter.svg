@@ -3,10 +3,10 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 80.8 77.3" style="enable-background:new 0 0 80.8 77.3;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#9DFCB6;}
-	.st1{fill:#107E5A;}
+	.st0{fill:#616161;}
+	.st1{font-family:'SFProDisplay-Light';}
+	.st2{font-size:106px;}
 </style>
-<title>star</title>
-<rect x="7.5" class="st0" width="65.8" height="64.5"/>
-<rect x="7.5" y="60" class="st1" width="65.8" height="17.3"/>
+<text transform="matrix(1 0 0 1 9.3331 61.3336)" class="st0 st1 st2">+</text>
+<rect x="7.5" y="71.3" class="st0" width="65.8" height="6"/>
 </svg>

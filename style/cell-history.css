@@ -46,20 +46,17 @@
   white-space: nowrap;
   padding: 2px;
   flex: 1 1 calc(100% - 6em);
-  margin-left: 0.5em;
-  background-color: var(--jp-cell-editor-background);
+  background-color: aliceblue;
   border-left: 2px solid var(--jp-brand-color3);
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 0.5em;
 }
 .v-VerdantPanel-cellList-sample.highlight {
   margin-left: calc(0.5em - 2px);
   border-color: var(--jp-brand-color1);
   border-width: 4px;
   border-radius: var(--jp-border-radius);
-}
-.v-VerdantPanel-cellList-sample.markdown {
-  background: var(--jp-layout-color);
 }
 .v-VerdantPanel-cellList-sample.code {
   padding: 8px;
