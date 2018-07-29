@@ -82,6 +82,9 @@
   border: 1px solid var(--jp-toolbar-border-color);
   box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.24);
 }
+.v-VerdantPanel-search-filter.clippy {
+  background-image: var(--verdant-icon-clipboard);
+}
 .v-VerdantPanel-search-filter.star {
   background-image: var(--verdant-icon-star);
 }

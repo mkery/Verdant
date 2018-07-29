@@ -10,8 +10,11 @@
   --verdant-icon-caretdown-highlight: url("img/chevron-more-highlight.svg");
   --verdant-icon-caretup: url("img/chevron-less.svg");
   --verdant-icon-caretup-highlight: url("img/chevron-less-highlight.svg");
+
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-edit: url("img/pen.svg");
+  --verdant-icon-clipboard: url("img/clippy.svg");
+
   --verdant-icon-star: url("img/star.svg");
   --verdant-icon-star-highlight: url("img/star-highlight.svg");
   --verdant-icon-comment: url("img/comment.svg");

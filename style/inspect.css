@@ -7,7 +7,7 @@
 }
 
 .v-VerdantPanel-inspect-header {
-  padding: 3px;
+  background: var(--jp-layout-color2);
   order: 0;
   box-shadow: var(--jp-toolbar-box-shadow);
 }
@@ -15,6 +15,7 @@
 .v-VerdantPanel-inspect-icon {
   padding: 5px;
   margin: 5px;
+  margin-bottom: 0px;
   background-image: var(--verdant-icon-timeinspect);
   background-repeat: no-repeat;
   border: 1px solid var(--verdant-highlight-color1);
@@ -36,6 +37,26 @@
   margin-top: 10px;
 }
 
+.v-Verdant-inspect-diff-options {
+  display: flex;
+  flex-direction: row;
+}
+
+.v-Verdant-inspect-diff-opt {
+  display: inline-block;
+  color: var(--jp-ui-font-color3);
+  padding: 4px;
+  flex: 1 1 auto;
+  cursor: default;
+}
+.v-Verdant-inspect-diff-opt.left {
+  border-right: var(--jp-border-width) solid var(--jp-border-color0);
+}
+.v-Verdant-inspect-diff-opt.active {
+  color: var(--jp-ui-font-color1);
+  border-top: 1px solid var(--jp-toolbar-border-color);
+}
+
 .v-VerdantPanel-inspect-content {
   -webkit-margin-before: 5px;
   -webkit-margin-after: 0px;
@@ -49,9 +70,17 @@
   display: inline-block;
   text-align: left;
   padding-left: 8px;
+  padding-bottom: 0.5em;
   font-size: var(--jp-ui-font-size);
   color: var(--jp-ui-font-color2);
   font-family: var(--jp-ui-font-family);
+}
+
+.v-VerdantPanel-inspect-run-link {
+  color: var(--jp-content-link-color);
+}
+.v-VerdantPanel-inspect-run-link:hover {
+  text-decoration: underline;
 }
 
 .v-VerdantPanel-inspect-version-content {

@@ -283,6 +283,8 @@ export class HistoryModel {
       newNodey.markdown = newText;
       history.starNodey = newNodey;
       return history.deStar(runId) as NodeyMarkdown;
+    } else {
+      nodey.run.push(runId);
     }
   }
 
@@ -339,6 +341,7 @@ export class HistoryModel {
             if (prior) prior.right = newChild.name;
             prior = newChild;
           } else {
+            child.run.push(runId);
             child.parent = newNodey.name;
             if (prior) prior.right = child.name;
             prior = child;
