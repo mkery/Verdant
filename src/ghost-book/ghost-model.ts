@@ -163,7 +163,7 @@ export namespace GhostBookFactory {
     //console.log("Doc registrey is:", docRegistry);
 
     ghostFactory.widgetCreated.connect(
-      (sender: any, widget: DocumentWidget<GhostBook, GhostBookModel>) => {
+      (_: any, widget: DocumentWidget<GhostBook, GhostBookModel>) => {
         // Notify the instance tracker if restore data needs to update.
         widget.context.pathChanged.connect(() => {
           ghostTracker.save(widget.content);

@@ -14,15 +14,16 @@
   padding-left: 15px;
   padding-top: 4px;
   padding-bottom: 4px;
-  color: var(--jp-brand-color1);
+  color: var(--jp-content-link-color);
 }
 .v-VerdantPanel-workingItem:hover {
   background: var(--verdant-ghost-color1);
 }
 
 .v-VerdantPanel-workingItem-label {
-  color: var(--jp-brand-color0);
   display: inline-block;
+}
+.v-VerdantPanel-workingItem-label:hover {
   text-decoration: underline;
 }
 

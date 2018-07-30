@@ -11,6 +11,10 @@
   order: 0;
   box-shadow: var(--jp-toolbar-box-shadow);
 }
+.v-VerdantPanel-inspect-header.active {
+  background: var(--verdant-cell-change-color1);
+  color: var(--jp-brand-color0);
+}
 
 .v-VerdantPanel-inspect-icon {
   padding: 5px;
@@ -40,6 +44,7 @@
 .v-Verdant-inspect-diff-options {
   display: flex;
   flex-direction: row;
+  background: var(--jp-layout-color2);
 }
 
 .v-Verdant-inspect-diff-opt {
@@ -83,6 +88,11 @@
   text-decoration: underline;
 }
 
+.v-VerdantPanel-inspect-version-annotations {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .v-VerdantPanel-inspect-version-content {
   white-space: pre-wrap;
   width: max-content;
@@ -102,8 +112,6 @@
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
   font-family: var(--jp-cell-prompt-font-family);
   margin-top: 10px;
-  overflow: visible;
-  width: max-content;
   text-align: left;
   padding-bottom: 1em;
 }

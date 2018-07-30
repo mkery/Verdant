@@ -2,7 +2,11 @@
   "name": "Verdant",
   "version": "0.1.0",
   "description": "a local versioning extool",
-  "keywords": ["jupyter", "jupyterlab", "jupyterlab-extension"],
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
   "homepage": "hhttps://github.com/mkery/Verdant",
   "bugs": {
     "url": "hhttps://github.com/mkery/Verdant/issues"
@@ -31,7 +35,7 @@
     "@jupyterlab/codemirror": "^0.17.1",
     "@jupyterlab/coreutils": "^2.0.1",
     "@jupyterlab/docmanager": "^0.17.1",
-    "@jupyterlab/docregistry": "^0.17.1",
+    "@jupyterlab/docregistry": "^0.17.2",
     "@jupyterlab/notebook": "^0.17.1",
     "@jupyterlab/observables": "^2.0.1",
     "@jupyterlab/outputarea": "^0.17.1",

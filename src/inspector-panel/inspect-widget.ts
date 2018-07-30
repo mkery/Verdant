@@ -19,6 +19,7 @@ const INSPECT_DIFF_OPT = "v-Verdant-inspect-diff-opt";
 const INSPECT_CONTENT = "v-VerdantPanel-inspect-content";
 const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
 const INSPECT_VERSION_LABEL = "v-VerdantPanel-inspect-version-label";
+const INSPECT_ANNOTATION_BOX = "v-VerdantPanel-inspect-version-annotations";
 const INSPECT_VERSION_ACTION = "v-VerdantPanel-search-filter";
 const RUN_LINK = "v-VerdantPanel-inspect-run-link";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
@@ -102,7 +103,7 @@ export class InspectWidget extends Widget {
   }
 
   get icon() {
-    return this.node.getElementsByClassName(INSPECT_ICON)[0];
+    return this._header.getElementsByClassName(INSPECT_ICON)[0];
   }
 
   get content() {
@@ -169,6 +170,9 @@ export class InspectWidget extends Widget {
         l.textContent = "v" + (item.version + 1) + ": has never been run";
         label.appendChild(l);
       }
+
+      let annotator = document.createElement("div");
+      annotator.classList.add(INSPECT_ANNOTATION_BOX);
       let star = document.createElement("div");
       star.classList.add(INSPECT_VERSION_ACTION);
       star.classList.add("star");
@@ -178,9 +182,10 @@ export class InspectWidget extends Widget {
       let clippy = document.createElement("div");
       clippy.classList.add(INSPECT_VERSION_ACTION);
       clippy.classList.add("clippy");
-      label.appendChild(star);
-      label.appendChild(note);
-      label.appendChild(clippy);
+      annotator.appendChild(star);
+      annotator.appendChild(note);
+      annotator.appendChild(clippy);
+      label.appendChild(annotator);
 
       li.appendChild(label);
 
@@ -209,9 +214,11 @@ export class InspectWidget extends Widget {
   public toggleWishbone() {
     if (this.icon.classList.contains("active")) {
       this.icon.classList.remove("active");
+      this.header.classList.remove("active");
       Wishbone.endWishbone(this._historyModel.notebook, this._historyModel);
     } else {
       this.icon.classList.add("active");
+      this.header.classList.add("active");
       Wishbone.startWishbone(this._historyModel);
     }
   }

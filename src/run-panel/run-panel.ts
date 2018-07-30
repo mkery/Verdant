@@ -64,7 +64,7 @@ export class RunPanel extends Widget {
     let target = event.target as HTMLElement;
     if (target.classList.contains("v-VerdantPanel-runItem-caret")) {
       runItem.caretClicked();
-    } else if (target.classList.contains("v-VerdantPanel-runItem-number")) {
+    } else {
       if (this.selectedRun) this.selectedRun.blur();
 
       this.selectedRun = runItem.nodeClicked();

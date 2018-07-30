@@ -27,6 +27,8 @@ import "../style/verdant-panel.css";
 
 import { ASTGenerate } from "./analysis/ast-generate";
 
+import { DocumentRegistry } from "@jupyterlab/docregistry";
+
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
 import { HistoryModel } from "./model/history";
@@ -65,7 +67,7 @@ const extension: JupyterLabPlugin<void> = {
     const model = new HistoryModel(renderBaby, fileManager);
     const astUtils = new ASTGenerate(model);
     const ghostFactory = GhostBookFactory.registerFileType(
-      app.docRegistry,
+      app.docRegistry as DocumentRegistry,
       restorer,
       rendermime,
       contentFactory,
