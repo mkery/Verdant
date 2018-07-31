@@ -139,9 +139,10 @@ export class NodeyCode extends Nodey {
 
   positionRelativeTo(target: NodeyCode) {
     //may run into historical targets that do not have position info
+    let myStart = this.start || { line: 0, ch: 0 };
     if (target.start && target.end) {
-      var deltaLine = target.start.line;
-      var deltaCh = target.start.ch;
+      var deltaLine = target.start.line - myStart.line;
+      var deltaCh = target.start.ch - myStart.ch;
       this.start = {
         line: deltaLine + this.start.line,
         ch: deltaCh + this.start.ch

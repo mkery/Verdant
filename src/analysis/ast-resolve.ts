@@ -55,7 +55,13 @@ export class ASTResolve {
     var addedLines = change.text;
     var removedLines = change.removed;
     var line = pos.line - (addedLines.length - 1) + (removedLines.length - 1);
-    var ch = pos.column - addedLines[0].length + removedLines[0].length;
+    var ch = 0 - addedLines[0].length + removedLines[0].length;
+    if (line != pos.line) {
+      let lineText = editor.doc.getLine(line);
+      ch += lineText.length;
+    } else {
+      ch += pos.column;
+    }
 
     var range = {
       start: { line: line, ch: ch },
@@ -91,7 +97,12 @@ export class ASTResolve {
       affected = nodey;
       // return the text from this node's new range
       var text = editor.doc.getValue();
-      console.log("The exact affected nodey is", affected, text, range);
+      console.log(
+        "The exact affected nodey is",
+        affected,
+        "|" + text + "|",
+        range
+      );
     }
 
     var updateID = crypto.randomBytes(20).toString("hex");
@@ -306,10 +317,11 @@ export class ASTResolve {
               syntok: true,
               match: null,
               possibleMatches: [],
-              level: level,
-              row: row,
+              level: level + 1,
+              row: kidRow,
               parentIndex: index
             });
+            kidRow++;
             let tokIndex = nodeyList.push(toktok) - 1;
             leaves.push(tokIndex);
           }

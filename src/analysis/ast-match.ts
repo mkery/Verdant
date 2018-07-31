@@ -159,6 +159,12 @@ export class ASTMatch {
       } else {
         // fix position but be sure it's relative to this node snippet
         // because may not be the whole cell, so does not start at 0
+        console.log(
+          "FIXING POSITIONS relative to",
+          nodeyEdited,
+          parsedNode,
+          relativeTo
+        );
         nodeyEdited.start = parsedNode.start;
         nodeyEdited.end = parsedNode.end;
         nodeyEdited.positionRelativeTo(relativeTo);
@@ -178,42 +184,54 @@ export class ASTMatch {
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyOptions[]
   ): number[][] {
-    matchedLeaves.forEach(leafIndex => {
-      var leaf = parsedList[leafIndex];
-      if ("parent" in leaf.nodey) {
-        var parent = parsedList[leaf.nodey.parent];
+    //console.log("GRAB grabUnmatchedParents ", matchedLeaves);
+    if (matchedLeaves.length < 1) {
+      // make sure we don't miss any nodes that need to be matched
+      parsedList.map((item, index) => {
+        if (!item.match) {
+          if (!newParents[item.level]) newParents[item.level] = [index];
+          else newParents[item.level].push(index);
+        }
+      });
+    } else
+      matchedLeaves.forEach(leafIndex => {
+        var leaf = parsedList[leafIndex];
+        if ("parent" in leaf.nodey) {
+          var parent = parsedList[leaf.nodey.parent];
 
-        if (!parent.match) {
-          if (!newParents[parent.level])
-            newParents[parent.level] = [leaf.nodey.parent];
-          else if (newParents[parent.level].indexOf(leaf.nodey.parent) <= -1) {
-            newParents[parent.level].push(leaf.nodey.parent);
-          }
+          if (!parent.match) {
+            if (!newParents[parent.level])
+              newParents[parent.level] = [leaf.nodey.parent];
+            else if (
+              newParents[parent.level].indexOf(leaf.nodey.parent) <= -1
+            ) {
+              newParents[parent.level].push(leaf.nodey.parent);
+            }
 
-          if (leaf.match && leaf.match.index > -1) {
-            var nodeyOpt = nodeyList[leaf.match.index];
-            if ("parentIndex" in nodeyOpt && nodeyOpt.parentIndex !== null) {
-              var nodeyParentOpt = nodeyList[nodeyOpt.parentIndex];
-              if (!nodeyParentOpt.match) {
-                var matchIndex = nodeyParentOpt.possibleMatches.findIndex(
-                  item => item.index === leaf.nodey.parent
-                );
-                if (matchIndex <= -1) {
-                  nodeyParentOpt.possibleMatches.push({
-                    index: leaf.nodey.parent,
-                    score: NO_MATCH_SCORE
-                  });
-                  parent.possibleMatches.push({
-                    index: nodeyOpt.parentIndex,
-                    score: NO_MATCH_SCORE
-                  });
+            if (leaf.match && leaf.match.index > -1) {
+              var nodeyOpt = nodeyList[leaf.match.index];
+              if ("parentIndex" in nodeyOpt && nodeyOpt.parentIndex !== null) {
+                var nodeyParentOpt = nodeyList[nodeyOpt.parentIndex];
+                if (!nodeyParentOpt.match) {
+                  var matchIndex = nodeyParentOpt.possibleMatches.findIndex(
+                    item => item.index === leaf.nodey.parent
+                  );
+                  if (matchIndex <= -1) {
+                    nodeyParentOpt.possibleMatches.push({
+                      index: leaf.nodey.parent,
+                      score: NO_MATCH_SCORE
+                    });
+                    parent.possibleMatches.push({
+                      index: nodeyOpt.parentIndex,
+                      score: NO_MATCH_SCORE
+                    });
+                  }
                 }
               }
             }
           }
         }
-      }
-    });
+      });
 
     return newParents;
   }
@@ -269,7 +287,11 @@ export class ASTMatch {
             }
           }
         });
-        console.log("best match for ", parsedProfile, "is", bestMatch);
+        this.declareMatch(
+          nodeyList[bestMatch.index],
+          parsedProfile,
+          bestMatch.score
+        ); //DEBUG only
 
         if (bestMatch.index > -1) {
           nodeyList[bestMatch.index].match = bestMatch;
@@ -320,6 +342,12 @@ export class ASTMatch {
       return score;
     }
 
+    console.log(
+      "TYPE MATCH?",
+      nodeyNode.type,
+      parsedNode.type,
+      nodeyNode.type === parsedNode.type
+    );
     /*
     * Type score, need to have wildcard _ when type is unknown
     */
@@ -332,33 +360,65 @@ export class ASTMatch {
     * Child match score
     */
     var leafChildren = parsedNode.content;
+    let childScore = 0;
     if (leafChildren) {
-      var numChildren = nodeyNode.getChildren().length;
-      score += numChildren;
+      childScore += nodeyNode.content.length; // number of children including syntok
       leafChildren.forEach(index => {
         if (index instanceof SyntaxToken === false) {
           var leaf = parsedList[index];
           if (leaf.match && leaf.match.index > -1) {
-            score += leaf.match.score;
-            var matchNodey = nodeyList[leaf.match.index].nodey;
+            childScore += leaf.match.score;
+            /*console.log(
+              "child matches " +
+                leaf.match.score +
+                " " +
+                childScore +
+                " " +
+                score
+            );//DEBUG only*/
+            var matchNodey = nodeyList[leaf.match.index];
             //check if nodey child is accounted for
-            if (nodeyNode.hasChild(matchNodey)) score -= 1;
-            else score += 1; //nodey child did not belong with nodeyNode
+            if (
+              matchNodey.syntok === true ||
+              nodeyNode.hasChild(matchNodey.nodey)
+            ) {
+              childScore -= 1;
+            } else childScore += 1; //nodey child did not belong with nodeyNode
           } else {
-            score += 1; //new child
+            childScore += 1; //new child
             console.log("leaf has no match, ", leaf, index); //DEBUG only
           }
-        } //handle syntax token matches
-        /*else {
-          let syn2 = nodeyNode.content[index]; // super conservative matching. may need to fix
-          if (syn2 instanceof SyntaxToken && index.tokens === syn2.tokens)
-            score -= 1;
-          else score += 1;
-        }*/
+        } //handle syntax token matches for spaces
+        else {
+          childScore -= 1;
+        }
       });
     }
-
+    //console.log("child score is ", childScore, score);
+    score += childScore;
     return score;
+  }
+
+  // a debugging method only
+  private declareMatch(
+    nodeyOp: NodeyOptions,
+    parsedOp: ParsedNodeOptions,
+    score: number
+  ) {
+    let rendered = "";
+    if (!nodeyOp) rendered = "(V●ᴥ●V)";
+    else if (nodeyOp.syntok) rendered = nodeyOp.nodey;
+    else {
+      let nodey = this.historyModel.getNodey(nodeyOp.nodey);
+      this.historyModel.inspector.renderNode(nodey).text;
+    }
+    console.log(
+      "Best match for ",
+      parsedOp,
+      "is " + score + " = ",
+      "|" + rendered + "|",
+      nodeyOp
+    );
   }
 
   matchLeaves(
@@ -380,6 +440,11 @@ export class ASTMatch {
           if (!leaf.match && match.score < bestMatch.score) bestMatch = match;
         });
         nodeyOpt.match = bestMatch;
+        this.declareMatch(
+          nodeyOpt,
+          parsedList[bestMatch.index],
+          bestMatch.score
+        ); //DEBUG only
         if (bestMatch.index > -1) {
           var leaf = parsedList[bestMatch.index];
           leaf.match = { index: leafIndex, score: bestMatch.score };
@@ -438,11 +503,16 @@ export class ASTMatch {
     prior: NodeyCode = null
   ): NodeyCode {
     var n = new NodeyCode(node);
-    console.log("Building star node for ", node, n);
+    console.log("Building star node for ", node, target);
     n.id = "*";
     n.start.line -= 1; // convert the coordinates of the range to code mirror style
     n.end.line -= 1;
-    if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
+    if (target.parent) {
+      if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
+      n.parent = target.parent;
+    } else {
+      n.parent = target.name;
+    }
     var label = this.historyModel.addStarNode(n, target);
     n.version = label;
 
@@ -472,7 +542,7 @@ export class ASTMatch {
   private matchLiterals(a: string, b: string) {
     let score = levenshtein.get(a, b); // / Math.max(a.length, b.length);
     if (score / Math.max(a.length, b.length) > 0.8) score = NO_MATCH_SCORE;
-    console.log("maybe change literal", a, b, score);
+    //console.log("maybe change literal", a, b, score);
     return score;
   }
 }

@@ -121,7 +121,10 @@ export class NotebookListen {
       this._activeCellChanged.emit(cellListen);
       cellListen.focus();
     }
-    if (this.activeCell) this.cells.get(this.activeCell.model.id).blur();
+    if (this.activeCell && this.activeCell.model) {
+      //verify cell hasn't been deleted
+      this.cells.get(this.activeCell.model.id).blur();
+    }
     this.activeCell = cell;
   }
 
@@ -185,12 +188,13 @@ export class NotebookListen {
     return cellListen;
   }
 
-  private _addNewCells(newIndex: number, newValues: ICellModel[]) {
-    newValues.forEach((added, index) => {
+  private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
+    newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
       console.log("adding a new cell!", cell, newIndex, newValues);
       var cellListen = this.createCodeCellListen(cell, newIndex, false);
       cellListen.status = ChangeType.ADDED;
+      await cellListen.ready;
       this._cellStructureChanged.emit([index, cellListen]);
     });
   }

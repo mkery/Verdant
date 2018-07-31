@@ -140,20 +140,21 @@ export class InspectWidget extends Widget {
       let li = document.createElement("div");
       li.classList.add(INSPECT_VERSION);
 
+      console.log("This node was used in runs", target);
       let created = target.run[0];
       let timestamp = null;
-      if (created) {
+      if (created !== null && created !== undefined) {
+        console.log("run is ", this._historyModel.runModel.getRun(created));
         timestamp = new Date(
           this._historyModel.runModel.getRun(created).timestamp
         );
       }
-      console.log("This node was used in runs", target);
 
       //v2: created 5/4 8:15pm, used in 555 runs
       let label = document.createElement("div");
       label.classList.add(INSPECT_VERSION_LABEL);
       let l = document.createElement("span");
-      if (target.run.length > 0) {
+      if (timestamp) {
         l.textContent =
           "v" +
           (item.version + 1) +
