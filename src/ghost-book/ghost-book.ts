@@ -44,6 +44,9 @@ import { GhostBookModel } from "./ghost-model";
  */
 const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
+const GHOST_BOOK_TOOLBAR_OVERLAY = "v-Verdant-GhostBook-overlay-toolbar";
+const GHOST_BOOK_CHANGEBAR = "v-Verdant-GhostBook-change-toolbar";
+const GHOST_BOOK_DIFFBAR = "v-Verdant-GhostBook-diff-toolbar";
 const GHOST_BOOK_TOOLBAR_PRIOR = "v-Verdant-GhostBook-toolbar-priorButton";
 const GHOST_BOOK_TOOLBAR_NEXT = "v-Verdant-GhostBook-toolbar-nextButton";
 const GHOST_BOOK_TOOLBAR_LABEL = "v-Verdant-GhostBook-toolbar-label";
@@ -93,12 +96,30 @@ export class GhostBook extends Widget {
     toolbar.addItem("edit", this.createEditButton());
     this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
     toolbar.addItem("editLabel", this.runLabel);
-    toolbar.addItem("spacer", Toolbar.createSpacerItem());
-    toolbar.addItem("priorChange", this.createPriorButton());
-    toolbar.addItem("nextChange", this.createNextButton());
-    this.changeLabel = new ToolbarLabel("?/? changes");
-    toolbar.addItem("changeLabel", this.changeLabel);
     layout.addWidget(toolbar);
+
+    // Toolbar overlay holder
+    let overlay = new Toolbar();
+    overlay.addClass(GHOST_BOOK_TOOLBAR_OVERLAY);
+    layout.addWidget(overlay);
+
+    // Diff Toolbar
+    let diffBar = new Toolbar();
+    diffBar.addClass(GHOST_BOOK_DIFFBAR);
+    let diff0 = new ToolbarLabel("Compare to current notebook");
+    diffBar.addItem("diff0Label", diff0);
+    let diff1 = new ToolbarLabel("Show original edits");
+    diffBar.addItem("diff1Label", diff1);
+    overlay.addItem("diffbar", diffBar);
+
+    // Toolbar
+    let changeBar = new Toolbar();
+    changeBar.addClass(GHOST_BOOK_CHANGEBAR);
+    changeBar.addItem("priorChange", this.createPriorButton());
+    changeBar.addItem("nextChange", this.createNextButton());
+    this.changeLabel = new ToolbarLabel("?/? changes");
+    changeBar.addItem("changeLabel", this.changeLabel);
+    overlay.addItem("changebar", changeBar);
 
     this._onTitleChanged();
     context.pathChanged.connect(
@@ -151,7 +172,7 @@ export class GhostBook extends Widget {
   /**
    * Handle `'activate-request'` messages.
    */
-  protected onActivateRequest(msg: Message): void {
+  protected onActivateRequest(_: Message): void {
     this.node.focus();
   }
 
@@ -320,13 +341,10 @@ export class GhostBook extends Widget {
         case ChangeType.REMOVED:
           break;
         case ChangeType.ADDED:
-          codemirror.doc.markText(
-            edit.start,
-            { line: edit.start.line, ch: edit.start.ch + edit.text.length },
-            {
-              className: GHOST_CODE_ADDED
-            }
-          );
+          let marker = codemirror.doc.markText(edit.start, edit.end, {
+            className: GHOST_CODE_ADDED
+          });
+          console.log("MARK ADD TEXT", edit, marker);
           break;
       }
     });

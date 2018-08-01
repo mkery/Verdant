@@ -212,10 +212,12 @@ export class Inspect {
 
   private _nodeAdded(name: string): NodeChangeDesc {
     var node = this._historyModel.getNodey(name) as NodeyCode;
+    var text = this.renderNode(node).text;
     return {
       change: ChangeType.ADDED,
       start: node.start,
-      end: node.end
+      end: node.end,
+      text: text
     };
   }
 
