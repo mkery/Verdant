@@ -154,26 +154,43 @@ export class ASTMatch {
       }
       //fix position
       if (!nodeyEdited.end) {
-        nodeyEdited.start = parsedNode.start;
-        nodeyEdited.end = parsedNode.end;
+        nodeyEdited.start = {
+          line: parsedNode.start.line - 1,
+          ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
+        };
+        nodeyEdited.end = {
+          line: parsedNode.end.line - 1,
+          ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
+        };
       } else {
         // fix position but be sure it's relative to this node snippet
         // because may not be the whole cell, so does not start at 0
-        console.log(
-          "FIXING POSITIONS relative to",
-          nodeyEdited,
-          parsedNode,
-          relativeTo
-        );
-        nodeyEdited.start = parsedNode.start;
-        nodeyEdited.end = parsedNode.end;
+        nodeyEdited.start = {
+          line: parsedNode.start.line - 1,
+          ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
+        };
+        nodeyEdited.end = {
+          line: parsedNode.end.line - 1,
+          ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
+        };
         nodeyEdited.positionRelativeTo(relativeTo);
       }
     } else {
       console.log("New Node!", parsedNode);
-      nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
-      if (!relativeTo.content) relativeTo.content = [];
-      relativeTo.content.push(nodeyEdited.name);
+      if ("syntok" in parsedNode) {
+        /*
+          Crud. This is a dead end for matching because if we've reached here,
+          a new syntok has shown up without a parent. This can happen if a chunk
+          of code is commented out. Probably needs some special matching case
+          to make smooth matching between code being commented and not //TODO
+        */
+        console.log("Attempt force match!", relativeTo);
+        nodeyEdited = this.forceReplace(relativeTo, parsedNode);
+      } else {
+        nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
+        if (!relativeTo.content) relativeTo.content = [];
+        relativeTo.content.push(nodeyEdited.name);
+      }
     }
     return nodeyEdited;
   }
@@ -507,8 +524,10 @@ export class ASTMatch {
     n.id = "*";
     n.start.line -= 1; // convert the coordinates of the range to code mirror style
     n.end.line -= 1;
+    n.start.ch -= 1;
+    n.end.ch -= 1;
+    if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
     if (target.parent) {
-      if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
       n.parent = target.parent;
     } else {
       n.parent = target.name;
@@ -544,6 +563,15 @@ export class ASTMatch {
     if (score / Math.max(a.length, b.length) > 0.8) score = NO_MATCH_SCORE;
     //console.log("maybe change literal", a, b, score);
     return score;
+  }
+
+  // HACK: see special case in finalizeMatch above, need a more robust solution
+  private forceReplace(nodey: NodeyCode, parsedSyntok: ParserNodey) {
+    let nodeyEdited = this.historyModel.markAsEdited(nodey);
+    if (nodeyEdited.literal) nodeyEdited.literal = null;
+    nodeyEdited.content = [new SyntaxToken(parsedSyntok.syntok)];
+    console.log("FORCE REPLACE", nodeyEdited);
+    return nodeyEdited;
   }
 }
 

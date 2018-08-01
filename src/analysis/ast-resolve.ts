@@ -58,15 +58,24 @@ export class ASTResolve {
     var ch = 0 - addedLines[0].length + removedLines[0].length;
     if (line != pos.line) {
       let lineText = editor.doc.getLine(line);
-      ch += lineText.length;
+      if (lineText) ch += lineText.length;
+      else ch += pos.column;
     } else {
       ch += pos.column;
     }
 
-    var range = {
-      start: { line: line, ch: ch },
-      end: { line: pos.line, ch: pos.column }
-    }; // first convert code mirror coordinates to our coordinates
+    var range;
+    if (line < pos.line)
+      range = {
+        start: { line: line, ch: ch },
+        end: { line: pos.line, ch: pos.column }
+      };
+    // first convert code mirror coordinates to our coordinates
+    else
+      range = {
+        end: { line: line, ch: ch },
+        start: { line: pos.line, ch: pos.column }
+      }; // first convert code mirror coordinates to our coordinates
     console.log("cursor pos is now", pos, range);
 
     var affected = ASTUtils.findNodeAtRange(nodey, range, this.historyModel);

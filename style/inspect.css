@@ -150,6 +150,7 @@
   /*tested for accessibility */
   color: #1a4936;
   display: inline-block;
+  background: #e8ffd5;
 }
 .v-Verdant-inspect-code-removed {
   color: red;

@@ -184,7 +184,7 @@ export class Inspect {
 
   public getChangesInRun(
     nodey: NodeyCode,
-    run: number,
+    _: number,
     changeAcc: NodeChangeDesc[] = []
   ): NodeChangeDesc[] {
     //check each node in the version prior to this, if there is one
@@ -433,26 +433,22 @@ export class Inspect {
     elem: HTMLElement,
     diffKind: number = Inspect.NO_DIFF
   ) {
-    console.log("rendering code versions!");
+    console.log("rendering code versions!", this._historyModel.dump());
     if (diffKind === Inspect.NO_DIFF) elem.textContent = newText;
     else if (diffKind === Inspect.CHANGE_DIFF) {
       let prior = this._historyModel.getPriorVersion(nodey) as NodeyCode;
-      console.log(
-        "PRIOR?",
-        prior,
-        this._historyModel.getVersionsFor(nodey),
-        nodey
-      );
       if (!prior) {
         // easy, everything is added
         elem.textContent = newText;
         elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
       } else {
         let priorText = this.renderCodeNode(prior);
+        console.log("vers are", nodey, prior, priorText);
         let diff = JSDiff.diffChars(priorText, newText);
         let innerHTML = "";
         diff.forEach(part => {
           let partDiv = document.createElement("span");
+          console.log("DIFF", part);
           partDiv.textContent = part.value;
           if (part.added) {
             partDiv.classList.add(Inspect.CHANGE_ADDED_CLASS);
@@ -464,7 +460,7 @@ export class Inspect {
             innerHTML += part.value;
           }
         });
-        console.log(innerHTML);
+        //console.log(innerHTML);
         elem.innerHTML = innerHTML;
       }
     }

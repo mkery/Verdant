@@ -141,8 +141,8 @@ export class NodeyCode extends Nodey {
     //may run into historical targets that do not have position info
     let myStart = this.start || { line: 0, ch: 0 };
     if (target.start && target.end) {
-      var deltaLine = target.start.line - myStart.line;
-      var deltaCh = target.start.ch - myStart.ch;
+      var deltaLine = Math.max(target.start.line - myStart.line, 0);
+      var deltaCh = Math.max(target.start.ch - myStart.ch, 0);
       this.start = {
         line: deltaLine + this.start.line,
         ch: deltaCh + this.start.ch
@@ -380,6 +380,8 @@ export namespace Nodey {
 
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
     dict.end.line -= 1;
+    dict.start.ch -= 1;
+    dict.end.ch -= 1;
 
     var n = new NodeyCodeCell(dict);
     historyModel.registerCellNodey(n, position);
@@ -395,6 +397,8 @@ export namespace Nodey {
   ): NodeyCode {
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
     dict.end.line -= 1;
+    dict.start.ch -= 1;
+    dict.end.ch -= 1;
 
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict);
