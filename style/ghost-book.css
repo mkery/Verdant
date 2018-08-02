@@ -19,9 +19,17 @@
   flex-direction: row;
 }
 
+.v-Verdant-GhostBook-overlay-toolbar {
+  background: transparent;
+  box-shadow: 0px 0px 0px transparent;
+  border: transparent;
+  padding: 0px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .v-Verdant-GhostBook-change-toolbar {
   width: max-content;
-  margin-left: auto;
   border-bottom-left-radius: var(--jp-border-radius);
   border-bottom-right-radius: var(--jp-border-radius);
 }
@@ -29,6 +37,22 @@
 .v-Verdant-GhostBook-diff-toolbar {
   border-bottom-left-radius: var(--jp-border-radius);
   border-bottom-right-radius: var(--jp-border-radius);
+}
+
+.v-Verdant-GhostBook-diff-button {
+  padding: 0px;
+  color: var(--jp-ui-font-color3);
+}
+.v-Verdant-GhostBook-diff-button.right {
+  margin-left: 0.5em;
+}
+.v-Verdant-GhostBook-diff-button.left {
+  border-right: 1px solid var(--jp-border-color0);
+  margin-right: 0.5em;
+}
+.v-Verdant-GhostBook-diff-button.active {
+  color: var(--jp-ui-font-color0);
+  border-bottom: 2px solid var(--jp-brand-color1);
 }
 
 .v-Verdant-GhostBook-toolbar-priorButton {

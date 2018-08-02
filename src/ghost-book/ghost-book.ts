@@ -47,6 +47,7 @@ const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
 const GHOST_BOOK_TOOLBAR_OVERLAY = "v-Verdant-GhostBook-overlay-toolbar";
 const GHOST_BOOK_CHANGEBAR = "v-Verdant-GhostBook-change-toolbar";
 const GHOST_BOOK_DIFFBAR = "v-Verdant-GhostBook-diff-toolbar";
+const GHOST_BOOK_DIFF = "v-Verdant-GhostBook-diff-button";
 const GHOST_BOOK_TOOLBAR_PRIOR = "v-Verdant-GhostBook-toolbar-priorButton";
 const GHOST_BOOK_TOOLBAR_NEXT = "v-Verdant-GhostBook-toolbar-nextButton";
 const GHOST_BOOK_TOOLBAR_LABEL = "v-Verdant-GhostBook-toolbar-label";
@@ -93,7 +94,7 @@ export class GhostBook extends Widget {
     // Toolbar
     let toolbar = new Toolbar();
     toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
-    toolbar.addItem("edit", this.createEditButton());
+    toolbar.addItem("edit", this.createEditButton()); //Notebook v8 run today August 1 2018 10:00pm
     this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
     toolbar.addItem("editLabel", this.runLabel);
     layout.addWidget(toolbar);
@@ -108,8 +109,15 @@ export class GhostBook extends Widget {
     diffBar.addClass(GHOST_BOOK_DIFFBAR);
     let diff0 = new ToolbarLabel("Compare to current notebook");
     diffBar.addItem("diff0Label", diff0);
+    diff0.addClass(GHOST_BOOK_DIFF);
+    diff0.addClass("left");
+    diff0.node.addEventListener("click", this.changeDiff.bind(this, 0));
     let diff1 = new ToolbarLabel("Show original edits");
     diffBar.addItem("diff1Label", diff1);
+    diff1.addClass(GHOST_BOOK_DIFF);
+    diff1.addClass("right");
+    diff1.addClass("active");
+    diff1.node.addEventListener("click", this.changeDiff.bind(this, 1));
     overlay.addItem("diffbar", diffBar);
 
     // Toolbar
@@ -151,6 +159,13 @@ export class GhostBook extends Widget {
    */
   get ready(): Promise<void> {
     return this._ready.promise;
+  }
+
+  public changeDiff(diff: number) {
+    let diffops = this.node.getElementsByClassName(GHOST_BOOK_DIFF);
+    for (let i = 0; i < diffops.length; i++)
+      diffops[i].classList.remove("active");
+    diffops[diff].classList.add("active");
   }
 
   public feedNewData(dict: nbformat.INotebookContent) {
@@ -224,9 +239,10 @@ export class GhostBook extends Widget {
     let totalChanges = context.model.totalChanges;
 
     this.runLabel.setText(
-      "Work in notebook at Run #" +
+      //Notebook v8 run today August 1 2018 10:00pm
+      "Notebook v" +
         run +
-        " " +
+        " run " +
         Run.formatDate(timestamp) +
         " " +
         Run.formatTime(timestamp)
