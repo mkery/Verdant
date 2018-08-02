@@ -180,7 +180,7 @@ export class HistorySaveModel implements Contents.IModel {
 export interface serialized_Nodey {
   typeName: string;
   parent: string;
-  run?: number; //TODO
+  runs: number[];
 }
 
 export interface serialized_NodeyOutput extends serialized_Nodey {
@@ -199,7 +199,6 @@ export interface serialized_NodeyCode extends serialized_Nodey {
   end?: { line: number; ch: number };
   content?: any[];
   right: string;
-  runs: number[];
 }
 
 export interface serialized_NodeyCodeCell extends serialized_NodeyCode {
@@ -210,8 +209,6 @@ export interface serialized_Run {
   run: number;
   timestamp: number;
   cells: CellRunData[];
-  star?: number;
-  note?: number;
 }
 
 export interface serialized_Star {

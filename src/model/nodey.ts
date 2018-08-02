@@ -18,6 +18,8 @@ export abstract class Nodey {
   run: number[] = []; //id marking which run
   pendingUpdate: string;
   parent: string; //lookup id for the parent Nodey of this Nodey
+  star: number = -1;
+  note: number = -1;
 
   constructor(options: { [id: string]: any }) {
     this.node_id = options.id;
@@ -108,7 +110,8 @@ export class NodeyOutput extends Nodey {
     return {
       parent: this.parent,
       typeName: "output",
-      output: this.raw
+      output: this.raw,
+      runs: this.run
     };
   }
 
@@ -298,7 +301,8 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
     return {
       parent: this.parent,
       typeName: "markdown",
-      markdown: this.markdown
+      markdown: this.markdown,
+      runs: this.run
     };
   }
 
@@ -328,7 +332,8 @@ export namespace Nodey {
           output: codedat.output,
           literal: codedat.literal,
           right: codedat.right,
-          parent: codedat.parent
+          parent: codedat.parent,
+          run: codedat.runs
         });
       case "codeCell":
         var codedat = dat as serialized_NodeyCode;
@@ -345,13 +350,15 @@ export namespace Nodey {
           content: content,
           literal: codedat.literal,
           right: codedat.right,
-          parent: codedat.parent
+          parent: codedat.parent,
+          run: codedat.runs
         });
       case "markdown":
         var markdat = dat as serialized_NodeyMarkdown;
         return new NodeyMarkdown({
           markdown: markdat.markdown,
-          parent: markdat.parent
+          parent: markdat.parent,
+          run: markdat.runs
         });
       default:
         return;
@@ -361,7 +368,8 @@ export namespace Nodey {
   export function outputFromJSON(dat: serialized_NodeyOutput): NodeyOutput {
     return new NodeyOutput({
       raw: dat.output,
-      parent: dat.parent
+      parent: dat.parent,
+      run: dat.runs
     });
   }
 

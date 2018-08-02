@@ -397,7 +397,7 @@
   background-position-y: top;
   background-image: var(--verdant-icon-star);
 }
-.v-VerdantPanel-starButton.highlight {
+.v-VerdantPanel-starButton.active {
   background-image: var(--verdant-icon-star-highlight);
 }
 .v-VerdantPanel-starButton.header {

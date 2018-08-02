@@ -72,11 +72,20 @@
 .v-VerdantPanel-search-filter {
   min-width: 24px;
   min-height: 20px;
+  position: relative;
   display: inline-block;
   background-size: 14px;
   border: 1px solid transparent;
   background-repeat: no-repeat;
   background-position: center;
+}
+.v-VerdantPanel-search-filter::before,
+.v-VerdantPanel-search-filter::after {
+  box-sizing: inherit;
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 16px;
 }
 .v-VerdantPanel-search-filter:hover {
   border: 1px solid var(--jp-toolbar-border-color);
@@ -104,10 +113,19 @@
   background-color: var(--jp-layout-color1);
   border: 1px solid var(--jp-toolbar-border-color);
 }
+.v-VerdantPanel-search-filter.active {
+  background-image: var(--verdant-icon-clipboard-highlight);
+}
 .v-VerdantPanel-search-filter.star.highlight {
   background-image: var(--verdant-icon-star-highlight);
 }
+.v-VerdantPanel-search-filter.star.active {
+  background-image: var(--verdant-icon-star-highlight);
+}
 .v-VerdantPanel-search-filter.comment.highlight {
+  background-image: var(--verdant-icon-comment-highlight);
+}
+.v-VerdantPanel-search-filter.comment.active {
   background-image: var(--verdant-icon-comment-highlight);
 }
 

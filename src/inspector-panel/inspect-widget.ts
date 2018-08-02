@@ -4,6 +4,8 @@ import { HistoryModel } from "../model/history";
 
 import { Run } from "../model/run";
 
+import { Annotator } from "../run-panel/add-annotations";
+
 import { Inspect } from "../inspect";
 
 import { VerdantPanel } from "../panel/verdant-panel";
@@ -26,6 +28,8 @@ const INSPECT_VERSION_ACTION = "v-VerdantPanel-search-filter";
 const RUN_LINK = "v-VerdantPanel-inspect-run-link";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
 const INSPECT_CLIPBOARD = "v-VerdantPanel-inspect-clipboard";
+const NOTE_INPUT = "v-VerdantPanel-inspect-notes";
+const NOTE_INPUT_LABEL = "v-VerdantPanel-inspect-notes-label";
 
 /**
  * A widget which displays cell-level history information
@@ -96,7 +100,7 @@ export class InspectWidget extends Widget {
     this.retrieveTarget();
   }
 
-  copyToClipboard(nodeName: string) {
+  private copyToClipboard(nodeName: string) {
     let nodey = this._historyModel.getNodey(nodeName);
     let str = this.inspector.renderNode(nodey).text;
     let el = document.createElement("textarea");
@@ -105,6 +109,40 @@ export class InspectWidget extends Widget {
     el.select();
     document.execCommand("copy");
     document.body.removeChild(el);
+  }
+
+  private animateLoading(button: HTMLElement) {
+    button.classList.add("load");
+    button.classList.add("active");
+    setTimeout(() => {
+      button.classList.remove("load");
+    }, 500);
+    setTimeout(() => {
+      button.classList.remove("active");
+    }, 600);
+  }
+
+  private commentVersion(
+    nodeyName: string,
+    button: HTMLElement,
+    labelArea: HTMLElement
+  ) {
+    if (button.classList.contains("active")) {
+      button.classList.remove("active");
+      labelArea.removeChild(labelArea.getElementsByClassName(NOTE_INPUT)[0]);
+    } else {
+      button.classList.add("active");
+      let nodey = this._historyModel.getNodey(nodeyName);
+      let noteArea = document.createElement("div");
+      noteArea.classList.add(NOTE_INPUT);
+      let noteLabel = document.createElement("div");
+      noteLabel.classList.add(NOTE_INPUT_LABEL);
+      noteLabel.textContent = "Note:";
+      noteArea.appendChild(noteLabel);
+      let textarea = Annotator.buildTextArea(nodey, this._historyModel);
+      noteArea.appendChild(textarea);
+      labelArea.appendChild(noteArea);
+    }
   }
 
   private get inspector() {
@@ -166,8 +204,9 @@ export class InspectWidget extends Widget {
       let li = document.createElement("div");
       li.classList.add(INSPECT_VERSION);
 
-      console.log("This node was used in runs", target);
-      let created = target.run[0];
+      let nodeyVer = this._historyModel.getPriorVersion(target, item.version);
+      console.log("This node was used in runs", nodeyVer);
+      let created = nodeyVer.run[0];
       let timestamp = null;
       if (created !== null && created !== undefined) {
         console.log("run is ", this._historyModel.runModel.getRun(created));
@@ -189,9 +228,10 @@ export class InspectWidget extends Widget {
           ", used in ";
         let r = document.createElement("span");
         r.classList.add(RUN_LINK);
-        r.addEventListener("click", this.switchPane.bind(this, target.run));
-        if (target.run.length > 1) r.textContent = target.run.length + " runs";
-        else r.textContent = target.run.length + " run";
+        r.addEventListener("click", this.switchPane.bind(this, nodeyVer.run));
+        if (nodeyVer.run.length > 1)
+          r.textContent = nodeyVer.run.length + " runs";
+        else r.textContent = nodeyVer.run.length + " run";
         label.appendChild(l);
         label.appendChild(r);
       } else {
@@ -204,15 +244,28 @@ export class InspectWidget extends Widget {
       let star = document.createElement("div");
       star.classList.add(INSPECT_VERSION_ACTION);
       star.classList.add("star");
+      if (nodeyVer.star > -1) star.classList.add("active");
+      star.addEventListener(
+        "click",
+        Annotator.star.bind(this, star, nodeyVer, this._historyModel)
+      );
       let note = document.createElement("div");
       note.classList.add(INSPECT_VERSION_ACTION);
       note.classList.add("comment");
+      note.addEventListener(
+        "click",
+        this.commentVersion.bind(this, nodeyVer.name, note, label)
+      );
       let clippy = document.createElement("div");
       clippy.classList.add(INSPECT_VERSION_ACTION);
       clippy.classList.add("clippy");
       clippy.addEventListener(
         "click",
-        this.copyToClipboard.bind(this, target.name)
+        this.copyToClipboard.bind(this, nodeyVer.name)
+      );
+      clippy.addEventListener(
+        "mouseup",
+        this.animateLoading.bind(this, clippy)
       );
       annotator.appendChild(star);
       annotator.appendChild(note);
@@ -220,18 +273,18 @@ export class InspectWidget extends Widget {
       label.appendChild(annotator);
 
       li.appendChild(label);
+      if (nodeyVer.note > -1) this.commentVersion(nodeyVer.name, note, label);
 
       let content = document.createElement("div");
       content.classList.add(INSPECT_VERSION_CONTENT);
       li.appendChild(content);
 
-      let nodey = this._historyModel.getPriorVersion(target, item.version);
-      if (nodey instanceof NodeyMarkdown) {
+      if (nodeyVer instanceof NodeyMarkdown) {
         content.classList.add("markdown");
-        this.inspector.renderMarkdownVersionDiv(nodey, text, content);
-      } else if (nodey instanceof NodeyCode) {
+        this.inspector.renderMarkdownVersionDiv(nodeyVer, text, content);
+      } else if (nodeyVer instanceof NodeyCode) {
         this.inspector.renderCodeVerisonDiv(
-          nodey,
+          nodeyVer,
           text,
           content,
           Inspect.CHANGE_DIFF

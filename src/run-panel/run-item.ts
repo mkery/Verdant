@@ -12,7 +12,7 @@ import { VerdantListItem } from "./run-panel";
 
 import { DotMap } from "./dot-map";
 
-import { AddAnnotations } from "./add-annotations";
+import { Annotator } from "./add-annotations";
 
 import { RunCluster } from "./run-cluster";
 
@@ -36,7 +36,6 @@ export class RunItem extends Widget implements VerdantListItem {
   readonly run: Run;
   readonly header: HTMLElement;
   readonly dotMap: DotMap;
-  readonly notes: AddAnnotations;
   readonly historyModel: HistoryModel;
   readonly switchPane: () => any;
   cluster: RunCluster = null;
@@ -59,8 +58,6 @@ export class RunItem extends Widget implements VerdantListItem {
     time.classList.add(RUN_ITEM_TIME);
 
     this.dotMap = new DotMap(this.historyModel, this.run.cells);
-
-    this.notes = new AddAnnotations(this.run, this.historyModel);
 
     this.header = document.createElement("div");
     this.header.classList.add(RUN_ITEM_CLASS);
@@ -114,7 +111,9 @@ export class RunItem extends Widget implements VerdantListItem {
 
     let dropdown = document.createElement("ul");
     dropdown.classList.add(SUB_RUNLIST_CLASS);
-    dropdown.appendChild(this.notes.buildDetailNotes());
+    dropdown.appendChild(
+      Annotator.buildDetailNotes(this.run, this.historyModel)
+    );
     this.buildDetailList(dropdown);
     this.node.appendChild(dropdown);
     if (this.cluster) this.cluster.clusterEvent(this);
@@ -150,7 +149,7 @@ export class RunItem extends Widget implements VerdantListItem {
     }
 
     if (this.run.note > -1) {
-      let noteText = this.notes.buildHeaderNotes();
+      let noteText = Annotator.buildHeaderNotes(this.run, this.historyModel);
       noteText.classList.add("header");
       this.node.appendChild(noteText);
     }

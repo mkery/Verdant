@@ -29,7 +29,7 @@
   margin-bottom: 0px;
   background-image: var(--verdant-icon-timeinspect);
   background-repeat: no-repeat;
-  border: 1px solid var(--verdant-highlight-color1);
+  border: 1px solid transparent;
   border-radius: 5px;
   display: inline-block;
   width: 0.75em;
@@ -45,6 +45,7 @@
   margin-left: 4px;
   font-style: italic;
   vertical-align: top;
+  color: var(--jp-cell-editor-active-border-color);
   margin-top: 10px;
 }
 
@@ -163,4 +164,56 @@
   color: red;
   text-decoration: line-through;
   display: inline-block;
+}
+
+.v-VerdantPanel-search-filter.load {
+  transition: color 0.25s;
+}
+.v-VerdantPanel-search-filter.load::before,
+.v-VerdantPanel-search-filter.load::after {
+  border: 2px solid transparent;
+  width: 0;
+  height: 0;
+}
+.v-VerdantPanel-search-filter.load::before {
+  top: 0;
+  left: 0;
+}
+.v-VerdantPanel-search-filter.load::after {
+  bottom: 0;
+  right: 0;
+}
+.v-VerdantPanel-search-filter.load.active {
+  color: var(--jp-brand-color1);
+}
+.v-VerdantPanel-search-filter.load.active::before,
+.v-VerdantPanel-search-filter.load.active::after {
+  width: 20px;
+  height: 16px;
+}
+.v-VerdantPanel-search-filter.load.active::before {
+  border-top-color: var(--jp-brand-color1);
+  border-right-color: var(--jp-brand-color1);
+  transition: width 0.25s ease-out, height 0.25s ease-out 0.25s;
+}
+.v-VerdantPanel-search-filter.load.active::after {
+  border-bottom-color: var(--jp-brand-color1);
+  border-left-color: var(--jp-brand-color1);
+  transition: border-color 0s ease-out 0.5s, width 0.25s ease-out 0.5s,
+    height 0.25s ease-out 0.75s;
+}
+
+.v-VerdantPanel-inspect-notes {
+  display: inline-flex;
+  width: calc(100% - 1em);
+  margin: auto;
+  flex-direction: row;
+}
+.v-VerdantPanel-inspect-notes-label {
+  color: var(--jp-cell-editor-active-border-color);
+  display: inline-block;
+  flex: 1 1 2.5em;
+  max-width: 2.5em;
+  padding-right: 5px;
+  padding-top: 2px;
 }

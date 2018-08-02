@@ -378,7 +378,7 @@ export class ASTMatch {
     */
     var leafChildren = parsedNode.content;
     let childScore = 0;
-    if (leafChildren) {
+    if (leafChildren && nodeyNode.content) {
       childScore += nodeyNode.content.length; // number of children including syntok
       leafChildren.forEach(index => {
         if (index instanceof SyntaxToken === false) {

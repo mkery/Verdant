@@ -14,7 +14,7 @@ import * as levenshtein from "fast-levenshtein";
 
 import { Notes } from "./notes";
 
-import { ChangeType, RunModel, Run } from "./run";
+import { ChangeType, RunModel } from "./run";
 
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
@@ -156,17 +156,23 @@ export class HistoryModel {
   }
 
   public registerNote(text: string, target: any): Notes {
-    let note = new Notes(target, typeof target, text);
+    let note = new Notes(target.name, target.constructor.name, text);
+    console.log("CREATED NOTE", note);
     let id = this._notesStore.push(note) - 1;
     note.id = id;
     return note;
   }
 
-  public registerStar(target: Run): Star {
-    let star = new Star(target.id + "", typeof target);
+  public registerStar(target: any): Star {
+    let star = new Star(target.name, target.constructor.name);
+    console.log("CREATED STAR", star);
     let id = this._starStore.push(star) - 1;
     star.id = id;
     return star;
+  }
+
+  public deRegisterStar(id: number) {
+    this._starStore[id] = null;
   }
 
   public registerNodey(nodey: Nodey): void {
@@ -353,10 +359,6 @@ export class HistoryModel {
   }
 
   private fromJSON(data: serialized_NodeyHistory) {
-    // annotations come first since runs depend on them
-    this._starStore = data.stars.map(item => Star.fromJSON(item));
-    this._notesStore = data.notes.map(item => Notes.fromJSON(item));
-
     this._runModel.fromJSON(data.runs);
     this._cellList = data.cells;
     data.nodey.map(item => {
@@ -382,6 +384,34 @@ export class HistoryModel {
       this._outputStore[id] = hist;
     });
     this._deletedCellList = data.deletedCells;
+
+    this._starStore = [];
+    data.stars.forEach(item => {
+      let star = Star.fromJSON(item);
+      let index = this._starStore.push(star) - 1;
+      star.id = index;
+      let target: any = null;
+      console.log("Trying to load star!", item, star);
+      if (star.target_type === "Run")
+        target = this.runModel.getRun(Number.parseInt(star.target));
+      else if (star.target_type === "NodeyOutput")
+        target = this.getOutput(star.target);
+      else target = this.getNodey(star.target);
+      target.star = index;
+    });
+    this._notesStore = [];
+    data.notes.forEach(item => {
+      let note = Notes.fromJSON(item);
+      let index = this._notesStore.push(note) - 1;
+      note.id = index;
+      let target: any = null;
+      if (note.target_type === "Run")
+        target = this.runModel.getRun(Number.parseInt(note.target));
+      else if (note.target_type === "NodeyOutput")
+        target = this.getOutput(note.target);
+      else target = this.getNodey(note.target);
+      target.note = index;
+    });
   }
 
   public toJSON(): serialized_NodeyHistory {
@@ -408,8 +438,12 @@ export class HistoryModel {
       }
     ) as { output: number; versions: serialized_NodeyOutput[] }[];
     jsn["deletedCells"] = this._deletedCellList;
-    jsn["stars"] = this._starStore.map(item => item.toJSON());
-    jsn["notes"] = this._notesStore.map(item => item.toJSON());
+    jsn["stars"] = this._starStore
+      .filter(item => item !== null)
+      .map(item => item.toJSON());
+    jsn["notes"] = this._notesStore
+      .filter(item => item !== null)
+      .map(item => item.toJSON());
     return jsn;
   }
 
