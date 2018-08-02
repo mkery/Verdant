@@ -486,4 +486,5 @@
 }
 .v-VerdantPanel-runItem-sampleButton:hover {
   background-color: var(--jp-brand-color2);
+  background-image: var(--verdant-icon-time-highlight);
 }

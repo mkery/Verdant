@@ -6,6 +6,8 @@ import { HistoryModel } from "../model/history";
 
 import { InspectWidget } from "../inspector-panel/inspect-widget";
 
+import { VerdantPanel } from "../panel/verdant-panel";
+
 const CELL_PANEL = "v-VerdantPanel-cellPanel";
 
 /**
@@ -17,11 +19,11 @@ export class CellPanel extends Widget {
   dragStart: number;
   dragHeight: number;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(historyModel: HistoryModel, parentPanel: VerdantPanel) {
     super();
     this.addClass(CELL_PANEL);
     this.historyModel = historyModel;
-    this.inspectWidget = new InspectWidget(historyModel);
+    this.inspectWidget = new InspectWidget(historyModel, parentPanel);
     this.node.appendChild(this.inspectWidget.node);
     this.node.appendChild(this.inspectWidget.header);
 

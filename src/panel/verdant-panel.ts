@@ -36,8 +36,8 @@ export class VerdantPanel extends Widget {
 
     this.searchBar = new SearchBar(this);
 
-    this.runList = new RunPanel(this.historyModel);
-    this.cellPanel = new CellPanel(this.historyModel);
+    this.runList = new RunPanel(this.historyModel, this);
+    this.cellPanel = new CellPanel(this.historyModel, this);
 
     let layout = new PanelLayout();
     layout.addWidget(this.fileTabs);

@@ -10,6 +10,8 @@ import { RunSection } from "./run-section";
 
 import { Legend } from "./legend";
 
+import { VerdantPanel } from "../panel/verdant-panel";
+
 import { FilterFunction } from "../panel/search-bar";
 
 const NOTEBOOK_HISTORY = "v-VerdantPanel-notebookHistory";
@@ -22,13 +24,15 @@ const SEARCH_FILTER_RESULTS = "v-VerdantPanel-search-results-label";
 
 export class RunPanel extends Widget {
   readonly historyModel: HistoryModel;
+  readonly parentPanel: VerdantPanel;
   private listContainer: HTMLElement;
   selectedRun: RunItem;
   sections: { date: number; section: RunSection }[];
 
-  constructor(historyModel: HistoryModel) {
+  constructor(historyModel: HistoryModel, parentPanel: VerdantPanel) {
     super();
     this.historyModel = historyModel;
+    this.parentPanel = parentPanel;
     this.sections = [];
     this.addClass(NOTEBOOK_HISTORY);
 
@@ -75,6 +79,10 @@ export class RunPanel extends Widget {
     }
   }
 
+  private switchPane() {
+    this.parentPanel.switchToCellHistory();
+  }
+
   public filterRunList(fun: FilterFunction<Run>) {
     let matches = 0;
     this.sections = [];
@@ -90,7 +98,13 @@ export class RunPanel extends Widget {
 
       if (runs.length > 0) {
         let dateSection = this.addNewDate(runDate, []);
-        runs.map(run => dateSection.addNewRun(run, this.onClick.bind(this)));
+        runs.map(run =>
+          dateSection.addNewRun(
+            run,
+            this.onClick.bind(this),
+            this.switchPane.bind(this)
+          )
+        );
         listContainer.insertBefore(dateSection.node, listContainer.firstChild);
       }
     });
@@ -131,6 +145,7 @@ export class RunPanel extends Widget {
         "checkpoints",
         Run.formatDate(date),
         this.onClick.bind(this),
+        this.switchPane.bind(this),
         []
       );
 
@@ -153,6 +168,7 @@ export class RunPanel extends Widget {
       "",
       date,
       this.onClick.bind(this),
+      this.switchPane.bind(this),
       runs
     );
 
@@ -180,13 +196,18 @@ export class RunPanel extends Widget {
         "",
         Run.formatDate(new Date(run.timestamp)),
         this.onClick.bind(this),
+        this.switchPane.bind(this),
         [run]
       );
 
       this.sections.push({ date: run.timestamp, section: dateSection });
     } else {
       dateSection = section.section;
-      dateSection.addNewRun(run, this.onClick.bind(this));
+      dateSection.addNewRun(
+        run,
+        this.onClick.bind(this),
+        this.switchPane.bind(this)
+      );
     }
 
     if (this.listContainer.firstChild)

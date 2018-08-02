@@ -16,6 +16,13 @@
   color: var(--jp-brand-color0);
 }
 
+.v-VerdantPanel-inspect-clipboard {
+  height: 1px;
+  border: 0px;
+  padding: 0px;
+  display: inline-block;
+}
+
 .v-VerdantPanel-inspect-icon {
   padding: 5px;
   margin: 5px;

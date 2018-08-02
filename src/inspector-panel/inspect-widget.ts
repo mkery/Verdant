@@ -6,6 +6,8 @@ import { Run } from "../model/run";
 
 import { Inspect } from "../inspect";
 
+import { VerdantPanel } from "../panel/verdant-panel";
+
 import { Nodey, NodeyMarkdown, NodeyCode } from "../model/nodey";
 
 import { Wishbone } from "./wishbone";
@@ -23,6 +25,7 @@ const INSPECT_ANNOTATION_BOX = "v-VerdantPanel-inspect-version-annotations";
 const INSPECT_VERSION_ACTION = "v-VerdantPanel-search-filter";
 const RUN_LINK = "v-VerdantPanel-inspect-run-link";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
+const INSPECT_CLIPBOARD = "v-VerdantPanel-inspect-clipboard";
 
 /**
  * A widget which displays cell-level history information
@@ -31,10 +34,13 @@ export class InspectWidget extends Widget {
   private _historyModel: HistoryModel;
   private _active: boolean = false;
   private _header: HTMLElement;
+  private _clipboard: HTMLTextAreaElement;
+  readonly parentPanel: VerdantPanel;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(historyModel: HistoryModel, parentPanel: VerdantPanel) {
     super();
     this._historyModel = historyModel;
+    this.parentPanel = parentPanel;
     this.addClass(INSPECT);
 
     this._header = document.createElement("div");
@@ -72,6 +78,10 @@ export class InspectWidget extends Widget {
 
     this.node.appendChild(content);
 
+    this._clipboard = document.createElement("textarea");
+    this._clipboard.classList.add(INSPECT_CLIPBOARD);
+    this.node.appendChild(this._clipboard);
+
     // look for jp-OutputArea-output
   }
 
@@ -84,6 +94,17 @@ export class InspectWidget extends Widget {
     super.show();
     this._active = true;
     this.retrieveTarget();
+  }
+
+  copyToClipboard(nodeName: string) {
+    let nodey = this._historyModel.getNodey(nodeName);
+    let str = this.inspector.renderNode(nodey).text;
+    let el = document.createElement("textarea");
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
   }
 
   private get inspector() {
@@ -130,6 +151,11 @@ export class InspectWidget extends Widget {
     ops[diffType - 1].classList.add("active");
   }
 
+  private switchPane(runs: number[]) {
+    this.parentPanel.switchToNotebookHistory();
+    console.log("FOCUS ON RUNS", runs);
+  }
+
   private fillContent(
     target: Nodey,
     verList: { version: number; runs: any; text: string }[]
@@ -163,6 +189,7 @@ export class InspectWidget extends Widget {
           ", used in ";
         let r = document.createElement("span");
         r.classList.add(RUN_LINK);
+        r.addEventListener("click", this.switchPane.bind(this, target.run));
         if (target.run.length > 1) r.textContent = target.run.length + " runs";
         else r.textContent = target.run.length + " run";
         label.appendChild(l);
@@ -183,6 +210,10 @@ export class InspectWidget extends Widget {
       let clippy = document.createElement("div");
       clippy.classList.add(INSPECT_VERSION_ACTION);
       clippy.classList.add("clippy");
+      clippy.addEventListener(
+        "click",
+        this.copyToClipboard.bind(this, target.name)
+      );
       annotator.appendChild(star);
       annotator.appendChild(note);
       annotator.appendChild(clippy);

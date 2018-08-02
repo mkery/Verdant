@@ -28,6 +28,7 @@ export class RunSection extends Widget {
     headerTag: string,
     headerTitle: string,
     selectionHandler: () => any,
+    switchPane: () => any,
     runData: Run[]
   ) {
     super();
@@ -57,7 +58,7 @@ export class RunSection extends Widget {
 
     this.runItemList = document.createElement("ul");
     this.runItemList.classList.add(RUNLIST_UL);
-    runData.forEach(item => this.addNewRun(item, selectionHandler));
+    runData.forEach(item => this.addNewRun(item, selectionHandler, switchPane));
 
     caret.addEventListener(
       "click",
@@ -127,10 +128,14 @@ export class RunSection extends Widget {
     }
   }
 
-  public addNewRun(run: Run, selectionHandler: () => any) {
+  public addNewRun(
+    run: Run,
+    selectionHandler: () => any,
+    switchPane: () => any
+  ) {
     //console.log("adding new run Widget!", run);
     let runItemData = run;
-    let runItem = new RunItem(runItemData, this.historyModel);
+    let runItem = new RunItem(runItemData, this.historyModel, switchPane);
     runItem.header.addEventListener(
       "click",
       selectionHandler.bind(this, runItem)

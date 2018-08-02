@@ -26,6 +26,7 @@
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
   --verdant-icon-time: url("img/clock.svg");
+  --verdant-icon-time-highlight: url("img/clock-highlight.svg");
 
   --verdant-icon-cell-changed: url("img/cell-changed.svg");
   --verdant-icon-cell-added: url("img/cell-added.svg");

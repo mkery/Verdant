@@ -38,12 +38,14 @@ export class RunItem extends Widget implements VerdantListItem {
   readonly dotMap: DotMap;
   readonly notes: AddAnnotations;
   readonly historyModel: HistoryModel;
+  readonly switchPane: () => any;
   cluster: RunCluster = null;
 
-  constructor(run: Run, historyModel: HistoryModel) {
+  constructor(run: Run, historyModel: HistoryModel, switchPane: () => any) {
     super();
     this.historyModel = historyModel;
     this.run = run;
+    this.switchPane = switchPane;
 
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
@@ -196,6 +198,18 @@ export class RunItem extends Widget implements VerdantListItem {
     });
   }
 
+  private goToCellDetail(nodeyName: string) {
+    let nodey = this.historyModel.getNodey(nodeyName);
+    this.historyModel.inspector.changeTarget([nodey]);
+    this.switchPane();
+  }
+
+  private gotToOutputDetail(outName: string) {
+    let out = this.historyModel.getOutput(outName);
+    this.historyModel.inspector.changeTarget([out]);
+    this.switchPane();
+  }
+
   private createCellDetail(
     _: string,
     descLabels: string[],
@@ -222,6 +236,10 @@ export class RunItem extends Widget implements VerdantListItem {
     let sample = Sampler.sampleCell(this.historyModel, nodey);
     let button = document.createElement("div");
     button.classList.add(RUN_SAMPLE_BUTTON);
+    button.addEventListener(
+      "click",
+      this.goToCellDetail.bind(this, nodey.name)
+    );
     sampleRow.appendChild(button);
     sampleRow.appendChild(sample);
     cellContainer.appendChild(sampleRow);
@@ -243,6 +261,10 @@ export class RunItem extends Widget implements VerdantListItem {
         outputRow.classList.add(RUN_SAMPLE_ROW);
         let sampleOut = Sampler.sampleOutput(this.historyModel, out);
         let outButton = document.createElement("div");
+        outButton.addEventListener(
+          "click",
+          this.gotToOutputDetail.bind(this, num)
+        );
         outButton.classList.add(RUN_SAMPLE_BUTTON);
         outputRow.appendChild(outButton);
         outputRow.appendChild(sampleOut);
