@@ -72,9 +72,11 @@ export class RunPanel extends Widget {
       if (this.selectedRun) this.selectedRun.blur();
 
       this.selectedRun = runItem.animLoading();
-      if (this.selectedRun) {
-        this.loadNotebook(runItem);
-      }
+      setTimeout(() => {
+        if (this.selectedRun) {
+          this.loadNotebook(runItem);
+        }
+      }, 5);
     }
   }
 

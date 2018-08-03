@@ -72,7 +72,9 @@ export class RunItem extends Widget implements VerdantListItem {
   }
 
   animLoading() {
+    this.header.classList.remove(RUN_ITEM_LOADING);
     this.header.classList.add(RUN_ITEM_LOADING);
+    void this.header.offsetLeft;
     return this;
   }
 
@@ -94,15 +96,19 @@ export class RunItem extends Widget implements VerdantListItem {
   nodeClicked() {
     let caret = this.header.firstElementChild;
     caret.classList.add("highlight");
-    this.header.classList.remove(RUN_ITEM_LOADING);
-    this.header.classList.add(RUN_ITEM_ACTIVE);
-    if (this.run.star > -1)
-      this.header
-        .getElementsByClassName(RUN_ITEM_STAR)[0]
-        .classList.add("highlight");
-    var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
-    for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
-    this.dotMap.highlight();
+    setTimeout(() => {
+      this.header.classList.remove(RUN_ITEM_LOADING);
+      void this.header.offsetLeft;
+      this.header.classList.add(RUN_ITEM_ACTIVE);
+      if (this.run.star > -1)
+        this.header
+          .getElementsByClassName(RUN_ITEM_STAR)[0]
+          .classList.add("highlight");
+      var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
+      for (var i = 0; i < icons.length; i++)
+        icons[i].classList.add("highlight");
+      this.dotMap.highlight();
+    }, 5);
     return this;
   }
 
