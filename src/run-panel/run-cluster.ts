@@ -142,8 +142,10 @@ export class RunCluster extends Widget implements VerdantListItem {
       this.header.style.display = "none";
       let kidList = document.createElement("ul");
       kidList.classList.add(SUB_RUNLIST_CLASS);
-      for (var i = this.runs.length - 1; i > -1; i--)
+      for (var i = this.runs.length - 1; i > -1; i--) {
         kidList.appendChild(this.runs[i].node);
+        this.runs[i].caretClicked();
+      }
       this.node.appendChild(kidList);
     }
   }

@@ -79,6 +79,13 @@
   background-repeat: no-repeat;
   background-position: center;
 }
+.v-VerdantPanel-search-filter.disable {
+  opacity: 0.3;
+}
+.v-VerdantPanel-search-filter.disable:hover {
+  border: 1px solid transparent;
+  box-shadow: 0px 0px 0px 0px transparent;
+}
 .v-VerdantPanel-search-filter::before,
 .v-VerdantPanel-search-filter::after {
   box-sizing: inherit;
@@ -136,6 +143,6 @@
   vertical-align: top;
   margin-top: 0.25em;
   margin-bottom: 0.5em;
+  width: 100%;
   text-align: center;
-  color: var(--jp-brand-color0);
 }

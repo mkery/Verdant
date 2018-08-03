@@ -57,7 +57,7 @@ export namespace Annotator {
 
     let star = document.createElement("div");
     star.classList.add(STAR_BUTTON);
-    if (run.star > -1) star.classList.add("highlight");
+    if (run.star > -1) star.classList.add("active");
     star.addEventListener(
       "click",
       Annotator.star.bind(this, star, run, historyModel)

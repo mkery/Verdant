@@ -2,6 +2,8 @@ import { Widget } from "@phosphor/widgets";
 
 import { HistoryModel } from "../model/history";
 
+import { FilterFunction } from "../panel/search-bar";
+
 import { Run } from "../model/run";
 
 import { Annotator } from "../run-panel/add-annotations";
@@ -30,6 +32,7 @@ const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
 const INSPECT_CLIPBOARD = "v-VerdantPanel-inspect-clipboard";
 const NOTE_INPUT = "v-VerdantPanel-inspect-notes";
 const NOTE_INPUT_LABEL = "v-VerdantPanel-inspect-notes-label";
+const SEARCH_FILTER_RESULTS = "v-VerdantPanel-search-results-label";
 
 /**
  * A widget which displays cell-level history information
@@ -40,6 +43,7 @@ export class InspectWidget extends Widget {
   private _header: HTMLElement;
   private _clipboard: HTMLTextAreaElement;
   readonly parentPanel: VerdantPanel;
+  private _filter: FilterFunction<Nodey>;
 
   constructor(historyModel: HistoryModel, parentPanel: VerdantPanel) {
     super();
@@ -194,106 +198,131 @@ export class InspectWidget extends Widget {
     console.log("FOCUS ON RUNS", runs);
   }
 
+  filterNodeyList(filter: FilterFunction<Nodey>) {
+    this._filter = filter;
+    this.content.innerHTML = "";
+    this.fillContent(this.inspector.target, this.inspector.versionsOfTarget);
+  }
+
+  clearFilters() {
+    this._filter = null;
+    this.content.innerHTML = "";
+    this.fillContent(this.inspector.target, this.inspector.versionsOfTarget);
+  }
+
   private fillContent(
     target: Nodey,
     verList: { version: number; runs: any; text: string }[]
   ) {
     var contentDiv = this.content;
+    let matches = 0;
     verList.map(item => {
       let text = item.text;
       let li = document.createElement("div");
       li.classList.add(INSPECT_VERSION);
 
       let nodeyVer = this._historyModel.getPriorVersion(target, item.version);
-      console.log("This node was used in runs", nodeyVer);
-      let created = nodeyVer.run[0];
-      let timestamp = null;
-      if (created !== null && created !== undefined) {
-        console.log("run is ", this._historyModel.runModel.getRun(created));
-        timestamp = new Date(
-          this._historyModel.runModel.getRun(created).timestamp
+      if (!this._filter || this._filter.filter(nodeyVer)) {
+        console.log("This node was used in runs", nodeyVer);
+        matches += 1;
+        let created = nodeyVer.run[0];
+        let timestamp = null;
+        if (created !== null && created !== undefined) {
+          console.log("run is ", this._historyModel.runModel.getRun(created));
+          timestamp = new Date(
+            this._historyModel.runModel.getRun(created).timestamp
+          );
+        }
+
+        //v2: created 5/4 8:15pm, used in 555 runs
+        let label = document.createElement("div");
+        label.classList.add(INSPECT_VERSION_LABEL);
+        let l = document.createElement("span");
+        if (timestamp) {
+          l.textContent =
+            "v" +
+            (item.version + 1) +
+            ": created " +
+            Run.formatTime(timestamp) +
+            ", used in ";
+          let r = document.createElement("span");
+          r.classList.add(RUN_LINK);
+          r.addEventListener("click", this.switchPane.bind(this, nodeyVer.run));
+          if (nodeyVer.run.length > 1)
+            r.textContent = nodeyVer.run.length + " runs";
+          else r.textContent = nodeyVer.run.length + " run";
+          label.appendChild(l);
+          label.appendChild(r);
+        } else {
+          l.textContent = "v" + (item.version + 1) + ": has never been run";
+          label.appendChild(l);
+        }
+
+        let annotator = document.createElement("div");
+        annotator.classList.add(INSPECT_ANNOTATION_BOX);
+        let star = document.createElement("div");
+        star.classList.add(INSPECT_VERSION_ACTION);
+        star.classList.add("star");
+        if (nodeyVer.star > -1) star.classList.add("active");
+        star.addEventListener(
+          "click",
+          Annotator.star.bind(this, star, nodeyVer, this._historyModel)
         );
-      }
-
-      //v2: created 5/4 8:15pm, used in 555 runs
-      let label = document.createElement("div");
-      label.classList.add(INSPECT_VERSION_LABEL);
-      let l = document.createElement("span");
-      if (timestamp) {
-        l.textContent =
-          "v" +
-          (item.version + 1) +
-          ": created " +
-          Run.formatTime(timestamp) +
-          ", used in ";
-        let r = document.createElement("span");
-        r.classList.add(RUN_LINK);
-        r.addEventListener("click", this.switchPane.bind(this, nodeyVer.run));
-        if (nodeyVer.run.length > 1)
-          r.textContent = nodeyVer.run.length + " runs";
-        else r.textContent = nodeyVer.run.length + " run";
-        label.appendChild(l);
-        label.appendChild(r);
-      } else {
-        l.textContent = "v" + (item.version + 1) + ": has never been run";
-        label.appendChild(l);
-      }
-
-      let annotator = document.createElement("div");
-      annotator.classList.add(INSPECT_ANNOTATION_BOX);
-      let star = document.createElement("div");
-      star.classList.add(INSPECT_VERSION_ACTION);
-      star.classList.add("star");
-      if (nodeyVer.star > -1) star.classList.add("active");
-      star.addEventListener(
-        "click",
-        Annotator.star.bind(this, star, nodeyVer, this._historyModel)
-      );
-      let note = document.createElement("div");
-      note.classList.add(INSPECT_VERSION_ACTION);
-      note.classList.add("comment");
-      note.addEventListener(
-        "click",
-        this.commentVersion.bind(this, nodeyVer.name, note, label)
-      );
-      let clippy = document.createElement("div");
-      clippy.classList.add(INSPECT_VERSION_ACTION);
-      clippy.classList.add("clippy");
-      clippy.addEventListener(
-        "click",
-        this.copyToClipboard.bind(this, nodeyVer.name)
-      );
-      clippy.addEventListener(
-        "mouseup",
-        this.animateLoading.bind(this, clippy)
-      );
-      annotator.appendChild(star);
-      annotator.appendChild(note);
-      annotator.appendChild(clippy);
-      label.appendChild(annotator);
-
-      li.appendChild(label);
-      if (nodeyVer.note > -1) this.commentVersion(nodeyVer.name, note, label);
-
-      let content = document.createElement("div");
-      content.classList.add(INSPECT_VERSION_CONTENT);
-      li.appendChild(content);
-
-      if (nodeyVer instanceof NodeyMarkdown) {
-        content.classList.add("markdown");
-        this.inspector.renderMarkdownVersionDiv(nodeyVer, text, content);
-      } else if (nodeyVer instanceof NodeyCode) {
-        this.inspector.renderCodeVerisonDiv(
-          nodeyVer,
-          text,
-          content,
-          Inspect.CHANGE_DIFF
+        let note = document.createElement("div");
+        note.classList.add(INSPECT_VERSION_ACTION);
+        note.classList.add("comment");
+        note.addEventListener(
+          "click",
+          this.commentVersion.bind(this, nodeyVer.name, note, label)
         );
-      }
+        let clippy = document.createElement("div");
+        clippy.classList.add(INSPECT_VERSION_ACTION);
+        clippy.classList.add("clippy");
+        clippy.addEventListener(
+          "click",
+          this.copyToClipboard.bind(this, nodeyVer.name)
+        );
+        clippy.addEventListener(
+          "mouseup",
+          this.animateLoading.bind(this, clippy)
+        );
+        annotator.appendChild(star);
+        annotator.appendChild(note);
+        annotator.appendChild(clippy);
+        label.appendChild(annotator);
 
-      contentDiv.insertBefore(li, contentDiv.firstElementChild);
+        li.appendChild(label);
+        if (nodeyVer.note > -1) this.commentVersion(nodeyVer.name, note, label);
+
+        let content = document.createElement("div");
+        content.classList.add(INSPECT_VERSION_CONTENT);
+        li.appendChild(content);
+
+        if (nodeyVer instanceof NodeyMarkdown) {
+          content.classList.add("markdown");
+          this.inspector.renderMarkdownVersionDiv(nodeyVer, text, content);
+        } else if (nodeyVer instanceof NodeyCode) {
+          this.inspector.renderCodeVerisonDiv(
+            nodeyVer,
+            text,
+            content,
+            Inspect.CHANGE_DIFF
+          );
+        }
+
+        contentDiv.insertBefore(li, contentDiv.firstElementChild);
+      }
     });
-    contentDiv.lastElementChild.classList.add("last");
+    let last = contentDiv.lastElementChild;
+    if (last) last.classList.add("last");
+
+    if (this._filter) {
+      let label = document.createElement("div");
+      label.classList.add(SEARCH_FILTER_RESULTS);
+      label.textContent =
+        matches + " versions found with " + this._filter.label;
+      contentDiv.insertBefore(label, contentDiv.firstElementChild);
+    }
   }
 
   public toggleWishbone() {

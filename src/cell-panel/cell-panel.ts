@@ -2,6 +2,8 @@ import { Widget } from "@phosphor/widgets";
 
 import { Nodey } from "../model/nodey";
 
+import { FilterFunction } from "../panel/search-bar";
+
 import { HistoryModel } from "../model/history";
 
 import { InspectWidget } from "../inspector-panel/inspect-widget";
@@ -35,6 +37,14 @@ export class CellPanel extends Widget {
         }
       );
     });
+  }
+
+  filterNodeyList(filter: FilterFunction<Nodey>) {
+    this.inspectWidget.filterNodeyList(filter);
+  }
+
+  clearFilters() {
+    this.inspectWidget.clearFilters();
   }
 
   hide() {

@@ -88,6 +88,8 @@ export class VerdantPanel extends Widget {
   public switchToNotebookHistory() {
     this.runList.show();
     this.cellPanel.hide();
+    this.searchBar.clearFilters();
+    this.searchBar.enableRunButtons();
     this.node
       .getElementsByClassName(HEADER_NOTEBOOK_LABEL)[0]
       .classList.remove("closed");
@@ -99,6 +101,8 @@ export class VerdantPanel extends Widget {
   public switchToCellHistory() {
     this.runList.hide();
     this.cellPanel.show();
+    this.searchBar.clearFilters();
+    this.searchBar.disableRunButtons();
     this.node
       .getElementsByClassName(HEADER_NOTEBOOK_LABEL)[0]
       .classList.add("closed");

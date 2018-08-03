@@ -2,6 +2,8 @@ import { Widget } from "@phosphor/widgets";
 
 import { Run, ChangeType } from "../model/run";
 
+import { Nodey } from "../model/nodey";
+
 import { VerdantPanel } from "./verdant-panel";
 /*
  * History search bar
@@ -90,12 +92,34 @@ export class SearchBar extends Widget {
     return this.node.getElementsByClassName("comment")[0];
   }
 
+  clearFilters() {
+    let filters = this.node.getElementsByClassName(SEARCH_FILTER);
+    for (let i = 0; i < filters.length; i++) {
+      filters[i].classList.remove("highlight");
+    }
+  }
+
+  disableRunButtons() {
+    this.addedButton.classList.add("disable");
+    this.removedButton.classList.add("disable");
+    this.changedButton.classList.add("disable");
+  }
+
+  enableRunButtons() {
+    this.addedButton.classList.remove("disable");
+    this.removedButton.classList.remove("disable");
+    this.changedButton.classList.remove("disable");
+  }
+
   filter(button: HTMLElement) {
+    if (button.classList.contains("disable")) return; // ignore it
+
     if (button.classList.contains("highlight"))
       button.classList.remove("highlight");
     else button.classList.add("highlight");
 
     if (this.view.runList.isVisible) this._runFilters();
+    else this._verFilters();
   }
 
   private _filterRunByAdded(): FilterFunction<Run> {
@@ -151,8 +175,23 @@ export class SearchBar extends Widget {
     };
   }
 
+  private _filterNodeyByStar(): FilterFunction<Nodey> {
+    return {
+      filter: (r: Nodey) => r.star > -1,
+      label: "stars"
+    };
+  }
+
+  private _filterNodeyByComment(): FilterFunction<Nodey> {
+    return {
+      filter: (r: Nodey) => r.note > -1,
+      label: "a comment"
+    };
+  }
+
   private _runFilters(): void {
     let filterList: FilterFunction<Run>[] = [];
+
     if (this.addedButton.classList.contains("highlight"))
       filterList.push(this._filterRunByAdded());
     if (this.removedButton.classList.contains("highlight"))
@@ -171,6 +210,24 @@ export class SearchBar extends Widget {
       filterList.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);
       this.view.runList.filterRunList({ filter, label });
+    }
+  }
+
+  private _verFilters(): void {
+    let filterList: FilterFunction<Nodey>[] = [];
+
+    if (this.starButton.classList.contains("highlight"))
+      filterList.push(this._filterNodeyByStar());
+    if (this.commentButton.classList.contains("highlight"))
+      filterList.push(this._filterNodeyByComment());
+
+    if (filterList.length < 1) this.view.cellPanel.clearFilters();
+    else {
+      let filter = (r: Nodey) => filterList.every(f => f.filter(r));
+      let label = "";
+      filterList.forEach(f => (label += f.label + " and "));
+      label = label.substring(0, label.length - 5);
+      this.view.cellPanel.filterNodeyList({ filter, label });
     }
   }
 }
