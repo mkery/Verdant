@@ -75,6 +75,10 @@ export class RunItem extends Widget implements VerdantListItem {
     let caret = this.header.firstElementChild;
     caret.classList.remove("highlight");
     this.header.classList.remove(RUN_ITEM_ACTIVE);
+    if (this.run.note > -1)
+      this.header
+        .getElementsByClassName(RUN_ITEM_STAR)[0]
+        .classList.remove("highlight");
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++)
       icons[i].classList.remove("highlight");
@@ -84,6 +88,10 @@ export class RunItem extends Widget implements VerdantListItem {
     let caret = this.header.firstElementChild;
     caret.classList.add("highlight");
     this.header.classList.add(RUN_ITEM_ACTIVE);
+    if (this.run.star > -1)
+      this.header
+        .getElementsByClassName(RUN_ITEM_STAR)[0]
+        .classList.add("highlight");
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++) icons[i].classList.add("highlight");
     this.dotMap.highlight();
