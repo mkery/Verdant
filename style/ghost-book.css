@@ -20,12 +20,16 @@
 }
 
 .v-Verdant-GhostBook-overlay-toolbar {
+  position: absolute;
   background: transparent;
   box-shadow: 0px 0px 0px transparent;
   border: transparent;
   padding: 0px;
   justify-content: space-between;
   flex-wrap: wrap;
+  z-index: 5;
+  top: var(--jp-private-toolbar-height);
+  width: 100%;
 }
 
 .v-Verdant-GhostBook-change-toolbar {

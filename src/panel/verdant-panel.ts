@@ -2,6 +2,8 @@ import { Widget, TabBar, PanelLayout } from "@phosphor/widgets";
 
 import { NotebookPanel } from "@jupyterlab/notebook";
 
+import { GhostBookPanel } from "../ghost-book/ghost-model";
+
 import { HistoryModel } from "../model/history";
 
 import { SearchBar } from "./search-bar";
@@ -60,10 +62,13 @@ export class VerdantPanel extends Widget {
   public ghostBookOpened(widg: Widget) {
     widg.disposed.connect(this.ghostBookClosed.bind(this));
     this.runList.onGhostBookOpened();
+    let book = (widg as GhostBookPanel).content;
+    this.cellPanel.onGhostBookOpened(book);
   }
 
   public ghostBookClosed() {
     this.runList.onGhostBookClosed();
+    this.cellPanel.onGhostBookClosed();
   }
 
   private buildHeaderNode() {

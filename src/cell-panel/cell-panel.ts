@@ -2,6 +2,8 @@ import { Widget } from "@phosphor/widgets";
 
 import { Nodey } from "../model/nodey";
 
+import { GhostBook } from "../ghost-book/ghost-book";
+
 import { FilterFunction } from "../panel/search-bar";
 
 import { HistoryModel } from "../model/history";
@@ -37,6 +39,14 @@ export class CellPanel extends Widget {
         }
       );
     });
+  }
+
+  onGhostBookOpened(book: GhostBook) {
+    this.inspectWidget.onGhostBookOpened(book);
+  }
+
+  onGhostBookClosed() {
+    this.inspectWidget.onGhostBookClosed();
   }
 
   filterNodeyList(filter: FilterFunction<Nodey>) {

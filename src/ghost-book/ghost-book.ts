@@ -4,6 +4,8 @@ import { PathExt } from "@jupyterlab/coreutils";
 
 import { Run, ChangeType } from "../model/run";
 
+import { InspectWidget } from "../inspector-panel/inspect-widget";
+
 import { nbformat } from "@jupyterlab/coreutils";
 
 import { RenderMimeRegistry } from "@jupyterlab/rendermime";
@@ -71,6 +73,8 @@ export class GhostBook extends Widget {
   readonly context: DocumentRegistry.IContext<GhostBookModel>;
   readonly model: GhostBookModel;
   readonly rendermime: RenderMimeRegistry;
+  private _inspectPane: InspectWidget;
+  changeDivs: HTMLElement[];
   cellArea: Widget;
   runLabel: ToolbarLabel;
   changeLabel: ToolbarLabel;
@@ -87,6 +91,7 @@ export class GhostBook extends Widget {
     this.model = context.model;
     this.rendermime = options.rendermime;
     this.node.tabIndex = -1;
+    this.changeDivs = [];
     this.addClass(GHOST_BOOK);
 
     let layout = (this.layout = new PanelLayout());
@@ -151,6 +156,7 @@ export class GhostBook extends Widget {
         this
       );
       this._ready.resolve(void 0);
+      this._scrollToFirstChange();
     });
   }
 
@@ -159,6 +165,10 @@ export class GhostBook extends Widget {
    */
   get ready(): Promise<void> {
     return this._ready.promise;
+  }
+
+  get diffBar(): Element {
+    return this.node.getElementsByClassName(GHOST_BOOK_DIFFBAR)[0];
   }
 
   public changeDiff(diff: number) {
@@ -170,8 +180,44 @@ export class GhostBook extends Widget {
 
   public feedNewData(dict: nbformat.INotebookContent) {
     console.log("updating Ghost book with new data", dict);
+    this.changeDivs = [];
     this.context.model.fromJSON(dict);
     this._render();
+    this._scrollToFirstChange();
+  }
+
+  public connectInspectPanel(inspect: InspectWidget) {
+    this._inspectPane = inspect;
+    console.log("connected inspector!", this._inspectPane);
+    // go through each changed cell in the notebook and give it a header
+    //when a cell in the notebook is selected, give it a selected border and a
+    // header where users can add hideHeaderAnnotations
+    // when a cell in the notebook is selected, set the target of the inspector
+    // to that cell version
+  }
+
+  private _scrollToFirstChange() {
+    console.log("We have change divs", this.changeDivs);
+    if (this.changeDivs.length > 0) {
+      this._scrollToChange(0);
+    }
+  }
+
+  private _scrollToChange(index: number) {
+    let rect = this.changeDivs[index].getBoundingClientRect();
+    let topThird = Math.floor((rect.bottom - rect.top) * 0.75) + rect.top;
+    let refereceRect = this.diffBar.getBoundingClientRect();
+    let adjustedTop = topThird - refereceRect.bottom;
+    console.log(
+      "Attempt to scroll to ",
+      rect.top,
+      adjustedTop,
+      refereceRect.bottom
+    );
+    this.cellArea.node.scrollTo({
+      top: adjustedTop,
+      behavior: "instant"
+    });
   }
 
   /**
@@ -325,12 +371,15 @@ export class GhostBook extends Widget {
         this._decorateChanges_code(widget, model.metadata.get(
           "edits"
         ) as NodeChangeDesc[]);
+        this.changeDivs.push(widget.inputArea.node);
         break;
       case ChangeType.REMOVED:
         widget.inputArea.node.classList.add(GHOST_REMOVED);
+        this.changeDivs.push(widget.inputArea.node);
         break;
       case ChangeType.ADDED:
         widget.inputArea.node.classList.add(GHOST_ADDED);
+        this.changeDivs.push(widget.inputArea.node);
         break;
     }
   }
