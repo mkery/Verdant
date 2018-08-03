@@ -21,6 +21,7 @@ const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
 const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
+const RUN_ITEM_LOADING = "loading";
 
 const RUN_SAMPLE_ROW = "v-VerdantPanel-runItem-sampleRow";
 const RUN_SAMPLE_BUTTON = "v-VerdantPanel-runItem-sampleButton";
@@ -70,11 +71,17 @@ export class RunItem extends Widget implements VerdantListItem {
     this.buildHeaderAnnotations();
   }
 
+  animLoading() {
+    this.header.classList.add(RUN_ITEM_LOADING);
+    return this;
+  }
+
   blur() {
     this.dotMap.blur();
     let caret = this.header.firstElementChild;
     caret.classList.remove("highlight");
     this.header.classList.remove(RUN_ITEM_ACTIVE);
+    this.header.classList.remove(RUN_ITEM_LOADING);
     if (this.run.note > -1)
       this.header
         .getElementsByClassName(RUN_ITEM_STAR)[0]
@@ -87,6 +94,7 @@ export class RunItem extends Widget implements VerdantListItem {
   nodeClicked() {
     let caret = this.header.firstElementChild;
     caret.classList.add("highlight");
+    this.header.classList.remove(RUN_ITEM_LOADING);
     this.header.classList.add(RUN_ITEM_ACTIVE);
     if (this.run.star > -1)
       this.header

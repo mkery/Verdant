@@ -47,16 +47,12 @@ export class RunPanel extends Widget {
   private init() {
     this.listContainer = this.buildRunList();
     this.node.appendChild(this.listContainer);
-
-    let footer = document.createElement("div");
-    footer.classList.add(RUN_LIST_FOOTER);
-    let legend = new Legend();
-    footer.appendChild(legend.button);
-    footer.appendChild(legend.node);
-    legend.node.style.display = "none";
-    this.node.appendChild(footer);
-
+    this.buildFooter();
     this.historyModel.runModel.newRun.connect(this.addNewRun.bind(this));
+  }
+
+  public onGhostBookOpened() {
+    if (this.selectedRun) this.selectedRun.nodeClicked();
   }
 
   public onGhostBookClosed() {
@@ -66,7 +62,7 @@ export class RunPanel extends Widget {
   /**
    * Handle the `'click'` event for the widget.
    */
-  private onClick(runItem: VerdantListItem, event: Event) {
+  private async onClick(runItem: VerdantListItem, event: Event) {
     console.log("Run item ", runItem, event);
 
     let target = event.target as HTMLElement;
@@ -75,12 +71,29 @@ export class RunPanel extends Widget {
     } else {
       if (this.selectedRun) this.selectedRun.blur();
 
-      this.selectedRun = runItem.nodeClicked();
+      this.selectedRun = runItem.animLoading();
       if (this.selectedRun) {
-        console.log("Open old version of notebook", this.selectedRun.run);
-        this.historyModel.inspector.produceNotebook(this.selectedRun.run);
+        this.loadNotebook(runItem);
       }
     }
+  }
+
+  private buildFooter() {
+    let footer = document.createElement("div");
+    footer.classList.add(RUN_LIST_FOOTER);
+    let legend = new Legend();
+    footer.appendChild(legend.button);
+    footer.appendChild(legend.node);
+    legend.node.style.display = "none";
+    this.node.appendChild(footer);
+  }
+
+  private async loadNotebook(runItem: VerdantListItem) {
+    console.log("Open old version of notebook", this.selectedRun.run);
+    let wasOpen = await this.historyModel.inspector.produceNotebook(
+      this.selectedRun.run
+    );
+    if (wasOpen) runItem.nodeClicked();
   }
 
   private switchPane() {
@@ -120,6 +133,7 @@ export class RunPanel extends Widget {
 
     this.listContainer = listContainer;
     this.node.appendChild(this.listContainer);
+    this.buildFooter();
   }
 
   public clearFilters() {
@@ -127,6 +141,7 @@ export class RunPanel extends Widget {
     this.node.innerHTML = "";
     this.listContainer = this.buildRunList();
     this.node.appendChild(this.listContainer);
+    this.buildFooter();
   }
 
   private buildRunList(): HTMLElement {
@@ -245,4 +260,5 @@ export interface VerdantListItem extends Widget {
   caretClicked: () => void;
   nodeClicked: () => RunItem;
   blur: () => void;
+  animLoading: () => RunItem;
 }

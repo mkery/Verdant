@@ -67,7 +67,8 @@ export class FileManager {
   public async openGhost(
     data: nbformat.INotebookContent,
     notebook: NotebookListen
-  ) {
+  ): Promise<boolean> {
+    let wasOpen = true;
     if (!this.ghostPath) {
       let path = "";
       var name = notebook.name;
@@ -76,6 +77,7 @@ export class FileManager {
       path = "/" + path.substring(0, path.lastIndexOf("/") + 1) + name;
       await this.writeGhostFile(notebook, data);
       this.ghostPath = path;
+      wasOpen = false;
     }
 
     //let widget = this.docManager.findWidget(path);
@@ -84,6 +86,7 @@ export class FileManager {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
       (widget.content as GhostBook).feedNewData(data);
     }
+    return wasOpen;
   }
 
   public writeGhostFile(notebook: NotebookListen, data: {}): Promise<string> {

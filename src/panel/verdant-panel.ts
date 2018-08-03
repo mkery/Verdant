@@ -59,6 +59,7 @@ export class VerdantPanel extends Widget {
 
   public ghostBookOpened(widg: Widget) {
     widg.disposed.connect(this.ghostBookClosed.bind(this));
+    this.runList.onGhostBookOpened();
   }
 
   public ghostBookClosed() {

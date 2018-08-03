@@ -231,7 +231,7 @@ export class Inspect {
     };
   }
 
-  public async produceNotebook(run: Run) {
+  public async produceNotebook(run: Run): Promise<boolean> {
     var totalChanges: number[] = [];
     var cells = run.cells.map((cellDat: CellRunData, cellIndex: number) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
@@ -296,7 +296,7 @@ export class Inspect {
       file
     );*/
 
-    this._historyModel.fileManager.openGhost(file, this._notebook);
+    return this._historyModel.fileManager.openGhost(file, this._notebook);
   }
 
   get target() {

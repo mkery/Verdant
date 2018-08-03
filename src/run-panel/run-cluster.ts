@@ -125,6 +125,10 @@ export class RunCluster extends Widget implements VerdantListItem {
     return null;
   }
 
+  animLoading(): RunItem {
+    return null;
+  }
+
   caretClicked() {
     console.log("Caret of CLUSTER was clicked!");
     var caret = this.caret;
