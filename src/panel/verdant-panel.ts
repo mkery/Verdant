@@ -57,6 +57,14 @@ export class VerdantPanel extends Widget {
     this.fileTabs.addTab(widg.title);
   }
 
+  public ghostBookOpened(widg: Widget) {
+    widg.disposed.connect(this.ghostBookClosed.bind(this));
+  }
+
+  public ghostBookClosed() {
+    this.runList.onGhostBookClosed();
+  }
+
   private buildHeaderNode() {
     let header = document.createElement("header");
 

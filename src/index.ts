@@ -35,7 +35,7 @@ import { HistoryModel } from "./model/history";
 
 import { VerdantPanel } from "./panel/verdant-panel";
 
-import { GhostBookFactory } from "./ghost-book/ghost-model";
+import { GhostBookFactory, GhostBookPanel } from "./ghost-book/ghost-model";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
@@ -95,6 +95,8 @@ const extension: JupyterLabPlugin<void> = {
               console.log("Notebook is ready");
             });
           }
+        } else if (widg instanceof GhostBookPanel) {
+          verdantPanel.ghostBookOpened(widg);
         }
       };
 

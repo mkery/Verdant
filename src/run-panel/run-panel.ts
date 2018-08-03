@@ -59,6 +59,10 @@ export class RunPanel extends Widget {
     this.historyModel.runModel.newRun.connect(this.addNewRun.bind(this));
   }
 
+  public onGhostBookClosed() {
+    if (this.selectedRun) this.selectedRun.blur();
+  }
+
   /**
    * Handle the `'click'` event for the widget.
    */
