@@ -62,6 +62,7 @@ const GHOST_REMOVED = "v-Verdant-GhostBook-cell-removed";
 const GHOST_ADDED = "v-Verdant-GhostBook-cell-added";
 const GHOST_CODE_REMOVED = "v-Verdant-GhostBook-code-removed";
 const GHOST_CODE_ADDED = "v-Verdant-GhostBook-code-added";
+const GHOST_CELL_SELECTED = "v-Verdant-GhostBook-cell-selected";
 
 /**
  * A widget for images.
@@ -78,6 +79,7 @@ export class GhostBook extends Widget {
   cellArea: Widget;
   runLabel: ToolbarLabel;
   changeLabel: ToolbarLabel;
+  selectedCell: Cell;
 
   /**
    * Construct a new image widget.
@@ -345,8 +347,28 @@ export class GhostBook extends Widget {
       )[0];
       codeMirror.classList.replace("cm-s-jupyter", GHOST_BOOK_CELL_CLASS);
     }
+
+    widget.inputArea.node.addEventListener(
+      "click",
+      this.selectCell.bind(this, widget)
+    );
+
     let layout = this.cellArea.layout as PanelLayout;
     layout.insertWidget(index, widget);
+  }
+
+  public selectCell(cell: Cell) {
+    if (this.selectedCell && this.selectedCell !== cell) {
+      this.selectedCell.node.classList.remove(GHOST_CELL_SELECTED);
+    }
+    cell.node.classList.add(GHOST_CELL_SELECTED);
+    this.selectedCell = cell;
+    if (this._inspectPane) {
+      let name = cell.model.metadata.get("nodey") + "";
+      let nodey = this._inspectPane.historyModel.getNodey(name);
+      console.log("Select", cell, nodey);
+      this._inspectPane.inspector.changeTarget([nodey]);
+    }
   }
 
   private _decorateChanges(widget: Cell, cell: ICellModel, change: number) {

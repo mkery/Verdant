@@ -36,11 +36,13 @@
   width: max-content;
   border-bottom-left-radius: var(--jp-border-radius);
   border-bottom-right-radius: var(--jp-border-radius);
+  padding: 0px;
 }
 
 .v-Verdant-GhostBook-diff-toolbar {
   border-bottom-left-radius: var(--jp-border-radius);
   border-bottom-right-radius: var(--jp-border-radius);
+  padding: 0px;
 }
 
 .v-Verdant-GhostBook-diff-button {
@@ -48,11 +50,9 @@
   color: var(--jp-ui-font-color3);
 }
 .v-Verdant-GhostBook-diff-button.right {
-  margin-left: 0.5em;
 }
 .v-Verdant-GhostBook-diff-button.left {
   border-right: 1px solid var(--jp-border-color0);
-  margin-right: 0.5em;
 }
 .v-Verdant-GhostBook-diff-button.active {
   color: var(--jp-ui-font-color0);
@@ -78,6 +78,10 @@
   overflow: auto;
   background: var(--verdant-ghost-color1);
   flex: 1 1 auto;
+}
+
+.v-Verdant-GhostBook-cell-selected {
+  border: var(--jp-border-width) solid var(--jp-content-font-color2);
 }
 
 .v-Verdant-GhostBook-toolbar-edit-icon {

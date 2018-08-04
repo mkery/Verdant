@@ -61,13 +61,15 @@
   padding: 4px;
   flex: 1 1 auto;
   cursor: default;
+  background: white;
+  border-top: 1px solid var(--jp-toolbar-border-color);
 }
 .v-Verdant-inspect-diff-opt.left {
   border-right: var(--jp-border-width) solid var(--jp-border-color0);
 }
 .v-Verdant-inspect-diff-opt.active {
   color: var(--jp-ui-font-color1);
-  border-top: 1px solid var(--jp-toolbar-border-color);
+  border-bottom: 2px solid var(--jp-cell-editor-active-border-color);
 }
 
 .v-VerdantPanel-inspect-content {

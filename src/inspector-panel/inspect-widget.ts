@@ -157,8 +157,12 @@ export class InspectWidget extends Widget {
     }
   }
 
-  private get inspector() {
+  public get inspector() {
     return this._historyModel.inspector;
+  }
+
+  public get historyModel() {
+    return this._historyModel;
   }
 
   get header() {

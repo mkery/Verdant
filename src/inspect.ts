@@ -238,7 +238,7 @@ export class Inspect {
       console.log("found node?", cellDat.node, nodey);
       var jsn: nbformat.ICell = {
         cell_type: nodey.typeName,
-        metadata: {},
+        metadata: { nodey: nodey.name },
         source: [] as string[]
       };
       if (cellDat.changeType !== ChangeType.SAME) {

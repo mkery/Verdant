@@ -114,6 +114,11 @@ export class NotebookListen {
     this._ready.resolve(undefined);
   }
 
+  getNodeForCell(cell: Cell) {
+    let cellListen = this.cells.get(cell.model.id);
+    return cellListen.nodey;
+  }
+
   async focusCell(cell: Cell): Promise<void> {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       let cellListen = this.cells.get(cell.model.id);
