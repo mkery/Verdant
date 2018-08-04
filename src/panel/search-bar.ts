@@ -4,6 +4,8 @@ import { Run, ChangeType } from "../model/run";
 
 import { Nodey } from "../model/nodey";
 
+import { HistoryModel } from "../model/history";
+
 import { VerdantPanel } from "./verdant-panel";
 /*
  * History search bar
@@ -13,13 +15,17 @@ const SEARCH_CONTAINER_CLASS = "v-VerdantPanel-search-container";
 const SEARCH_BOX_CLASS = "v-VerdantPanel-search-box";
 const SEARCH_INPUT_CLASS = "v-VerdantPanel-search-input";
 const SEARCH_FILTER = "v-VerdantPanel-search-filter";
+const SEARCH_CANCEL_BUTTON = "v-VerdantPanel-search-cancel";
 
 export class SearchBar extends Widget {
   private view: VerdantPanel;
+  private textQuery: string = null;
+  readonly historyModel: HistoryModel;
 
-  constructor(view: VerdantPanel) {
+  constructor(view: VerdantPanel, historyModel: HistoryModel) {
     super();
     this.view = view;
+    this.historyModel = historyModel;
     this.addClass(SEARCH_CONTAINER_CLASS);
 
     let wrapper = document.createElement("div");
@@ -28,6 +34,9 @@ export class SearchBar extends Widget {
     input.className = SEARCH_INPUT_CLASS;
     input.placeholder = "Filter";
     input.spellcheck = false;
+    input.addEventListener("keyup", (ev: KeyboardEvent) => {
+      if (ev.key === "13" || ev.which === 13) this.searchQueryEntered();
+    });
     wrapper.appendChild(input);
     this.node.appendChild(wrapper);
 
@@ -90,6 +99,42 @@ export class SearchBar extends Widget {
 
   get commentButton() {
     return this.node.getElementsByClassName("comment")[0];
+  }
+
+  get searchBar() {
+    return this.node.getElementsByClassName(
+      SEARCH_INPUT_CLASS
+    )[0] as HTMLInputElement;
+  }
+
+  searchQueryEntered() {
+    let searchBar = this.searchBar;
+    let query = searchBar.value;
+    let wrapper = searchBar.parentElement;
+
+    let buttons = wrapper.getElementsByClassName(SEARCH_CANCEL_BUTTON);
+    if (buttons.length < 1) {
+      let xButton = document.createElement("div");
+      xButton.classList.add(SEARCH_CANCEL_BUTTON);
+      wrapper.appendChild(xButton);
+      xButton.addEventListener("click", this.clearSearch.bind(this));
+    }
+
+    this.textQuery = query;
+    console.log("Query is", query);
+    if (this.view.runList.isVisible) this._runFilters();
+    else this._verFilters();
+  }
+
+  clearSearch() {
+    let searchBar = this.searchBar;
+    let wrapper = searchBar.parentElement;
+    let button = wrapper.getElementsByClassName(SEARCH_CANCEL_BUTTON)[0];
+    wrapper.removeChild(button);
+    searchBar.value = "";
+    this.textQuery = null;
+    if (this.view.runList.isVisible) this._runFilters();
+    else this._verFilters();
   }
 
   clearFilters() {
@@ -175,6 +220,26 @@ export class SearchBar extends Widget {
     };
   }
 
+  private _filterRunByText(): FilterFunction<Run> {
+    let query = this.textQuery;
+    /*let historyModel = this.historyModel*/
+    //TODO with optimizations
+    return {
+      filter: (_: Run) => {
+        return true;
+      },
+      label: "the words " + query
+    };
+  }
+
+  private _filterNodeyByText(): FilterFunction<Nodey> {
+    let query = this.textQuery;
+    return {
+      filter: (_: Nodey) => true, //TODO with optimizations
+      label: "the words " + query
+    };
+  }
+
   private _filterNodeyByStar(): FilterFunction<Nodey> {
     return {
       filter: (r: Nodey) => r.star > -1,
@@ -192,6 +257,7 @@ export class SearchBar extends Widget {
   private _runFilters(): void {
     let filterList: FilterFunction<Run>[] = [];
 
+    if (this.textQuery) filterList.push(this._filterRunByText());
     if (this.addedButton.classList.contains("highlight"))
       filterList.push(this._filterRunByAdded());
     if (this.removedButton.classList.contains("highlight"))
@@ -216,6 +282,7 @@ export class SearchBar extends Widget {
   private _verFilters(): void {
     let filterList: FilterFunction<Nodey>[] = [];
 
+    if (this.textQuery) filterList.push(this._filterNodeyByText());
     if (this.starButton.classList.contains("highlight"))
       filterList.push(this._filterNodeyByStar());
     if (this.commentButton.classList.contains("highlight"))

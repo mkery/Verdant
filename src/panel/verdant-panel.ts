@@ -36,7 +36,7 @@ export class VerdantPanel extends Widget {
     this.fileTabs = new TabBar<Widget>({ orientation: "vertical" });
     this.fileTabs.id = TABS_ID;
 
-    this.searchBar = new SearchBar(this);
+    this.searchBar = new SearchBar(this, historyModel);
 
     this.runList = new RunPanel(this.historyModel, this);
     this.cellPanel = new CellPanel(this.historyModel, this);

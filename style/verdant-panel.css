@@ -67,6 +67,7 @@
   background-color: var(--jp-input-active-background);
   height: 24px;
   display: inline-block;
+  position: relative;
 }
 
 .v-VerdantPanel-search-filter {
@@ -134,6 +135,24 @@
 }
 .v-VerdantPanel-search-filter.comment.active {
   background-image: var(--verdant-icon-comment-highlight);
+}
+
+.v-VerdantPanel-search-cancel {
+  position: absolute;
+  right: -1px;
+  height: 24px;
+  top: -1px;
+  background-color: white;
+  background-size: 16px;
+  width: 16px;
+  background-image: var(--jp-icon-close);
+  border: 1px solid transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.v-VerdantPanel-search-cancel:hover {
+  border: 1px solid var(--jp-toolbar-border-color);
+  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.24);
 }
 
 .v-VerdantPanel-search-results-label {
