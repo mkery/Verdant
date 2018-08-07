@@ -22,6 +22,7 @@ const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 const RUN_ITEM_LOADING = "loading";
+const RUN_ITEM_TITLE_WRAPPER = "v-VerdantPanel-runItem-title-container";
 
 const RUN_SAMPLE_ROW = "v-VerdantPanel-runItem-sampleRow";
 const RUN_SAMPLE_BUTTON = "v-VerdantPanel-runItem-sampleButton";
@@ -62,9 +63,15 @@ export class RunItem extends Widget implements VerdantListItem {
 
     this.header = document.createElement("div");
     this.header.classList.add(RUN_ITEM_CLASS);
-    this.header.appendChild(caret);
-    this.header.appendChild(eventLabel);
-    this.header.appendChild(time);
+
+    let titleWrapper = document.createElement("div");
+    titleWrapper.classList.add(RUN_ITEM_TITLE_WRAPPER);
+
+    titleWrapper.appendChild(caret);
+    titleWrapper.appendChild(eventLabel);
+    titleWrapper.appendChild(time);
+    this.header.appendChild(titleWrapper);
+
     this.header.appendChild(this.dotMap.node);
 
     this.node.appendChild(this.header);

@@ -13,9 +13,9 @@ import { VerdantListItem } from "./run-panel";
 const RUN_ITEM_ACTIVE = "jp-mod-active";
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
-const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const RUN_ITEM_NUMBER = "v-VerdantPanel-runItem-number";
 const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
+const RUN_ITEM_TITLE_WRAPPER = "v-VerdantPanel-runItem-title-container";
 
 const SUB_RUNLIST_CLASS = "v-VerdantPanel-runCluster-list";
 
@@ -40,26 +40,21 @@ export class RunCluster extends Widget implements VerdantListItem {
       item.cluster = this;
     });
 
-    let caret = document.createElement("div");
-    caret.classList.add(RUN_ITEM_CARET);
-    caret.classList.add("cluster");
-
     this.header = this.buildHeader(runs);
     this.header.classList.add(RUN_ITEM_CLASS);
     this.header.classList.add("cluster");
 
-    this.node.appendChild(caret);
     this.node.appendChild(this.header);
   }
 
   buildHeader(runs: RunItem[]): HTMLElement {
+    let caret = document.createElement("div");
+    caret.classList.add(RUN_ITEM_CARET);
+    caret.classList.add("cluster");
+
     let number = document.createElement("div");
     number.textContent = "(" + runs.length + ")";
     number.classList.add(RUN_ITEM_NUMBER);
-
-    let eventLabel = document.createElement("div");
-    eventLabel.textContent = runs[0].run.checkpointType + "S";
-    eventLabel.classList.add(RUN_LABEL);
 
     let time = document.createElement("div");
     if (
@@ -80,9 +75,12 @@ export class RunCluster extends Widget implements VerdantListItem {
     this.dotMap = this.buildDotMap();
 
     let header = document.createElement("div");
-    header.appendChild(number);
-    header.appendChild(eventLabel);
-    header.appendChild(time);
+    let titleWrapper = document.createElement("div");
+    titleWrapper.classList.add(RUN_ITEM_TITLE_WRAPPER);
+    titleWrapper.appendChild(caret);
+    titleWrapper.appendChild(number);
+    titleWrapper.appendChild(time);
+    header.appendChild(titleWrapper);
     header.appendChild(this.dotMap.node);
     return header;
   }
@@ -113,7 +111,7 @@ export class RunCluster extends Widget implements VerdantListItem {
   }
 
   get caret() {
-    return this.node.firstElementChild;
+    return this.header.getElementsByClassName(RUN_ITEM_CARET)[0];
   }
 
   blur() {
@@ -134,7 +132,7 @@ export class RunCluster extends Widget implements VerdantListItem {
     var caret = this.caret;
     if (caret.classList.contains("open")) {
       this.removeClass("open");
-      this.header.style.display = "";
+      //this.header.style.display = "";
       caret.classList.remove("open");
       this.runs.map(runItem => runItem.closeHeader());
       this.node.removeChild(
@@ -143,7 +141,7 @@ export class RunCluster extends Widget implements VerdantListItem {
     } else {
       caret.classList.add("open");
       this.addClass("open");
-      this.header.style.display = "none";
+      //this.header.style.display = "none";
       let kidList = document.createElement("ul");
       kidList.classList.add(SUB_RUNLIST_CLASS);
       for (var i = this.runs.length - 1; i > -1; i--) {
