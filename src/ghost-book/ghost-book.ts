@@ -46,7 +46,7 @@ import { GhostBookModel } from "./ghost-model";
  */
 const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
-const GHOST_BOOK_TOOLBAR_OVERLAY = "v-Verdant-GhostBook-overlay-toolbar";
+const GHOST_BOOK_TOOLBAR_ITEM = "v-Verdant-GhostBook-toolbar-item";
 const GHOST_BOOK_CHANGEBAR = "v-Verdant-GhostBook-change-toolbar";
 const GHOST_BOOK_DIFFBAR = "v-Verdant-GhostBook-diff-toolbar";
 const GHOST_BOOK_DIFF = "v-Verdant-GhostBook-diff-button";
@@ -103,13 +103,9 @@ export class GhostBook extends Widget {
     toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
     toolbar.addItem("edit", this.createEditButton()); //Notebook v8 run today August 1 2018 10:00pm
     this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
+    this.runLabel.addClass(GHOST_BOOK_TOOLBAR_ITEM);
     toolbar.addItem("editLabel", this.runLabel);
     layout.addWidget(toolbar);
-
-    // Toolbar overlay holder
-    let overlay = new Toolbar();
-    overlay.addClass(GHOST_BOOK_TOOLBAR_OVERLAY);
-    layout.addWidget(overlay);
 
     // Diff Toolbar
     let diffBar = new Toolbar();
@@ -125,7 +121,7 @@ export class GhostBook extends Widget {
     diff1.addClass("right");
     diff1.addClass("active");
     diff1.node.addEventListener("click", this.changeDiff.bind(this, 1));
-    overlay.addItem("diffbar", diffBar);
+    toolbar.addItem("diffbar", diffBar);
 
     // Toolbar
     let changeBar = new Toolbar();
@@ -134,7 +130,7 @@ export class GhostBook extends Widget {
     changeBar.addItem("nextChange", this.createNextButton());
     this.changeLabel = new ToolbarLabel("?/? changes");
     changeBar.addItem("changeLabel", this.changeLabel);
-    overlay.addItem("changebar", changeBar);
+    toolbar.addItem("changebar", changeBar);
 
     this._onTitleChanged();
     context.pathChanged.connect(
