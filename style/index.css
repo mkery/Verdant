@@ -25,6 +25,7 @@
   --verdant-icon-add-filter: url("img/add-filter.svg");
   --verdant-icon-remove-filter: url("img/remove-filter.svg");
   --verdant-icon-extra-filters: url("img/filter.svg");
+  --verdant-icon-extra-filters-highlight: url("img/filter-highlight.svg");
 
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
