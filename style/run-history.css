@@ -217,9 +217,15 @@
   background: var(--jp-brand-color1);
 }
 
+.v-VerdantPanel-runItem-title-container {
+  display: inline-flex;
+  flex: 1 1 40%;
+  max-width: 40%;
+}
+
 .v-VerdantPanel-runItem-caret {
   height: var(--jp-ui-font-size1);
-  width: 1.5em;
+  max-width: 1.5em;
   background-image: var(--verdant-icon-caretdown);
   background-repeat: no-repeat;
   display: inline-block;
@@ -228,10 +234,7 @@
   background-size: 1.25em;
   background-position: right;
   border: 1px solid transparent;
-  flex: 1 1 auto;
-}
-.v-VerdantPanel-runItem-caret.cluster {
-  margin-top: 1em;
+  flex: 1 1 1.5em;
 }
 .v-VerdantPanel-runItem-caret.highlight {
   background-image: var(--verdant-icon-caretdown-highlight);
@@ -275,7 +278,8 @@
   text-align: left;
   padding-left: 5px;
   padding-right: 5px;
-  flex: 1 1 calc(100% - 11em);
+  flex: 1 1 60%;
+  max-width: 60%;
   vertical-align: top;
 }
 
