@@ -80,6 +80,7 @@ export class GhostBook extends Widget {
   runLabel: ToolbarLabel;
   changeLabel: ToolbarLabel;
   selectedCell: Cell;
+  filterButton: FilterWidget;
 
   /**
    * Construct a new image widget.
@@ -95,6 +96,10 @@ export class GhostBook extends Widget {
     this.node.tabIndex = -1;
     this.changeDivs = [];
     this.addClass(GHOST_BOOK);
+    let layout = (this.layout = new PanelLayout());
+    this.filterButton = new FilterWidget();
+
+    layout.addWidget(this.filterButton);
 
     this._onTitleChanged();
     context.pathChanged.connect(
@@ -209,22 +214,6 @@ export class GhostBook extends Widget {
     this._toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
     this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
     this._toolbar.addItem("editLabel", this.runLabel);
-
-    // Diff Toolbar
-    let diffBar = new Toolbar();
-    diffBar.addClass(GHOST_BOOK_DIFFBAR);
-    let diff0 = new ToolbarLabel("Compare to current notebook");
-    diffBar.addItem("diff0Label", diff0);
-    diff0.addClass(GHOST_BOOK_DIFF);
-    diff0.addClass("left");
-    diff0.node.addEventListener("click", this.changeDiff.bind(this, 0));
-    let diff1 = new ToolbarLabel("Show original edits");
-    diffBar.addItem("diff1Label", diff1);
-    diff1.addClass(GHOST_BOOK_DIFF);
-    diff1.addClass("right");
-    diff1.addClass("active");
-    diff1.node.addEventListener("click", this.changeDiff.bind(this, 1));
-    this._toolbar.addItem("diffbar", diffBar);
 
     // Toolbar
     let changeBar = new Toolbar();
@@ -457,5 +446,18 @@ export class ToolbarLabel extends Widget {
     this.node.getElementsByClassName(
       GHOST_BOOK_TOOLBAR_LABEL_TEXT
     )[0].textContent = text;
+  }
+}
+
+const FILTER_BAR = "v-Verdant-GhostBook-filterBar";
+const FILTER_BUTTON = "v-Verdant-GhostBook-filterButton";
+export class FilterWidget extends Widget {
+  constructor() {
+    super();
+    this.addClass(FILTER_BAR);
+
+    let filterButton = document.createElement("div");
+    filterButton.classList.add(FILTER_BUTTON);
+    this.node.appendChild(filterButton);
   }
 }

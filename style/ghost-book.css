@@ -55,10 +55,12 @@
 
 .v-Verdant-GhostBook-toolbar-priorButton {
   background-image: var(--jp-icon-expand-less);
+  min-height: 100%;
 }
 
 .v-Verdant-GhostBook-toolbar-nextButton {
   background-image: var(--jp-icon-expand-more);
+  min-height: 100%;
 }
 
 .v-Verdant-GhostBook-cell {
@@ -91,7 +93,6 @@
 
 .v-Verdant-GhostBook-toolbar-label-text {
   height: 100%;
-  margin-top: calc(var(--jp-ui-font-size1) * -0.25);
 }
 
 .v-Verdant-GhostBook-cell-changed {
@@ -122,4 +123,29 @@
   /*tested for accessibility */
   color: #1a4936;
   background-color: #defeb7;
+}
+
+.v-Verdant-GhostBook-filterBar {
+  z-index: 1;
+  position: absolute;
+  top: 3px;
+  left: 0px;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: var(--jp-private-toolbar-height);
+}
+
+.v-Verdant-GhostBook-filterButton {
+  height: 24px;
+  width: 24px;
+  background-size: 12px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: var(--verdant-icon-extra-filters);
+  background-color: var(--jp-layout-color0);
+  border-bottom-right-radius: var(--jp-border-radius);
+  box-shadow: var(--jp-toolbar-box-shadow);
+  border-right: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
