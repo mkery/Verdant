@@ -46,7 +46,6 @@ import { GhostBookModel } from "./ghost-model";
  */
 const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_TOOLBAR_CLASS = "v-Verdant-GhostBook-toolbar";
-const GHOST_BOOK_TOOLBAR_OVERLAY = "v-Verdant-GhostBook-overlay-toolbar";
 const GHOST_BOOK_CHANGEBAR = "v-Verdant-GhostBook-change-toolbar";
 const GHOST_BOOK_DIFFBAR = "v-Verdant-GhostBook-diff-toolbar";
 const GHOST_BOOK_DIFF = "v-Verdant-GhostBook-diff-button";
@@ -75,6 +74,7 @@ export class GhostBook extends Widget {
   readonly model: GhostBookModel;
   readonly rendermime: RenderMimeRegistry;
   private _inspectPane: InspectWidget;
+  private _toolbar: Toolbar;
   changeDivs: HTMLElement[];
   cellArea: Widget;
   runLabel: ToolbarLabel;
@@ -95,46 +95,6 @@ export class GhostBook extends Widget {
     this.node.tabIndex = -1;
     this.changeDivs = [];
     this.addClass(GHOST_BOOK);
-
-    let layout = (this.layout = new PanelLayout());
-
-    // Toolbar
-    let toolbar = new Toolbar();
-    toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
-    toolbar.addItem("edit", this.createEditButton()); //Notebook v8 run today August 1 2018 10:00pm
-    this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
-    toolbar.addItem("editLabel", this.runLabel);
-    layout.addWidget(toolbar);
-
-    // Toolbar overlay holder
-    let overlay = new Toolbar();
-    overlay.addClass(GHOST_BOOK_TOOLBAR_OVERLAY);
-    layout.addWidget(overlay);
-
-    // Diff Toolbar
-    let diffBar = new Toolbar();
-    diffBar.addClass(GHOST_BOOK_DIFFBAR);
-    let diff0 = new ToolbarLabel("Compare to current notebook");
-    diffBar.addItem("diff0Label", diff0);
-    diff0.addClass(GHOST_BOOK_DIFF);
-    diff0.addClass("left");
-    diff0.node.addEventListener("click", this.changeDiff.bind(this, 0));
-    let diff1 = new ToolbarLabel("Show original edits");
-    diffBar.addItem("diff1Label", diff1);
-    diff1.addClass(GHOST_BOOK_DIFF);
-    diff1.addClass("right");
-    diff1.addClass("active");
-    diff1.node.addEventListener("click", this.changeDiff.bind(this, 1));
-    overlay.addItem("diffbar", diffBar);
-
-    // Toolbar
-    let changeBar = new Toolbar();
-    changeBar.addClass(GHOST_BOOK_CHANGEBAR);
-    changeBar.addItem("priorChange", this.createPriorButton());
-    changeBar.addItem("nextChange", this.createNextButton());
-    this.changeLabel = new ToolbarLabel("?/? changes");
-    changeBar.addItem("changeLabel", this.changeLabel);
-    overlay.addItem("changebar", changeBar);
 
     this._onTitleChanged();
     context.pathChanged.connect(
@@ -171,6 +131,11 @@ export class GhostBook extends Widget {
 
   get diffBar(): Element {
     return this.node.getElementsByClassName(GHOST_BOOK_DIFFBAR)[0];
+  }
+
+  set toolbar(toolbar: Toolbar) {
+    this._toolbar = toolbar;
+    this.buildToolbars();
   }
 
   public changeDiff(diff: number) {
@@ -237,6 +202,38 @@ export class GhostBook extends Widget {
    */
   protected onActivateRequest(_: Message): void {
     this.node.focus();
+  }
+
+  private buildToolbars() {
+    // Toolbar
+    this._toolbar.addClass(GHOST_BOOK_TOOLBAR_CLASS);
+    this.runLabel = new ToolbarLabel("Work in notebook at Run #?? ??");
+    this._toolbar.addItem("editLabel", this.runLabel);
+
+    // Diff Toolbar
+    let diffBar = new Toolbar();
+    diffBar.addClass(GHOST_BOOK_DIFFBAR);
+    let diff0 = new ToolbarLabel("Compare to current notebook");
+    diffBar.addItem("diff0Label", diff0);
+    diff0.addClass(GHOST_BOOK_DIFF);
+    diff0.addClass("left");
+    diff0.node.addEventListener("click", this.changeDiff.bind(this, 0));
+    let diff1 = new ToolbarLabel("Show original edits");
+    diffBar.addItem("diff1Label", diff1);
+    diff1.addClass(GHOST_BOOK_DIFF);
+    diff1.addClass("right");
+    diff1.addClass("active");
+    diff1.node.addEventListener("click", this.changeDiff.bind(this, 1));
+    this._toolbar.addItem("diffbar", diffBar);
+
+    // Toolbar
+    let changeBar = new Toolbar();
+    changeBar.addClass(GHOST_BOOK_CHANGEBAR);
+    changeBar.addItem("priorChange", this.createPriorButton());
+    changeBar.addItem("nextChange", this.createNextButton());
+    this.changeLabel = new ToolbarLabel("?/? changes");
+    changeBar.addItem("changeLabel", this.changeLabel);
+    this._toolbar.addItem("changebar", changeBar);
   }
 
   createPriorButton(): ToolbarButton {

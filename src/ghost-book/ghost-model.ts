@@ -74,10 +74,12 @@ export class GhostBookFactory extends ABCWidgetFactory<
     context: DocumentRegistry.IContext<GhostBookModel>
   ): GhostBookPanel {
     var ghostBook = new GhostBook(context, { rendermime: this.rendermime });
-    return new GhostBookPanel({
+    let ghostPanel = new GhostBookPanel({
       content: ghostBook,
       context
     });
+    ghostBook.toolbar = ghostPanel.toolbar;
+    return ghostPanel;
   }
 }
 
