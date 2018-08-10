@@ -32,7 +32,7 @@ export class SearchBar extends Widget {
     let input = document.createElement("input");
     wrapper.className = SEARCH_BOX_CLASS;
     input.className = SEARCH_INPUT_CLASS;
-    input.placeholder = "Filter";
+    input.placeholder = "Filter by text";
     input.spellcheck = false;
     input.addEventListener("keyup", (ev: KeyboardEvent) => {
       if (ev.key === "13" || ev.which === 13) this.searchQueryEntered();
@@ -61,6 +61,15 @@ export class SearchBar extends Widget {
       this.filter.bind(this, changeFilter)
     );
 
+    let outputFilter = document.createElement("div");
+    outputFilter.classList.add(SEARCH_FILTER);
+    outputFilter.classList.add("output");
+    outputFilter.textContent = "out";
+    outputFilter.addEventListener(
+      "click",
+      this.filter.bind(this, outputFilter)
+    );
+
     let starFilter = document.createElement("div");
     starFilter.classList.add(SEARCH_FILTER);
     starFilter.classList.add("star");
@@ -77,6 +86,7 @@ export class SearchBar extends Widget {
     this.node.appendChild(addFilter);
     this.node.appendChild(removeFilter);
     this.node.appendChild(changeFilter);
+    this.node.appendChild(outputFilter);
     this.node.appendChild(starFilter);
     this.node.appendChild(commentFilter);
   }

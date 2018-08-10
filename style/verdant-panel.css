@@ -105,6 +105,15 @@
 .v-VerdantPanel-search-filter.star {
   background-image: var(--verdant-icon-star);
 }
+.v-VerdantPanel-search-filter.output {
+  text-align: center;
+  padding-top: 0.5em;
+  text-transform: uppercase;
+  font-size: 11px;
+  padding-left: 2px;
+  padding-right: 2px;
+  color: #626262;
+}
 .v-VerdantPanel-search-filter.comment {
   background-image: var(--verdant-icon-comment);
 }
@@ -116,6 +125,12 @@
 }
 .v-VerdantPanel-search-filter.changed {
   background-image: var(--verdant-icon-mod-filter);
+}
+.v-VerdantPanel-search-filter.output.highlight {
+  color: var(--jp-brand-color0);
+}
+.v-VerdantPanel-search-filter.output.active {
+  color: var(--jp-brand-color0);
 }
 .v-VerdantPanel-search-filter.highlight {
   background-color: var(--jp-layout-color1);

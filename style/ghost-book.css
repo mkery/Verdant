@@ -141,13 +141,31 @@
   width: 24px;
   background-size: 12px;
   background-repeat: no-repeat;
-  background-position: center;
   background-image: var(--verdant-icon-extra-filters);
   background-color: var(--jp-layout-color0);
   border-bottom-right-radius: var(--jp-border-radius);
   box-shadow: var(--jp-toolbar-box-shadow);
   border-right: var(--jp-border-width) solid var(--jp-toolbar-border-color);
   border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  padding-right: 10px;
+  background-position-y: center;
+  background-position-x: 5px;
+}
+.v-Verdant-GhostBook-filterButton::after {
+  content: "";
+  box-sizing: inherit;
+  position: absolute;
+  width: 20px;
+  height: 16px;
+  background-size: 16px;
+  background-image: var(--verdant-icon-caretup);
+  border: 1px solid transparent;
+  background-repeat: no-repeat;
+  left: 17px;
+  top: 3px;
+}
+.v-Verdant-GhostBook-filterButton.open::after {
+  background-image: var(--verdant-icon-caretdown);
 }
 .v-Verdant-GhostBook-filterButton.active {
   background-image: var(--verdant-icon-extra-filters-highlight);
@@ -191,4 +209,23 @@
   border: 1px solid transparent;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+.v-Verdant-GhostBook-timeslider {
+  position: absolute;
+  bottom: 0px;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  height: 40px;
+}
+
+.v-Verdant-GhostBook-timeslider-bar {
+  height: 1px;
+  width: 100%;
+  background-color: var(--jp-brand-color1);
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
