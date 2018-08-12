@@ -212,6 +212,7 @@
 }
 
 .v-Verdant-GhostBook-timeslider {
+  overflow: visible;
   position: absolute;
   bottom: 0px;
   z-index: 1;
@@ -220,7 +221,7 @@
   height: 40px;
 }
 
-.v-Verdant-GhostBook-timeslider-bar {
+.v-Verdant-GhostBook-timeslider-axis {
   height: 1px;
   width: 100%;
   background-color: var(--jp-brand-color1);
@@ -228,4 +229,10 @@
   position: absolute;
   top: 0px;
   left: 0px;
+}
+
+.v-Verdant-GhostBook-timeslider-bar {
+  position: absolute;
+  background-color: var(--jp-brand-color1);
+  bottom: 40px;
 }

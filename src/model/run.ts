@@ -34,6 +34,10 @@ export class RunModel {
     return this._dateList;
   }
 
+  get runClusterList() {
+    return this._clusterList;
+  }
+
   get newRunDate(): Signal<RunModel, RunDate> {
     return this._newRunDate;
   }
