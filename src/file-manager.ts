@@ -211,7 +211,11 @@ export interface serialized_NodeyCodeCell extends serialized_NodeyCode {
 export interface serialized_Run {
   run: number;
   timestamp: number;
-  cells: CellRunData[];
+  notebook: string[];
+  runCell: CellRunData;
+  newOutput?: string[];
+  checkpointType: string;
+  cluster: number;
 }
 
 export interface serialized_Star {

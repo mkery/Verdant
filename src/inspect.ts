@@ -18,7 +18,7 @@ import {
   NodeyCodeCell
 } from "./model/nodey";
 
-import { Run, CellRunData, ChangeType } from "./model/run";
+import { RunCluster, CellRunData, ChangeType } from "./model/run";
 
 import { CodeCell } from "@jupyterlab/cells";
 
@@ -231,54 +231,59 @@ export class Inspect {
     };
   }
 
-  public async produceNotebook(run: Run): Promise<boolean> {
+  public async produceNotebook(cluster: RunCluster): Promise<boolean> {
     var totalChanges: number[] = [];
-    var cells = run.cells.map((cellDat: CellRunData, cellIndex: number) => {
-      var nodey = this._historyModel.getNodey(cellDat.node);
-      console.log("found node?", cellDat.node, nodey);
-      var jsn: nbformat.ICell = {
-        cell_type: nodey.typeName,
-        metadata: { nodey: nodey.name },
-        source: [] as string[]
-      };
-      if (cellDat.changeType !== ChangeType.SAME) {
-        // this nodey was run
-        jsn.metadata["change"] = cellDat.changeType;
-        if (cellDat.changeType === ChangeType.CHANGED) {
-          var changes = this.getChangesInRun(nodey as NodeyCode, run.id);
-          jsn.metadata["edits"] = changes;
-          for (var i = 0; i < changes.length; i++) {
-            totalChanges.push(cellIndex);
+    var cells = cluster
+      .getCellMap()
+      .map((cellDat: CellRunData, cellIndex: number) => {
+        var nodey = this._historyModel.getNodey(cellDat.node);
+        console.log("found node?", cellDat.node, nodey);
+        var jsn: nbformat.ICell = {
+          cell_type: nodey.typeName,
+          metadata: { nodey: nodey.name },
+          source: [] as string[]
+        };
+        if (cellDat.changeType !== ChangeType.SAME) {
+          // this nodey was run
+          jsn.metadata["change"] = cellDat.changeType;
+          if (cellDat.changeType === ChangeType.CHANGED) {
+            var changes = this.getChangesInRun(nodey as NodeyCode, cluster.id);
+            jsn.metadata["edits"] = changes;
+            for (var i = 0; i < changes.length; i++) {
+              totalChanges.push(cellIndex);
+            }
           }
         }
-      }
-      var str = (this.renderNode(nodey).text || "").split("\n");
-      jsn.source = str.map((str: string, index: number) => {
-        if (index !== jsn.source.length - 1) return str + "\n";
-        else return str;
-      });
-      if (nodey instanceof NodeyCode) {
-        jsn.execution_count = 0;
-        var outputList: {}[] = [];
-        nodey.output.map(dict => {
-          console.log("output is ", dict);
-          dict.out.forEach((outName: string) => {
-            var outputNode = this._historyModel.getOutput(outName);
-            outputList.push(outputNode.raw);
-          });
+        var str = (this.renderNode(nodey).text || "").split("\n");
+        jsn.source = str.map((str: string, index: number) => {
+          if (index !== jsn.source.length - 1) return str + "\n";
+          else return str;
         });
-        jsn.outputs = []; //TODO outputList;
-      }
-      return jsn;
-    });
+        if (nodey instanceof NodeyCode) {
+          jsn.execution_count = 0;
+          var outputList: {}[] = [];
+          nodey.output.map(dict => {
+            console.log("output is ", dict);
+            dict.out.forEach((outName: string) => {
+              var outputNode = this._historyModel.getOutput(outName);
+              outputList.push(outputNode.raw);
+            });
+          });
+          jsn.outputs = []; //TODO outputList;
+        }
+        return jsn;
+      });
 
     var metadata = this._notebook.metadata;
     let metaJsn = Object.create(null) as nbformat.INotebookMetadata;
     for (let key of metadata.keys()) {
       metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
     }
-    metaJsn["run"] = run.id;
-    metaJsn["timestamp"] = run.timestamp;
+    if (cluster.first.id === cluster.last.id)
+      metaJsn["run"] = cluster.first.id + "";
+    else metaJsn["run"] = cluster.first.id + "-" + cluster.last.id;
+
+    metaJsn["timestamp"] = cluster.first.timestamp;
     metaJsn["origin"] = this._notebook.name;
     metaJsn["totalChanges"] = totalChanges;
 

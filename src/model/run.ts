@@ -7,117 +7,121 @@ import { serialized_Run } from "../file-manager";
 *
 */
 export class RunModel {
+  readonly historyModel: HistoryModel;
+
   private _runList: Run[];
-  private _historyModel: HistoryModel;
-  private _newRun = new Signal<this, Run>(this);
-  private _dateList: RunDateList[];
+  private _newRunDate = new Signal<this, RunDate>(this);
+  private _dateList: RunDate[];
+  private _clusterList: RunCluster[];
 
   constructor(historyModel: HistoryModel) {
+    this.historyModel = historyModel;
+
     this._runList = [];
     this._dateList = [];
-    this._historyModel = historyModel;
+    this._clusterList = [];
   }
 
   public getRun(id: number): Run {
     return this._runList[id];
   }
 
-  get runList() {
-    return this._runList;
+  public getCluster(id: number): RunCluster {
+    return this._clusterList[id];
   }
 
   get runDateList() {
     return this._dateList;
   }
 
-  get newRun(): Signal<RunModel, Run> {
-    return this._newRun;
+  get newRunDate(): Signal<RunModel, RunDate> {
+    return this._newRunDate;
   }
 
   public async cellRun(nodey: NodeyCell) {
     console.log("Cell run!", nodey);
     let runID = this._runList.length;
     let timestamp = Date.now();
-    this._historyModel.commitChanges(nodey, runID);
-    //this._historyModel.dump();
-    var run = await this.recordRun(
-      runID,
-      timestamp,
-      this._historyModel.getNodeyCell(nodey.id)
-    );
+    this.historyModel.commitChanges(nodey, runID);
+
+    let notebook = this.historyModel.cellList.map(nodeyCell => nodeyCell.name);
+
+    let runCell = {
+      node: nodey.name,
+      changeType: nodey.cell.status
+    } as CellRunData;
+    this.historyModel.clearCellStatus(nodey);
+
+    let newOutput;
+    if (nodey instanceof NodeyCode) {
+      let out = nodey.getOutput(runID);
+      if (out) newOutput = out;
+    }
+
+    let run = new Run({ id: runID, timestamp, notebook, runCell, newOutput });
+    this._runList[runID] = run;
+
     console.log("Run committed ", run);
-    this._newRun.emit(run);
-  }
-
-  private async recordRun(runId: number, timestamp: number, nodey: NodeyCell) {
-    var cellDat: CellRunData[] = [];
-    this._historyModel.cellList.forEach(cell => {
-      var dat = {
-        node: cell.name,
-        changeType: cell.cell.status
-      } as CellRunData;
-      if (cell.id === nodey.id) {
-        dat["run"] = true;
-        console.log("cell is", cell);
-        if (cell instanceof NodeyCode) {
-          var out = cell.getOutput(runId);
-          console.log("cell is", cell, "found output", out);
-          if (out) dat["newOutput"] = out;
-        }
-      }
-      cellDat.push(dat);
-      this._historyModel.clearCellStatus(cell);
-    });
-
-    var run = new Run(timestamp, cellDat, runId);
-    this._runList[runId] = run;
     this.categorizeRun(run);
-    this._historyModel.fileManager.writeToFile(
-      this._historyModel.notebook,
-      this._historyModel
-    );
-    return run;
+    this.historyModel.writeToFile();
   }
 
   private categorizeRun(run: Run) {
-    let runDate = new Date(run.timestamp);
-    let matchDate: RunDateList;
-
-    for (let i = this._dateList.length - 1; i > -1; i--) {
-      let dateList = this._dateList[i];
-      if (Run.sameDay(dateList.date, runDate)) {
-        matchDate = dateList;
-        break;
+    if (run.cluster !== -1) {
+      let cluster = this._clusterList[run.cluster];
+      if (!cluster) cluster = this.buildNewCluster(run, run.cluster);
+    } else {
+      let cluster = this._clusterList[
+        Math.max(0, this._clusterList.length - 1)
+      ];
+      if (!cluster) this.buildNewCluster(run);
+      else {
+        let admit = cluster.canAdmit(run);
+        if (admit) cluster.addRun(run);
+        if (!admit) this.buildNewCluster(run);
       }
-      if (Run.beforeDay(dateList.date, runDate)) break;
     }
+  }
 
-    if (!matchDate) {
-      matchDate = new RunDateList(runDate, [], this);
-      this._dateList.push(matchDate);
+  private categorizeCluster(cluster: RunCluster) {
+    let latestDate = this._dateList[Math.max(0, this._dateList.length - 1)];
+    if (!latestDate) latestDate = this.buildNewDate(cluster);
+    else {
+      let admit = latestDate.canAdmit(cluster);
+      if (admit) latestDate.addCluster(cluster);
+      else this.buildNewDate(cluster);
     }
+  }
 
-    matchDate.addRun(run);
+  private buildNewCluster(run: Run, id: number = -1) {
+    if (id === -1) id = this._clusterList.length;
+    let cluster = new RunCluster(id, this, [run.id]);
+    this._clusterList[id] = cluster;
+    this.categorizeCluster(cluster);
+    return cluster;
+  }
+
+  private buildNewDate(cluster: RunCluster) {
+    let date = cluster.date;
+    let id = this._dateList.length;
+    let runDate = new RunDate(id, date, this, [cluster.id]);
+    this._dateList[id] = runDate;
+    this._newRunDate.emit(runDate);
+    return runDate;
   }
 
   public fromJSON(data: serialized_Run[]) {
     data.map((run: serialized_Run) => {
-      var r = new Run(run.timestamp, run.cells, run.run);
+      var r = new Run(run);
       this._runList[r.id] = r;
       this.categorizeRun(r);
-      this._newRun.emit(r);
     });
     console.log("RUNS FROM JSON", this._dateList);
   }
 
   public toJSON(): serialized_Run[] {
     return this._runList.map(run => {
-      let jsn: serialized_Run = {
-        run: run.id,
-        timestamp: run.timestamp,
-        cells: run.cells
-      };
-      return jsn;
+      return run.toJSON();
     });
   }
 }
@@ -144,53 +148,181 @@ export namespace CheckpointType {
 export class Run {
   readonly timestamp: number;
   readonly id: number;
-  readonly cells: CellRunData[];
+  readonly notebook: string[];
+  readonly runCell: CellRunData;
+  readonly newOutput: string[];
   readonly checkpointType: string;
+
+  cluster: number = -1;
   note: number = -1;
   star: number = -1;
 
-  constructor(
-    timestamp: number,
-    cells: CellRunData[],
-    id: number,
-    type: string = CheckpointType.RUN
-  ) {
-    this.timestamp = timestamp;
-    this.cells = cells;
-    this.id = id;
-    this.checkpointType = type;
+  //runID, timestamp, notebook, runCells, output
+  constructor(options: { [key: string]: any }) {
+    this.timestamp = options.timestamp;
+    this.id = options.id;
+    this.checkpointType = options.checkpointType || CheckpointType.RUN;
+
+    this.notebook = options.notebook;
+    this.runCell = options.runCell;
+    this.newOutput = options.newOutput;
   }
 
   public get name() {
     return this.id + "";
   }
 
-  public hasEdits() {
-    return this.cells.find(cell => cell.changeType > ChangeType.SAME);
+  public toJSON(): serialized_Run {
+    return {
+      run: this.id,
+      timestamp: this.timestamp,
+      notebook: this.notebook,
+      runCell: this.runCell,
+      newOutput: this.newOutput,
+      checkpointType: this.checkpointType,
+      cluster: this.cluster
+    };
   }
 }
 
-export class RunDateList {
-  private _date: Date;
+export class RunCluster {
+  readonly model: RunModel;
+  readonly id: number;
   private _runs: number[];
-  private _runModel: RunModel;
+  private _cluster: number;
+  private _newRunAdded = new Signal<this, Run>(this);
 
-  constructor(date: Date, runList: number[], runModel: RunModel) {
+  constructor(id: number, model: RunModel, runList: number[] = []) {
     this._runs = runList;
+    this.model = model;
+    this.id = id;
+  }
+
+  public get cluster() {
+    return this._cluster;
+  }
+
+  public get newRunAdded() {
+    return this._newRunAdded;
+  }
+
+  public get checkpointType() {
+    return this.getRun(this._runs[0]).checkpointType;
+  }
+
+  public get length() {
+    return this._runs.length;
+  }
+
+  public get first() {
+    let run = this._runs[0];
+    return this.getRun(run);
+  }
+
+  public get last() {
+    let run = this._runs[Math.max(0, this._runs.length - 1)];
+    return this.getRun(run);
+  }
+
+  public get date() {
+    let run = this.getRun(this._runs[0]);
+    let date = new Date(run.timestamp);
+    date.setHours(12, 0, 0);
+    return date;
+  }
+
+  public addRun(r: Run) {
+    this._runs.push(r.id);
+    r.cluster = this.id;
+    this._newRunAdded.emit(r);
+  }
+
+  public getRunList() {
+    return this._runs;
+  }
+
+  private getRun(id: number) {
+    return this.model.getRun(id);
+  }
+
+  public canAdmit(r: Run) {
+    if (this._runs.length === 0) return true;
+    else
+      return this._runs.every((i: number) => {
+        let member = this.model.getRun(i);
+        return (
+          member.checkpointType === r.checkpointType &&
+          Run.sameMinute(new Date(member.timestamp), new Date(r.timestamp))
+        );
+      });
+  }
+
+  public filter(fun: (r: Run) => boolean): number {
+    let matchCount = 0;
+    this._runs.forEach((i: number) => {
+      let member = this.model.getRun(i);
+      if (fun(member)) matchCount += 1;
+    });
+    return matchCount;
+  }
+
+  public getCellMap() {
+    let map: CellRunData[] = [];
+    this._runs.forEach((id: number) => {
+      let run = this.getRun(id);
+      let runCell = run.runCell;
+      run.notebook.forEach((name: string, index: number) => {
+        if (runCell.node === name) map[index] = runCell;
+        else map[index] = { node: name, changeType: ChangeType.SAME };
+      });
+    });
+    return map;
+  }
+}
+
+export class RunDate {
+  readonly model: RunModel;
+  readonly id: number;
+  private _date: Date;
+  private _clusters: number[];
+  private _newClusterAdded = new Signal<this, RunCluster>(this);
+
+  constructor(
+    id: number,
+    date: Date,
+    model: RunModel,
+    clusters: number[] = []
+  ) {
+    this.id = id;
+    this.model = model;
+    this._clusters = clusters;
     this._date = date;
-    this._runModel = runModel;
   }
 
   get date() {
     return this._date;
   }
 
-  get runList() {
-    return this._runs.map(num => this._runModel.getRun(num));
+  public get newClusterAdded() {
+    return this._newClusterAdded;
   }
 
-  public addRun(r: Run) {
-    this._runs.push(r.id);
+  public addCluster(r: RunCluster) {
+    this._clusters.push(r.id);
+    this._newClusterAdded.emit(r);
+  }
+
+  public getClusterList() {
+    return this._clusters.map(item => this.model.getCluster(item));
+  }
+
+  public canAdmit(cluster: RunCluster) {
+    let date = cluster.date;
+    return Run.sameDay(this.date, date);
+  }
+
+  public label() {
+    return Run.formatDate(this.date);
   }
 }
 

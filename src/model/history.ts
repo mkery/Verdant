@@ -91,6 +91,10 @@ export class HistoryModel {
     return this._deletedCellList;
   }
 
+  public writeToFile() {
+    this.fileManager.writeToFile(this.notebook, this);
+  }
+
   public getVersionsFor(nodey: Nodey) {
     if (nodey instanceof NodeyOutput)
       return this._outputStore[parseInt(nodey.id)];

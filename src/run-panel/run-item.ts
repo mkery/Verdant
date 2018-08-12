@@ -1,6 +1,16 @@
-import { Run, ChangeType, CellRunData } from "../model/run";
+import {
+  Run,
+  ChangeType,
+  CellRunData,
+  RunCluster,
+  RunModel
+} from "../model/run";
 
 import { Widget } from "@phosphor/widgets";
+
+import { RunActions } from "./run-panel";
+
+import { FilterFunction } from "../panel/search-bar";
 
 import { HistoryModel } from "../model/history";
 
@@ -8,13 +18,9 @@ import { Sampler } from "../inspector-panel/sampler";
 
 import { NodeyCell } from "../model/nodey";
 
-import { VerdantListItem } from "./run-panel";
-
 import { DotMap } from "./dot-map";
 
-import { Annotator } from "./add-annotations";
-
-import { RunCluster } from "./run-cluster";
+import { Annotator } from "./annotator";
 
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
@@ -34,32 +40,43 @@ const MAP_CELLBOX_DESCCONTAINER = "v-VerdantPanel-runCellMap-cellBox-descBox";
 const MAP_CELLBOX_LABEL = "v-VerdantPanel-runCellMap-label";
 const MAP_CELLBOX_ICON = "v-VerdantPanel-runCellMap-cellbox-icon";
 
-export class RunItem extends Widget implements VerdantListItem {
-  readonly run: Run;
+export class RunItem extends Widget {
+  readonly runs: RunCluster;
   readonly header: HTMLElement;
   readonly dotMap: DotMap;
+  readonly runModel: RunModel;
   readonly historyModel: HistoryModel;
-  readonly switchPane: () => any;
-  cluster: RunCluster = null;
+  readonly actions: RunActions;
 
-  constructor(run: Run, historyModel: HistoryModel, switchPane: () => any) {
+  private activeFilter: (r: Run) => boolean;
+
+  constructor(runs: RunCluster, runModel: RunModel, actions: RunActions) {
     super();
-    this.historyModel = historyModel;
-    this.run = run;
-    this.switchPane = switchPane;
+    this.actions = actions;
+    this.runModel = runModel;
+    this.historyModel = runModel.historyModel;
+    this.runs = runs;
 
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
 
     let eventLabel = document.createElement("div");
-    eventLabel.textContent = run.checkpointType;
+    if (this.runs.length === 1) eventLabel.textContent = runs.checkpointType;
+    else eventLabel.textContent = "(" + this.runs.length + ")";
     eventLabel.classList.add(RUN_LABEL);
 
     let time = document.createElement("div");
-    time.textContent = Run.formatTime(new Date(this.run.timestamp));
+    let minTime = new Date(this.runs.first.timestamp);
+    let maxTime = new Date(this.runs.last.timestamp);
+    if (Run.sameMinute(minTime, maxTime))
+      time.textContent = Run.formatTime(minTime);
+    else {
+      time.textContent =
+        Run.formatTime(minTime) + "-" + Run.formatTime(maxTime);
+    }
     time.classList.add(RUN_ITEM_TIME);
 
-    this.dotMap = new DotMap(this.historyModel, this.run.cells);
+    this.dotMap = new DotMap(this.historyModel, this.runs.getCellMap());
 
     this.header = document.createElement("div");
     this.header.classList.add(RUN_ITEM_CLASS);
@@ -76,6 +93,26 @@ export class RunItem extends Widget implements VerdantListItem {
 
     this.node.appendChild(this.header);
     this.buildHeaderAnnotations();
+
+    this.runs.newRunAdded.connect(
+      (_: any, r: Run) => {
+        this.updateLabel();
+        if (this.hasClass("open")) {
+          this.addToDetailList(r);
+        }
+      },
+      this
+    );
+
+    this.header.addEventListener("click", ev => {
+      this.actions.onClick(this, ev);
+    });
+  }
+
+  private updateLabel() {
+    if (this.runs.length === 1)
+      this.label.textContent = this.runs.checkpointType;
+    else this.label.textContent = "(" + this.runs.length + ")";
   }
 
   animLoading() {
@@ -91,10 +128,8 @@ export class RunItem extends Widget implements VerdantListItem {
     caret.classList.remove("highlight");
     this.header.classList.remove(RUN_ITEM_ACTIVE);
     this.header.classList.remove(RUN_ITEM_LOADING);
-    if (this.run.note > -1)
-      this.header
-        .getElementsByClassName(RUN_ITEM_STAR)[0]
-        .classList.remove("highlight");
+    let star = this.header.getElementsByClassName(RUN_ITEM_STAR)[0];
+    if (star) star.classList.remove("highlight");
     var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
     for (var i = 0; i < icons.length; i++)
       icons[i].classList.remove("highlight");
@@ -107,10 +142,8 @@ export class RunItem extends Widget implements VerdantListItem {
       this.header.classList.remove(RUN_ITEM_LOADING);
       void this.header.offsetLeft;
       this.header.classList.add(RUN_ITEM_ACTIVE);
-      if (this.run.star > -1)
-        this.header
-          .getElementsByClassName(RUN_ITEM_STAR)[0]
-          .classList.add("highlight");
+      let star = this.header.getElementsByClassName(RUN_ITEM_STAR)[0];
+      if (star) star.classList.add("highlight");
       var icons = this.header.getElementsByClassName(MAP_CELLBOX_ICON);
       for (var i = 0; i < icons.length; i++)
         icons[i].classList.add("highlight");
@@ -127,7 +160,28 @@ export class RunItem extends Widget implements VerdantListItem {
     return this.header.firstElementChild as HTMLElement;
   }
 
-  caretClicked() {
+  get label() {
+    return this.header.getElementsByClassName(RUN_LABEL)[0] as HTMLElement;
+  }
+
+  public filter(fun: FilterFunction<Run>) {
+    let match = this.runs.filter(fun.filter);
+    this.activeFilter = fun.filter;
+    if (match === 0) {
+      this.node.style.display = "none";
+    } else {
+      this.label.textContent = "(" + match + "/" + this.runs.length + ")";
+    }
+    return match;
+  }
+
+  public clearFilters() {
+    this.activeFilter = null;
+    this.node.style.display = "";
+    this.updateLabel();
+  }
+
+  public caretClicked() {
     console.log("Caret was clicked!");
     if (!this.hasClass("open")) this.openHeader();
     else this.closeHeader();
@@ -140,12 +194,12 @@ export class RunItem extends Widget implements VerdantListItem {
 
     let dropdown = document.createElement("ul");
     dropdown.classList.add(SUB_RUNLIST_CLASS);
-    dropdown.appendChild(
-      Annotator.buildDetailNotes(this.run, this.historyModel)
-    );
+    if (this.runs.length === 1)
+      dropdown.appendChild(
+        Annotator.buildDetailNotes(this.runs.first, this.historyModel)
+      );
     this.buildDetailList(dropdown);
     this.node.appendChild(dropdown);
-    if (this.cluster) this.cluster.clusterEvent(this);
   }
 
   public closeHeader() {
@@ -157,8 +211,7 @@ export class RunItem extends Widget implements VerdantListItem {
         this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0]
       );
     }
-    this.buildHeaderAnnotations();
-    if (this.cluster) this.cluster.clusterEvent(this);
+    if (this.runs.length === 1) this.buildHeaderAnnotations();
   }
 
   private hideHeaderAnnotations() {
@@ -169,73 +222,88 @@ export class RunItem extends Widget implements VerdantListItem {
   }
 
   private buildHeaderAnnotations() {
+    let run = this.runs.first;
     let next = this.caret.nextElementSibling;
-    if (this.run.star > -1 && !next.classList.contains(RUN_ITEM_STAR)) {
+    if (run.star > -1 && !next.classList.contains(RUN_ITEM_STAR)) {
       let star = document.createElement("div");
       star.classList.add(RUN_ITEM_STAR);
       star.classList.add("header");
       this.header.insertBefore(star, next);
     }
 
-    if (this.run.note > -1) {
-      let noteText = Annotator.buildHeaderNotes(this.run, this.historyModel);
+    if (run.note > -1) {
+      let noteText = Annotator.buildHeaderNotes(run, this.historyModel);
       noteText.classList.add("header");
       this.node.appendChild(noteText);
     }
   }
 
   private buildDetailList(dropdown: HTMLElement) {
-    this.run.cells.forEach(cell => {
-      let nodey = this.historyModel.getNodey(cell.node) as NodeyCell;
-      //var cellVer = nodey.version + 1;
-      if (cell.changeType === ChangeType.SAME) {
-        if (cell.run) {
-          dropdown.appendChild(
-            this.createCellDetail("same", ["No changes to cell."], nodey, cell)
-          );
-        }
-        return;
-      }
+    console.log("FILTER", this.activeFilter);
+    if (this.runs.length === 1)
+      this._buildDetail_singleton(dropdown, this.runs.first);
+    else this._buildDetail_accordian(dropdown);
+  }
 
-      switch (cell.changeType) {
-        case ChangeType.ADDED:
-          dropdown.appendChild(
-            this.createCellDetail("added", ["Cell created"], nodey, cell)
-          );
-          break;
-        case ChangeType.REMOVED:
-          dropdown.appendChild(
-            this.createCellDetail("removed", ["Cell deleted"], nodey, cell)
-          );
-          break;
-        case ChangeType.CHANGED:
-          let changes = this.historyModel.inspector.getRunChangeCount(nodey);
-          dropdown.appendChild(
-            this.createCellDetail(
-              "changed",
-              [
-                "Cell changes: ",
-                "++" + changes.added + " --" + changes.deleted
-              ],
-              nodey,
-              cell
-            )
-          );
-          break;
+  private addToDetailList(run: Run) {
+    let dropdown = this.node.getElementsByClassName(
+      SUB_RUNLIST_CLASS
+    )[0] as HTMLElement;
+    if (this.runs.length === 1)
+      this._buildDetail_singleton(dropdown, this.runs.first);
+    else {
+      this._addSubRun(run.id, dropdown);
+    }
+  }
+
+  private _buildDetail_singleton(dropdown: HTMLElement, run: Run) {
+    let cell = run.runCell;
+    let nodey = this.historyModel.getNodey(cell.node) as NodeyCell;
+    //var cellVer = nodey.version + 1;
+    if (cell.changeType === ChangeType.SAME) {
+      if (cell.run) {
+        dropdown.appendChild(
+          this.createCellDetail("same", ["No changes to cell."], nodey, cell)
+        );
       }
-    });
+      return;
+    }
+
+    switch (cell.changeType) {
+      case ChangeType.ADDED:
+        dropdown.appendChild(
+          this.createCellDetail("added", ["Cell created"], nodey, cell)
+        );
+        break;
+      case ChangeType.REMOVED:
+        dropdown.appendChild(
+          this.createCellDetail("removed", ["Cell deleted"], nodey, cell)
+        );
+        break;
+      case ChangeType.CHANGED:
+        let changes = this.historyModel.inspector.getRunChangeCount(nodey);
+        dropdown.appendChild(
+          this.createCellDetail(
+            "changed",
+            ["Cell changes: ", "++" + changes.added + " --" + changes.deleted],
+            nodey,
+            cell
+          )
+        );
+        break;
+    }
   }
 
   private goToCellDetail(nodeyName: string) {
     let nodey = this.historyModel.getNodey(nodeyName);
     this.historyModel.inspector.changeTarget([nodey]);
-    this.switchPane();
+    this.actions.switchPane();
   }
 
   private gotToOutputDetail(outName: string) {
     let out = this.historyModel.getOutput(outName);
     this.historyModel.inspector.changeTarget([out]);
-    this.switchPane();
+    this.actions.switchPane();
   }
 
   private createCellDetail(
@@ -301,5 +369,19 @@ export class RunItem extends Widget implements VerdantListItem {
     }
 
     return cellContainer;
+  }
+
+  private _buildDetail_accordian(dropdown: HTMLElement) {
+    this.runs.getRunList().forEach((run: number) => {
+      this._addSubRun(run, dropdown);
+    });
+    return dropdown;
+  }
+
+  private _addSubRun(run: number, dropdown: HTMLElement) {
+    let cluster = new RunCluster(-1, this.runs.model, [run]);
+    let runItem = new RunItem(cluster, cluster.model, this.actions);
+    dropdown.insertBefore(runItem.node, dropdown.firstElementChild);
+    runItem.caretClicked();
   }
 }

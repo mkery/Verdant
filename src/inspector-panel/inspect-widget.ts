@@ -8,7 +8,7 @@ import { FilterFunction } from "../panel/search-bar";
 
 import { Run } from "../model/run";
 
-import { Annotator } from "../run-panel/add-annotations";
+import { Annotator } from "../run-panel/annotator";
 
 import { Inspect } from "../inspect";
 

@@ -180,11 +180,7 @@ export class SearchBar extends Widget {
   private _filterRunByAdded(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return (
-          r.cells.find(cell => {
-            return cell.changeType === ChangeType.ADDED;
-          }) !== undefined
-        );
+        return r.runCell.changeType === ChangeType.ADDED;
       },
       label: "cells added"
     };
@@ -193,11 +189,7 @@ export class SearchBar extends Widget {
   private _filterRunByRemoved(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return (
-          r.cells.find(cell => {
-            return cell.changeType === ChangeType.REMOVED;
-          }) !== undefined
-        );
+        return r.runCell.changeType === ChangeType.REMOVED;
       },
       label: "cells removed"
     };
@@ -206,11 +198,7 @@ export class SearchBar extends Widget {
   private _filterRunByChanged(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return (
-          r.cells.find(cell => {
-            return cell.changeType === ChangeType.CHANGED;
-          }) !== undefined
-        );
+        return r.runCell.changeType === ChangeType.CHANGED;
       },
       label: "cells changed"
     };
