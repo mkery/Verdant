@@ -97,6 +97,21 @@ export class TimeSlider extends Widget {
     this.pointer.style.width = x + "%";
   }
 
+  public updatePointer() {
+    if (this._runModel) {
+      let clusterList = this._runModel.runClusterList;
+      let runPos = this.ghost.model.run;
+      let width = (1 / clusterList.length) * 100 + "%";
+      let index = this.ghost.model.cluster;
+      let cluster = this._runModel.getCluster(index);
+      let indexR = cluster.indexOf(runPos);
+      let pointer = this.pointer;
+      let runX = indexR / cluster.length;
+      pointer.style.width =
+        "calc(" + index + " * " + width + " + " + runX + " * " + width + ")";
+    }
+  }
+
   private buildTimeline() {
     let old = this.node.getElementsByClassName(TIME_BAR);
     console.log("old nodes are", old);
@@ -118,17 +133,27 @@ export class TimeSlider extends Widget {
     clusterList.forEach((cluster, index) => {
       let bar = document.createElement("div");
       bar.classList.add(TIME_BAR);
-      bar.style.width = width;
+      bar.style.width = "calc( " + width + " - 2px)";
       bar.style.height =
         Math.floor((maxHeight * cluster.length) / maxRuns) + "px";
-      bar.style.left = "calc(" + index + "*" + width + ")";
+      bar.style.left = "calc(" + index + "*" + width + " + 1px)";
       this.node.appendChild(bar);
 
       if (clusterPos === cluster.id) {
         let pointer = this.pointer;
         let runX = runPos / cluster.length;
         pointer.style.width =
-          "calc(" + index + " * " + width + " + " + runX + " * " + width + ")";
+          "calc(" +
+          index +
+          " * 2px + " +
+          index +
+          " * " +
+          width +
+          " + " +
+          runX +
+          " * " +
+          width +
+          ")";
       }
     });
   }

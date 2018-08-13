@@ -247,6 +247,10 @@ export class RunCluster {
     return this.getRun(run);
   }
 
+  public indexOf(run: number) {
+    return this._runs.indexOf(run);
+  }
+
   public get date() {
     let run = this.getRun(this._runs[0]);
     let date = new Date(run.timestamp);

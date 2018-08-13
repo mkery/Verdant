@@ -32,6 +32,8 @@ import { FilterTray } from "./filter-tray";
 
 import { TimeSlider } from "./time-slider";
 
+import { Nodey } from "../model/nodey";
+
 import {
   ICellModel,
   Cell,
@@ -103,7 +105,7 @@ export class GhostBook extends Widget {
     this.addClass(GHOST_BOOK);
     let layout = (this.layout = new PanelLayout());
 
-    this.filterButton = new FilterTray();
+    this.filterButton = new FilterTray(this);
     layout.addWidget(this.filterButton);
 
     this.timeSlider = new TimeSlider(this);
@@ -164,6 +166,7 @@ export class GhostBook extends Widget {
     this.context.model.fromJSON(dict);
     this._render();
     this._scrollToFirstChange();
+    this.timeSlider.updatePointer();
   }
 
   public connectInspectPanel(inspect: InspectWidget) {
@@ -177,27 +180,43 @@ export class GhostBook extends Widget {
     // to that cell version
   }
 
+  public filterCells(filter: (n: Nodey) => boolean) {
+    let cellList = this.model.cells;
+    let cellWidgets = this.cellArea.node.children;
+
+    console.log("attempting to filter", cellList, cellWidgets);
+    each(cellList, (cell: ICellModel, i: number) => {
+      let name = cell.metadata.get("nodey") as string;
+      let node = this._inspectPane.historyModel.getNodey(name);
+      let match = filter(node);
+      if (!match) {
+        (cellWidgets[i] as HTMLElement).style.display = "none";
+      } else (cellWidgets[i] as HTMLElement).style.display = "";
+    });
+  }
+
+  public clearFilters() {
+    let cellWidgets = this.cellArea.node.children;
+    each(cellWidgets, (item: Element) => {
+      (item as HTMLElement).style.display = "";
+    });
+  }
+
   private _scrollToFirstChange() {
-    console.log("We have change divs", this.changeDivs);
     if (this.changeDivs.length > 0) {
       this._scrollToChange(0);
     }
   }
 
   private _scrollToChange(index: number) {
-    let rect = this.changeDivs[index].getBoundingClientRect();
-    let topThird = Math.floor((rect.bottom - rect.top) * 0.75) + rect.top;
-    let refereceRect = this.diffBar.getBoundingClientRect();
-    let adjustedTop = topThird - refereceRect.bottom;
-    console.log(
-      "Attempt to scroll to ",
-      rect.top,
-      adjustedTop,
-      refereceRect.bottom
-    );
+    /*let rect = this.changeDivs[index].getBoundingClientRect();
     this.cellArea.node.scrollTo({
-      top: adjustedTop,
+      top: rect.top,
       behavior: "instant"
+    });*/
+    this.changeDivs[index].scrollIntoView({
+      behavior: "smooth",
+      block: "center"
     });
   }
 
@@ -336,12 +355,11 @@ export class GhostBook extends Widget {
     widget.readOnly = true;
     var changes = cell.metadata.get("change");
     if (changes) this._decorateChanges(widget, cell, changes as number);
-    else {
-      var codeMirror = widget.editorWidget.node.getElementsByClassName(
-        "CodeMirror"
-      )[0];
-      codeMirror.classList.replace("cm-s-jupyter", GHOST_BOOK_CELL_CLASS);
-    }
+
+    var codeMirror = widget.editorWidget.node.getElementsByClassName(
+      "CodeMirror"
+    )[0];
+    codeMirror.classList.replace("cm-s-jupyter", GHOST_BOOK_CELL_CLASS);
 
     widget.inputArea.node.addEventListener(
       "click",

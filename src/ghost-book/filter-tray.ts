@@ -1,12 +1,18 @@
 import { Widget } from "@phosphor/widgets";
+import { Nodey, NodeyMarkdown, NodeyCode } from "../model/nodey";
+import { GhostBook } from "./ghost-book";
 
 const FILTER_BAR = "v-Verdant-GhostBook-filterBar";
 const FILTER_BUTTON = "v-Verdant-GhostBook-filterButton";
 const FILTER_TRAY = "v-Verdant-GhostBook-filterTray";
 const FILTER = "v-Verdant-GhostBook-filter";
+
 export class FilterTray extends Widget {
-  constructor() {
+  readonly ghost: GhostBook;
+
+  constructor(ghost: GhostBook) {
     super();
+    this.ghost = ghost;
     this.addClass(FILTER_BAR);
 
     let filterButton = document.createElement("div");
@@ -20,6 +26,7 @@ export class FilterTray extends Widget {
 
     let markdown = document.createElement("div");
     markdown.classList.add(FILTER);
+    markdown.classList.add("markdown");
     markdown.classList.add("active");
     markdown.textContent = "markdown";
     filterTray.appendChild(markdown);
@@ -27,6 +34,7 @@ export class FilterTray extends Widget {
 
     let code = document.createElement("div");
     code.classList.add(FILTER);
+    code.classList.add("code");
     code.classList.add("active");
     code.textContent = "code";
     filterTray.appendChild(code);
@@ -64,6 +72,14 @@ export class FilterTray extends Widget {
     return this.node.getElementsByClassName(FILTER_BUTTON)[0] as HTMLElement;
   }
 
+  get mardownFilterButton() {
+    return this.node.getElementsByClassName("markdown")[0];
+  }
+
+  get codeFilterButton() {
+    return this.node.getElementsByClassName("code")[0];
+  }
+
   get filterLabels(): HTMLElement[] {
     return Array.prototype.slice.call(this.node.getElementsByClassName(FILTER));
   }
@@ -79,6 +95,23 @@ export class FilterTray extends Widget {
         this.filterButton.classList.remove("active");
       else this.filterButton.classList.add("active");
     }
+    this.filter();
+  }
+
+  private filter() {
+    let filterList: ((n: Nodey) => boolean)[] = [];
+    let negList: ((n: Nodey) => boolean)[] = [];
+
+    if (this.mardownFilterButton.classList.contains("active"))
+      filterList.push(this._filterByMarkdown.bind(this));
+    else negList.push(this._filterByNotMarkdown.bind(this));
+    if (this.codeFilterButton.classList.contains("active"))
+      filterList.push(this._filterByCode.bind(this));
+    else negList.push(this._filterByNotCode.bind(this));
+
+    let filter = (n: Nodey) =>
+      filterList.some(fun => fun(n) && negList.every(fun => fun(n)));
+    this.ghost.filterCells(filter);
   }
 
   private toggleFilterTray() {
@@ -90,5 +123,21 @@ export class FilterTray extends Widget {
       tray.style.display = "none";
       this.filterButton.classList.remove("open");
     }
+  }
+
+  private _filterByMarkdown(nodey: Nodey) {
+    return nodey instanceof NodeyMarkdown;
+  }
+
+  private _filterByNotMarkdown(nodey: Nodey) {
+    return !this._filterByMarkdown(nodey);
+  }
+
+  private _filterByCode(nodey: Nodey) {
+    return nodey instanceof NodeyCode;
+  }
+
+  private _filterByNotCode(nodey: Nodey) {
+    return !this._filterByCode(nodey);
   }
 }
