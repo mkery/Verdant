@@ -18,7 +18,7 @@ import {
   NodeyCodeCell
 } from "./model/nodey";
 
-import { RunCluster, CellRunData, ChangeType } from "./model/run";
+import { RunCluster, CellRunData, ChangeType, Run } from "./model/run";
 
 import { CodeCell } from "@jupyterlab/cells";
 
@@ -231,9 +231,23 @@ export class Inspect {
     };
   }
 
-  public async produceNotebook(cluster: RunCluster): Promise<boolean> {
+  public async produceNotebook(
+    clusterId: number,
+    runId: number = -1
+  ): Promise<boolean> {
     var totalChanges: number[] = [];
-    var cells = cluster
+    let cluster = this._historyModel.runModel.getCluster(clusterId);
+    let target: Run | RunCluster;
+    let run;
+    if (runId < 0) {
+      run = this._historyModel.runModel.getRun(cluster.first.id);
+      target = cluster;
+    } else {
+      run = this._historyModel.runModel.getRun(runId);
+      target = run;
+    }
+
+    let cells = target
       .getCellMap()
       .map((cellDat: CellRunData, cellIndex: number) => {
         var nodey = this._historyModel.getNodey(cellDat.node);
@@ -247,7 +261,7 @@ export class Inspect {
           // this nodey was run
           jsn.metadata["change"] = cellDat.changeType;
           if (cellDat.changeType === ChangeType.CHANGED) {
-            var changes = this.getChangesInRun(nodey as NodeyCode, cluster.id);
+            var changes = this.getChangesInRun(nodey as NodeyCode, target.id);
             jsn.metadata["edits"] = changes;
             for (var i = 0; i < changes.length; i++) {
               totalChanges.push(cellIndex);
@@ -279,9 +293,9 @@ export class Inspect {
     for (let key of metadata.keys()) {
       metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
     }
-    metaJsn["run"] = cluster.last.id;
+    metaJsn["run"] = run.id;
     metaJsn["cluster"] = cluster.id;
-    metaJsn["timestamp"] = cluster.first.timestamp;
+    metaJsn["timestamp"] = run.timestamp;
     metaJsn["origin"] = this._notebook.name;
     metaJsn["totalChanges"] = totalChanges;
 

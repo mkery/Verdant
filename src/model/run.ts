@@ -206,6 +206,15 @@ export class Run {
     });
     return meta;
   }
+
+  public getCellMap() {
+    let map: CellRunData[] = [];
+    this.notebook.forEach((name: string, index: number) => {
+      if (this.runCell.node === name) map[index] = this.runCell;
+      else map[index] = { node: name, changeType: ChangeType.SAME };
+    });
+    return map;
+  }
 }
 
 export class RunCluster {

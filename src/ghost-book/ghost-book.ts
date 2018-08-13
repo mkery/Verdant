@@ -2,7 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { Run, ChangeType } from "../model/run";
+import { Run, ChangeType, RunModel } from "../model/run";
 
 import { InspectWidget } from "../inspector-panel/inspect-widget";
 
@@ -80,6 +80,7 @@ export class GhostBook extends Widget {
   readonly model: GhostBookModel;
   readonly rendermime: RenderMimeRegistry;
   private _inspectPane: InspectWidget;
+  private _runModel: RunModel;
   private _toolbar: Toolbar;
   changeDivs: HTMLElement[];
   cellArea: Widget;
@@ -172,12 +173,18 @@ export class GhostBook extends Widget {
   public connectInspectPanel(inspect: InspectWidget) {
     this._inspectPane = inspect;
     console.log("connected inspector!", this._inspectPane);
-    this.timeSlider.runModel = inspect.historyModel.runModel;
+    this._runModel = inspect.historyModel.runModel;
+    this.timeSlider.runModel = this._runModel;
     // go through each changed cell in the notebook and give it a header
     //when a cell in the notebook is selected, give it a selected border and a
     // header where users can add hideHeaderAnnotations
     // when a cell in the notebook is selected, set the target of the inspector
     // to that cell version
+  }
+
+  public switchRun(cluster: number, id: number) {
+    console.log("SWTICH to run ", id);
+    this._runModel.historyModel.inspector.produceNotebook(cluster, id);
   }
 
   public filterCells(filter: (n: Nodey) => boolean) {
@@ -187,7 +194,7 @@ export class GhostBook extends Widget {
     console.log("attempting to filter", cellList, cellWidgets);
     each(cellList, (cell: ICellModel, i: number) => {
       let name = cell.metadata.get("nodey") as string;
-      let node = this._inspectPane.historyModel.getNodey(name);
+      let node = this._runModel.historyModel.getNodey(name);
       let match = filter(node);
       if (!match) {
         (cellWidgets[i] as HTMLElement).style.display = "none";

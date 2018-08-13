@@ -84,7 +84,7 @@ export class RunPanel extends Widget {
 
   public async loadNotebook(runItem: RunItem) {
     let wasOpen = await this.historyModel.inspector.produceNotebook(
-      runItem.runs
+      runItem.runs.id
     );
     if (wasOpen) runItem.nodeClicked();
     console.log("load notebook!!!");

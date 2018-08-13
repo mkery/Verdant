@@ -49,6 +49,10 @@ export class TimeSlider extends Widget {
     return this.node.getElementsByClassName(TIME_POINT)[0] as HTMLElement;
   }
 
+  get bar() {
+    return this.node.getElementsByClassName(TIME_BAR)[0] as HTMLElement;
+  }
+
   get pointerPoint() {
     return this.node.getElementsByClassName(
       TIME_POINTER_POINT
@@ -90,11 +94,26 @@ export class TimeSlider extends Widget {
 
   public dragTimeline(ev: MouseEvent) {
     if (!this.dragOn) console.log("??? drag still on");
-    let x = ev.clientX;
     let box = this.axis.getBoundingClientRect();
     let start = box.left;
-    x = Math.min(Math.max(x - start, 0) / box.width, 1) * 100;
-    this.pointer.style.width = x + "%";
+    let x = Math.max(Math.min(ev.clientX, box.width + start), start);
+    let per = ((x - start) / box.width) * 100;
+    this.pointer.style.width = per + "%";
+
+    let barBox = this.bar.getBoundingClientRect();
+    let width = barBox.width;
+    let clusterList = this._runModel.runClusterList;
+    let clusterIndex = Math.min(
+      Math.floor((per / 100) * clusterList.length),
+      clusterList.length - 1
+    );
+    let cluster = this._runModel.getCluster(clusterIndex);
+    let runIndex = Math.floor(
+      ((Math.max(x - start, 0) % width) / width) * cluster.length
+    );
+    let run = cluster.getRunList()[runIndex];
+
+    this.ghost.switchRun(clusterIndex, run);
   }
 
   public updatePointer() {
