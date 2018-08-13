@@ -280,11 +280,50 @@ export class RunCluster {
       });
   }
 
-  public filter(fun: (r: Run) => boolean): number {
+  public filter(
+    fun: (r: Run) => boolean,
+    textFilters: (t: string) => boolean
+  ): number {
+    if (textFilters) return this.filterByText(textFilters, fun);
+    else {
+      let matchCount = 0;
+      this._runs.forEach((i: number) => {
+        let member = this.model.getRun(i);
+        if (fun(member)) matchCount += 1;
+      });
+      return matchCount;
+    }
+  }
+
+  public filterByText(
+    fun: (t: string) => boolean,
+    otherFilters: (r: Run) => boolean
+  ): number {
+    let nodesMemo: { node: string; match: boolean }[][] = [];
     let matchCount = 0;
     this._runs.forEach((i: number) => {
       let member = this.model.getRun(i);
-      if (fun(member)) matchCount += 1;
+      if (otherFilters(member)) {
+        let nodeList = member.notebook;
+        nodeList.forEach(name => {
+          let match = null;
+          let node = this.model.historyModel.getNodey(name);
+          if (nodesMemo[node.id]) {
+            let memo = nodesMemo[parseInt(node.id)].find(
+              item => item.node === name
+            );
+            if (memo) match = memo.match;
+          }
+          if (match === null) {
+            // no memo found
+            let text = this.model.historyModel.inspector.renderNode(node).text;
+            match = fun(text);
+            if (!nodesMemo[node.id]) nodesMemo[node.id] = [];
+            nodesMemo[node.id].push({ node: name, match: match });
+          }
+          if (match) matchCount += 1;
+        });
+      }
     });
     return matchCount;
   }

@@ -101,9 +101,26 @@ export class RunPanel extends Widget {
     label.style.display = "";
   }
 
+  public filterByText(fun: FilterFunction<string>) {
+    let matchCount = 0;
+    this.sections.forEach(section => {
+      matchCount += section.filterByText(fun);
+    });
+
+    let label = this.listLabel;
+    label.textContent =
+      label.textContent +
+      " and " +
+      matchCount +
+      " runs found with " +
+      fun.label;
+    label.style.display = "";
+  }
+
   public clearFilters() {
     this.sections.forEach(section => section.clearFilters());
     this.listLabel.style.display = "none";
+    this.listLabel.textContent = "";
   }
 
   private buildRunList(): HTMLElement {

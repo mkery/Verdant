@@ -106,6 +106,7 @@
   background-image: var(--verdant-icon-star);
 }
 .v-VerdantPanel-search-filter.output {
+  user-select: none;
   text-align: center;
   padding-top: 0.5em;
   text-transform: uppercase;

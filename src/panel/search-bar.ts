@@ -218,13 +218,13 @@ export class SearchBar extends Widget {
     };
   }
 
-  private _filterRunByText(): FilterFunction<Run> {
+  private _filterRunByText(): FilterFunction<string> {
     let query = this.textQuery;
     /*let historyModel = this.historyModel*/
     //TODO with optimizations
     return {
-      filter: (_: Run) => {
-        return true;
+      filter: (text: string) => {
+        return text.indexOf(query) > -1;
       },
       label: "the words " + query
     };
@@ -253,9 +253,8 @@ export class SearchBar extends Widget {
   }
 
   private _runFilters(): void {
-    let filterList: FilterFunction<Run>[] = [];
+    let filterList: FilterFunction<any>[] = [];
 
-    if (this.textQuery) filterList.push(this._filterRunByText());
     if (this.addedButton.classList.contains("highlight"))
       filterList.push(this._filterRunByAdded());
     if (this.removedButton.classList.contains("highlight"))
@@ -274,6 +273,9 @@ export class SearchBar extends Widget {
       filterList.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);
       this.view.runList.filterRunList({ filter, label });
+
+      if (this.textQuery)
+        this.view.runList.filterByText(this._filterRunByText());
     }
   }
 

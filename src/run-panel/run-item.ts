@@ -49,6 +49,7 @@ export class RunItem extends Widget {
   readonly actions: RunActions;
 
   private activeFilter: (r: Run) => boolean;
+  private activeTextFilter: (s: string) => boolean;
 
   constructor(runs: RunCluster, runModel: RunModel, actions: RunActions) {
     super();
@@ -167,7 +168,7 @@ export class RunItem extends Widget {
   }
 
   public filter(fun: FilterFunction<Run>) {
-    let match = this.runs.filter(fun.filter);
+    let match = this.runs.filter(fun.filter, this.activeTextFilter);
     this.activeFilter = fun.filter;
     if (match === 0) {
       this.node.style.display = "none";
@@ -177,8 +178,23 @@ export class RunItem extends Widget {
     return match;
   }
 
+  public filterByText(fun: FilterFunction<string>): number {
+    if (this.node.style.display !== "none") {
+      let match = this.runs.filterByText(fun.filter, this.activeFilter);
+      this.activeTextFilter = fun.filter;
+      if (match === 0) {
+        this.node.style.display = "none";
+      } else {
+        this.label.textContent = "(" + match + "/" + this.runs.length + ")";
+      }
+      return match;
+    }
+    return 0;
+  }
+
   public clearFilters() {
     this.activeFilter = null;
+    this.activeTextFilter = null;
     this.node.style.display = "";
     this.updateLabel();
   }

@@ -91,6 +91,15 @@ export class RunSection extends Widget {
     return matchCount;
   }
 
+  public filterByText(fun: FilterFunction<string>) {
+    let matchCount = 0;
+    this.clusters.forEach(runItem => {
+      matchCount += runItem.filterByText(fun);
+    });
+    if (matchCount === 0) this.node.style.display = "none";
+    return matchCount;
+  }
+
   public clearFilters() {
     this.clusters.forEach(runItem => runItem.clearFilters());
     this.node.style.display = "";
