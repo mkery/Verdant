@@ -18,6 +18,12 @@ export class DotMap {
     this.node = this.buildDotMap(runData);
   }
 
+  update(runData: CellRunData[]) {
+    this.node.innerHTML = "";
+    this.node = this.buildDotMap(runData);
+    return this.node;
+  }
+
   buildDotMap(runData: CellRunData[]): HTMLElement {
     let dotMap = document.createElement("div");
     dotMap.classList.add(RUN_CELL_MAP);

@@ -43,6 +43,10 @@ export class RunPanel extends Widget {
   }
 
   private init() {
+    let label = document.createElement("div");
+    label.classList.add(SEARCH_FILTER_RESULTS);
+    label.style.display = "none";
+    this.node.appendChild(label);
     this.listContainer = this.buildRunList();
     this.node.appendChild(this.listContainer);
     this.buildFooter();
@@ -60,6 +64,12 @@ export class RunPanel extends Widget {
 
   public onGhostBookClosed() {
     this.actions.onGhostBookClosed();
+  }
+
+  public get listLabel() {
+    return this.node.getElementsByClassName(
+      SEARCH_FILTER_RESULTS
+    )[0] as HTMLElement;
   }
 
   private buildFooter() {
@@ -86,16 +96,14 @@ export class RunPanel extends Widget {
       matchCount += section.filter(fun);
     });
 
-    let label = document.createElement("div");
-    label.classList.add(SEARCH_FILTER_RESULTS);
+    let label = this.listLabel;
     label.textContent = matchCount + " runs found with " + fun.label;
-    this.node.appendChild(label);
+    label.style.display = "";
   }
 
   public clearFilters() {
-    this.sections = [];
-    this.node.innerHTML = "";
     this.sections.forEach(section => section.clearFilters());
+    this.listLabel.style.display = "none";
   }
 
   private buildRunList(): HTMLElement {

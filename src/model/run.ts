@@ -46,19 +46,19 @@ export class RunModel {
     console.log("Cell run!", nodey);
     let runID = this._runList.length;
     let timestamp = Date.now();
-    this.historyModel.commitChanges(nodey, runID);
+    let newNodey = this.historyModel.commitChanges(nodey, runID);
 
     let notebook = this.historyModel.cellList.map(nodeyCell => nodeyCell.name);
 
     let runCell = {
-      node: nodey.name,
-      changeType: nodey.cell.status
+      node: newNodey.name,
+      changeType: newNodey.cell.status + 0
     } as CellRunData;
-    this.historyModel.clearCellStatus(nodey);
+    this.historyModel.clearCellStatus(newNodey);
 
     let newOutput;
-    if (nodey instanceof NodeyCode) {
-      let out = nodey.getOutput(runID);
+    if (newNodey instanceof NodeyCode) {
+      let out = newNodey.getOutput(runID);
       if (out) newOutput = out;
     }
 
@@ -115,8 +115,26 @@ export class RunModel {
   }
 
   public fromJSON(data: serialized_Run[]) {
-    data.map((run: serialized_Run) => {
-      var r = new Run(run);
+    data.map((run: serialized_Run, index: number) => {
+      let checkpointType = run[0] as string;
+      let timestamp = run[1] as number;
+      let cluster = run[2] as number;
+      let runCell: CellRunData = null;
+      let notebook = run.slice(3).map((name: string | CellRunData) => {
+        if (name instanceof String || typeof name === "string") return name;
+        else {
+          runCell = name;
+          return runCell.node;
+        }
+      });
+      var r = new Run({
+        id: index,
+        checkpointType: checkpointType,
+        timestamp: timestamp,
+        cluster: cluster,
+        notebook: notebook,
+        runCell: runCell
+      });
       this._runList[r.id] = r;
       this.categorizeRun(r);
     });
@@ -177,15 +195,16 @@ export class Run {
   }
 
   public toJSON(): serialized_Run {
-    return {
-      run: this.id,
-      timestamp: this.timestamp,
-      notebook: this.notebook,
-      runCell: this.runCell,
-      newOutput: this.newOutput,
-      checkpointType: this.checkpointType,
-      cluster: this.cluster
-    };
+    let meta: (string | number | CellRunData)[] = [
+      this.checkpointType,
+      this.timestamp,
+      this.cluster
+    ];
+    this.notebook.forEach(name => {
+      if (name === this.runCell.node) meta.push(this.runCell);
+      else meta.push(name);
+    });
+    return meta;
   }
 }
 

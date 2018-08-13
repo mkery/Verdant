@@ -37,6 +37,7 @@ export class TimeSlider extends Widget {
     this.node.addEventListener("mouseenter", this.focus.bind(this));
     this.node.addEventListener("mouseleave", this.blur.bind(this));
 
+    axis.addEventListener("click", this.dragTimeline.bind(this));
     pointerPoint.addEventListener("mousedown", this.startDrag.bind(this));
   }
 

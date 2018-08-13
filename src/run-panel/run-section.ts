@@ -87,7 +87,7 @@ export class RunSection extends Widget {
     this.clusters.forEach(runItem => {
       matchCount += runItem.filter(fun);
     });
-    if (matchCount) this.node.style.display = "none";
+    if (matchCount === 0) this.node.style.display = "none";
     return matchCount;
   }
 

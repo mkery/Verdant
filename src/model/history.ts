@@ -267,8 +267,9 @@ export class HistoryModel {
         this._deStar.bind(this)
       ) as NodeyCodeCell;
       newNode.starNodes = [];
+      return newNode;
     } else if (cell instanceof NodeyMarkdown) {
-      this._commitMarkdown(cell, runId);
+      return this._commitMarkdown(cell, runId);
     }
   }
 
@@ -295,6 +296,7 @@ export class HistoryModel {
       return history.deStar(runId) as NodeyMarkdown;
     } else {
       nodey.run.push(runId);
+      return nodey;
     }
   }
 

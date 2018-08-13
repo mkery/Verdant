@@ -113,6 +113,8 @@ export class RunItem extends Widget {
     if (this.runs.length === 1)
       this.label.textContent = this.runs.checkpointType;
     else this.label.textContent = "(" + this.runs.length + ")";
+    let dots = this.dotMap.update(this.runs.getCellMap());
+    this.header.replaceChild(dots, this.header.lastElementChild);
   }
 
   animLoading() {
@@ -259,6 +261,7 @@ export class RunItem extends Widget {
   private _buildDetail_singleton(dropdown: HTMLElement, run: Run) {
     let cell = run.runCell;
     let nodey = this.historyModel.getNodey(cell.node) as NodeyCell;
+    console.log("NODEY OPENING is", nodey, run);
     //var cellVer = nodey.version + 1;
     if (cell.changeType === ChangeType.SAME) {
       if (cell.run) {
