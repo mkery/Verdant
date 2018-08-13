@@ -106,14 +106,16 @@ export class GhostModelFactory extends NotebookModelFactory {
 
 export class GhostBookModel extends NotebookModel {
   fromJSON(value: nbformat.INotebookContent): void {
-    this.run = value.metadata.run as string;
+    this.run = value.metadata.run as number;
+    this.cluster = value.metadata.cluster as number;
     this.timestamp = value.metadata.timestamp as number;
     this.origin = value.metadata.origin as string;
     this.totalChanges = value.metadata.totalChanges as number[];
     super.fromJSON(value);
   }
 
-  run: string;
+  run: number;
+  cluster: number;
   timestamp: number;
   origin: string;
   totalChanges: number[];

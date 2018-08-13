@@ -106,7 +106,7 @@ export class GhostBook extends Widget {
     this.filterButton = new FilterTray();
     layout.addWidget(this.filterButton);
 
-    this.timeSlider = new TimeSlider();
+    this.timeSlider = new TimeSlider(this);
     layout.addWidget(this.timeSlider);
 
     this._onTitleChanged();

@@ -279,10 +279,8 @@ export class Inspect {
     for (let key of metadata.keys()) {
       metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
     }
-    if (cluster.first.id === cluster.last.id)
-      metaJsn["run"] = cluster.first.id + "";
-    else metaJsn["run"] = cluster.first.id + "-" + cluster.last.id;
-
+    metaJsn["run"] = cluster.last.id;
+    metaJsn["cluster"] = cluster.id;
     metaJsn["timestamp"] = cluster.first.timestamp;
     metaJsn["origin"] = this._notebook.name;
     metaJsn["totalChanges"] = totalChanges;
