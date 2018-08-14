@@ -122,7 +122,7 @@ export class NodeyOutput extends Nodey {
 
 export class NodeyCode extends Nodey {
   type: string;
-  output: { run: number; out: string[] }[] = [];
+  output: string[] = [];
   content: any[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
@@ -160,24 +160,12 @@ export class NodeyCode extends Nodey {
     );
   }
 
-  getOutput(runId: number): string[] {
-    var out = this.output.find(o => o.run === runId);
-    if (out) return out.out;
+  getOutput(): string[] {
+    return this.output;
   }
 
-  get latestOutput(): string[] {
-    var latest = this.output[Math.max(0, this.output.length - 1)];
-    if (latest) return latest.out;
-    return;
-  }
-
-  addOutput(runId: number, output: string[]) {
-    var i = this.output.findIndex(o => o.run === runId);
-    if (i === -1) {
-      this.output.push({ run: runId, out: output });
-    } else this.output[i].out.concat(output);
-    console.log("added output", this.output);
-    return;
+  addOutput(name: string) {
+    this.output.push(name);
   }
 
   getChildren() {

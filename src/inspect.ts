@@ -276,12 +276,9 @@ export class Inspect {
         if (nodey instanceof NodeyCode) {
           jsn.execution_count = 0;
           var outputList: {}[] = [];
-          nodey.output.map(dict => {
-            console.log("output is ", dict);
-            dict.out.forEach((outName: string) => {
-              var outputNode = this._historyModel.getOutput(outName);
-              outputList.push(outputNode.raw);
-            });
+          nodey.output.map(outName => {
+            var outputNode = this._historyModel.getOutput(outName);
+            outputList.push(outputNode.raw);
           });
           jsn.outputs = []; //TODO outputList;
         }

@@ -138,7 +138,7 @@ namespace Private {
     console.log("output nodey are", outputNodey);
     if (outputNodey)
       outputNodey.forEach(out =>
-        addEvents(cellListen.outputArea.node, out, historyModel.inspector)
+        addEvents(cellListen.outputArea.node, [out], historyModel.inspector)
       );
   }
 
@@ -150,7 +150,11 @@ namespace Private {
     if (outputNodey)
       if (outputNodey)
         outputNodey.forEach(out =>
-          removeEvents(cellListen.outputArea.node, out, historyModel.inspector)
+          removeEvents(
+            cellListen.outputArea.node,
+            [out],
+            historyModel.inspector
+          )
         );
   }
 

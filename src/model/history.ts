@@ -260,6 +260,7 @@ export class HistoryModel {
     console.log("Cell to commit is " + cell.name, cell, runId);
     if (cell instanceof NodeyCodeCell) {
       let output = this._commitOutput(cell, runId);
+      console.log("Output committed", output);
       var newNode = this._commitCode(
         cell,
         runId,
@@ -275,8 +276,9 @@ export class HistoryModel {
 
   private _deStar(nodey: Nodey, runId: number, output: string[]) {
     let newNodey = nodey.clone();
-    if (newNodey instanceof NodeyCode && output)
-      newNodey.addOutput(runId, output);
+    if (newNodey instanceof NodeyCode && output) {
+      output.forEach(out => (newNodey as NodeyCode).addOutput(out));
+    }
     newNodey.run.push(runId);
     this.registerNodey(newNodey);
     console.log("star node now ", newNodey);
@@ -301,15 +303,15 @@ export class HistoryModel {
   }
 
   private _commitOutput(nodey: NodeyCodeCell, runId: number) {
-    let latestOutput = nodey.latestOutput;
-    let output = null;
-    if (latestOutput) output = latestOutput.map(o => this.getOutput(o));
-    return Nodey.outputToNodey(
-      nodey.cell.cell as CodeCell,
-      this,
-      output,
-      runId
-    );
+    let oldOutput = nodey.getOutput();
+    let oldRun = -1;
+    let old = oldOutput.map(out => {
+      let output = this.getOutput(out);
+      if (oldRun < 0 || output.run.indexOf(oldRun) > -1) {
+        return output;
+      }
+    });
+    return Nodey.outputToNodey(nodey.cell.cell as CodeCell, this, old, runId);
   }
 
   private _commitCode(
@@ -326,6 +328,7 @@ export class HistoryModel {
       let history = this.getVersionsFor(nodey);
       newNodey = history.deStar(runId, output) as NodeyCode;
     } else {
+      output.forEach(out => nodey.addOutput(out));
       return nodey; // nothing to change, stop update here
     }
 
@@ -479,10 +482,12 @@ export class NodeHistory {
   }
 
   deStar(runId: number, output: string[] = null) {
+    console.log("HAS OUTPUT", output);
     let newNodey = this.starNodey.clone();
     newNodey.run.push(runId);
-    if (newNodey instanceof NodeyCode && output)
-      newNodey.addOutput(runId, output);
+    if (newNodey instanceof NodeyCode && output) {
+      output.forEach(out => (newNodey as NodeyCode).addOutput(out));
+    }
     this.starNodey = null;
     this.versions.push(newNodey);
     newNodey.version = this.versions.length - 1;

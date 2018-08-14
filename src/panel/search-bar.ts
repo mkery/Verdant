@@ -111,6 +111,10 @@ export class SearchBar extends Widget {
     return this.node.getElementsByClassName("comment")[0];
   }
 
+  get outputButton() {
+    return this.node.getElementsByClassName("output")[0];
+  }
+
   get searchBar() {
     return this.node.getElementsByClassName(
       SEARCH_INPUT_CLASS
@@ -195,6 +199,16 @@ export class SearchBar extends Widget {
     };
   }
 
+  private _filterRunByOutput(): FilterFunction<Run> {
+    return {
+      filter: (r: Run) => {
+        console.log("filter", r);
+        return r.newOutput && r.newOutput.length > 0;
+      },
+      label: "cells that generated output"
+    };
+  }
+
   private _filterRunByChanged(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
@@ -265,8 +279,11 @@ export class SearchBar extends Widget {
       filterList.push(this._filterRunByStar());
     if (this.commentButton.classList.contains("highlight"))
       filterList.push(this._filterRunByComment());
+    if (this.outputButton.classList.contains("highlight"))
+      filterList.push(this._filterRunByOutput());
 
-    if (filterList.length < 1) this.view.runList.clearFilters();
+    if (filterList.length < 1 && !this.textQuery)
+      this.view.runList.clearFilters();
     else {
       let filter = (r: Run) => filterList.every(f => f.filter(r));
       let label = "";

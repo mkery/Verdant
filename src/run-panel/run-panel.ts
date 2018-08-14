@@ -44,6 +44,7 @@ export class RunPanel extends Widget {
 
   private init() {
     let label = document.createElement("div");
+    label.textContent = "";
     label.classList.add(SEARCH_FILTER_RESULTS);
     label.style.display = "none";
     this.node.appendChild(label);

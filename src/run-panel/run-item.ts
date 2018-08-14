@@ -10,8 +10,6 @@ import { Widget } from "@phosphor/widgets";
 
 import { RunActions } from "./run-panel";
 
-import { FilterFunction } from "../panel/search-bar";
-
 import { HistoryModel } from "../model/history";
 
 import { Sampler } from "../inspector-panel/sampler";
@@ -50,6 +48,7 @@ export class RunItem extends Widget {
 
   private activeFilter: (r: Run) => boolean;
   private activeTextFilter: (s: string) => boolean;
+  private openSubruns: RunItem[] = [];
 
   constructor(runs: RunCluster, runModel: RunModel, actions: RunActions) {
     super();
@@ -167,9 +166,9 @@ export class RunItem extends Widget {
     return this.header.getElementsByClassName(RUN_LABEL)[0] as HTMLElement;
   }
 
-  public filter(fun: FilterFunction<Run>) {
-    let match = this.runs.filter(fun.filter, this.activeTextFilter);
-    this.activeFilter = fun.filter;
+  public filter(fun: (r: Run) => boolean) {
+    let match = this.runs.filter(fun, this.activeTextFilter);
+    this.activeFilter = fun;
     if (match === 0) {
       this.node.style.display = "none";
     } else {
@@ -178,10 +177,10 @@ export class RunItem extends Widget {
     return match;
   }
 
-  public filterByText(fun: FilterFunction<string>): number {
+  public filterByText(fun: (s: string) => boolean): number {
     if (this.node.style.display !== "none") {
-      let match = this.runs.filterByText(fun.filter, this.activeFilter);
-      this.activeTextFilter = fun.filter;
+      let match = this.runs.filterByText(fun, this.activeFilter);
+      this.activeTextFilter = fun;
       if (match === 0) {
         this.node.style.display = "none";
       } else {
@@ -197,6 +196,7 @@ export class RunItem extends Widget {
     this.activeTextFilter = null;
     this.node.style.display = "";
     this.updateLabel();
+    this.openSubruns.map(item => item.clearFilters());
   }
 
   public caretClicked() {
@@ -258,6 +258,7 @@ export class RunItem extends Widget {
 
   private buildDetailList(dropdown: HTMLElement) {
     console.log("FILTER", this.activeFilter);
+    this.openSubruns = [];
     if (this.runs.length === 1)
       this._buildDetail_singleton(dropdown, this.runs.first);
     else this._buildDetail_accordian(dropdown);
@@ -400,7 +401,11 @@ export class RunItem extends Widget {
   private _addSubRun(run: number, dropdown: HTMLElement) {
     let cluster = new RunCluster(-1, this.runs.model, [run]);
     let runItem = new RunItem(cluster, cluster.model, this.actions);
+    this.openSubruns.push(runItem);
     dropdown.insertBefore(runItem.node, dropdown.firstElementChild);
     runItem.caretClicked();
+
+    if (this.activeFilter) runItem.filter(this.activeFilter);
+    if (this.activeTextFilter) runItem.filterByText(this.activeTextFilter);
   }
 }

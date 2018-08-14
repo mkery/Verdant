@@ -108,8 +108,8 @@ export class CodeCellListen extends CellListen {
       //TODO match output too
     } else {
       var outNode = Nodey.outputToNodey(cell, this.historyModel);
-      var output = [];
-      if (outNode) output.push({ run: 0, out: outNode });
+      var output: string[] = [];
+      if (outNode) output.concat(outNode);
       this._nodey = await this.astUtils.generateCodeNodey(text, this.position, {
         output: output,
         run: 0,
@@ -120,13 +120,11 @@ export class CodeCellListen extends CellListen {
     super.init(matchPrior);
   }
 
-  public get output(): NodeyOutput[][] {
+  public get output(): NodeyOutput[] {
     var output = (this.nodey as NodeyCodeCell).output;
     if (output)
-      return output.map(run => {
-        if (run.out)
-          //TODO bug should not occur
-          return run.out.map(o => this.historyModel.getOutput(o));
+      return output.map(o => {
+        return this.historyModel.getOutput(o);
       });
   }
 

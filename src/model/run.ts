@@ -50,22 +50,28 @@ export class RunModel {
 
     let notebook = this.historyModel.cellList.map(nodeyCell => nodeyCell.name);
 
+    let newOutput: string[] = [];
+    if (newNodey instanceof NodeyCode) {
+      let out = newNodey.getOutput();
+      for (let i = out.length - 1; i > -1; i--) {
+        let output = this.historyModel.getOutput(out[i]);
+        if (output.run.indexOf(runID) > -1) newOutput.push(output.name);
+        else break;
+      }
+    }
+
     let runCell = {
       node: newNodey.name,
-      changeType: newNodey.cell.status + 0
+      changeType: newNodey.cell.status + 0,
+      run: true,
+      newOutput: newOutput
     } as CellRunData;
     this.historyModel.clearCellStatus(newNodey);
-
-    let newOutput;
-    if (newNodey instanceof NodeyCode) {
-      let out = newNodey.getOutput(runID);
-      if (out) newOutput = out;
-    }
 
     let run = new Run({ id: runID, timestamp, notebook, runCell, newOutput });
     this._runList[runID] = run;
 
-    console.log("Run committed ", run);
+    console.log("Run committed ", run, newNodey);
     this.categorizeRun(run);
     this.historyModel.writeToFile();
   }
@@ -119,6 +125,7 @@ export class RunModel {
       let checkpointType = run[0] as string;
       let timestamp = run[1] as number;
       let cluster = run[2] as number;
+      let newOutput = run[3] as string[];
       let runCell: CellRunData = null;
       let notebook = run.slice(3).map((name: string | CellRunData) => {
         if (name instanceof String || typeof name === "string") return name;
@@ -133,7 +140,8 @@ export class RunModel {
         timestamp: timestamp,
         cluster: cluster,
         notebook: notebook,
-        runCell: runCell
+        runCell: runCell,
+        newOutput: newOutput
       });
       this._runList[r.id] = r;
       this.categorizeRun(r);
@@ -195,10 +203,11 @@ export class Run {
   }
 
   public toJSON(): serialized_Run {
-    let meta: (string | number | CellRunData)[] = [
+    let meta: (string | number | CellRunData | string[])[] = [
       this.checkpointType,
       this.timestamp,
-      this.cluster
+      this.cluster,
+      this.newOutput
     ];
     this.notebook.forEach(name => {
       if (name === this.runCell.node) meta.push(this.runCell);
@@ -321,11 +330,12 @@ export class RunCluster {
         nodeList.forEach(name => {
           let match = null;
           let node = this.model.historyModel.getNodey(name);
+          if (!node) return; //error case only TODO
           if (nodesMemo[node.id]) {
             let memo = nodesMemo[parseInt(node.id)].find(
               item => item.node === name
             );
-            if (memo) match = memo.match;
+            if (memo) return;
           }
           if (match === null) {
             // no memo found
@@ -348,7 +358,8 @@ export class RunCluster {
       let runCell = run.runCell;
       run.notebook.forEach((name: string, index: number) => {
         if (runCell.node === name) map[index] = runCell;
-        else map[index] = { node: name, changeType: ChangeType.SAME };
+        else if (!map[index])
+          map[index] = { node: name, changeType: ChangeType.SAME };
       });
     });
     return map;

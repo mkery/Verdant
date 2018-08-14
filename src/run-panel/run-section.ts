@@ -85,7 +85,7 @@ export class RunSection extends Widget {
   public filter(fun: FilterFunction<Run>) {
     let matchCount = 0;
     this.clusters.forEach(runItem => {
-      matchCount += runItem.filter(fun);
+      matchCount += runItem.filter(fun.filter);
     });
     if (matchCount === 0) this.node.style.display = "none";
     return matchCount;
@@ -94,7 +94,7 @@ export class RunSection extends Widget {
   public filterByText(fun: FilterFunction<string>) {
     let matchCount = 0;
     this.clusters.forEach(runItem => {
-      matchCount += runItem.filterByText(fun);
+      matchCount += runItem.filterByText(fun.filter);
     });
     if (matchCount === 0) this.node.style.display = "none";
     return matchCount;

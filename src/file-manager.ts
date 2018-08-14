@@ -196,7 +196,7 @@ export interface serialized_NodeyMarkdown extends serialized_Nodey {
 
 export interface serialized_NodeyCode extends serialized_Nodey {
   type: string;
-  output?: { run: number; out: string[] }[];
+  output?: string[];
   literal?: any;
   start?: { line: number; ch: number };
   end?: { line: number; ch: number };
@@ -208,7 +208,7 @@ export interface serialized_NodeyCodeCell extends serialized_NodeyCode {
   starNodes?: NodeyCode[];
 }
 
-export type serialized_Run = (string | number | CellRunData)[];
+export type serialized_Run = (string | number | CellRunData | string[])[];
 
 export interface serialized_Star {
   target_type: string;

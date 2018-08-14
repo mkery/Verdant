@@ -50,12 +50,17 @@ export class DotMap {
         if (nodey.typeName === "markdown") typeLabel = "m";
         else if (nodey.typeName === "code") typeLabel = "c";
 
+        if (cell.newOutput && cell.newOutput.length > 0) {
+          typeLabel = "0";
+        }
+
         let runSymbol = document.createElement("div");
         runSymbol.classList.add(RUN_CELL_MAP_RUNSYMBOL);
         runSymbol.textContent = typeLabel;
         div.classList.add("run");
         div.appendChild(runSymbol);
       }
+
       dotMap.appendChild(div);
     });
     return dotMap;
