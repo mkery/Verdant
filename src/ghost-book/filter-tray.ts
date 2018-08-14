@@ -42,6 +42,7 @@ export class FilterTray extends Widget {
 
     let output = document.createElement("div");
     output.classList.add(FILTER);
+    output.classList.add("textOut");
     output.classList.add("active");
     output.textContent = "text output";
     filterTray.appendChild(output);
@@ -49,6 +50,7 @@ export class FilterTray extends Widget {
 
     let table = document.createElement("div");
     table.classList.add(FILTER);
+    table.classList.add("tableOut");
     table.classList.add("active");
     table.textContent = "table output";
     filterTray.appendChild(table);
@@ -56,6 +58,7 @@ export class FilterTray extends Widget {
 
     let image = document.createElement("div");
     image.classList.add(FILTER);
+    image.classList.add("imageOut");
     image.classList.add("active");
     image.textContent = "image & plot output";
     filterTray.appendChild(image);
@@ -78,6 +81,18 @@ export class FilterTray extends Widget {
 
   get codeFilterButton() {
     return this.node.getElementsByClassName("code")[0];
+  }
+
+  get textOutFilterButton() {
+    return this.node.getElementsByClassName("textOut")[0];
+  }
+
+  get tableOutFilterButton() {
+    return this.node.getElementsByClassName("tableOut")[0];
+  }
+
+  get imageOutFilterButton() {
+    return this.node.getElementsByClassName("imageOut")[0];
   }
 
   get filterLabels(): HTMLElement[] {
@@ -111,7 +126,20 @@ export class FilterTray extends Widget {
 
     let filter = (n: Nodey) =>
       filterList.some(fun => fun(n) && negList.every(fun => fun(n)));
-    this.ghost.filterCells(filter);
+
+    let outFilterList: ((s: string) => boolean)[] = [];
+    if (this.textOutFilterButton.classList.contains("active"))
+      outFilterList.push(this._filterByTextOutput.bind(this));
+    if (this.tableOutFilterButton.classList.contains("active"))
+      outFilterList.push(this._filterByTableOutput.bind(this));
+    if (this.imageOutFilterButton.classList.contains("active"))
+      outFilterList.push(this._filterByImageOutput.bind(this));
+
+    let outFilter = null;
+    if (outFilterList.length > 0)
+      outFilter = (s: string) => outFilterList.some(fun => fun(s));
+
+    this.ghost.filterCells(filter, outFilter);
   }
 
   private toggleFilterTray() {
@@ -139,5 +167,17 @@ export class FilterTray extends Widget {
 
   private _filterByNotCode(nodey: Nodey) {
     return !this._filterByCode(nodey);
+  }
+
+  private _filterByTextOutput(s: string) {
+    return s === "stream" || s === "execute_result";
+  }
+
+  private _filterByTableOutput(s: string) {
+    return s === "display_data";
+  }
+
+  private _filterByImageOutput(s: string) {
+    return s === "execute_result";
   }
 }

@@ -10,7 +10,7 @@ import { nbformat } from "@jupyterlab/coreutils";
 
 import { RenderMimeRegistry } from "@jupyterlab/rendermime";
 
-import { each } from "@phosphor/algorithm";
+import { each, toArray } from "@phosphor/algorithm";
 
 import { DocumentRegistry } from "@jupyterlab/docregistry";
 
@@ -30,12 +30,13 @@ import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 import { FilterTray } from "./filter-tray";
 
-import { TimeSlider } from "./time-slider";
+//import { TimeSlider } from "./time-slider";
 
 import { Nodey } from "../model/nodey";
 
 import {
   ICellModel,
+  CodeCellModel,
   Cell,
   CodeCell,
   RawCell,
@@ -88,7 +89,7 @@ export class GhostBook extends Widget {
   changeLabel: ToolbarLabel;
   selectedCell: Cell;
   filterButton: FilterTray;
-  timeSlider: TimeSlider;
+  //timeSlider: TimeSlider;
 
   /**
    * Construct a new image widget.
@@ -109,8 +110,8 @@ export class GhostBook extends Widget {
     this.filterButton = new FilterTray(this);
     layout.addWidget(this.filterButton);
 
-    this.timeSlider = new TimeSlider(this);
-    layout.addWidget(this.timeSlider);
+    /*this.timeSlider = new TimeSlider(this);
+    layout.addWidget(this.timeSlider);*/
 
     this._onTitleChanged();
     context.pathChanged.connect(
@@ -167,14 +168,14 @@ export class GhostBook extends Widget {
     this.context.model.fromJSON(dict);
     this._render();
     this._scrollToFirstChange();
-    this.timeSlider.updatePointer();
+    //this.timeSlider.updatePointer();
   }
 
   public connectInspectPanel(inspect: InspectWidget) {
     this._inspectPane = inspect;
     console.log("connected inspector!", this._inspectPane);
     this._runModel = inspect.historyModel.runModel;
-    this.timeSlider.runModel = this._runModel;
+    //this.timeSlider.runModel = this._runModel;
     // go through each changed cell in the notebook and give it a header
     //when a cell in the notebook is selected, give it a selected border and a
     // header where users can add hideHeaderAnnotations
@@ -187,18 +188,32 @@ export class GhostBook extends Widget {
     this._runModel.historyModel.inspector.produceNotebook(cluster, id);
   }
 
-  public filterCells(filter: (n: Nodey) => boolean) {
+  public filterCells(
+    filter: (n: Nodey) => boolean,
+    outFilter: (s: string) => boolean = null
+  ) {
     let cellList = this.model.cells;
-    let cellWidgets = this.cellArea.node.children;
+    let cellWidgets = toArray(this.cellArea.children());
 
-    console.log("attempting to filter", cellList, cellWidgets);
+    console.log("attempting to filter", cellList, this.cellArea.children());
     each(cellList, (cell: ICellModel, i: number) => {
       let name = cell.metadata.get("nodey") as string;
       let node = this._runModel.historyModel.getNodey(name);
       let match = filter(node);
       if (!match) {
-        (cellWidgets[i] as HTMLElement).style.display = "none";
-      } else (cellWidgets[i] as HTMLElement).style.display = "";
+        (cellWidgets[i] as Cell).inputArea.node.style.display = "none";
+      } else (cellWidgets[i] as Cell).inputArea.node.style.display = "";
+
+      if (outFilter && cell instanceof CodeCellModel) {
+        let outputs = cell.outputs.toJSON();
+        outputs.forEach(out => {
+          let outMatch = outFilter(out.output_type);
+          if (outMatch) {
+            (cellWidgets[i] as CodeCell).outputArea.node.style.display = "";
+          } else
+            (cellWidgets[i] as CodeCell).outputArea.node.style.display = "none";
+        });
+      }
     });
   }
 

@@ -280,7 +280,7 @@ export class Inspect {
             var outputNode = this._historyModel.getOutput(outName);
             outputList.push(outputNode.raw);
           });
-          jsn.outputs = []; //TODO outputList;
+          jsn.outputs = outputList;
         }
         return jsn;
       });

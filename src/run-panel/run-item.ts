@@ -399,7 +399,7 @@ export class RunItem extends Widget {
   }
 
   private _addSubRun(run: number, dropdown: HTMLElement) {
-    let cluster = new RunCluster(-1, this.runs.model, [run]);
+    let cluster = new RunCluster(this.runs.id, this.runs.model, [run]);
     let runItem = new RunItem(cluster, cluster.model, this.actions);
     this.openSubruns.push(runItem);
     dropdown.insertBefore(runItem.node, dropdown.firstElementChild);
