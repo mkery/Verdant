@@ -239,9 +239,11 @@ export class Inspect {
     let cluster = this._historyModel.runModel.getCluster(clusterId);
     let target: Run | RunCluster;
     let run;
+    let runRange = null;
     if (runId < 0) {
-      run = this._historyModel.runModel.getRun(cluster.first.id);
+      run = this._historyModel.runModel.getRun(cluster.last.id);
       target = cluster;
+      runRange = cluster.first.id + "-" + run.id;
     } else {
       run = this._historyModel.runModel.getRun(runId);
       target = run;
@@ -291,6 +293,7 @@ export class Inspect {
       metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
     }
     metaJsn["run"] = run.id;
+    metaJsn["run_range"] = runRange;
     metaJsn["cluster"] = cluster.id;
     metaJsn["timestamp"] = run.timestamp;
     metaJsn["origin"] = this._notebook.name;

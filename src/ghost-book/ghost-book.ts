@@ -126,14 +126,14 @@ export class GhostBook extends Widget {
       }
 
       this._render();
-      context.model.contentChanged.connect(
+      /*context.model.contentChanged.connect(
         this.update,
         this
       );
       context.fileChanged.connect(
         this.update,
         this
-      );
+      );*/
       this._ready.resolve(void 0);
       this._scrollToFirstChange();
     });
@@ -334,7 +334,9 @@ export class GhostBook extends Widget {
     var min = Math.min(1, totalChanges.length);
     this.changeLabel.setText(min + "/" + totalChanges.length + " changes");
 
-    this.title.label = "Run #" + run + " " + origin;
+    if (context.model.run_range)
+      this.title.label = "#" + context.model.run_range + " " + origin;
+    else this.title.label = "#" + run + " " + origin;
 
     if (this.cellArea) {
       (this.layout as PanelLayout).removeWidget(this.cellArea);

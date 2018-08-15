@@ -86,6 +86,7 @@ export class FileManager {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
       (widget.content as GhostBook).feedNewData(data);
     }
+
     return wasOpen;
   }
 

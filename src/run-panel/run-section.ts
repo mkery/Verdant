@@ -11,7 +11,6 @@ import { RunItem } from "./run-item";
 const RUNLIST_CLASS = "v-VerdantPanel-runList";
 const RUNLIST_UL = "v-VerdantPanel-runList-ul";
 const DATEHEADER_CLASS = "v-VerdantPanel-runList-header";
-const RUN_LABEL = "v-VerdantPanel-runList-runDateTotal";
 const DATE_LABEL = "v-VerdantPanel-runList-dateLabel";
 const DATEHEADER_CARET = "v-VerdantPanel-runList-caret";
 
@@ -41,18 +40,13 @@ export class RunSection extends Widget {
     let header = document.createElement("div");
     header.classList.add(DATEHEADER_CLASS);
 
-    let tag = document.createElement("div");
-    tag.textContent = headerTag;
-    tag.classList.add(RUN_LABEL);
-
     let titleLabel = document.createElement("div");
-    titleLabel.textContent = this.runDate.label();
+    titleLabel.textContent = headerTag + " " + this.runDate.label();
     titleLabel.classList.add(DATE_LABEL);
 
     let caret = document.createElement("div");
     caret.classList.add(DATEHEADER_CARET);
 
-    header.appendChild(tag);
     header.appendChild(titleLabel);
     header.appendChild(caret);
 

@@ -140,7 +140,7 @@ export class RunPanel extends Widget {
   private addRunDate(runDate: RunDate, listContainer: HTMLElement) {
     let dateSection = new RunSection(
       this.historyModel.runModel,
-      "",
+      "Runs",
       runDate,
       this.actions
     );

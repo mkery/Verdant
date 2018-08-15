@@ -5,16 +5,16 @@ import { HistoryModel } from "../model/history";
 const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
 const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
 const RUN_CELL_MAP_ADDED = "v-VerdantPanel-runCellMap-cell-added";
-const RUN_CELL_MAP_RUNSYMBOL = "v-VerdantPanel-runCellMap-runSymbol";
+///const RUN_CELL_MAP_RUNSYMBOL = "v-VerdantPanel-runCellMap-runSymbol";
 const RUN_CELL_MAP = "v-VerdantPanel-runCellMap";
 const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
 
 export class DotMap {
   public node: HTMLElement;
-  private historyModel: HistoryModel;
+  ///private historyModel: HistoryModel;
 
-  constructor(historyModel: HistoryModel, runData: CellRunData[]) {
-    this.historyModel = historyModel;
+  constructor(_: HistoryModel, runData: CellRunData[]) {
+    //this.historyModel = historyModel;
     this.node = this.buildDotMap(runData);
   }
 
@@ -45,7 +45,7 @@ export class DotMap {
       }
 
       if (cell.run) {
-        let typeLabel = "r";
+        /*let typeLabel = "r";
         let nodey = this.historyModel.getNodey(cell.node);
         if (nodey.typeName === "markdown") typeLabel = "m";
         else if (nodey.typeName === "code") typeLabel = "c";
@@ -56,9 +56,9 @@ export class DotMap {
 
         let runSymbol = document.createElement("div");
         runSymbol.classList.add(RUN_CELL_MAP_RUNSYMBOL);
-        runSymbol.textContent = typeLabel;
+        runSymbol.textContent = typeLabel;*/
         div.classList.add("run");
-        div.appendChild(runSymbol);
+        //div.appendChild(runSymbol);
       }
 
       dotMap.appendChild(div);

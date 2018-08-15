@@ -107,6 +107,7 @@ export class GhostModelFactory extends NotebookModelFactory {
 export class GhostBookModel extends NotebookModel {
   fromJSON(value: nbformat.INotebookContent): void {
     this.run = value.metadata.run as number;
+    this.run_range = value.metadata.run_range as string;
     this.cluster = value.metadata.cluster as number;
     this.timestamp = value.metadata.timestamp as number;
     this.origin = value.metadata.origin as string;
@@ -115,6 +116,7 @@ export class GhostBookModel extends NotebookModel {
   }
 
   run: number;
+  run_range: string;
   cluster: number;
   timestamp: number;
   origin: string;

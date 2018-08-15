@@ -61,8 +61,7 @@ export class RunItem extends Widget {
     caret.classList.add(RUN_ITEM_CARET);
 
     let eventLabel = document.createElement("div");
-    if (this.runs.length === 1) eventLabel.textContent = runs.checkpointType;
-    else eventLabel.textContent = "(" + this.runs.length + ")";
+    eventLabel.textContent = "(" + this.runs.length + ")";
     eventLabel.classList.add(RUN_LABEL);
 
     let time = document.createElement("div");
@@ -110,9 +109,7 @@ export class RunItem extends Widget {
   }
 
   private updateLabel() {
-    if (this.runs.length === 1)
-      this.label.textContent = this.runs.checkpointType;
-    else this.label.textContent = "(" + this.runs.length + ")";
+    this.label.textContent = "(" + this.runs.length + ")";
     let dots = this.dotMap.update(this.runs.getCellMap());
     this.header.replaceChild(dots, this.header.lastElementChild);
   }
@@ -126,8 +123,7 @@ export class RunItem extends Widget {
 
   blur() {
     this.dotMap.blur();
-    let caret = this.header.firstElementChild;
-    caret.classList.remove("highlight");
+    this.caret.classList.remove("highlight");
     this.header.classList.remove(RUN_ITEM_ACTIVE);
     this.header.classList.remove(RUN_ITEM_LOADING);
     let star = this.header.getElementsByClassName(RUN_ITEM_STAR)[0];
@@ -138,8 +134,7 @@ export class RunItem extends Widget {
   }
 
   nodeClicked() {
-    let caret = this.header.firstElementChild;
-    caret.classList.add("highlight");
+    this.caret.classList.add("highlight");
     setTimeout(() => {
       this.header.classList.remove(RUN_ITEM_LOADING);
       void this.header.offsetLeft;
@@ -159,7 +154,7 @@ export class RunItem extends Widget {
   }
 
   get caret() {
-    return this.header.firstElementChild as HTMLElement;
+    return this.header.getElementsByClassName(RUN_ITEM_CARET)[0] as HTMLElement;
   }
 
   get label() {
@@ -172,8 +167,9 @@ export class RunItem extends Widget {
     if (match === 0) {
       this.node.style.display = "none";
     } else {
-      this.label.textContent = "(" + match + "/" + this.runs.length + ")";
+      this.label.textContent = "(" + match + ")";
     }
+    this.openSubruns.map(item => item.filter(fun));
     return match;
   }
 
@@ -184,10 +180,11 @@ export class RunItem extends Widget {
       if (match === 0) {
         this.node.style.display = "none";
       } else {
-        this.label.textContent = "(" + match + "/" + this.runs.length + ")";
+        this.label.textContent = "(" + match + ")";
       }
       return match;
     }
+    this.openSubruns.map(item => item.filterByText(fun));
     return 0;
   }
 
@@ -246,7 +243,7 @@ export class RunItem extends Widget {
       let star = document.createElement("div");
       star.classList.add(RUN_ITEM_STAR);
       star.classList.add("header");
-      this.header.insertBefore(star, next);
+      next.parentElement.insertBefore(star, next);
     }
 
     if (run.note > -1) {
@@ -276,15 +273,14 @@ export class RunItem extends Widget {
   }
 
   private _buildDetail_singleton(dropdown: HTMLElement, run: Run) {
+    dropdown.classList.add("detail");
     let cell = run.runCell;
     let nodey = this.historyModel.getNodey(cell.node) as NodeyCell;
     console.log("NODEY OPENING is", nodey, run);
     //var cellVer = nodey.version + 1;
     if (cell.changeType === ChangeType.SAME) {
       if (cell.run) {
-        dropdown.appendChild(
-          this.createCellDetail("same", ["No changes to cell."], nodey, cell)
-        );
+        dropdown.appendChild(this.createCellDetail("same", [], nodey, cell));
       }
       return;
     }
@@ -335,16 +331,18 @@ export class RunItem extends Widget {
     let cellContainer = document.createElement("div");
 
     //descriptions
-    let descContainer = document.createElement("div");
-    descContainer.classList.add(MAP_CELLBOX_DESCCONTAINER);
+    if (descLabels.length > 0) {
+      let descContainer = document.createElement("div");
+      descContainer.classList.add(MAP_CELLBOX_DESCCONTAINER);
 
-    descLabels.forEach(desc => {
-      let label = document.createElement("div");
-      label.textContent = desc;
-      label.classList.add(MAP_CELLBOX_LABEL);
-      descContainer.appendChild(label);
-    });
-    cellContainer.appendChild(descContainer);
+      descLabels.forEach(desc => {
+        let label = document.createElement("div");
+        label.textContent = desc;
+        label.classList.add(MAP_CELLBOX_LABEL);
+        descContainer.appendChild(label);
+      });
+      cellContainer.appendChild(descContainer);
+    }
 
     //cell sample
     let sampleRow = document.createElement("div");
@@ -361,7 +359,7 @@ export class RunItem extends Widget {
     cellContainer.appendChild(sampleRow);
 
     //output sample
-    if (dat.newOutput) {
+    if (dat.newOutput && dat.newOutput.length > 0) {
       //descriptions
       let descOut = document.createElement("div");
       descOut.classList.add(MAP_CELLBOX_DESCCONTAINER);

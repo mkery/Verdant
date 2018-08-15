@@ -102,11 +102,13 @@
 
 .v-VerdantPanel-runCluster-list {
   display: inline-block;
-  margin-left: 1em;
-  border-left: 1px solid var(--jp-content-font-color1);
+  margin-left: 1.5em;
+  border-left: 0.5em;
   padding-left: 0.5em;
   margin-bottom: 1em;
   cursor: default;
+  background: var(--verdant-ghost-color1);
+  border-bottom: 1px solid var(--jp-content-font-color3);
   width: calc(100% - 1.25em + 2px);
 }
 
@@ -166,7 +168,7 @@
   padding-top: 2px;
   display: flex;
   flex-direction: row;
-  margin-top: 1em;
+  margin-top: 0.25em;
 }
 
 .v-VerdantPanel-runItem.loading {
@@ -219,22 +221,23 @@
 
 .v-VerdantPanel-runItem-title-container {
   display: inline-flex;
-  flex: 1 1 40%;
-  max-width: 40%;
+  flex: 1 1 30%;
+  max-width: 30%;
+  padding-left: 2px;
 }
 
 .v-VerdantPanel-runItem-caret {
   height: var(--jp-ui-font-size1);
-  max-width: 1.5em;
+  max-width: 11px;
   background-image: var(--verdant-icon-caretdown);
   background-repeat: no-repeat;
   display: inline-block;
   float: left;
   padding-top: 0.25em;
-  background-size: 1.25em;
-  background-position: right;
+  background-size: 16px;
+  background-position: center;
+  flex: 0 0 11px;
   border: 1px solid transparent;
-  flex: 1 1 1.5em;
 }
 .v-VerdantPanel-runItem-caret.highlight {
   background-image: var(--verdant-icon-caretdown-highlight);
@@ -262,37 +265,45 @@
 }
 
 .v-VerdantPanel-runItem-time {
-  max-width: 5em;
-  font-size: var(--jp-ui-font-size1);
+  max-width: 4em;
+  font-size: var(--jp-ui-font-size0);
   font-weight: 400;
   letter-spacing: 1px;
   display: inline-block;
-  padding-left: 6px;
+  padding-left: 2px;
   vertical-align: text-top;
-  flex: 1 1 5em;
+  flex: 1 1 4em;
+  margin-top: 0.25em;
 }
 
 .v-VerdantPanel-runCellMap {
-  line-height: 2px;
+  line-height: calc(1.5em + 4px);
   display: inline-block;
   text-align: left;
-  padding-left: 5px;
-  padding-right: 5px;
-  flex: 1 1 60%;
-  max-width: 60%;
+  padding-left: 2px;
+  padding-right: 2px;
+  flex: 1 1 69%;
+  max-width: 69%;
   vertical-align: top;
 }
 
 .v-VerdantPanel-runCellMap-cell {
   display: inline-block;
-  width: 3px;
-  color: var(--jp-content-font-color0);
-  border-bottom: 1px solid #999;
-  margin-left: 2px;
+  width: 1px;
+  background-color: var(--jp-content-font-color3);
+  margin-left: 1px;
+  margin-right: 1px;
+  height: 1em;
 }
 .v-VerdantPanel-runCellMap-cell.run {
-  line-height: 1em;
-  width: var(--jp-ui-font-size1);
+  width: 2px;
+  background-color: #f0f0f0;
+  margin-left: 0px;
+  height: 1.5em;
+  margin-bottom: calc(-0.25em - 2px);
+  border-top: 2px solid var(--jp-content-font-color3);
+  border-bottom: 2px solid var(--jp-content-font-color3);
+  border-radius: 5px;
 }
 .v-VerdantPanel-runCellMap-cell.highlight {
   border-color: white;
@@ -378,29 +389,15 @@
   border-color: var(--jp-content-font-color1);
   color: var(--jp-ui-font-color1);
 }
-
-.v-VerdantPanel-runCellMap-cell-changed {
-  content: none;
-  background-color: var(--verdant-cell-change-color1);
-  width: var(--jp-ui-font-size1);
-  height: 4px;
-  border-bottom: 5px solid var(--verdant-cell-change-color2);
-}
 .v-VerdantPanel-runCellMap-cell-changed.run {
-  background-color: var(--verdant-cell-change-color1);
-  height: 1em;
-  border-bottom: 4px solid var(--verdant-cell-change-color2);
+  background-color: var(--verdant-cell-change-color2);
 }
 .v-VerdantPanel-runCellMap-cell-changed.highlight {
   border-color: var(--verdant-cell-change-color2);
 }
 
 .v-VerdantPanel-runCellMap-cell-removed {
-  content: none;
-  width: var(--jp-ui-font-size1);
   background-color: var(--verdant-cell-remove-color1);
-  border-bottom: 5px solid var(--verdant-cell-remove-color2);
-  height: 4px;
 }
 .v-VerdantPanel-runCellMap-cell-removed.highlight {
   border-color: var(--verdant-cell-remove-color2);
@@ -408,15 +405,9 @@
 
 .v-VerdantPanel-runCellMap-cell-added.run {
   background-color: var(--verdant-cell-add-color1);
-  height: 1em;
-  border-bottom: 4px solid var(--verdant-cell-add-color2);
 }
 .v-VerdantPanel-runCellMap-cell-added {
-  width: var(--jp-ui-font-size1);
-  content: none;
   background-color: var(--verdant-cell-add-color1);
-  height: 4px;
-  border-bottom: 5px solid var(--verdant-cell-add-color2);
 }
 .v-VerdantPanel-runCellMap-cell-added.highlight {
   border-color: var(--verdant-cell-add-color2);
@@ -491,12 +482,15 @@
 
 .v-VerdantPanel-noteContainer {
   margin-left: -0.5em;
-  width: calc(100% - 1.5em);
+  width: calc(100%);
   display: flex;
   flex-direction: row;
+  background: var(--jp-layout-color0);
+  border-bottom: 1px solid var(--jp-content-font-color3);
 }
 .v-VerdantPanel-noteContainer.header {
   margin-left: 1.25em;
+  border-color: transparent;
 }
 
 .v-VerdantPanel-noteInput {
@@ -518,8 +512,8 @@
   display: inline-flex;
   flex-direction: row;
   flex: 1 1 auto;
-  max-width: 100%;
-  margin-left: -0.5em;
+  max-width: calc(100% + 0.75em);
+  margin-left: -1.75em;
 }
 
 .v-VerdantPanel-runItem-sampleButton {
@@ -528,7 +522,7 @@
   max-width: 1.25em;
   flex: 1 1 1.25em;
   margin-bottom: 0.5em;
-  background-color: var(--verdant-ghost-color1);
+  background-color: transparent;
   background-image: var(--verdant-icon-time);
   background-position: center;
   background-repeat: no-repeat;

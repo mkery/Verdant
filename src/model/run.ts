@@ -438,6 +438,16 @@ export namespace Run {
       "December"
     ];
 
+    var dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ];
+
     var today = new Date();
     var yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
@@ -448,6 +458,8 @@ export namespace Run {
     else if (sameDay(yesterday, date)) dateDesc = "yesterday ";
 
     dateDesc +=
+      dayNames[date.getDay()] +
+      " " +
       monthNames[date.getMonth()] +
       " " +
       date.getDate() +
