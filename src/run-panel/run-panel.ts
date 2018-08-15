@@ -8,8 +8,6 @@ import { RunItem } from "./run-item";
 
 import { RunSection } from "./run-section";
 
-import { Legend } from "./legend";
-
 import { VerdantPanel } from "../panel/verdant-panel";
 
 import { FilterFunction } from "../panel/search-bar";
@@ -76,10 +74,6 @@ export class RunPanel extends Widget {
   private buildFooter() {
     let footer = document.createElement("div");
     footer.classList.add(RUN_LIST_FOOTER);
-    let legend = new Legend();
-    footer.appendChild(legend.button);
-    footer.appendChild(legend.node);
-    legend.node.style.display = "none";
     this.node.appendChild(footer);
   }
 

@@ -57,6 +57,7 @@
   z-index: 2;
   display: inherit;
   min-height: 33px;
+  max-height: 33px;
 }
 
 .v-VerdantPanel-search-box {
@@ -105,15 +106,27 @@
 .v-VerdantPanel-search-filter.star {
   background-image: var(--verdant-icon-star);
 }
-.v-VerdantPanel-search-filter.output {
+.v-VerdantPanel-search-filter.legend {
   user-select: none;
-  text-align: center;
-  padding-top: 0.5em;
-  text-transform: uppercase;
-  font-size: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
+  padding-left: 0.5em;
   color: #626262;
+  background-color: var(--jp-border-color3);
+  padding-right: 0.5em;
+  line-height: 24px;
+  width: 7em;
+  margin-left: 2px;
+}
+.v-VerdantPanel-search-filter.legend.open {
+  background: var(--jp-layout-color2);
+  padding-bottom: 8px;
+  border: 1px solid var(--jp-toolbar-border-color);
+  border-bottom: transparent;
+}
+.v-VerdantPanel-search-filter.legend.open:hover {
+  box-shadow: 0px 0px 2px 0px transparent;
+}
+.v-Verdant-GhostBook-filterButton.open::after {
+  background-image: var(--verdant-icon-caretdown);
 }
 .v-VerdantPanel-search-filter.comment {
   background-image: var(--verdant-icon-comment);
@@ -160,7 +173,7 @@
   top: -1px;
   background-color: white;
   background-size: 16px;
-  width: 16px;
+  width: 18px;
   background-image: var(--jp-icon-close);
   border: 1px solid transparent;
   background-position: center;
@@ -178,6 +191,6 @@
   vertical-align: top;
   margin-top: 0.25em;
   margin-bottom: 0.5em;
-  width: 100%;
+  width: calc(100% - 8px);
   text-align: center;
 }

@@ -7,6 +7,9 @@ import { Nodey } from "../model/nodey";
 import { HistoryModel } from "../model/history";
 
 import { VerdantPanel } from "./verdant-panel";
+
+import { Legend } from "./legend";
+
 /*
  * History search bar
  */
@@ -20,12 +23,14 @@ const SEARCH_CANCEL_BUTTON = "v-VerdantPanel-search-cancel";
 export class SearchBar extends Widget {
   private view: VerdantPanel;
   private textQuery: string = null;
+  private legend: Legend;
   readonly historyModel: HistoryModel;
 
   constructor(view: VerdantPanel, historyModel: HistoryModel) {
     super();
     this.view = view;
     this.historyModel = historyModel;
+    this.legend = new Legend(this);
     this.addClass(SEARCH_CONTAINER_CLASS);
 
     let wrapper = document.createElement("div");
@@ -38,37 +43,21 @@ export class SearchBar extends Widget {
       if (ev.key === "13" || ev.which === 13) this.searchQueryEntered();
     });
     wrapper.appendChild(input);
+    let xButton = document.createElement("div");
+    xButton.classList.add(SEARCH_CANCEL_BUTTON);
+    wrapper.appendChild(xButton);
+    xButton.addEventListener("click", this.clearSearch.bind(this));
     this.node.appendChild(wrapper);
+    this.node.appendChild(this.legend.node);
+    this.legend.node.style.display = "none";
 
-    let addFilter = document.createElement("div");
-    addFilter.classList.add(SEARCH_FILTER);
-    addFilter.classList.add("added");
-    addFilter.addEventListener("click", this.filter.bind(this, addFilter));
-
-    let removeFilter = document.createElement("div");
-    removeFilter.classList.add(SEARCH_FILTER);
-    removeFilter.classList.add("removed");
-    removeFilter.addEventListener(
-      "click",
-      this.filter.bind(this, removeFilter)
-    );
-
-    let changeFilter = document.createElement("div");
-    changeFilter.classList.add(SEARCH_FILTER);
-    changeFilter.classList.add("changed");
-    changeFilter.addEventListener(
-      "click",
-      this.filter.bind(this, changeFilter)
-    );
-
-    let outputFilter = document.createElement("div");
-    outputFilter.classList.add(SEARCH_FILTER);
-    outputFilter.classList.add("output");
-    outputFilter.textContent = "out";
-    outputFilter.addEventListener(
-      "click",
-      this.filter.bind(this, outputFilter)
-    );
+    let legend = document.createElement("div");
+    legend.classList.add(SEARCH_FILTER);
+    legend.classList.add("legend");
+    let l = document.createElement("span");
+    l.textContent = "Filter by kind";
+    legend.appendChild(l);
+    legend.addEventListener("click", this.toggleLegend.bind(this));
 
     let starFilter = document.createElement("div");
     starFilter.classList.add(SEARCH_FILTER);
@@ -83,12 +72,13 @@ export class SearchBar extends Widget {
       this.filter.bind(this, commentFilter)
     );
 
-    this.node.appendChild(addFilter);
-    this.node.appendChild(removeFilter);
-    this.node.appendChild(changeFilter);
-    this.node.appendChild(outputFilter);
+    this.node.appendChild(legend);
     this.node.appendChild(starFilter);
     this.node.appendChild(commentFilter);
+  }
+
+  get legendButton() {
+    return this.node.getElementsByClassName("legend")[0];
   }
 
   get addedButton() {
@@ -96,7 +86,7 @@ export class SearchBar extends Widget {
   }
 
   get removedButton() {
-    return this.node.getElementsByClassName("removed")[0];
+    return this.node.getElementsByClassName("deleted")[0];
   }
 
   get changedButton() {
@@ -121,19 +111,21 @@ export class SearchBar extends Widget {
     )[0] as HTMLInputElement;
   }
 
+  toggleLegend() {
+    let open = this.legend.toggleLegend();
+    if (open) {
+      this.node.style.marginBottom =
+        this.legend.node.getBoundingClientRect().height + "px";
+      this.legendButton.classList.add("open");
+    } else {
+      this.node.style.marginBottom = "";
+      this.legendButton.classList.remove("open");
+    }
+  }
+
   searchQueryEntered() {
     let searchBar = this.searchBar;
     let query = searchBar.value;
-    let wrapper = searchBar.parentElement;
-
-    let buttons = wrapper.getElementsByClassName(SEARCH_CANCEL_BUTTON);
-    if (buttons.length < 1) {
-      let xButton = document.createElement("div");
-      xButton.classList.add(SEARCH_CANCEL_BUTTON);
-      wrapper.appendChild(xButton);
-      xButton.addEventListener("click", this.clearSearch.bind(this));
-    }
-
     this.textQuery = query;
     console.log("Query is", query);
     if (this.view.runList.isVisible) this._runFilters();
@@ -184,18 +176,18 @@ export class SearchBar extends Widget {
   private _filterRunByAdded(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return r.runCell.changeType === ChangeType.ADDED;
+        return r.runCell.changeType !== ChangeType.ADDED;
       },
-      label: "cells added"
+      label: "no cells added"
     };
   }
 
   private _filterRunByRemoved(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return r.runCell.changeType === ChangeType.REMOVED;
+        return r.runCell.changeType !== ChangeType.REMOVED;
       },
-      label: "cells removed"
+      label: "no cells removed"
     };
   }
 
@@ -212,9 +204,9 @@ export class SearchBar extends Widget {
   private _filterRunByChanged(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return r.runCell.changeType === ChangeType.CHANGED;
+        return r.runCell.changeType !== ChangeType.CHANGED;
       },
-      label: "cells changed"
+      label: "no cells changed"
     };
   }
 
@@ -269,23 +261,31 @@ export class SearchBar extends Widget {
   private _runFilters(): void {
     let filterList: FilterFunction<any>[] = [];
 
-    if (this.addedButton.classList.contains("highlight"))
+    if (this.addedButton && !this.addedButton.classList.contains("highlight"))
       filterList.push(this._filterRunByAdded());
-    if (this.removedButton.classList.contains("highlight"))
+    if (
+      this.removedButton &&
+      !this.removedButton.classList.contains("highlight")
+    )
       filterList.push(this._filterRunByRemoved());
-    if (this.changedButton.classList.contains("highlight"))
+    if (
+      this.changedButton &&
+      !this.changedButton.classList.contains("highlight")
+    )
       filterList.push(this._filterRunByChanged());
     if (this.starButton.classList.contains("highlight"))
       filterList.push(this._filterRunByStar());
     if (this.commentButton.classList.contains("highlight"))
       filterList.push(this._filterRunByComment());
-    if (this.outputButton.classList.contains("highlight"))
+    if (this.outputButton && this.outputButton.classList.contains("highlight"))
       filterList.push(this._filterRunByOutput());
 
     if (filterList.length < 1 && !this.textQuery)
       this.view.runList.clearFilters();
     else {
-      let filter = (r: Run) => filterList.every(f => f.filter(r));
+      let filter = (r: Run) => {
+        return filterList.every(f => f.filter(r));
+      };
       let label = "";
       filterList.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);

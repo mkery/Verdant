@@ -71,33 +71,40 @@
 
 .v-VerdantPanel-legend-container {
   position: absolute;
-  bottom: calc(2em - 1px);
-  width: calc(100% - 22px);
-  padding: 5px;
-  background: var(--jp-layout-color0);
+  top: 33px;
+  width: 100%;
+  padding: 2px;
+  background: var(--jp-layout-color2);
   border: var(--jp-border-width) solid var(--jp-border-color1);
   font-size: var(--jp-ui-font-size);
-  margin-right: 5px;
-  border-bottom: 0px;
-  box-shadow: var(--jp-elevation-z6);
-  margin-left: 5px;
+  border-top: 0px;
+  left: -1px;
 }
 
 .v-VerdantPanel-legend-label {
   display: inline-block;
-  margin-left: 1em;
+  margin-left: 0.25em;
+  font-size: var(--jp-code-font-size);
 }
 
 .v-VerdantPanel-legend-item {
   display: inline-block;
-  padding-bottom: 5px;
-  width: 50%;
+  padding: 4px;
+  margin: 2px;
+  font-size: var(--jp-content-font-size0);
+  border: 1px solid transparent;
+}
+.v-VerdantPanel-legend-item.highlight {
+  background: var(--jp-layout-color0);
+  border-color: var(--jp-toolbar-border-color);
 }
 
 .v-VerdantPanel-legend-item-intro {
   width: 100%;
   padding-bottom: 5px;
   display: inline-block;
+  font-size: var(--jp-content-font-size0);
+  text-align: center;
 }
 
 .v-VerdantPanel-runCluster-list {
@@ -297,7 +304,7 @@
 }
 .v-VerdantPanel-runCellMap-cell.run {
   width: 2px;
-  background-color: #f0f0f0;
+  background-color: #d0c8d2;
   margin-left: 0px;
   height: 1.5em;
   margin-bottom: calc(-0.25em - 2px);
@@ -443,6 +450,7 @@
   min-width: 1em;
   min-height: 1em;
   margin: 0px;
+  margin-top: 0.075em;
 }
 .v-VerdantPanel-starButton.header.highlight {
   background-image: var(--verdant-icon-star-header-highlight);
