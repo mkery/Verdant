@@ -122,6 +122,16 @@
   border: 1px solid var(--jp-toolbar-border-color);
   border-bottom: transparent;
 }
+.v-VerdantPanel-search-filter.legend.open.highlight {
+  color: var(--jp-brand-color1);
+  background-color: var(--jp-layout-color1);
+  border: 1px solid var(--jp-toolbar-border-color);
+  border-bottom: 2px solid var(--jp-brand-color3);
+  padding-bottom: 7px;
+}
+.v-VerdantPanel-search-filter.legend.highlight {
+  color: var(--jp-brand-color1);
+}
 .v-VerdantPanel-search-filter.legend.open:hover {
   box-shadow: 0px 0px 2px 0px transparent;
 }

@@ -62,7 +62,6 @@ export class Legend {
     addLabel.classList.add(LEGEND_LABEL);
     addLabel.textContent = "cell created";
     item2.appendChild(addLabel);
-    item2.classList.add("highlight");
     item2.classList.add("added");
     item2.addEventListener("click", () => this.search.filter(item2));
     container.appendChild(item2);
@@ -78,7 +77,6 @@ export class Legend {
     removeLabel.classList.add(LEGEND_LABEL);
     removeLabel.textContent = "cell deleted";
     item3.appendChild(removeLabel);
-    item3.classList.add("highlight");
     item3.classList.add("deleted");
     item3.addEventListener("click", () => this.search.filter(item3));
     container.appendChild(item3);
@@ -94,10 +92,59 @@ export class Legend {
     changeLabel.classList.add(LEGEND_LABEL);
     changeLabel.textContent = "cell edited";
     item5.appendChild(changeLabel);
-    item5.classList.add("highlight");
     item5.classList.add("changed");
     item5.addEventListener("click", () => this.search.filter(item5));
     container.appendChild(item5);
+
+    let item6 = document.createElement("div");
+    item6.classList.add(LEGEND_ITEM);
+    let outputLabel = document.createElement("div");
+    outputLabel.classList.add(LEGEND_LABEL);
+    outputLabel.textContent = "output";
+    item6.appendChild(outputLabel);
+    item6.classList.add("output");
+    item6.addEventListener("click", () => this.search.filter(item6));
+    container.appendChild(item6);
+
+    let item7 = document.createElement("div");
+    item7.classList.add(LEGEND_ITEM);
+    let textLabel = document.createElement("div");
+    textLabel.classList.add(LEGEND_LABEL);
+    textLabel.textContent = "text output";
+    item7.appendChild(textLabel);
+    item7.classList.add("textOut");
+    item7.addEventListener("click", () => this.search.filter(item7));
+    container.appendChild(item7);
+
+    let item8 = document.createElement("div");
+    item8.classList.add(LEGEND_ITEM);
+    let tableLabel = document.createElement("div");
+    tableLabel.classList.add(LEGEND_LABEL);
+    tableLabel.textContent = "table output";
+    item8.appendChild(tableLabel);
+    item8.classList.add("tableOut");
+    item8.addEventListener("click", () => this.search.filter(item8));
+    container.appendChild(item8);
+
+    let item9 = document.createElement("div");
+    item9.classList.add(LEGEND_ITEM);
+    let imageLabel = document.createElement("div");
+    imageLabel.classList.add(LEGEND_LABEL);
+    imageLabel.textContent = "image output";
+    item9.appendChild(imageLabel);
+    item9.classList.add("imageOut");
+    item9.addEventListener("click", () => this.search.filter(item9));
+    container.appendChild(item9);
+
+    let item10 = document.createElement("div");
+    item10.classList.add(LEGEND_ITEM);
+    let markdownLAbel = document.createElement("div");
+    markdownLAbel.classList.add(LEGEND_LABEL);
+    markdownLAbel.textContent = "markdown";
+    item10.appendChild(markdownLAbel);
+    item10.classList.add("markdown");
+    item10.addEventListener("click", () => this.search.filter(item10));
+    container.appendChild(item10);
 
     return container;
   }

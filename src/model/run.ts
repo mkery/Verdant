@@ -456,10 +456,9 @@ export namespace Run {
 
     if (sameDay(today, date)) dateDesc = "today ";
     else if (sameDay(yesterday, date)) dateDesc = "yesterday ";
+    else dateDesc = dayNames[date.getDay()] + " ";
 
     dateDesc +=
-      dayNames[date.getDay()] +
-      " " +
       monthNames[date.getMonth()] +
       " " +
       date.getDate() +

@@ -93,6 +93,7 @@
   margin: 2px;
   font-size: var(--jp-content-font-size0);
   border: 1px solid transparent;
+  border-bottom: 1px solid var(--jp-border-color1);
 }
 .v-VerdantPanel-legend-item.highlight {
   background: var(--jp-layout-color0);
@@ -404,6 +405,9 @@
 }
 
 .v-VerdantPanel-runCellMap-cell-removed {
+  background-color: var(--verdant-cell-remove-color1);
+}
+.v-VerdantPanel-runCellMap-cell-removed.run {
   background-color: var(--verdant-cell-remove-color1);
 }
 .v-VerdantPanel-runCellMap-cell-removed.highlight {

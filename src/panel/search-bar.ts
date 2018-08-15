@@ -2,7 +2,7 @@ import { Widget } from "@phosphor/widgets";
 
 import { Run, ChangeType } from "../model/run";
 
-import { Nodey } from "../model/nodey";
+import { Nodey, NodeyMarkdown } from "../model/nodey";
 
 import { HistoryModel } from "../model/history";
 
@@ -105,6 +105,22 @@ export class SearchBar extends Widget {
     return this.node.getElementsByClassName("output")[0];
   }
 
+  get outputTextButton() {
+    return this.node.getElementsByClassName("textOut")[0];
+  }
+
+  get outputTableButton() {
+    return this.node.getElementsByClassName("tableOut")[0];
+  }
+
+  get outputImageButton() {
+    return this.node.getElementsByClassName("imageOut")[0];
+  }
+
+  get markdownButton() {
+    return this.node.getElementsByClassName("markdown")[0];
+  }
+
   get searchBar() {
     return this.node.getElementsByClassName(
       SEARCH_INPUT_CLASS
@@ -134,9 +150,6 @@ export class SearchBar extends Widget {
 
   clearSearch() {
     let searchBar = this.searchBar;
-    let wrapper = searchBar.parentElement;
-    let button = wrapper.getElementsByClassName(SEARCH_CANCEL_BUTTON)[0];
-    wrapper.removeChild(button);
     searchBar.value = "";
     this.textQuery = null;
     if (this.view.runList.isVisible) this._runFilters();
@@ -176,18 +189,18 @@ export class SearchBar extends Widget {
   private _filterRunByAdded(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return r.runCell.changeType !== ChangeType.ADDED;
+        return r.runCell.changeType === ChangeType.ADDED;
       },
-      label: "no cells added"
+      label: "cells added"
     };
   }
 
   private _filterRunByRemoved(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return r.runCell.changeType !== ChangeType.REMOVED;
+        return r.runCell.changeType === ChangeType.REMOVED;
       },
-      label: "no cells removed"
+      label: "cells removed"
     };
   }
 
@@ -204,9 +217,9 @@ export class SearchBar extends Widget {
   private _filterRunByChanged(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
-        return r.runCell.changeType !== ChangeType.CHANGED;
+        return r.runCell.changeType === ChangeType.CHANGED;
       },
-      label: "no cells changed"
+      label: "cells changed"
     };
   }
 
@@ -236,6 +249,17 @@ export class SearchBar extends Widget {
     };
   }
 
+  private _filterRunByMarkdown(): FilterFunction<Run> {
+    return {
+      filter: (r: Run) => {
+        let name = r.runCell.node;
+        let node = this.historyModel.getNodey(name);
+        return node instanceof NodeyMarkdown;
+      },
+      label: "Markdown cells"
+    };
+  }
+
   private _filterNodeyByText(): FilterFunction<Nodey> {
     let query = this.textQuery;
     return {
@@ -260,34 +284,50 @@ export class SearchBar extends Widget {
 
   private _runFilters(): void {
     let filterList: FilterFunction<any>[] = [];
+    let legendFilters: FilterFunction<any>[] = [];
 
-    if (this.addedButton && !this.addedButton.classList.contains("highlight"))
-      filterList.push(this._filterRunByAdded());
+    if (this.addedButton && this.addedButton.classList.contains("highlight"))
+      legendFilters.push(this._filterRunByAdded());
     if (
       this.removedButton &&
-      !this.removedButton.classList.contains("highlight")
+      this.removedButton.classList.contains("highlight")
     )
-      filterList.push(this._filterRunByRemoved());
+      legendFilters.push(this._filterRunByRemoved());
     if (
       this.changedButton &&
-      !this.changedButton.classList.contains("highlight")
+      this.changedButton.classList.contains("highlight")
     )
-      filterList.push(this._filterRunByChanged());
+      legendFilters.push(this._filterRunByChanged());
+    if (this.outputButton && this.outputButton.classList.contains("highlight"))
+      legendFilters.push(this._filterRunByOutput());
+    if (
+      this.markdownButton &&
+      this.markdownButton.classList.contains("highlight")
+    )
+      legendFilters.push(this._filterRunByMarkdown());
+
     if (this.starButton.classList.contains("highlight"))
       filterList.push(this._filterRunByStar());
     if (this.commentButton.classList.contains("highlight"))
       filterList.push(this._filterRunByComment());
-    if (this.outputButton && this.outputButton.classList.contains("highlight"))
-      filterList.push(this._filterRunByOutput());
 
-    if (filterList.length < 1 && !this.textQuery)
+    if (filterList.length < 1 && !this.textQuery && legendFilters.length < 1) {
       this.view.runList.clearFilters();
-    else {
+      this.legendButton.classList.remove("highlight");
+    } else {
+      if (legendFilters.length > 0)
+        this.legendButton.classList.add("highlight");
+      else this.legendButton.classList.remove("highlight");
+
       let filter = (r: Run) => {
-        return filterList.every(f => f.filter(r));
+        return (
+          filterList.every(f => f.filter(r)) &&
+          legendFilters.every(f => f.filter(r))
+        );
       };
       let label = "";
       filterList.forEach(f => (label += f.label + " and "));
+      legendFilters.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);
       this.view.runList.filterRunList({ filter, label });
 
