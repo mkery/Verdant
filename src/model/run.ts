@@ -325,8 +325,8 @@ export class RunCluster {
     let matchCount = 0;
     this._runs.forEach((i: number) => {
       let member = this.model.getRun(i);
-      if (otherFilters(member)) {
-        let nodeList = member.notebook;
+      if (!otherFilters || otherFilters(member)) {
+        let nodeList = [member.runCell.node];
         nodeList.forEach(name => {
           let match = null;
           let node = this.model.historyModel.getNodey(name);
@@ -343,8 +343,8 @@ export class RunCluster {
             match = fun(text);
             if (!nodesMemo[node.id]) nodesMemo[node.id] = [];
             nodesMemo[node.id].push({ node: name, match: match });
+            if (match) matchCount += 1;
           }
-          if (match) matchCount += 1;
         });
       }
     });

@@ -245,7 +245,7 @@ export class SearchBar extends Widget {
       filter: (text: string) => {
         return text.indexOf(query) > -1;
       },
-      label: "the words " + query
+      label: 'the words "' + query + '"'
     };
   }
 
@@ -311,8 +311,8 @@ export class SearchBar extends Widget {
     if (this.commentButton.classList.contains("highlight"))
       filterList.push(this._filterRunByComment());
 
+    this.view.runList.clearFilters();
     if (filterList.length < 1 && !this.textQuery && legendFilters.length < 1) {
-      this.view.runList.clearFilters();
       this.legendButton.classList.remove("highlight");
     } else {
       if (legendFilters.length > 0)
@@ -329,7 +329,9 @@ export class SearchBar extends Widget {
       filterList.forEach(f => (label += f.label + " and "));
       legendFilters.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);
-      this.view.runList.filterRunList({ filter, label });
+
+      if (filterList.length > 0)
+        this.view.runList.filterRunList({ filter, label });
 
       if (this.textQuery)
         this.view.runList.filterByText(this._filterRunByText());

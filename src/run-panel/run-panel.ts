@@ -106,12 +106,11 @@ export class RunPanel extends Widget {
     });
 
     let label = this.listLabel;
+    if (label.textContent.length > 0)
+      label.textContent = label.textContent + " and ";
+
     label.textContent =
-      label.textContent +
-      " and " +
-      matchCount +
-      " runs found with " +
-      fun.label;
+      label.textContent + matchCount + " runs found with " + fun.label;
     label.style.display = "";
   }
 
