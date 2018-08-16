@@ -188,7 +188,7 @@ export interface serialized_Nodey {
 }
 
 export interface serialized_NodeyOutput extends serialized_Nodey {
-  output: { [key: string]: any };
+  raw: { [key: string]: any };
 }
 
 export interface serialized_NodeyMarkdown extends serialized_Nodey {

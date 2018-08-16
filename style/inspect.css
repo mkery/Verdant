@@ -7,14 +7,11 @@
 }
 
 .v-VerdantPanel-inspect-header {
-  background: var(--jp-layout-color2);
   order: 0;
-  box-shadow: var(--jp-toolbar-box-shadow);
-  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 .v-VerdantPanel-inspect-header.active {
-  background: var(--verdant-cell-change-color1);
   color: var(--jp-brand-color0);
+  background: aliceblue;
 }
 
 .v-VerdantPanel-inspect-clipboard {
@@ -25,20 +22,25 @@
 }
 
 .v-VerdantPanel-inspect-icon {
-  padding: 5px;
-  margin: 5px;
-  margin-bottom: 0px;
+  padding: 8px;
   background-image: var(--verdant-icon-timeinspect);
   background-repeat: no-repeat;
-  border: 1px solid transparent;
-  border-radius: 5px;
+  border: var(--jp-border-width) solid var(--jp-toolbar-border-color);
   display: inline-block;
   width: 0.75em;
   height: 0.75em;
+  background-color: var(--jp-layout-color2);
+  border-left-width: 0px;
+  background-size: 20px;
+  margin: 3px;
+  margin-left: 0px;
+  background-position: center;
+  margin-bottom: 0px;
 }
 .v-VerdantPanel-inspect-icon.active {
   background-image: var(--verdant-icon-timeinspect-active);
-  border: 1px solid var(--jp-brand-color1);
+  border-color: var(--jp-brand-color1);
+  background-color: var(--jp-brand-color3);
 }
 
 .v-VerdantPanel-inspect-title {
@@ -46,7 +48,6 @@
   margin-left: 4px;
   font-style: italic;
   vertical-align: top;
-  color: var(--jp-cell-editor-active-border-color);
   margin-top: 10px;
 }
 
@@ -105,7 +106,6 @@
 }
 
 .v-VerdantPanel-inspect-version-content {
-  white-space: pre-wrap;
   width: max-content;
   padding-left: 8px;
   font-family: var(--jp-cell-prompt-font-family);
@@ -114,6 +114,9 @@
   font-family: var(--jp-content-font-family);
   width: calc(100% - 8px);
   overflow: hidden;
+}
+.v-VerdantPanel-inspect-version-content.code {
+  white-space: pre-wrap;
 }
 
 .v-VerdantPanel-inspect-version {

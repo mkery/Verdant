@@ -22,11 +22,14 @@ import { KernelListen } from "./kernel-listen";
 
 import { HistoryModel } from "../model/history";
 
+import { Nodey } from "../model/nodey";
+
 export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
   private _notebookPanel: NotebookPanel;
   private _activeCellChanged = new Signal<this, CellListen>(this);
   private _cellStructureChanged = new Signal<this, [number, CellListen]>(this);
+  private _selectedNodeChanged = new Signal<this, Nodey[]>(this);
   kernUtil: KernelListen;
   astGen: ASTGenerate;
   cells: Map<string, CellListen>;
@@ -67,6 +70,10 @@ export class NotebookListen {
 
   get cellStructureChanged(): Signal<this, [number, CellListen]> {
     return this._cellStructureChanged;
+  }
+
+  get selectedNodeChanged(): Signal<this, Nodey[]> {
+    return this._selectedNodeChanged;
   }
 
   get path(): string {
@@ -171,6 +178,21 @@ export class NotebookListen {
     });
   }
 
+  private listenToCellSelection(cellListen: CellListen) {
+    cellListen.inputSelected.connect(
+      (_: CellListen, nodey: Nodey) => {
+        this._selectedNodeChanged.emit([nodey]);
+      },
+      this
+    );
+    cellListen.outputSelected.connect(
+      (_: CellListen, nodey: Nodey[]) => {
+        this._selectedNodeChanged.emit(nodey);
+      },
+      this
+    );
+  }
+
   private createCodeCellListen(cell: Cell, index: number, matchPrior: boolean) {
     var cellListen: CellListen;
     if (cell instanceof CodeCell)
@@ -190,6 +212,7 @@ export class NotebookListen {
         matchPrior
       );
     this.cells.set(cell.model.id, cellListen);
+    this.listenToCellSelection(cellListen);
     return cellListen;
   }
 

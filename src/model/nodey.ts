@@ -86,23 +86,15 @@ export namespace SyntaxToken {
 export class NodeyOutput extends Nodey {
   dependsOn: Nodey[];
   raw: { [id: string]: any };
-  data: any;
 
   constructor(options: { [id: string]: any }) {
     super(options);
-    this.raw = options; // note for different output types, the data is all named differently
-    this.dependsOn = (<any>options)["dependsOn"];
-
-    console.log("Got some output must parse it!", this.raw);
-    if ("data" in this.raw) this.data = this.raw["data"];
+    this.raw = options["raw"]; // note for different output types, the data is all named differently
+    this.dependsOn = options["dependsOn"];
   }
 
   static EMPTY() {
     return new NodeyOutput({ raw: {}, dependsOn: [] });
-  }
-
-  public setData(data: {}) {
-    this.data = data;
   }
 
   clone(): Nodey {
@@ -118,7 +110,7 @@ export class NodeyOutput extends Nodey {
     return {
       parent: this.parent,
       typeName: "output",
-      output: this.raw,
+      raw: this.raw,
       runs: this.run
     };
   }
@@ -363,7 +355,7 @@ export namespace Nodey {
 
   export function outputFromJSON(dat: serialized_NodeyOutput): NodeyOutput {
     return new NodeyOutput({
-      raw: dat.output,
+      raw: dat.raw,
       parent: dat.parent,
       run: dat.runs
     });
@@ -479,7 +471,7 @@ export namespace Nodey {
     output: { [id: string]: any },
     historyModel: HistoryModel
   ) {
-    var n = new NodeyOutput(output);
+    var n = new NodeyOutput({ raw: output });
     historyModel.registerOutputNodey(n);
     return n;
   }

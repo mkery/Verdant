@@ -249,6 +249,7 @@ export class InspectWidget extends Widget {
           content.classList.add("markdown");
           this.inspector.renderMarkdownVersionDiv(nodeyVer, text, content);
         } else if (nodeyVer instanceof NodeyCode) {
+          content.classList.add("code");
           this.inspector.renderCodeVerisonDiv(
             nodeyVer,
             text,

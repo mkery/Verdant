@@ -6,6 +6,8 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 
 import { ASTGenerate } from "../analysis/ast-generate";
 
+import { Signal } from "@phosphor/signaling";
+
 import {
   Nodey,
   NodeyCell,
@@ -26,6 +28,8 @@ export abstract class CellListen {
   cell: Cell;
   astUtils: ASTGenerate;
   protected _nodey: number;
+  protected _inputSelected = new Signal<this, Nodey>(this);
+  protected _outputSelected = new Signal<this, NodeyOutput[]>(this);
   historyModel: HistoryModel;
   status: number;
   position: number;
@@ -57,6 +61,14 @@ export abstract class CellListen {
     return this.nodey.name;
   }
 
+  get inputSelected(): Signal<CellListen, Nodey> {
+    return this._inputSelected;
+  }
+
+  get outputSelected(): Signal<CellListen, NodeyOutput[]> {
+    return this._outputSelected;
+  }
+
   public clearStatus(): void {
     this.status = ChangeType.SAME;
   }
@@ -72,7 +84,7 @@ export abstract class CellListen {
 
   public blur(): void {}
 
-  protected async init(matchPrior: boolean): Promise<void> {
+  protected async init(_: boolean): Promise<void> {
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -84,7 +96,11 @@ export abstract class CellListen {
     this.historyModel.handleCellRun(node);
   }
 
-  protected listen(): void {}
+  protected listen(): void {
+    this.cell.inputArea.node.addEventListener("click", () => {
+      this._inputSelected.emit(this.nodey);
+    });
+  }
 
   protected _ready = new PromiseDelegate<void>();
 }
@@ -134,6 +150,10 @@ export class CodeCellListen extends CellListen {
 
   protected listen(): void {
     super.listen();
+    (this.cell as CodeCell).outputArea.node.addEventListener("click", () => {
+      this._outputSelected.emit(this.output);
+    });
+
     if (this.cell.editor instanceof CodeMirrorEditor) {
       var editor = <CodeMirrorEditor>this.cell.editor;
       //editor.model.value.changed //listen in
@@ -142,7 +162,7 @@ export class CodeCellListen extends CellListen {
       CodeMirror.on(
         editor.doc,
         "change",
-        (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
+        (_: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
           console.log("there was a change!", change, this.nodey);
           this.astUtils.repairAST(<NodeyCodeCell>this.nodey, change, editor);
         }
@@ -175,33 +195,5 @@ export class MarkdownCellListen extends CellListen {
       this._nodey = nodey.id;
     }
     super.init(matchPrior);
-  }
-
-  protected listen(): void {
-    super.listen();
-    if (this.cell.editor instanceof CodeMirrorEditor) {
-      var editor = <CodeMirrorEditor>this.cell.editor;
-      //editor.model.value.changed //listen in
-      //editor.model.selections.changed //listen in
-
-      CodeMirror.on(
-        editor.doc,
-        "change",
-        (instance: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
-          /*this.historyModel.stageChanges(
-            [
-              (node: Nodey) => {
-                console.log("Updating nodey", node);
-                (<NodeyMarkdown>node).markdown = (<NodeyMarkdown>(
-                  node
-                )).cell.cell.model.value.text;
-              }
-            ],
-            this.nodey
-          );*/
-          //TODO!
-        }
-      );
-    }
   }
 }

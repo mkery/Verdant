@@ -49,8 +49,8 @@ export class Inspect {
 
   set notebook(notebook: NotebookListen) {
     this._notebook = notebook;
-    this._notebook.activeCellChanged.connect((_: any, cell: CellListen) => {
-      this.changeTarget([cell.nodey]);
+    this._notebook.selectedNodeChanged.connect((_: any, nodey: Nodey[]) => {
+      this.changeTarget(nodey);
     });
     this._notebook.cellStructureChanged.connect(
       (_: any, cell: [number, CellListen]) => {
