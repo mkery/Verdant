@@ -49,13 +49,20 @@ export class RunItem extends Widget {
   private activeFilter: (r: Run) => boolean;
   private activeTextFilter: (s: string) => boolean;
   private openSubruns: RunItem[] = [];
+  private isNested = false;
 
-  constructor(runs: RunCluster, runModel: RunModel, actions: RunActions) {
+  constructor(
+    runs: RunCluster,
+    runModel: RunModel,
+    actions: RunActions,
+    nested = false
+  ) {
     super();
     this.actions = actions;
     this.runModel = runModel;
     this.historyModel = runModel.historyModel;
     this.runs = runs;
+    this.isNested = nested;
 
     let caret = document.createElement("div");
     caret.classList.add(RUN_ITEM_CARET);
@@ -63,6 +70,10 @@ export class RunItem extends Widget {
     let eventLabel = document.createElement("div");
     eventLabel.textContent = "(" + this.runs.length + ")";
     eventLabel.classList.add(RUN_LABEL);
+    if (this.isNested) {
+      eventLabel.textContent = this.runs.checkpointType;
+      eventLabel.classList.add("nested");
+    }
 
     let time = document.createElement("div");
     let minTime = new Date(this.runs.first.timestamp);
@@ -76,16 +87,18 @@ export class RunItem extends Widget {
     time.classList.add(RUN_ITEM_TIME);
 
     this.dotMap = new DotMap(this.historyModel, this.runs.getCellMap());
+    if (this.isNested) this.dotMap.node.classList.add("nested");
 
     this.header = document.createElement("div");
     this.header.classList.add(RUN_ITEM_CLASS);
 
     let titleWrapper = document.createElement("div");
     titleWrapper.classList.add(RUN_ITEM_TITLE_WRAPPER);
+    if (this.isNested) titleWrapper.classList.add("nested");
 
     titleWrapper.appendChild(caret);
     titleWrapper.appendChild(eventLabel);
-    titleWrapper.appendChild(time);
+    if (!this.isNested) titleWrapper.appendChild(time);
     this.header.appendChild(titleWrapper);
 
     this.header.appendChild(this.dotMap.node);
@@ -363,10 +376,6 @@ export class RunItem extends Widget {
       //descriptions
       let descOut = document.createElement("div");
       descOut.classList.add(MAP_CELLBOX_DESCCONTAINER);
-      let outLabel = document.createElement("div");
-      outLabel.textContent = "New cell outputs:";
-      outLabel.classList.add(MAP_CELLBOX_LABEL);
-      descOut.appendChild(outLabel);
       cellContainer.appendChild(descOut);
 
       dat.newOutput.forEach(num => {
@@ -398,7 +407,7 @@ export class RunItem extends Widget {
 
   private _addSubRun(run: number, dropdown: HTMLElement) {
     let cluster = new RunCluster(this.runs.id, this.runs.model, [run]);
-    let runItem = new RunItem(cluster, cluster.model, this.actions);
+    let runItem = new RunItem(cluster, cluster.model, this.actions, true);
     this.openSubruns.push(runItem);
     dropdown.insertBefore(runItem.node, dropdown.firstElementChild);
     runItem.caretClicked();

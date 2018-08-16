@@ -330,7 +330,7 @@ export class SearchBar extends Widget {
       legendFilters.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);
 
-      if (filterList.length > 0)
+      if (filterList.length > 0 || legendFilters.length > 0)
         this.view.runList.filterRunList({ filter, label });
 
       if (this.textQuery)

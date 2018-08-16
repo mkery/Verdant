@@ -127,7 +127,8 @@ export class RunModel {
       let cluster = run[2] as number;
       let newOutput = run[3] as string[];
       let runCell: CellRunData = null;
-      let notebook = run.slice(3).map((name: string | CellRunData) => {
+      console.log("data", data);
+      let notebook = run.slice(4).map((name: string | CellRunData) => {
         if (name instanceof String || typeof name === "string") return name;
         else {
           runCell = name;

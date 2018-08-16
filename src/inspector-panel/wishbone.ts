@@ -12,35 +12,33 @@ const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 
 export namespace Wishbone {
   export function startWishbone(historyModel: HistoryModel) {
-    historyModel.notebook.cells.forEach(
-      (cellListen: CellListen, cellName: string) => {
-        var cell = cellListen.cell;
-        Private.addEvents(
-          cell.inputArea.promptNode,
-          [cellListen.nodey],
-          historyModel.inspector
-        );
+    historyModel.notebook.cells.forEach((cellListen: CellListen, _: string) => {
+      var cell = cellListen.cell;
+      Private.addEvents(
+        cell.inputArea.promptNode,
+        [cellListen.nodey],
+        historyModel.inspector
+      );
 
-        if (cell instanceof CodeCell) {
-          Private.addLineEvents(
-            cell as CodeCell,
-            cellListen as CodeCellListen,
-            historyModel
-          );
-          Private.addOutputEvents(cellListen as CodeCellListen, historyModel);
-        }
+      if (cell instanceof CodeCell) {
+        Private.addLineEvents(
+          cell as CodeCell,
+          cellListen as CodeCellListen,
+          historyModel
+        );
+        Private.addOutputEvents(cellListen as CodeCellListen, historyModel);
       }
-    );
+    });
   }
 
   export function endWishbone(
     notebook: NotebookListen,
     historyModel: HistoryModel
   ) {
-    notebook.cells.forEach((cellListen: CellListen, cellName: string) => {
+    notebook.cells.forEach((cellListen: CellListen, _: string) => {
       var cell = cellListen.cell;
       Private.removeEvents(
-        cell.inputArea.node,
+        cell.inputArea.promptNode,
         [cellListen.nodey],
         historyModel.inspector
       );
@@ -87,11 +85,7 @@ namespace Private {
     return false;
   }
 
-  export function selectTarget(
-    nodey: Nodey[],
-    inspector: Inspect,
-    event: Event
-  ) {
+  export function selectTarget(nodey: Nodey[], inspector: Inspect, _: Event) {
     inspector.changeTarget(nodey);
   }
 
@@ -188,7 +182,7 @@ namespace Private {
     }
   }
 
-  function startCodeSelection(mask: Element, ev: MouseEvent) {
+  function startCodeSelection(mask: Element, _: MouseEvent) {
     mask.addEventListener("mousemove", codeSelection.bind(this, mask));
   }
 
@@ -203,7 +197,7 @@ namespace Private {
     }
   }
 
-  function endCodeSelection(mask: Element, ev: MouseEvent) {
+  function endCodeSelection(mask: Element, _: MouseEvent) {
     mask.removeEventListener("mousemove", codeSelection.bind(this, mask));
   }
 

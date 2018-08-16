@@ -14,7 +14,7 @@ import { CellPanel } from "../cell-panel/cell-panel";
 
 const TABS_ID = "v-VerdantPanel-tabs";
 const HEADER_NOTEBOOK_LABEL = "v-VerdantPanel-header-notebookLabel";
-const HEADER_TITLE = "v-VerdantPanel-header-title";
+//const HEADER_TITLE = "v-VerdantPanel-header-title";
 const HEADER_CELL_LABEL = "v-VerdantPanel-header-cellLabel";
 
 /**
@@ -74,12 +74,8 @@ export class VerdantPanel extends Widget {
   private buildHeaderNode() {
     let header = document.createElement("header");
 
-    let title = document.createElement("span");
-    title.textContent = "history:";
-    title.classList.add(HEADER_TITLE);
-
     let notebookLabel = document.createElement("div");
-    notebookLabel.textContent = "Checkpoints";
+    notebookLabel.textContent = "Run & save history";
     notebookLabel.classList.add(HEADER_NOTEBOOK_LABEL);
     notebookLabel.addEventListener(
       "click",
@@ -92,7 +88,6 @@ export class VerdantPanel extends Widget {
     cellLabel.classList.add("closed");
     cellLabel.addEventListener("click", this.switchToCellHistory.bind(this));
 
-    header.appendChild(title);
     header.appendChild(notebookLabel);
     header.appendChild(cellLabel);
 

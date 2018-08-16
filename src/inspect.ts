@@ -249,43 +249,43 @@ export class Inspect {
       target = run;
     }
 
-    let cells = target
-      .getCellMap()
-      .map((cellDat: CellRunData, cellIndex: number) => {
-        var nodey = this._historyModel.getNodey(cellDat.node);
-        console.log("found node?", cellDat.node, nodey);
-        var jsn: nbformat.ICell = {
-          cell_type: nodey.typeName,
-          metadata: { nodey: nodey.name },
-          source: [] as string[]
-        };
-        if (cellDat.changeType !== ChangeType.SAME) {
-          // this nodey was run
-          jsn.metadata["change"] = cellDat.changeType;
-          if (cellDat.changeType === ChangeType.CHANGED) {
-            var changes = this.getChangesInRun(nodey as NodeyCode, target.id);
-            jsn.metadata["edits"] = changes;
-            for (var i = 0; i < changes.length; i++) {
-              totalChanges.push(cellIndex);
-            }
+    let cellMap = target.getCellMap();
+    console.log("Cell map!", cellMap);
+    let cells = cellMap.map((cellDat: CellRunData, cellIndex: number) => {
+      var nodey = this._historyModel.getNodey(cellDat.node);
+      console.log("found node?", cellDat, cellDat.node, nodey);
+      var jsn: nbformat.ICell = {
+        cell_type: nodey.typeName,
+        metadata: { nodey: nodey.name },
+        source: [] as string[]
+      };
+      if (cellDat.changeType !== ChangeType.SAME) {
+        // this nodey was run
+        jsn.metadata["change"] = cellDat.changeType;
+        if (cellDat.changeType === ChangeType.CHANGED) {
+          var changes = this.getChangesInRun(nodey as NodeyCode, target.id);
+          jsn.metadata["edits"] = changes;
+          for (var i = 0; i < changes.length; i++) {
+            totalChanges.push(cellIndex);
           }
         }
-        var str = (this.renderNode(nodey).text || "").split("\n");
-        jsn.source = str.map((str: string, index: number) => {
-          if (index !== jsn.source.length - 1) return str + "\n";
-          else return str;
-        });
-        if (nodey instanceof NodeyCode) {
-          jsn.execution_count = 0;
-          var outputList: {}[] = [];
-          nodey.output.map(outName => {
-            var outputNode = this._historyModel.getOutput(outName);
-            outputList.push(outputNode.raw);
-          });
-          jsn.outputs = outputList;
-        }
-        return jsn;
+      }
+      var str = (this.renderNode(nodey).text || "").split("\n");
+      jsn.source = str.map((str: string, index: number) => {
+        if (index !== jsn.source.length - 1) return str + "\n";
+        else return str;
       });
+      if (nodey instanceof NodeyCode) {
+        jsn.execution_count = 0;
+        var outputList: {}[] = [];
+        nodey.output.map(outName => {
+          var outputNode = this._historyModel.getOutput(outName);
+          outputList.push(outputNode.raw);
+        });
+        jsn.outputs = outputList;
+      }
+      return jsn;
+    });
 
     var metadata = this._notebook.metadata;
     let metaJsn = Object.create(null) as nbformat.INotebookMetadata;
@@ -517,6 +517,11 @@ export class Inspect {
         });
       }
     }
+  }
+
+  public renderOutputVerisonDiv(nodey: NodeyOutput, elem: HTMLElement) {
+    let widget = this.renderBaby.renderOutput(nodey);
+    elem.appendChild(widget.node);
   }
 }
 

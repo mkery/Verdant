@@ -63,7 +63,7 @@ const extension: JupyterLabPlugin<void> = {
     };
     const fileManager = new FileManager(docManager);
     var notebook: NotebookListen;
-    const renderBaby = new RenderBaby(latexTypesetter, linkHandler);
+    const renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     const model = new HistoryModel(renderBaby, fileManager);
     const astUtils = new ASTGenerate(model);
     const ghostFactory = GhostBookFactory.registerFileType(

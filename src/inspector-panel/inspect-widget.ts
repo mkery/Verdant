@@ -14,7 +14,7 @@ import { Inspect } from "../inspect";
 
 import { VerdantPanel } from "../panel/verdant-panel";
 
-import { Nodey, NodeyMarkdown, NodeyCode } from "../model/nodey";
+import { Nodey, NodeyMarkdown, NodeyCode, NodeyOutput } from "../model/nodey";
 
 import { Wishbone } from "./wishbone";
 
@@ -22,7 +22,7 @@ const INSPECT = "v-VerdantPanel-inspect";
 const INSPECT_ICON = "v-VerdantPanel-inspect-icon";
 const INSPECT_HEADER = "v-VerdantPanel-inspect-header";
 const INSPECT_TITLE = "v-VerdantPanel-inspect-title";
-const INSPECT_DIFF_OPTIONS = "v-Verdant-inspect-diff-options";
+//const INSPECT_DIFF_OPTIONS = "v-Verdant-inspect-diff-options";
 const INSPECT_DIFF_OPT = "v-Verdant-inspect-diff-opt";
 const INSPECT_CONTENT = "v-VerdantPanel-inspect-content";
 const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
@@ -64,7 +64,7 @@ export class InspectWidget extends Widget {
     title.classList.add(INSPECT_TITLE);
     title.textContent = "Select a notebook element to inspect its history";
 
-    let diffOptions = document.createElement("div");
+    /*let diffOptions = document.createElement("div");
     diffOptions.classList.add(INSPECT_DIFF_OPTIONS);
     let op1 = document.createElement("div");
     op1.textContent = "Compare to current version";
@@ -77,11 +77,11 @@ export class InspectWidget extends Widget {
     op2.classList.add(INSPECT_DIFF_OPT);
     op2.classList.add("active");
     op2.addEventListener("click", this.switchDiffType.bind(this, 2));
-    diffOptions.appendChild(op2);
+    diffOptions.appendChild(op2);*/
 
     this._header.appendChild(icon);
     this._header.appendChild(title);
-    this._header.appendChild(diffOptions);
+    //this._header.appendChild(diffOptions);
 
     let content = document.createElement("ul");
     content.classList.add(INSPECT_CONTENT);
@@ -198,7 +198,7 @@ export class InspectWidget extends Widget {
     }
   }
 
-  private switchDiffType(diffType: number) {
+  public switchDiffType(diffType: number) {
     console.log("switch diff to ", diffType);
     let ops = this.diffOps;
     for (let i = 0; i < ops.length; i++) ops[i].classList.remove("active");
@@ -235,7 +235,7 @@ export class InspectWidget extends Widget {
 
       let nodeyVer = this._historyModel.getPriorVersion(target, item.version);
       if (!this._filter || this._filter.filter(nodeyVer)) {
-        console.log("This node was used in runs", nodeyVer);
+        console.log("This node was used in runs", nodeyVer, target);
         matches += 1;
 
         let label = this.buildVerHeader(nodeyVer);
@@ -255,6 +255,8 @@ export class InspectWidget extends Widget {
             content,
             Inspect.CHANGE_DIFF
           );
+        } else if (nodeyVer instanceof NodeyOutput) {
+          this.inspector.renderOutputVerisonDiv(nodeyVer, content);
         }
 
         contentDiv.insertBefore(li, contentDiv.firstElementChild);

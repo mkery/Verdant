@@ -142,7 +142,12 @@ export class HistoryModel {
   }
 
   getPriorVersion(nodey: Nodey, prior: number = -1) {
-    let nodeHist = this._nodeyStore[nodey.id];
+    let nodeHist;
+    if (nodey instanceof NodeyOutput) {
+      nodeHist = this._outputStore[nodey.id];
+    } else {
+      nodeHist = this._nodeyStore[nodey.id];
+    }
     if (prior > -1) return nodeHist.versions[prior];
     if (nodey.version !== 0) return nodeHist.versions[nodey.version - 1];
   }

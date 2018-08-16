@@ -10,6 +10,7 @@
   background: var(--jp-layout-color2);
   order: 0;
   box-shadow: var(--jp-toolbar-box-shadow);
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
 }
 .v-VerdantPanel-inspect-header.active {
   background: var(--verdant-cell-change-color1);

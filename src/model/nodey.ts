@@ -85,16 +85,24 @@ export namespace SyntaxToken {
 
 export class NodeyOutput extends Nodey {
   dependsOn: Nodey[];
-  raw: {};
+  raw: { [id: string]: any };
+  data: any;
 
   constructor(options: { [id: string]: any }) {
     super(options);
     this.raw = options; // note for different output types, the data is all named differently
     this.dependsOn = (<any>options)["dependsOn"];
+
+    console.log("Got some output must parse it!", this.raw);
+    if ("data" in this.raw) this.data = this.raw["data"];
   }
 
   static EMPTY() {
     return new NodeyOutput({ raw: {}, dependsOn: [] });
+  }
+
+  public setData(data: {}) {
+    this.data = data;
   }
 
   clone(): Nodey {

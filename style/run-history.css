@@ -115,9 +115,11 @@
   padding-left: 0.5em;
   margin-bottom: 1em;
   cursor: default;
-  background: var(--verdant-ghost-color1);
   border-bottom: 1px solid var(--jp-content-font-color3);
   width: calc(100% - 1.25em + 2px);
+}
+.v-VerdantPanel-runCluster-list.detail {
+  background: var(--verdant-ghost-color1);
 }
 
 .v-VerdantPanel-runList-runDateTotal {
@@ -128,6 +130,10 @@
   color: var(--jp-ui-font-color2);
   display: inline-block;
   margin-top: 0.25em;
+}
+.v-VerdantPanel-runList-runDateTotal.nested {
+  width: 100%;
+  text-align: center;
 }
 
 .v-VerdantPanel-runList-dateLabel {
@@ -233,6 +239,9 @@
   max-width: 30%;
   padding-left: 2px;
 }
+.v-VerdantPanel-runItem-title-container.nested {
+  max-width: calc(30% - 1.75em);
+}
 
 .v-VerdantPanel-runItem-caret {
   height: var(--jp-ui-font-size1);
@@ -293,6 +302,9 @@
   flex: 1 1 69%;
   max-width: 69%;
   vertical-align: top;
+}
+.v-VerdantPanel-runCellMap.nested {
+  max-width: calc(69% + 1.75em);
 }
 
 .v-VerdantPanel-runCellMap-cell {
@@ -524,7 +536,8 @@
   display: inline-flex;
   flex-direction: row;
   flex: 1 1 auto;
-  max-width: calc(100% + 0.75em);
+  max-width: 100%;
+  width: 100%;
   margin-left: -1.75em;
 }
 
