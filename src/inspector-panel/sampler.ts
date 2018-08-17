@@ -7,12 +7,13 @@ const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 export namespace Sampler {
   export function sampleCell(
     historyModel: HistoryModel,
-    cell: NodeyCell
+    cell: NodeyCell,
+    textFilter: string = null
   ): HTMLElement {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     sample.classList.add(cell.typeName);
-    sample.textContent = historyModel.inspector.sampleNode(cell);
+    sample.textContent = historyModel.inspector.sampleNode(cell, textFilter);
     if (cell.typeName === "markdown")
       historyModel.inspector.renderMarkdownVersionDiv(
         cell as NodeyMarkdown,
@@ -32,7 +33,7 @@ export namespace Sampler {
   ): HTMLElement {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    sample.innerHTML = historyModel.inspector.renderOutputNode(output);
+    historyModel.inspector.renderOutputVerisonDiv(output, sample);
     return sample;
   }
 }

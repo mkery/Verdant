@@ -64,17 +64,26 @@ export class Inspect {
     return this._ready.promise;
   }
 
-  public sampleNode(nodey: Nodey): string {
+  public sampleNode(nodey: Nodey, textFocus: string = null): string {
     // goal get the first line of the node
     if (nodey instanceof NodeyMarkdown) {
       let lines = nodey.markdown.split("\n");
-      return lines[0];
+      if (textFocus) {
+        let focusLine = lines.find(ln => ln.indexOf(textFocus) > -1);
+        return focusLine;
+      } else return lines[0];
     } else {
       let nodeyCode = nodey as NodeyCode;
-      let lineNum = 0;
-      if (nodeyCode.start) lineNum = nodeyCode.start.line;
-      let line = "";
-      return this.getLineContent(lineNum, line, nodeyCode);
+      if (textFocus) {
+        let lines = this.renderNode(nodeyCode).text.split("\n");
+        let focusLine = lines.find(ln => ln.indexOf(textFocus) > -1);
+        return focusLine;
+      } else {
+        let lineNum = 0;
+        if (nodeyCode.start) lineNum = nodeyCode.start.line;
+        let line = "";
+        return this.getLineContent(lineNum, line, nodeyCode);
+      }
     }
   }
 

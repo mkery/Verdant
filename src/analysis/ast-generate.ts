@@ -1007,9 +1007,9 @@ if debug: parse(text)
   async generateCodeNodey(
     code: string,
     position: number,
-    options: { [key: string]: any }
-  ): Promise<number> {
-    return new Promise<number>((accept, reject) => {
+    options: { [key: string]: any } = {}
+  ): Promise<NodeyCode> {
+    return new Promise<NodeyCode>((accept, reject) => {
       var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
         //console.log(code, "R: ", msg)
       };
@@ -1076,14 +1076,14 @@ if debug: parse(text)
     jsn: string,
     position: number,
     options: { [key: string]: any }
-  ): number {
+  ): NodeyCode {
     //console.log("Recieved", jsn);
     var dict = options;
     if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
     else console.log("Recieved empty?", dict);
     var nodey = Nodey.dictToCodeCellNodey(dict, position, this.historyModel);
     console.log("Recieved code!", dict, nodey);
-    return nodey.id;
+    return nodey;
   }
 
   runKernel(

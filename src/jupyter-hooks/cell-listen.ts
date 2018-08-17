@@ -123,14 +123,12 @@ export class CodeCellListen extends CellListen {
       await this.astUtils.matchASTOnInit(nodeyCell, text);
       //TODO match output too
     } else {
-      var outNode = Nodey.outputToNodey(cell, this.historyModel);
-      var output: string[] = [];
-      if (outNode) output.concat(outNode);
-      this._nodey = await this.astUtils.generateCodeNodey(text, this.position, {
-        output: output,
-        run: 0,
-        cell: this
-      });
+      var output = Nodey.outputToNodey(cell, this.historyModel);
+      let nodey = await this.astUtils.generateCodeNodey(text, this.position);
+      nodey.output = nodey.output.concat(output);
+      (nodey as NodeyCodeCell).cell = this;
+      this._nodey = nodey.id;
+      console.log("created Output!", output, nodey);
     }
 
     super.init(matchPrior);

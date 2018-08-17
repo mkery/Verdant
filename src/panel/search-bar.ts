@@ -237,18 +237,6 @@ export class SearchBar extends Widget {
     };
   }
 
-  private _filterRunByText(): FilterFunction<string> {
-    let query = this.textQuery;
-    /*let historyModel = this.historyModel*/
-    //TODO with optimizations
-    return {
-      filter: (text: string) => {
-        return text.indexOf(query) > -1;
-      },
-      label: 'the words "' + query + '"'
-    };
-  }
-
   private _filterRunByMarkdown(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
@@ -257,14 +245,6 @@ export class SearchBar extends Widget {
         return node instanceof NodeyMarkdown;
       },
       label: "Markdown cells"
-    };
-  }
-
-  private _filterNodeyByText(): FilterFunction<Nodey> {
-    let query = this.textQuery;
-    return {
-      filter: (_: Nodey) => true, //TODO with optimizations
-      label: "the words " + query
     };
   }
 
@@ -333,15 +313,13 @@ export class SearchBar extends Widget {
       if (filterList.length > 0 || legendFilters.length > 0)
         this.view.runList.filterRunList({ filter, label });
 
-      if (this.textQuery)
-        this.view.runList.filterByText(this._filterRunByText());
+      if (this.textQuery) this.view.runList.filterByText(this.textQuery);
     }
   }
 
   private _verFilters(): void {
     let filterList: FilterFunction<Nodey>[] = [];
 
-    if (this.textQuery) filterList.push(this._filterNodeyByText());
     if (this.starButton.classList.contains("highlight"))
       filterList.push(this._filterNodeyByStar());
     if (this.commentButton.classList.contains("highlight"))

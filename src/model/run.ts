@@ -303,27 +303,22 @@ export class RunCluster {
       });
   }
 
-  public filter(
-    fun: (r: Run) => boolean,
-    textFilters: (t: string) => boolean
-  ): number {
-    if (textFilters) return this.filterByText(textFilters, fun);
-    else {
-      let matchCount = 0;
-      this._runs.forEach((i: number) => {
-        let member = this.model.getRun(i);
-        if (fun(member)) matchCount += 1;
-      });
-      return matchCount;
-    }
+  public filter(fun: (r: Run) => boolean): number {
+    let matchCount = 0;
+    this._runs.forEach((i: number) => {
+      let member = this.model.getRun(i);
+      if (fun(member)) matchCount += 1;
+    });
+    return matchCount;
   }
 
   public filterByText(
-    fun: (t: string) => boolean,
+    keyword: string,
     otherFilters: (r: Run) => boolean
   ): number {
+    let fun = (t: string) => t.indexOf(keyword) > -1;
     let nodesMemo: { node: string; match: boolean }[][] = [];
-    let matchCount = 0;
+    let matches: number = 0;
     this._runs.forEach((i: number) => {
       let member = this.model.getRun(i);
       if (!otherFilters || otherFilters(member)) {
@@ -332,24 +327,24 @@ export class RunCluster {
           let match = null;
           let node = this.model.historyModel.getNodey(name);
           if (!node) return; //error case only TODO
-          if (nodesMemo[node.id]) {
-            let memo = nodesMemo[parseInt(node.id)].find(
-              item => item.node === name
-            );
+          let id = parseInt(node.id);
+          if (nodesMemo[id]) {
+            let memo = nodesMemo[id].find(item => item.node === name);
             if (memo) return;
           }
           if (match === null) {
             // no memo found
             let text = this.model.historyModel.inspector.renderNode(node).text;
             match = fun(text);
-            if (!nodesMemo[node.id]) nodesMemo[node.id] = [];
-            nodesMemo[node.id].push({ node: name, match: match });
-            if (match) matchCount += 1;
+            console.log("RENDERED", match, text);
+            if (!nodesMemo[id]) nodesMemo[id] = [];
+            nodesMemo[id].push({ node: name, match: match });
+            if (match) matches += 1;
           }
         });
       }
     });
-    return matchCount;
+    return matches;
   }
 
   public getCellMap() {

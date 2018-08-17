@@ -279,7 +279,11 @@ export class InspectWidget extends Widget {
     let created = nodeyVer.run[0];
     let timestamp = null;
     if (created !== null && created !== undefined) {
-      console.log("run is ", this._historyModel.runModel.getRun(created));
+      console.log(
+        "run is ",
+        this._historyModel.runModel.getRun(created),
+        created
+      );
       timestamp = new Date(
         this._historyModel.runModel.getRun(created).timestamp
       );

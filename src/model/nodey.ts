@@ -456,8 +456,8 @@ export namespace Nodey {
     }
 
     var outNode: string[] = [];
-    if (output.length < 1) outNode = undefined;
-    else {
+
+    if (output.length > 0) {
       for (var item in output) {
         var out = dictToOutputNodey(output[item], historyModel);
         if (runId !== -1) out.run.push(runId);

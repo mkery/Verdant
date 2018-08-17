@@ -99,10 +99,10 @@ export class RunPanel extends Widget {
     label.style.display = "";
   }
 
-  public filterByText(fun: FilterFunction<string>) {
+  public filterByText(text: string) {
     let matchCount = 0;
     this.sections.forEach(section => {
-      matchCount += section.filterByText(fun);
+      matchCount += section.filterByText(text);
     });
 
     let label = this.listLabel;
@@ -110,7 +110,11 @@ export class RunPanel extends Widget {
       label.textContent = label.textContent + " and ";
 
     label.textContent =
-      label.textContent + matchCount + " runs found with " + fun.label;
+      label.textContent +
+      matchCount +
+      ' runs found with the text "' +
+      text +
+      '"';
     label.style.display = "";
   }
 

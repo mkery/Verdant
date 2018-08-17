@@ -47,7 +47,7 @@ export class RunItem extends Widget {
   readonly actions: RunActions;
 
   private activeFilter: (r: Run) => boolean;
-  private activeTextFilter: (s: string) => boolean;
+  private activeTextFilter: string;
   private openSubruns: RunItem[] = [];
   private isNested = false;
 
@@ -175,29 +175,38 @@ export class RunItem extends Widget {
   }
 
   public filter(fun: (r: Run) => boolean) {
-    let match = this.runs.filter(fun, this.activeTextFilter);
-    this.activeFilter = fun;
-    if (match === 0) {
-      this.node.style.display = "none";
-    } else {
-      this.label.textContent = "(" + match + ")";
-    }
-    this.openSubruns.map(item => item.filter(fun));
-    return match;
-  }
-
-  public filterByText(fun: (s: string) => boolean): number {
-    if (this.node.style.display !== "none") {
-      let match = this.runs.filterByText(fun, this.activeFilter);
-      this.activeTextFilter = fun;
+    if (!this.activeTextFilter) {
+      let match = this.runs.filter(fun);
+      this.activeFilter = fun;
       if (match === 0) {
         this.node.style.display = "none";
       } else {
         this.label.textContent = "(" + match + ")";
       }
+      this.openSubruns.map(item => item.filter(fun));
+      return match;
+    } else {
+      this.activeFilter = fun;
+      return this.filterByText(this.activeTextFilter);
+    }
+  }
+
+  public filterByText(keyword: string): number {
+    if (this.node.style.display !== "none") {
+      let match = this.runs.filterByText(keyword, this.activeFilter);
+      this.activeTextFilter = keyword;
+      if (match === 0) {
+        this.node.style.display = "none";
+      } else {
+        this.label.textContent = "(" + match + ")";
+        if (match === 1 && this.runs.length === 1) {
+          //Replace my sample with a matched sample
+          this.updateDetails();
+        }
+      }
       return match;
     }
-    this.openSubruns.map(item => item.filterByText(fun));
+    this.openSubruns.map(item => item.filterByText(keyword));
     return 0;
   }
 
@@ -228,6 +237,21 @@ export class RunItem extends Widget {
       );
     this.buildDetailList(dropdown);
     this.node.appendChild(dropdown);
+  }
+
+  private updateDetails() {
+    let dropdown = this.node.getElementsByClassName(
+      SUB_RUNLIST_CLASS
+    )[0] as HTMLElement;
+    if (dropdown) {
+      dropdown.innerHTML = "";
+      if (this.runs.length === 1)
+        dropdown.appendChild(
+          Annotator.buildDetailNotes(this.runs.first, this.historyModel)
+        );
+      this.buildDetailList(dropdown);
+    }
+    if (!this.hasClass("open")) this.openHeader();
   }
 
   public closeHeader() {
@@ -360,7 +384,11 @@ export class RunItem extends Widget {
     //cell sample
     let sampleRow = document.createElement("div");
     sampleRow.classList.add(RUN_SAMPLE_ROW);
-    let sample = Sampler.sampleCell(this.historyModel, nodey);
+    let sample = Sampler.sampleCell(
+      this.historyModel,
+      nodey,
+      this.activeTextFilter
+    );
     let button = document.createElement("div");
     button.classList.add(RUN_SAMPLE_BUTTON);
     button.addEventListener(

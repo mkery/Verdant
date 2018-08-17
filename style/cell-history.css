@@ -48,7 +48,7 @@
   flex: 1 1 calc(100% - 6em);
   background-color: aliceblue;
   border-left: 2px solid var(--jp-brand-color3);
-  overflow: hidden;
+  overflow: auto;
   text-overflow: ellipsis;
   margin-bottom: 0.5em;
 }
