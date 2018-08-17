@@ -33,8 +33,8 @@ export class RenderBaby {
     this.rendermime = rendermime;
   }
 
-  renderMarkdown(div: HTMLElement, text: string) {
-    renderers.renderMarkdown({
+  async renderMarkdown(div: HTMLElement, text: string) {
+    return renderers.renderMarkdown({
       host: div as HTMLElement,
       source: text,
       shouldTypeset: true,

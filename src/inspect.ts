@@ -64,25 +64,35 @@ export class Inspect {
     return this._ready.promise;
   }
 
-  public sampleNode(nodey: Nodey, textFocus: string = null): string {
+  public sampleNode(nodey: Nodey, textFocus: string = null): [string, number] {
     // goal get the first line of the node
     if (nodey instanceof NodeyMarkdown) {
       let lines = nodey.markdown.split("\n");
       if (textFocus) {
-        let focusLine = lines.find(ln => ln.indexOf(textFocus) > -1);
-        return focusLine;
-      } else return lines[0];
+        let index = -1;
+        let focusLine = lines.find(ln => {
+          let i = ln.indexOf(textFocus);
+          if (i > -1) index = i;
+          return i > -1;
+        });
+        return [focusLine, index];
+      } else return [lines[0], 0];
     } else {
       let nodeyCode = nodey as NodeyCode;
       if (textFocus) {
+        let index = -1;
         let lines = this.renderNode(nodeyCode).text.split("\n");
-        let focusLine = lines.find(ln => ln.indexOf(textFocus) > -1);
-        return focusLine;
+        let focusLine = lines.find(ln => {
+          let i = ln.indexOf(textFocus);
+          if (i > -1) index = i;
+          return i > -1;
+        });
+        return [focusLine, index];
       } else {
         let lineNum = 0;
         if (nodeyCode.start) lineNum = nodeyCode.start.line;
         let line = "";
-        return this.getLineContent(lineNum, line, nodeyCode);
+        return [this.getLineContent(lineNum, line, nodeyCode), 0];
       }
     }
   }
@@ -494,7 +504,7 @@ export class Inspect {
     }
   }
 
-  public renderMarkdownVersionDiv(
+  public async renderMarkdownVersionDiv(
     nodey: NodeyMarkdown,
     newText: string,
     elem: HTMLElement,
@@ -506,14 +516,14 @@ export class Inspect {
       let prior = this._historyModel.getPriorVersion(nodey) as NodeyMarkdown;
       if (!prior) {
         // easy, everything is added
-        this.renderBaby.renderMarkdown(elem, newText);
+        await this.renderBaby.renderMarkdown(elem, newText);
         elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
       } else {
         let priorText = prior.markdown;
         let diff = JSDiff.diffChars(priorText, newText);
-        diff.forEach(part => {
+        await diff.forEach(async part => {
           let partDiv = document.createElement("div");
-          this.renderBaby.renderMarkdown(partDiv, part.value);
+          await this.renderBaby.renderMarkdown(partDiv, part.value);
           partDiv.classList.add(Inspect.CHANGE_NONE_CLASS);
 
           if (part.added) {
@@ -526,6 +536,7 @@ export class Inspect {
         });
       }
     }
+    return elem;
   }
 
   public renderOutputVerisonDiv(nodey: NodeyOutput, elem: HTMLElement) {

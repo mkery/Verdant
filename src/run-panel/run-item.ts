@@ -38,6 +38,8 @@ const MAP_CELLBOX_DESCCONTAINER = "v-VerdantPanel-runCellMap-cellBox-descBox";
 const MAP_CELLBOX_LABEL = "v-VerdantPanel-runCellMap-label";
 const MAP_CELLBOX_ICON = "v-VerdantPanel-runCellMap-cellbox-icon";
 
+const SEARCH_RESULT = "v-VerdantPanel-sample-searchResult";
+
 export class RunItem extends Widget {
   readonly runs: RunCluster;
   readonly header: HTMLElement;
@@ -237,21 +239,17 @@ export class RunItem extends Widget {
       );
     this.buildDetailList(dropdown);
     this.node.appendChild(dropdown);
+
+    let searchResults = this.node.getElementsByClassName(SEARCH_RESULT);
+    console.log("found search results!");
+    for (let i = 0; i < searchResults.length; i++)
+      searchResults[i].scrollIntoView();
   }
 
   private updateDetails() {
-    let dropdown = this.node.getElementsByClassName(
-      SUB_RUNLIST_CLASS
-    )[0] as HTMLElement;
-    if (dropdown) {
-      dropdown.innerHTML = "";
-      if (this.runs.length === 1)
-        dropdown.appendChild(
-          Annotator.buildDetailNotes(this.runs.first, this.historyModel)
-        );
-      this.buildDetailList(dropdown);
-    }
-    if (!this.hasClass("open")) this.openHeader();
+    let dropdown = this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0];
+    if (dropdown) this.node.removeChild(dropdown);
+    this.openHeader();
   }
 
   public closeHeader() {
@@ -309,7 +307,7 @@ export class RunItem extends Widget {
     }
   }
 
-  private _buildDetail_singleton(dropdown: HTMLElement, run: Run) {
+  private async _buildDetail_singleton(dropdown: HTMLElement, run: Run) {
     dropdown.classList.add("detail");
     let cell = run.runCell;
     let nodey = this.historyModel.getNodey(cell.node) as NodeyCell;
@@ -317,26 +315,35 @@ export class RunItem extends Widget {
     //var cellVer = nodey.version + 1;
     if (cell.changeType === ChangeType.SAME) {
       if (cell.run) {
-        dropdown.appendChild(this.createCellDetail("same", [], nodey, cell));
+        let detail = await this.createCellDetail("same", [], nodey, cell);
+        dropdown.appendChild(detail);
       }
       return;
     }
 
     switch (cell.changeType) {
       case ChangeType.ADDED:
-        dropdown.appendChild(
-          this.createCellDetail("added", ["Cell created"], nodey, cell)
+        let detail = await this.createCellDetail(
+          "added",
+          ["Cell created"],
+          nodey,
+          cell
         );
+        dropdown.appendChild(detail);
         break;
       case ChangeType.REMOVED:
-        dropdown.appendChild(
-          this.createCellDetail("removed", ["Cell deleted"], nodey, cell)
+        let detail2 = await this.createCellDetail(
+          "removed",
+          ["Cell deleted"],
+          nodey,
+          cell
         );
+        dropdown.appendChild(detail2);
         break;
       case ChangeType.CHANGED:
         let changes = this.historyModel.inspector.getRunChangeCount(nodey);
         dropdown.appendChild(
-          this.createCellDetail(
+          await this.createCellDetail(
             "changed",
             ["Cell changes: ", "++" + changes.added + " --" + changes.deleted],
             nodey,
@@ -359,7 +366,7 @@ export class RunItem extends Widget {
     this.actions.switchPane();
   }
 
-  private createCellDetail(
+  private async createCellDetail(
     _: string,
     descLabels: string[],
     nodey: NodeyCell,
@@ -384,7 +391,7 @@ export class RunItem extends Widget {
     //cell sample
     let sampleRow = document.createElement("div");
     sampleRow.classList.add(RUN_SAMPLE_ROW);
-    let sample = Sampler.sampleCell(
+    let sample = await Sampler.sampleCell(
       this.historyModel,
       nodey,
       this.activeTextFilter

@@ -3,23 +3,40 @@ import { HistoryModel } from "../model/history";
 import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../model/nodey";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
+const SEARCH_RESULT = "v-VerdantPanel-sample-searchResult";
 
 export namespace Sampler {
-  export function sampleCell(
+  export async function sampleCell(
     historyModel: HistoryModel,
     cell: NodeyCell,
     textFilter: string = null
-  ): HTMLElement {
+  ): Promise<HTMLElement> {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     sample.classList.add(cell.typeName);
-    sample.textContent = historyModel.inspector.sampleNode(cell, textFilter);
-    if (cell.typeName === "markdown")
-      historyModel.inspector.renderMarkdownVersionDiv(
+    let index: number = 0;
+    [sample.textContent, index] = historyModel.inspector.sampleNode(
+      cell,
+      textFilter
+    );
+    if (cell.typeName === "markdown") {
+      await historyModel.inspector.renderMarkdownVersionDiv(
         cell as NodeyMarkdown,
         sample.textContent,
         sample
       );
+      if (textFilter) index = sample.innerHTML.indexOf(textFilter);
+    }
+    if (textFilter) {
+      sample.innerHTML =
+        sample.innerHTML.slice(0, index) +
+        '<span class="' +
+        SEARCH_RESULT +
+        '">' +
+        textFilter +
+        "</span>" +
+        sample.innerHTML.slice(index + textFilter.length);
+    }
 
     sample.addEventListener("click", () => {
       //Try to get notebook to scroll to the cell clicked on

@@ -49,7 +49,6 @@
   background-color: aliceblue;
   border-left: 2px solid var(--jp-brand-color3);
   overflow: auto;
-  text-overflow: ellipsis;
   margin-bottom: 0.5em;
 }
 .v-VerdantPanel-cellList-sample.highlight {
