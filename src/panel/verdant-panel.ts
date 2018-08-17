@@ -111,7 +111,7 @@ export class VerdantPanel extends Widget {
     this.runList.hide();
     this.cellPanel.show();
     this.searchBar.clearFilters();
-    this.searchBar.disableRunButtons();
+    this.searchBar.enableNodeButtons();
     this.node
       .getElementsByClassName(HEADER_NOTEBOOK_LABEL)[0]
       .classList.add("closed");

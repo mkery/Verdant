@@ -41,6 +41,10 @@ export class CellPanel extends Widget {
     });
   }
 
+  filterByText(text: string) {
+    this.inspectWidget.filterByText(text);
+  }
+
   onGhostBookOpened(book: GhostBook) {
     this.inspectWidget.onGhostBookOpened(book);
   }

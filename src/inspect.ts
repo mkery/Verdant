@@ -33,6 +33,8 @@ import { RenderBaby } from "./jupyter-hooks/render-baby";
 import { Signal } from "@phosphor/signaling";
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
+const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
+
 export class Inspect {
   private _ready = new PromiseDelegate<void>();
   private _notebook: NotebookListen;
@@ -336,6 +338,11 @@ export class Inspect {
   }
 
   get target() {
+    if (!this._target) {
+      if (this._notebook.activeCell) {
+        this._target = this._notebook.getNodeForCell(this._notebook.activeCell);
+      }
+    }
     return this._target;
   }
 
@@ -469,7 +476,8 @@ export class Inspect {
     nodey: NodeyCode,
     newText: string,
     elem: HTMLElement,
-    diffKind: number = Inspect.NO_DIFF
+    diffKind: number = Inspect.NO_DIFF,
+    textFocus: string = null
   ) {
     console.log("rendering code versions!", this._historyModel.dump());
     if (diffKind === Inspect.NO_DIFF) elem.textContent = newText;
@@ -502,16 +510,21 @@ export class Inspect {
         elem.innerHTML = innerHTML;
       }
     }
+
+    if (textFocus) {
+      elem = this.highlightText(textFocus, elem);
+    }
   }
 
   public async renderMarkdownVersionDiv(
     nodey: NodeyMarkdown,
     newText: string,
     elem: HTMLElement,
-    diffKind: number = Inspect.NO_DIFF
+    diffKind: number = Inspect.NO_DIFF,
+    textFocus: string = null
   ) {
     if (diffKind === Inspect.NO_DIFF)
-      this.renderBaby.renderMarkdown(elem, newText);
+      await this.renderBaby.renderMarkdown(elem, newText);
     else if (diffKind === Inspect.CHANGE_DIFF) {
       let prior = this._historyModel.getPriorVersion(nodey) as NodeyMarkdown;
       if (!prior) {
@@ -536,12 +549,46 @@ export class Inspect {
         });
       }
     }
+
+    if (textFocus) {
+      elem = this.highlightText(textFocus, elem);
+    }
     return elem;
   }
 
-  public renderOutputVerisonDiv(nodey: NodeyOutput, elem: HTMLElement) {
-    let widget = this.renderBaby.renderOutput(nodey);
+  public async renderOutputVerisonDiv(
+    nodey: NodeyOutput,
+    elem: HTMLElement,
+    textFocus: string = null
+  ) {
+    let widget = await this.renderBaby.renderOutput(nodey);
     elem.appendChild(widget.node);
+    if (textFocus) {
+      elem = this.highlightText(textFocus, elem);
+    }
+    return elem;
+  }
+
+  private highlightText(textFocus: string, elem: HTMLElement) {
+    let i = 0;
+    let index = elem.innerHTML.indexOf(textFocus, i);
+    let html = "";
+
+    while (index > -1) {
+      html +=
+        elem.innerHTML.slice(i, index) +
+        '<span class="' +
+        SEARCH_FILTER_RESULTS +
+        '">' +
+        textFocus +
+        "</span>";
+      i = index + textFocus.length;
+      index = elem.innerHTML.indexOf(textFocus, i);
+    }
+
+    html += elem.innerHTML.slice(i);
+    elem.innerHTML = html;
+    return elem;
   }
 }
 

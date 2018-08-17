@@ -45,7 +45,8 @@ export class InspectWidget extends Widget {
   private _header: HTMLElement;
   private _clipboard: HTMLTextAreaElement;
   readonly parentPanel: VerdantPanel;
-  private _filter: FilterFunction<Nodey>;
+  private activeFilters: FilterFunction<Nodey>;
+  private textQuery: string;
 
   constructor(historyModel: HistoryModel, parentPanel: VerdantPanel) {
     super();
@@ -211,66 +212,96 @@ export class InspectWidget extends Widget {
   }
 
   filterNodeyList(filter: FilterFunction<Nodey>) {
-    this._filter = filter;
+    this.activeFilters = filter;
+    this.content.innerHTML = "";
+    this.fillContent(this.inspector.target, this.inspector.versionsOfTarget);
+  }
+
+  filterByText(text: string) {
+    this.textQuery = text;
     this.content.innerHTML = "";
     this.fillContent(this.inspector.target, this.inspector.versionsOfTarget);
   }
 
   clearFilters() {
-    this._filter = null;
-    this.content.innerHTML = "";
-    this.fillContent(this.inspector.target, this.inspector.versionsOfTarget);
+    console.log("CLEAR FILTERS");
+    if (this.activeFilters || this.textQuery) {
+      this.activeFilters = null;
+      this.textQuery = null;
+      this.content.innerHTML = "";
+      this.fillContent(this.inspector.target, this.inspector.versionsOfTarget);
+    }
   }
 
-  private fillContent(
+  private async fillContent(
     target: Nodey,
     verList: { version: number; runs: any; text: string }[]
   ) {
     var contentDiv = this.content;
     let matches = 0;
-    verList.map(item => {
+    verList.map(async item => {
       let text = item.text;
       let li = document.createElement("div");
       li.classList.add(INSPECT_VERSION);
 
       let nodeyVer = this._historyModel.getPriorVersion(target, item.version);
-      if (!this._filter || this._filter.filter(nodeyVer)) {
+      if (!this.activeFilters || this.activeFilters.filter(nodeyVer)) {
         console.log("This node was used in runs", nodeyVer, target);
-        matches += 1;
+        if (!this.textQuery || text.indexOf(this.textQuery) > -1) {
+          matches += 1;
 
-        let label = this.buildVerHeader(nodeyVer);
-        li.appendChild(label);
+          let label = this.buildVerHeader(nodeyVer);
+          li.appendChild(label);
 
-        let content = document.createElement("div");
-        content.classList.add(INSPECT_VERSION_CONTENT);
-        li.appendChild(content);
+          let content = document.createElement("div");
+          content.classList.add(INSPECT_VERSION_CONTENT);
+          li.appendChild(content);
 
-        if (nodeyVer instanceof NodeyMarkdown) {
-          content.classList.add("markdown");
-          this.inspector.renderMarkdownVersionDiv(nodeyVer, text, content);
-        } else if (nodeyVer instanceof NodeyCode) {
-          content.classList.add("code");
-          this.inspector.renderCodeVerisonDiv(
-            nodeyVer,
-            text,
-            content,
-            Inspect.CHANGE_DIFF
-          );
-        } else if (nodeyVer instanceof NodeyOutput) {
-          this.inspector.renderOutputVerisonDiv(nodeyVer, content);
+          if (nodeyVer instanceof NodeyMarkdown) {
+            content.classList.add("markdown");
+            await this.inspector.renderMarkdownVersionDiv(
+              nodeyVer,
+              text,
+              content,
+              Inspect.CHANGE_DIFF,
+              this.textQuery
+            );
+          } else if (nodeyVer instanceof NodeyCode) {
+            content.classList.add("code");
+            await this.inspector.renderCodeVerisonDiv(
+              nodeyVer,
+              text,
+              content,
+              Inspect.CHANGE_DIFF,
+              this.textQuery
+            );
+          } else if (nodeyVer instanceof NodeyOutput) {
+            await this.inspector.renderOutputVerisonDiv(
+              nodeyVer,
+              content,
+              this.textQuery
+            );
+          }
+
+          contentDiv.insertBefore(li, contentDiv.firstElementChild);
+          console.log("HEIGHT?", content.scrollHeight, content.clientHeight);
+          if (content.scrollHeight > content.clientHeight) {
+            content.classList.add("overflow");
+          }
         }
-
-        contentDiv.insertBefore(li, contentDiv.firstElementChild);
       }
     });
     let last = contentDiv.lastElementChild;
     if (last) last.classList.add("last");
 
-    if (this._filter) {
+    if (this.activeFilters || this.textQuery) {
+      let text = "";
+      if (this.activeFilters) text = this.activeFilters.label;
+      if (this.activeFilters && this.textQuery) text += " and ";
+      if (this.textQuery) text += 'the text "' + this.textQuery + '"';
       let label = document.createElement("div");
       label.classList.add(SEARCH_FILTER_RESULTS);
-      label.textContent =
-        matches + " versions found with " + this._filter.label;
+      label.textContent = matches + " versions found with " + text;
       contentDiv.insertBefore(label, contentDiv.firstElementChild);
     }
   }

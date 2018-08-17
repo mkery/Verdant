@@ -109,11 +109,31 @@
   width: max-content;
   padding-left: 8px;
   font-family: var(--jp-cell-prompt-font-family);
+  max-height: 250px;
+  overflow: auto;
+}
+.v-VerdantPanel-inspect-version-content.overflow {
+  border-bottom: 1px solid var(--jp-warn-color0);
+  margin-bottom: 10px;
+}
+.v-VerdantPanel-inspect-version-content.overflow::after {
+  position: absolute;
+  top: 292px;
+  right: 0px;
+  width: 3em;
+  height: 0.75em;
+  color: var(--jp-warn-color0);
+  content: "...";
+  text-align: CENTER;
+  line-height: 0.25em;
+  border: 1px solid var(--jp-warn-color0);
+  font-size: x-small;
+  border-bottom-left-radius: 0.25em;
+  border-bottom-right-radius: 0.25em;
 }
 .v-VerdantPanel-inspect-version-content.markdown {
   font-family: var(--jp-content-font-family);
   width: calc(100% - 8px);
-  overflow: hidden;
 }
 .v-VerdantPanel-inspect-version-content.code {
   white-space: pre-wrap;

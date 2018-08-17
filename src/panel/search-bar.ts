@@ -2,13 +2,11 @@ import { Widget } from "@phosphor/widgets";
 
 import { Run, ChangeType } from "../model/run";
 
-import { Nodey, NodeyMarkdown } from "../model/nodey";
+import { Nodey, NodeyCode, NodeyMarkdown } from "../model/nodey";
 
 import { HistoryModel } from "../model/history";
 
 import { VerdantPanel } from "./verdant-panel";
-
-import { Legend } from "./legend";
 
 /*
  * History search bar
@@ -19,18 +17,24 @@ const SEARCH_BOX_CLASS = "v-VerdantPanel-search-box";
 const SEARCH_INPUT_CLASS = "v-VerdantPanel-search-input";
 const SEARCH_FILTER = "v-VerdantPanel-search-filter";
 const SEARCH_CANCEL_BUTTON = "v-VerdantPanel-search-cancel";
+const LEGEND_CONTAINER = "v-VerdantPanel-legend-container";
+const LEGEND_LABEL = "v-VerdantPanel-legend-label";
+const LEGEND_ITEM = "v-VerdantPanel-legend-item";
+
+const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
+const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
+const RUN_CELL_MAP_ADDED = "v-VerdantPanel-runCellMap-cell-added";
+const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
 
 export class SearchBar extends Widget {
   private view: VerdantPanel;
   private textQuery: string = null;
-  private legend: Legend;
   readonly historyModel: HistoryModel;
 
   constructor(view: VerdantPanel, historyModel: HistoryModel) {
     super();
     this.view = view;
     this.historyModel = historyModel;
-    this.legend = new Legend(this);
     this.addClass(SEARCH_CONTAINER_CLASS);
 
     let wrapper = document.createElement("div");
@@ -48,8 +52,6 @@ export class SearchBar extends Widget {
     wrapper.appendChild(xButton);
     xButton.addEventListener("click", this.clearSearch.bind(this));
     this.node.appendChild(wrapper);
-    this.node.appendChild(this.legend.node);
-    this.legend.node.style.display = "none";
 
     let legend = document.createElement("div");
     legend.classList.add(SEARCH_FILTER);
@@ -58,6 +60,10 @@ export class SearchBar extends Widget {
     l.textContent = "Filter by kind";
     legend.appendChild(l);
     legend.addEventListener("click", this.toggleLegend.bind(this));
+
+    let legendContainer = this.buildLegend();
+    this.node.appendChild(legendContainer);
+    legendContainer.style.display = "none";
 
     let starFilter = document.createElement("div");
     starFilter.classList.add(SEARCH_FILTER);
@@ -78,47 +84,55 @@ export class SearchBar extends Widget {
   }
 
   get legendButton() {
-    return this.node.getElementsByClassName("legend")[0];
+    return this.node.getElementsByClassName("legend")[0] as HTMLElement;
   }
 
   get addedButton() {
-    return this.node.getElementsByClassName("added")[0];
+    return this.node.getElementsByClassName("added")[0] as HTMLElement;
   }
 
   get removedButton() {
-    return this.node.getElementsByClassName("deleted")[0];
+    return this.node.getElementsByClassName("deleted")[0] as HTMLElement;
   }
 
   get changedButton() {
-    return this.node.getElementsByClassName("changed")[0];
+    return this.node.getElementsByClassName("changed")[0] as HTMLElement;
   }
 
   get starButton() {
-    return this.node.getElementsByClassName("star")[0];
+    return this.node.getElementsByClassName("star")[0] as HTMLElement;
   }
 
   get commentButton() {
-    return this.node.getElementsByClassName("comment")[0];
+    return this.node.getElementsByClassName("comment")[0] as HTMLElement;
   }
 
   get outputButton() {
-    return this.node.getElementsByClassName("output")[0];
+    return this.node.getElementsByClassName("output")[0] as HTMLElement;
   }
 
   get outputTextButton() {
-    return this.node.getElementsByClassName("textOut")[0];
+    return this.node.getElementsByClassName("textOut")[0] as HTMLElement;
   }
 
   get outputTableButton() {
-    return this.node.getElementsByClassName("tableOut")[0];
+    return this.node.getElementsByClassName("tableOut")[0] as HTMLElement;
   }
 
   get outputImageButton() {
-    return this.node.getElementsByClassName("imageOut")[0];
+    return this.node.getElementsByClassName("imageOut")[0] as HTMLElement;
   }
 
   get markdownButton() {
-    return this.node.getElementsByClassName("markdown")[0];
+    return this.node.getElementsByClassName("markdown")[0] as HTMLElement;
+  }
+
+  get codeButton() {
+    return this.node.getElementsByClassName("code")[0] as HTMLElement;
+  }
+
+  get legendContainer() {
+    return this.node.getElementsByClassName(LEGEND_CONTAINER)[0] as HTMLElement;
   }
 
   get searchBar() {
@@ -128,15 +142,85 @@ export class SearchBar extends Widget {
   }
 
   toggleLegend() {
-    let open = this.legend.toggleLegend();
-    if (open) {
+    let legend = this.legendContainer;
+    if (legend.style.display === "none") {
+      legend.style.display = "";
       this.node.style.marginBottom =
-        this.legend.node.getBoundingClientRect().height + "px";
+        legend.getBoundingClientRect().height + "px";
       this.legendButton.classList.add("open");
     } else {
+      legend.style.display = "none";
       this.node.style.marginBottom = "";
       this.legendButton.classList.remove("open");
     }
+  }
+
+  buildLegendButton(label: string, labelClass: string, symbolClass: string) {
+    let button = this.buildButton(label, labelClass);
+    let cellAdd = document.createElement("div");
+    cellAdd.classList.add(RUN_CELL_MAP_CELL);
+    cellAdd.classList.add(symbolClass);
+    cellAdd.classList.add("run");
+    button.insertBefore(cellAdd, button.firstElementChild);
+    return button;
+  }
+
+  buildButton(label: string, labelClass: string) {
+    let button = document.createElement("div");
+    button.classList.add(LEGEND_ITEM);
+    let addLabel = document.createElement("div");
+    addLabel.classList.add(LEGEND_LABEL);
+    addLabel.textContent = label;
+    button.appendChild(addLabel);
+    button.classList.add(labelClass);
+    button.addEventListener("click", () => this.filter(button));
+    return button;
+  }
+
+  buildLegend(): HTMLElement {
+    let container = document.createElement("div");
+    container.classList.add(LEGEND_CONTAINER);
+
+    let add = this.buildLegendButton(
+      "cell created",
+      "added",
+      RUN_CELL_MAP_ADDED
+    );
+    container.appendChild(add);
+
+    let remove = this.buildLegendButton(
+      "cell deleted",
+      "deleted",
+      RUN_CELL_MAP_REMOVED
+    );
+    container.appendChild(remove);
+
+    let edited = this.buildLegendButton(
+      "cell edited",
+      "changed",
+      RUN_CELL_MAP_CHANGED
+    );
+    container.appendChild(edited);
+
+    let markdown = this.buildButton("markdown", "markdown");
+    container.appendChild(markdown);
+
+    let codeCell = this.buildButton("code", "code");
+    container.appendChild(codeCell);
+
+    let output = this.buildButton("all output", "output");
+    container.appendChild(output);
+
+    let textOut = this.buildButton("text output", "textOut");
+    container.appendChild(textOut);
+
+    let tableOut = this.buildButton("table output", "tableOut");
+    container.appendChild(tableOut);
+
+    let imageOut = this.buildButton("image output", "imageOut");
+    container.appendChild(imageOut);
+
+    return container;
   }
 
   searchQueryEntered() {
@@ -157,22 +241,49 @@ export class SearchBar extends Widget {
   }
 
   clearFilters() {
+    let searchBar = this.searchBar;
+    searchBar.value = "";
+    this.textQuery = null;
     let filters = this.node.getElementsByClassName(SEARCH_FILTER);
     for (let i = 0; i < filters.length; i++) {
       filters[i].classList.remove("highlight");
     }
   }
 
-  disableRunButtons() {
-    this.addedButton.classList.add("disable");
-    this.removedButton.classList.add("disable");
-    this.changedButton.classList.add("disable");
+  enableRunButtons() {
+    this.addedButton.style.display = "";
+    this.removedButton.style.display = "";
+    this.changedButton.style.display = "";
+    this.markdownButton.style.display = "";
+    this.codeButton.style.display = "";
+    if (this.legendButton.classList.contains("open")) {
+      this.node.style.marginBottom =
+        this.legendContainer.getBoundingClientRect().height + "px";
+    }
+    this.searchBar.value = "";
+    this.textQuery = null;
+    let filters = this.node.getElementsByClassName(SEARCH_FILTER);
+    for (let i = 0; i < filters.length; i++) {
+      filters[i].classList.remove("highlight");
+    }
   }
 
-  enableRunButtons() {
-    this.addedButton.classList.remove("disable");
-    this.removedButton.classList.remove("disable");
-    this.changedButton.classList.remove("disable");
+  enableNodeButtons() {
+    this.addedButton.style.display = "none";
+    this.removedButton.style.display = "none";
+    this.changedButton.style.display = "none";
+    this.markdownButton.style.display = "none";
+    this.codeButton.style.display = "none";
+    if (this.legendButton.classList.contains("open")) {
+      this.node.style.marginBottom =
+        this.legendContainer.getBoundingClientRect().height + "px";
+    }
+    this.searchBar.value = "";
+    this.textQuery = null;
+    let filters = this.node.getElementsByClassName(SEARCH_FILTER);
+    for (let i = 0; i < filters.length; i++) {
+      filters[i].classList.remove("highlight");
+    }
   }
 
   filter(button: HTMLElement) {
@@ -214,6 +325,19 @@ export class SearchBar extends Widget {
     };
   }
 
+  private _filterNodeyByOutput(): FilterFunction<Nodey> {
+    return {
+      filter: (n: Nodey) => {
+        let runs = n.run;
+        return runs.some(r => {
+          let out = this.historyModel.runModel.getRun(r).newOutput;
+          return out && out.length > 0;
+        });
+      },
+      label: "versions that generated output"
+    };
+  }
+
   private _filterRunByChanged(): FilterFunction<Run> {
     return {
       filter: (r: Run) => {
@@ -245,6 +369,17 @@ export class SearchBar extends Widget {
         return node instanceof NodeyMarkdown;
       },
       label: "Markdown cells"
+    };
+  }
+
+  private _filterRunByCode(): FilterFunction<Run> {
+    return {
+      filter: (r: Run) => {
+        let name = r.runCell.node;
+        let node = this.historyModel.getNodey(name);
+        return node instanceof NodeyCode;
+      },
+      label: "code cells"
     };
   }
 
@@ -285,6 +420,8 @@ export class SearchBar extends Widget {
       this.markdownButton.classList.contains("highlight")
     )
       legendFilters.push(this._filterRunByMarkdown());
+    if (this.codeButton && this.codeButton.classList.contains("highlight"))
+      legendFilters.push(this._filterRunByCode());
 
     if (this.starButton.classList.contains("highlight"))
       filterList.push(this._filterRunByStar());
@@ -319,19 +456,39 @@ export class SearchBar extends Widget {
 
   private _verFilters(): void {
     let filterList: FilterFunction<Nodey>[] = [];
+    let legendFilters: FilterFunction<Nodey>[] = [];
 
     if (this.starButton.classList.contains("highlight"))
       filterList.push(this._filterNodeyByStar());
     if (this.commentButton.classList.contains("highlight"))
       filterList.push(this._filterNodeyByComment());
 
-    if (filterList.length < 1) this.view.cellPanel.clearFilters();
-    else {
-      let filter = (r: Nodey) => filterList.every(f => f.filter(r));
+    if (this.outputButton && this.outputButton.classList.contains("highlight"))
+      legendFilters.push(this._filterNodeyByOutput());
+
+    this.view.cellPanel.clearFilters();
+    if (filterList.length < 1 && !this.textQuery && legendFilters.length < 1) {
+      this.legendButton.classList.remove("highlight");
+    } else {
+      if (legendFilters.length > 0)
+        this.legendButton.classList.add("highlight");
+      else this.legendButton.classList.remove("highlight");
+
+      let filter = (r: Nodey) => {
+        return (
+          filterList.every(f => f.filter(r)) &&
+          legendFilters.every(f => f.filter(r))
+        );
+      };
       let label = "";
       filterList.forEach(f => (label += f.label + " and "));
+      legendFilters.forEach(f => (label += f.label + " and "));
       label = label.substring(0, label.length - 5);
-      this.view.cellPanel.filterNodeyList({ filter, label });
+
+      if (filterList.length > 0 || legendFilters.length > 0)
+        this.view.cellPanel.filterNodeyList({ filter, label });
+
+      if (this.textQuery) this.view.cellPanel.filterByText(this.textQuery);
     }
   }
 }
