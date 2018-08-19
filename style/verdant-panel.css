@@ -115,6 +115,7 @@
   line-height: 24px;
   width: 7em;
   margin-left: 2px;
+  overflow: hidden;
 }
 .v-VerdantPanel-search-filter.legend.open {
   background: var(--jp-layout-color2);

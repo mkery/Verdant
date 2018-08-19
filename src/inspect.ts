@@ -134,7 +134,7 @@ export class Inspect {
     if (!prior) return { added: newText.length, deleted: 0 };
     else {
       let priorText = this.renderNode(prior).text;
-      let diff = JSDiff.diffChars(priorText, newText);
+      let diff = JSDiff.diffWords(priorText, newText);
       let added = 0;
       let deleted = 0;
       diff.forEach(part => {
@@ -490,7 +490,7 @@ export class Inspect {
       } else {
         let priorText = this.renderCodeNode(prior);
         console.log("vers are", nodey, prior, priorText);
-        let diff = JSDiff.diffChars(priorText, newText);
+        let diff = JSDiff.diffWords(priorText, newText);
         let innerHTML = "";
         diff.forEach(part => {
           let partDiv = document.createElement("span");
@@ -533,7 +533,7 @@ export class Inspect {
         elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
       } else {
         let priorText = prior.markdown;
-        let diff = JSDiff.diffChars(priorText, newText);
+        let diff = JSDiff.diffWords(priorText, newText);
         await diff.forEach(async part => {
           let partDiv = document.createElement("div");
           await this.renderBaby.renderMarkdown(partDiv, part.value);

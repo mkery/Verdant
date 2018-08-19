@@ -58,7 +58,6 @@ export class RenderBaby {
     let model: IOutputModel = area.get(0);
 
     let mimeType = this.rendermime.preferredMimeType(model.data, "any");
-    console.log("TRYING TO RENDER", nodey, model, mimeType);
     if (mimeType) {
       let output = this.rendermime.createRenderer(mimeType);
       output.renderModel(model).catch(error => {

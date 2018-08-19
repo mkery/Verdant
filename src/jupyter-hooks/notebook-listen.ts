@@ -224,6 +224,7 @@ export class NotebookListen {
       cellListen.status = ChangeType.ADDED;
       await cellListen.ready;
       this._cellStructureChanged.emit([index, cellListen]);
+      cellListen.cellRun();
     });
   }
 
@@ -233,6 +234,7 @@ export class NotebookListen {
       var cellListen: CellListen = this.cells.get(removed.id);
       cellListen.status = ChangeType.REMOVED;
       this._cellStructureChanged.emit([oldIndex, cellListen]);
+      cellListen.cellRun();
     });
   }
 

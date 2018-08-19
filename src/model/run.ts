@@ -297,6 +297,12 @@ export class RunCluster {
       return this._runs.every((i: number) => {
         let member = this.model.getRun(i);
         return (
+          (r.runCell.node !== member.runCell.node ||
+            r.runCell.changeType === member.runCell.changeType) &&
+          r.runCell.changeType !== ChangeType.REMOVED &&
+          r.runCell.changeType !== ChangeType.ADDED &&
+          member.runCell.changeType !== ChangeType.REMOVED &&
+          member.runCell.changeType !== ChangeType.ADDED &&
           member.checkpointType === r.checkpointType &&
           Run.sameMinute(new Date(member.timestamp), new Date(r.timestamp))
         );

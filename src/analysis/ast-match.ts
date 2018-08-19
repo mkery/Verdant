@@ -353,9 +353,17 @@ export class ASTMatch {
     * Literal nodes do not score for type or children
     */
     if ("literal" in parsedNode || nodeyNode.literal) {
-      if ("literal" in parsedNode === false || !nodeyNode.literal)
+      if (!("literal" in parsedNode) || !nodeyNode.literal)
         score = NO_MATCH_SCORE;
       else score += this.matchLiterals(parsedNode.literal, nodeyNode.literal);
+      console.log(
+        "Matching two literals!",
+        score,
+        parsedNode.literal,
+        nodeyNode.literal,
+        "literal" in parsedNode,
+        !nodeyNode.literal
+      );
       return score;
     }
 
@@ -560,7 +568,7 @@ export class ASTMatch {
 
   private matchLiterals(a: string, b: string) {
     let score = levenshtein.get(a, b); // / Math.max(a.length, b.length);
-    if (score / Math.max(a.length, b.length) > 0.8) score = NO_MATCH_SCORE;
+    //if (score / Math.max(a.length, b.length) > 0.8) score = NO_MATCH_SCORE;
     //console.log("maybe change literal", a, b, score);
     return score;
   }

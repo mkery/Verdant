@@ -292,16 +292,22 @@ export class HistoryModel {
 
   private _commitMarkdown(nodey: NodeyMarkdown, runId: number) {
     let priorText = nodey.markdown;
-    let newText = nodey.cell.cell.model.value.text;
-    let score = levenshtein.get(priorText, newText);
-    if (score > 0) {
-      nodey.cell.status = ChangeType.CHANGED;
-      let history = this.getVersionsFor(nodey);
-      let newNodey = nodey.clone() as NodeyMarkdown;
-      newNodey.markdown = newText;
-      history.starNodey = newNodey;
-      return history.deStar(runId) as NodeyMarkdown;
-    } else {
+    let cell = nodey.cell.cell;
+    let score = 0;
+    if (cell && cell.model) {
+      //cell has not been deleted!
+      let newText = cell.model.value.text;
+      score = levenshtein.get(priorText, newText);
+      if (score > 0) {
+        nodey.cell.status = ChangeType.CHANGED;
+        let history = this.getVersionsFor(nodey);
+        let newNodey = nodey.clone() as NodeyMarkdown;
+        newNodey.markdown = newText;
+        history.starNodey = newNodey;
+        return history.deStar(runId) as NodeyMarkdown;
+      }
+    }
+    if (score === 0) {
       nodey.run.push(runId);
       return nodey;
     }

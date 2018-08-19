@@ -194,22 +194,24 @@ export class RunItem extends Widget {
   }
 
   public filterByText(keyword: string): number {
+    let match = 0;
     if (this.node.style.display !== "none") {
-      let match = this.runs.filterByText(keyword, this.activeFilter);
+      match = this.runs.filterByText(keyword, this.activeFilter);
       this.activeTextFilter = keyword;
       if (match === 0) {
         this.node.style.display = "none";
       } else {
         this.label.textContent = "(" + match + ")";
-        if (match === 1 && this.runs.length === 1) {
-          //Replace my sample with a matched sample
-          this.updateDetails();
-        }
       }
-      return match;
+
+      if (this.hasClass("open")) {
+        let dropdown = this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0];
+        if (dropdown) this.node.removeChild(dropdown);
+      }
+      this.openHeader();
     }
-    this.openSubruns.map(item => item.filterByText(keyword));
-    return 0;
+
+    return match;
   }
 
   public clearFilters() {
@@ -217,6 +219,7 @@ export class RunItem extends Widget {
     this.activeTextFilter = null;
     this.node.style.display = "";
     this.updateLabel();
+    this.closeHeader();
     this.openSubruns.map(item => item.clearFilters());
   }
 
@@ -226,7 +229,7 @@ export class RunItem extends Widget {
     else this.closeHeader();
   }
 
-  private openHeader() {
+  private async openHeader() {
     this.caret.classList.add("open");
     this.addClass("open");
     this.hideHeaderAnnotations();
@@ -237,19 +240,13 @@ export class RunItem extends Widget {
       dropdown.appendChild(
         Annotator.buildDetailNotes(this.runs.first, this.historyModel)
       );
-    this.buildDetailList(dropdown);
+    await this.buildDetailList(dropdown);
     this.node.appendChild(dropdown);
 
     let searchResults = this.node.getElementsByClassName(SEARCH_RESULT);
     console.log("found search results!");
     for (let i = 0; i < searchResults.length; i++)
-      searchResults[i].scrollIntoView();
-  }
-
-  private updateDetails() {
-    let dropdown = this.node.getElementsByClassName(SUB_RUNLIST_CLASS)[0];
-    if (dropdown) this.node.removeChild(dropdown);
-    this.openHeader();
+      searchResults[i].scrollIntoView({ block: "start", inline: "center" });
   }
 
   public closeHeader() {
@@ -288,11 +285,11 @@ export class RunItem extends Widget {
     }
   }
 
-  private buildDetailList(dropdown: HTMLElement) {
+  private async buildDetailList(dropdown: HTMLElement) {
     console.log("FILTER", this.activeFilter);
     this.openSubruns = [];
     if (this.runs.length === 1)
-      this._buildDetail_singleton(dropdown, this.runs.first);
+      await this._buildDetail_singleton(dropdown, this.runs.first);
     else this._buildDetail_accordian(dropdown);
   }
 

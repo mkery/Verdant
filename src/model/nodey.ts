@@ -445,6 +445,9 @@ export namespace Nodey {
     oldOutput: NodeyOutput[] = null,
     runId: number = -1
   ): string[] {
+    let outarea = cell.outputArea;
+    if (!outarea) return []; // no output!
+
     var output = cell.outputArea.model.toJSON();
 
     if (oldOutput) {
