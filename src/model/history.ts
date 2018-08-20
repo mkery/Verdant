@@ -164,6 +164,10 @@ export class HistoryModel {
     return this._notesStore[id];
   }
 
+  public moveCell(old_pos: number, new_pos: number) {
+    this._cellList.splice(new_pos, 0, this._cellList.splice(old_pos, 1)[0]);
+  }
+
   public registerNote(text: string, target: any): Notes {
     let note = new Notes(target.name, target.constructor.name, text);
     console.log("CREATED NOTE", note);
@@ -192,9 +196,18 @@ export class HistoryModel {
     return;
   }
 
+  public registerTiedNodey(nodey: NodeyCell, forceTie: string): void {
+    let oldNodey = this.getNodey(forceTie);
+    let history = this.getVersionsFor(oldNodey);
+    let version = history.versions.push(nodey) - 1;
+    nodey.id = oldNodey.id;
+    nodey.version = version;
+    return;
+  }
+
   public registerCellNodey(nodey: NodeyCell, position: number): void {
     this.registerNodey(nodey);
-    this._cellList[position] = nodey.id; //TODO cells change order, deleted, ect
+    this._cellList[position] = nodey.id;
   }
 
   public registerOutputNodey(nodey: NodeyOutput) {

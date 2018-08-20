@@ -109,7 +109,7 @@ export class NotebookListen {
     var cellsReady: Promise<void>[] = [];
     this._notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
-        var cell: CellListen = this.createCodeCellListen(item, index, prior);
+        var cell: CellListen = this.createCellListen(item, index, prior);
         cellsReady.push(cell.ready);
       }
     });
@@ -129,9 +129,11 @@ export class NotebookListen {
   async focusCell(cell: Cell): Promise<void> {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       let cellListen = this.cells.get(cell.model.id);
-      await cellListen.ready;
-      this._activeCellChanged.emit(cellListen);
-      cellListen.focus();
+      if (cellListen) {
+        await cellListen.ready;
+        this._activeCellChanged.emit(cellListen);
+        cellListen.focus();
+      }
     }
     if (this.activeCell && this.activeCell.model) {
       //verify cell hasn't been deleted
@@ -157,6 +159,8 @@ export class NotebookListen {
           case "move":
             this._cellsMoved(oldIndex, newIndex, newValues);
             break;
+          case "set":
+            this._cellTypeChanged(oldIndex, newIndex, oldValues, newValues);
           default:
             console.log("cell list changed!!!!", sender, data);
             break;
@@ -193,7 +197,7 @@ export class NotebookListen {
     );
   }
 
-  private createCodeCellListen(cell: Cell, index: number, matchPrior: boolean) {
+  private createCellListen(cell: Cell, index: number, matchPrior: boolean) {
     var cellListen: CellListen;
     if (cell instanceof CodeCell)
       cellListen = new CodeCellListen(
@@ -220,7 +224,7 @@ export class NotebookListen {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
       console.log("adding a new cell!", cell, newIndex, newValues);
-      var cellListen = this.createCodeCellListen(cell, newIndex, false);
+      var cellListen = this.createCellListen(cell, newIndex, false);
       cellListen.status = ChangeType.ADDED;
       await cellListen.ready;
       this._cellStructureChanged.emit([index, cellListen]);
@@ -243,9 +247,32 @@ export class NotebookListen {
     newIndex: number,
     newValues: ICellModel[]
   ) {
-    console.log("moving cell", oldIndex, newIndex, newValues);
-    //TODO
-    //this._cellStructureChanged.emit(null)
+    newValues.forEach(async item => {
+      var cellListen: CellListen = this.cells.get(item.id);
+      cellListen.status = ChangeType.CHANGED;
+      console.log("moving cell", oldIndex, newIndex, newValues);
+      this.historyModel.moveCell(oldIndex, newIndex);
+      this._cellStructureChanged.emit([newIndex, cellListen]);
+      cellListen.cellRun();
+    });
+  }
+
+  private async _cellTypeChanged(
+    oldIndex: number,
+    newIndex: number,
+    oldValues: ICellModel[],
+    newValues: ICellModel[]
+  ) {
+    newValues.forEach(async (item, index) => {
+      let cell: Cell = this._notebook.widgets[newIndex + index];
+      let newCellListen = this.createCellListen(cell, newIndex, true);
+      await newCellListen.ready;
+      newCellListen.status = ChangeType.CHANGED;
+      this.cells.set(cell.model.id, newCellListen);
+      console.log("changed cell type!", oldIndex, newIndex, oldValues, item);
+      this._cellStructureChanged.emit([oldIndex, newCellListen]);
+      newCellListen.cellRun();
+    });
   }
 
   private _ready = new PromiseDelegate<void>();

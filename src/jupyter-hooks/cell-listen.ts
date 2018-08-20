@@ -115,13 +115,23 @@ export class CodeCellListen extends CellListen {
     var cell = this.cell as CodeCell;
     var text: string = cell.editor.model.value.text;
     if (matchPrior) {
-      var nodeyCell = this.historyModel.cellList[
-        this.position
-      ] as NodeyCodeCell; //TODO could easily fail!!!
-      nodeyCell.cell = this;
-      this._nodey = nodeyCell.id;
-      await this.astUtils.matchASTOnInit(nodeyCell, text);
-      //TODO match output too
+      var nodeyCell = this.historyModel.cellList[this.position]; //TODO could easily fail!!!
+      if (nodeyCell instanceof NodeyCodeCell) {
+        nodeyCell.cell = this;
+        this._nodey = nodeyCell.id;
+        await this.astUtils.matchASTOnInit(nodeyCell, text);
+        //TODO match output too
+      } else if (nodeyCell instanceof NodeyMarkdown) {
+        var output = Nodey.outputToNodey(cell, this.historyModel);
+        let nodey = await this.astUtils.markdownToCodeNodey(
+          nodeyCell,
+          text,
+          this.position
+        );
+        nodey.output = nodey.output.concat(output);
+        (nodey as NodeyCodeCell).cell = this;
+        this._nodey = nodey.id;
+      }
     } else {
       var output = Nodey.outputToNodey(cell, this.historyModel);
       let nodey = await this.astUtils.generateCodeNodey(text, this.position);
@@ -177,12 +187,21 @@ export class CodeCellListen extends CellListen {
 export class MarkdownCellListen extends CellListen {
   protected async init(matchPrior: boolean) {
     if (matchPrior) {
-      var nodeyCell = this.historyModel.cellList[
-        this.position
-      ] as NodeyMarkdown; //TODO could easily fail!!!
-      nodeyCell.cell = this;
-      this._nodey = nodeyCell.id;
-      this.astUtils.repairMarkdown(nodeyCell, this.cell.model.value.text);
+      var nodeyCell = this.historyModel.cellList[this.position]; //TODO could easily fail!!!
+      if (nodeyCell instanceof NodeyMarkdown) {
+        nodeyCell.cell = this;
+        this._nodey = nodeyCell.id;
+        this.astUtils.repairMarkdown(nodeyCell, this.cell.model.value.text);
+      } else if (nodeyCell instanceof NodeyCodeCell) {
+        var nodey = Nodey.dictToMarkdownNodey(
+          this.cell.model.value.text,
+          this.position,
+          this.historyModel,
+          this,
+          nodeyCell.name
+        );
+        this._nodey = nodey.id;
+      }
     } else {
       var nodey = Nodey.dictToMarkdownNodey(
         this.cell.model.value.text,

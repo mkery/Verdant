@@ -29,7 +29,7 @@ export class ASTGenerate {
 
 # coding: utf-8
 
-# In[29]:
+# In[67]:
 
 
 # coding: utf-8
@@ -45,7 +45,7 @@ import json
 import io
 
 
-# In[30]:
+# In[68]:
 
 
 def posFromText(text, textPos):
@@ -57,7 +57,7 @@ def posFromText(text, textPos):
 
 
 
-# In[31]:
+# In[69]:
 
 
 def findNodeStart(node):
@@ -72,7 +72,7 @@ def findNodeStart(node):
         return findNodeStart(firstChild)
 
 
-# In[32]:
+# In[70]:
 
 
 def findNextChild(children, itr):
@@ -87,7 +87,7 @@ def findNextChild(children, itr):
         return None, itr + 1
 
 
-# In[33]:
+# In[71]:
 
 
 def captureComment(text, textStart, textEnd):
@@ -96,7 +96,7 @@ def captureComment(text, textStart, textEnd):
     return textStart + len(line), line
 
 
-# In[34]:
+# In[72]:
 
 
 def captureStuff(text, end, nodeItem, puncStop = "", puncNL = False):
@@ -109,7 +109,18 @@ def captureStuff(text, end, nodeItem, puncStop = "", puncNL = False):
     return end, content
 
 
-# In[35]:
+# In[73]:
+
+
+def stmtOrExpr(node):
+    myType = type(node).__name__
+    myContent = []
+    myStart = {'line': node.lineno, 'ch': node.col_offset}
+    me = {'type': myType, 'start': myStart, 'end': None, 'content': myContent}
+    return me
+
+
+# In[74]:
 
 
 '''
@@ -125,8 +136,8 @@ def visitModule(node, text, textStart, textEnd):
     myContent = []
     myStart = posFromText(text, textStart)
     end = textStart
-    # get any symbols like commas and spaces
-    end, symbols = getPunctuationBetween(text, end, "", True)
+    # get any symbols like new lines and spaces
+    end, symbols = getSpacing(text, end, textEnd, True)
     myContent += symbols
     if(debug): print("Start:", myContent)
 
@@ -139,7 +150,7 @@ def visitModule(node, text, textStart, textEnd):
         end, expr = visit(node.body, text, end, textEnd, None)
 
     # get any symbols like commas and spaces
-    end, symbols = getPunctuationBetween(text, end, "", True)
+    end, symbols = getSpacing(text, end, textEnd, True)
     myContent += symbols
     if(debug): print("END:", myContent)
 
@@ -149,18 +160,80 @@ def visitModule(node, text, textStart, textEnd):
     return end, me
 
 
-# In[36]:
+# In[75]:
 
 
-def stmtOrExpr(node):
-    myType = type(node).__name__
-    myContent = []
-    myStart = {'line': node.lineno, 'ch': node.col_offset}
-    me = {'type': myType, 'start': myStart, 'end': None, 'content': myContent}
-    return me
+'''
+FunctionDef(identifier name, arguments args,
+                       stmt* body, expr* decorator_list, expr? returns)
+AsyncFunctionDef(identifier name, arguments args,
+                       stmt* body, expr* decorator_list, expr? returns)
+'''
+def visitFunctionDef(node, text, textStart, textEnd):
+    me = stmtOrExpr(node)
+    end = textStart
+    #decorators
+    for dec in node.decorator_list:
+        end, decNode = visit(dec, text, end, textEnd, None)
+        me['content'].append(decNode)
+        end, spaces = getSpacing(text, end, textEnd, True)
+        me['content'] += spaces
+    #def and name
+    me['content'].append({"syntok": "def"})
+    end += len("def")
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    name = str(node.name)
+    me['content'].append({"syntok": name})
+    end += len(name)
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    # arguments
+    end, args = visit(node.args, text, end, textEnd, None)
+    me['content'].append(args)
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    # check for return annotation TODO FIX
+    if(node.returns):
+        end, ret = visitReturn(node.returns, text, end, textEnd)
+        me['content'].append(ret)
+    # end function header
+    me['content'].append({"syntok": ":"})
+    end += 1
+    end, spaces = getSpacing(text, end, textEnd, True)
+    me['content'] += spaces
+    # finally, body of the function
+    for stmt in node.body:
+        end, stuff = captureStuff(text, end, stmt, "", True)
+        me['content'] += stuff
+    me['end'] = posFromText(text, end)
+    if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
+    return end, me
 
 
-# In[37]:
+'''
+Return(expr? value)
+'''
+def visitReturn(node, text, textStart, textEnd):
+    me = stmtOrExpr(node)
+    end = textStart
+    me['content'].append({"syntok": "return"})
+    end += len("return")
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    if(node.value):
+        end, args = captureStuff(text, end, node.value, "", False)
+        me['content'] += args
+    me['end'] = posFromText(text, end)
+    if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
+    return end, me
+
+
+# In[76]:
 
 
 '''
@@ -183,7 +256,7 @@ def visitAssign(node, text, textStart, textEnd):
     return end, me
 
 
-# In[38]:
+# In[77]:
 
 
 '''
@@ -226,6 +299,100 @@ def visitFor(node, text, textStart, textEnd):
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
 
+'''
+| While(expr test, stmt* body, stmt* orelse)
+'''
+def visitWhile(node, text, textStart, textEnd):
+    me = stmtOrExpr(node)
+    end = textStart
+    me['content'].append({"syntok": "while"})
+    end += len("while")
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, test = visit(node.test, text, end, textEnd, None)
+    me['content'].append(test)
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    me['content'].append({"syntok": ":"})
+    end += 1
+    end, spaces = getSpacing(text, end, textEnd, True)
+    me['content'] += spaces
+    for stmt in node.body:
+        end, stuff = captureStuff(text, end, stmt, "", True)
+        me['content'] += stuff
+    for stmt in node.orelse:
+        me['content'].append({"syntok": "else"})
+        end += len("else")
+        end, spaces = getSpacing(text, end, textEnd, True)
+        me['content'] += spaces
+        me['content'].append({"syntok": ":"})
+        end += 1
+        end, spaces = getSpacing(text, end, textEnd, True)
+        me['content'] += spaces
+        end, clause = visit(stmt, text, end, textEnd, None)
+        me['content'].append(clause)
+    me['end'] = posFromText(text, end)
+    if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
+    return end, me
+
+
+'''
+| If(expr test, stmt* body, stmt* orelse)
+'''
+def visitIf(node, text, textStart, textEnd, nested = False):
+    me = stmtOrExpr(node)
+    end = textStart
+    if nested:
+        me['content'].append({"syntok": "elif"})
+        end += len("elif")
+    else:
+        me['content'].append({"syntok": "if"})
+        end += len("if")
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, test = visit(node.test, text, end, textEnd, None)
+    me['content'].append(test)
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    me['content'].append({"syntok": ":"})
+    end += 1
+    end, spaces = getSpacing(text, end, textEnd, True)
+    me['content'] += spaces
+    for stmt in node.body:
+        end, stuff = captureStuff(text, end, stmt, "", True)
+        me['content'] += stuff
+    for stmt in node.orelse:
+        sType = type(stmt).__name__
+        if sType == "If":
+            end, clause = visitIf(stmt, text, end, textEnd, True)
+            me['content'].append(clause)
+        else:
+            me['content'].append({"syntok": "else"})
+            end += len("else")
+            end, spaces = getSpacing(text, end, textEnd, True)
+            me['content'] += spaces
+            me['content'].append({"syntok": ":"})
+            end += 1
+            end, spaces = getSpacing(text, end, textEnd, True)
+            me['content'] += spaces
+            end, clause = visit(stmt, text, end, textEnd, None)
+            me['content'].append(clause)
+    me['end'] = posFromText(text, end)
+    if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
+    return end, me
+
 
 '''
 | Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
@@ -262,7 +429,7 @@ def visitTry(node, text, textStart, textEnd):
 
 
 
-# In[39]:
+# In[78]:
 
 
 '''
@@ -338,7 +505,7 @@ def visitAlias(node, text, textStart, textEnd):
     return end, me
 
 
-# In[40]:
+# In[79]:
 
 
 '''
@@ -354,7 +521,7 @@ def visitExpr(node, text, textStart, textEnd):
     return end, me
 
 
-# In[41]:
+# In[80]:
 
 
 '''
@@ -410,10 +577,11 @@ def visitListComp(node, text, textStart, textEnd):
 def visitCompare(node, text, textStart, textEnd):
     me = stmtOrExpr(node)
     end = textStart
+    opened = False
     # now use regex to get all ( and space tokens before the call args begin
     end, spaces = getSpacing(text, end, textEnd)
     me['content'] += spaces
-    end, parens = getParens(text, end, textEnd)
+    end, parens, opened = getParens(text, end, textEnd)
     me['content'] += parens
     end, spaces = getSpacing(text, end, textEnd)
     me['content'] += spaces
@@ -424,31 +592,37 @@ def visitCompare(node, text, textStart, textEnd):
         end, spaces = getSpacing(text, end, textEnd)
         me['content'] += spaces
         for cmpop in node.ops:
+            end, parens, opened = getParens(text, end, textEnd)
+            me['content'] += parens
             # get op
             end, op = visit(cmpop, text, end, textEnd, None)
             me['content'].append(op)
             # get only () and spaces
             end, spaces = getSpacing(text, end, textEnd)
             me['content'] += spaces
-            end, parens = getParens(text, end, textEnd)
-            me['content'] += parens
-            end, spaces = getSpacing(text, end, textEnd)
-            me['content'] += spaces
+            if(opened):
+                end, parens, opened = getParens(text, end, textEnd)
+                me['content'] += parens
+                end, spaces = getSpacing(text, end, textEnd)
+                me['content'] += spaces
 
     if(node.comparators):
         end, spaces = getSpacing(text, end, textEnd)
         me['content'] += spaces
         for expr in node.comparators:
+            end, parens, opened = getParens(text, end, textEnd)
+            me['content'] += parens
             # get expr
             end, exp = visit(expr, text, end, textEnd, None)
             me['content'].append(exp)
             # get only () and spaces
             end, spaces = getSpacing(text, end, textEnd)
             me['content'] += spaces
-            end, parens = getParens(text, end, textEnd)
-            me['content'] += parens
-            end, spaces = getSpacing(text, end, textEnd)
-            me['content'] += spaces
+            if(opened):
+                end, parens, opened = getParens(text, end, textEnd)
+                me['content'] += parens
+                end, spaces = getSpacing(text, end, textEnd)
+                me['content'] += spaces
 
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
@@ -467,7 +641,7 @@ def visitCall(node, text, textStart, textEnd):
     # now use regex to get all punctuation then ( and space tokens before the call args begin
     end, spaces = getSpacing(text, end, textEnd)
     me['content'] += spaces
-    end, parens = getParens(text,end, textEnd)
+    end, parens, opened = getParens(text,end, textEnd)
     me['content'] += parens
     end, spaces = getSpacing(text, end,textEnd)
     me['content'] += spaces
@@ -501,7 +675,7 @@ def visitNum(node, text, textStart, textEnd):
     return end, me
 
 
-# In[42]:
+# In[81]:
 
 
 '''
@@ -627,7 +801,7 @@ def visitTuple(node, text, textStart, textEnd):
     return end, me
 
 
-# In[43]:
+# In[82]:
 
 
 '''
@@ -656,7 +830,7 @@ def visitIndex(node, text, textStart, textEnd):
     return end, me
 
 
-# In[44]:
+# In[83]:
 
 
 '''
@@ -688,7 +862,83 @@ def visitOp(node, text, textStart, textEnd):
     return end, me
 
 
-# In[45]:
+# In[84]:
+
+
+'''
+Lambda(arguments args, expr body)
+'''
+def visitLambda(node, text, textStart, textEnd):
+    me = stmtOrExpr(node)
+    end = textStart
+    me["content"].append({"syntok": "lambda"})
+    end += len("lambda")
+    end, spaces = getSpacing(text, end, textEnd)
+    me["content"] += spaces
+    end, args = visit(node.args, text, end, textEnd, None)
+    me['content'].append(args)
+    end, spaces = getSpacing(text, end, textEnd)
+    me["content"] += spaces
+    # ready for body
+    me["content"].append({"syntok": ":"})
+    end += 1
+    end, spaces = getSpacing(text, end, textEnd)
+    me["content"] += spaces
+    end, body = visit(node.body, text, end, textEnd, None)
+    me['content'].append(body)
+    me['end'] = posFromText(text, end)
+    if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
+    return end, me
+
+'''
+IfExp(expr test, expr body, expr orelse)
+'''
+def visitIfExp(node, text, textStart, textEnd):
+    me = stmtOrExpr(node)
+    end = textStart
+    # first body
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, body = visit(node.body, text, end, textEnd, None)
+    me['content'].append(body)
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    # if
+    me["content"].append({"syntok": "if"})
+    end += len("if")
+    end, spaces = getSpacing(text, end, textEnd)
+    me["content"] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    # test
+    end, test = visit(node.test, text, end, textEnd, None)
+    me['content'].append(test)
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    end, symbols, opened = getParens(text, end, textEnd)
+    me['content'] += symbols
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
+    # else clauses
+    me['content'].append({"syntok": "else"})
+    end += len("else")
+    end, spaces = getSpacing(text, end, textEnd, False)
+    me['content'] += spaces
+    end, clause = visit(node.orelse, text, end, textEnd, None)
+    me['content'].append(clause)
+    me['end'] = posFromText(text, end)
+    if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
+    return end, me
+
+
+
+
+
+# In[85]:
 
 
 '''
@@ -729,7 +979,35 @@ def visitExceptHandler(node, text, textStart, textEnd):
 
 
 
-# In[46]:
+# In[97]:
+
+
+'''
+arguments = (arg* args, arg? vararg, arg* kwonlyargs, expr* kw_defaults,
+                 arg? kwarg, expr* defaults)
+'''
+def visitArguments(node, text, textStart, textEnd):
+    myType = type(node).__name__
+    myContent = []
+    myStart = posFromText(text, textStart)
+    end = textStart
+    end = text.find(')', end, textEnd)
+    if end == -1:
+        end = text.find(':', textStart, textEnd) - 1
+    arguments = text[textStart:end]
+    myContent.append({'syntok': arguments})
+    myEnd = posFromText(text, end)
+    me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
+    if(debug): print("MADE:", me,"\\n")
+    return end, me
+
+'''
+arg = (identifier arg, expr? annotation)
+           attributes (int lineno, int col_offset)
+'''
+
+
+# In[87]:
 
 
 '''
@@ -760,7 +1038,7 @@ def visitKeyword(node, text, textStart, textEnd):
 
 
 
-# In[47]:
+# In[88]:
 
 
 def visit(node, text, textStart, textEnd, nextNode):
@@ -774,14 +1052,20 @@ def visit(node, text, textStart, textEnd, nextNode):
                 "Interactive": visitModule,
                 "Expression": visitModule,
                 "Suite": visitModule,
+                "FunctionDef": visitFunctionDef,
+                "Return": visitReturn,
                 "Assign": visitAssign,
                 "For": visitFor,
+                "While": visitWhile,
+                "If": visitIf,
                 "Try": visitTry,
                 "Import": visitImport,
                 "ImportFrom": visitImportFrom,
                 "Expr": visitExpr,
                 "BinOp": visitBinOp,
                 "UnaryOp": visitUnaryOp,
+                "Lambda": visitLambda,
+                "IfExp": visitIfExp,
                 "Compare": visitCompare,
                 "Call": visitCall,
                 "Num": visitNum,
@@ -792,6 +1076,7 @@ def visit(node, text, textStart, textEnd, nextNode):
                 "Tuple": visitTuple,
                 "Index": visitIndex,
                 "ExceptHandler": visitExceptHandler,
+                "arguments": visitArguments,
                 "keyword": visitKeyword,
                 "alias": visitAlias}
 
@@ -827,7 +1112,7 @@ def visitLiteral(node, text, start):
     elif(token == "'"):
         pattern = re.compile("'.*?'")
     else:
-        pattern = re.compile('[a-zA-Z0-9_]+')
+        pattern = re.compile('[a-zA-Z0-9_@]+')
     match = pattern.search(text[start:])
     if(debug): print("LITERAL FOUND", match, text[start:start+3])
     myLiteral = match[0]
@@ -842,14 +1127,14 @@ def visitLiteral(node, text, start):
     return (end, me)
 
 
-# In[48]:
+# In[89]:
 
 
 def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
     textEnd = len(text)
     if(textStart >= textEnd): return textEnd, []
     i = textStart
-    char = text[textStart]
+    char = text[min(textStart, len(text) - 1)]
     content = []
     extra = []
     if(allowNewline): extra = newline
@@ -866,44 +1151,49 @@ def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
     return i, content
 
 
-# In[49]:
+# In[90]:
 
 
-def getSpacing(text, textStart, textEnd):
+def getSpacing(text, textStart, textEnd, line=False):
     end = textStart
     content = []
-    char = text[end]
+    char = text[min(end, len(text) - 1)]
     # warning: great regex exist for this in py3 but they fail badly in py2!
-    while end < textEnd - 1 and char in spaces:
+    while end < len(text) - 1 and char in spaces or (line and char in newline):
         content.append({"syntok": str(char)})
         end += 1
-        char = str(text[end])
+        if(end <= len(text) - 1):
+            char = str(text[end])
     return end, content
 
 
 
-# In[50]:
+# In[91]:
 
 
 def getParens(text, textStart, textEnd):
     end = textStart
     content = []
-    char = text[end]
+    char = text[min(end, len(text) - 1)]
+    opened = False
     # warning: great regex exist for this in py3 but they fail badly in py2!
     while end < textEnd - 1 and char in parens:
         content.append({"syntok": str(char)})
         end += 1
         char = str(text[end])
-    return end, content
+        if(char == '('): opened = True
+        else: opened = False
+
+    return end, content, opened
 
 
-# In[51]:
+# In[92]:
 
 
 def getCommas(text, textStart, textEnd):
     end = textStart
     content = []
-    char = text[end]
+    char = text[min(end, len(text) - 1)]
     # warning: great regex exist for this in py3 but they fail badly in py2!
     while end < textEnd - 1 and char == ',':
         content.append({"syntok": str(char)})
@@ -912,7 +1202,7 @@ def getCommas(text, textStart, textEnd):
     return end, content
 
 
-# In[1]:
+# In[93]:
 
 
 def parse(text):
@@ -920,44 +1210,23 @@ def parse(text):
     else:
         node = ast.parse(text)
         if(debug): print(ast.dump(node, True, True))
-        end, res = visit(node, text, 0, len(text), None)
-        print( json.dumps(res))
+        print( json.dumps(visit(node, text, 0, len(text), None)[1]))
 
 
-# In[2]:
+# In[98]:
 
 
-text = """# For each feature find the data points with extreme high or low values
-for feature in log_data.keys():
-
-    # TODO: Calculate Q1 (25th percentile of the data) for the given feature
-    Q1 = None
-
-    # TODO: Calculate Q3 (75th percentile of the data) for the given feature
-    Q3 = None
-
-    # TODO: Use the interquartile range to calculate an outlier step (1.5 times the interquartile range)
-    step = None
-
-    # Display the outliers
-    print("Data points considered outliers for the feature '{}':".format(feature))
-    display(log_data[~((log_data[feature] >= Q1 - step) & (log_data[feature] <= Q3 + step))])
-
-# OPTIONAL: Select the indices for data points you wish to remove
-outliers  = []
-
-# Remove the outliers, if any were specified
-good_data = log_data.drop(log_data.index[outliers]).reset_index(drop = True)"""
+text = """x = lambda a : a + 10"""
 
 debug = False
 sqParens = set(["[","]"])
 parens = set(["(",")"])
 brackets = set(["{","}"])
-spaces = set(["\t", " "])
+spaces = set(["\\t", " "])
 newline = set(["\\n"]) #todo may vary across platforms
 punctuation = set(string.punctuation)
 punctuation.add(" ")
-punctuation.add("\t")
+punctuation.add("\\t")
 
 opTokens = set(["Invert", "Not", "UAdd", "USub",
               "Add", "Sub", 'Mult', 'MatMult', 'Div', 'Mod', 'Pow', 'LShift',
@@ -970,8 +1239,6 @@ opTokens = set(["Invert", "Not", "UAdd", "USub",
 
 if debug: parse(text)
 #print(json.dumps(main(l, tree),  indent=2))
-
-
 `;
   }
 
@@ -1039,6 +1306,48 @@ if debug: parse(text)
     });
   }
 
+  public markdownToCodeNodey(
+    markdown: NodeyMarkdown,
+    code: string,
+    position: number
+  ): Promise<NodeyCode> {
+    return new Promise<NodeyCode>((accept, reject) => {
+      var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
+        //console.log(code, "R: ", msg)
+      };
+      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
+        //console.log(code, "IO: ", msg)
+        let msgType = msg.header.msg_type;
+        switch (msgType) {
+          case "execute_result":
+          case "display_data":
+          case "error":
+            console.error(code, "IO: ", msg);
+            reject();
+            break;
+          case "stream":
+            var jsn = (<any>msg.content)["text"];
+            //console.log("py 2 ast execution finished!", jsn)
+            accept(
+              this.recieve_generateAST_tieMarkdown(
+                jsn,
+                position,
+                markdown.name,
+                {}
+              )
+            );
+            break;
+          case "clear_output":
+          case "update_display_data":
+          default:
+            break;
+        }
+      };
+
+      this.parseCode(code, onReply, onIOPub);
+    });
+  }
+
   private cleanCodeString(code: string): string {
     // annoying but important: make sure docstrings do not interrupt the string literal
     var newCode = code.replace(/""".*"""/g, str => {
@@ -1082,6 +1391,26 @@ if debug: parse(text)
     if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
     else console.log("Recieved empty?", dict);
     var nodey = Nodey.dictToCodeCellNodey(dict, position, this.historyModel);
+    console.log("Recieved code!", dict, nodey);
+    return nodey;
+  }
+
+  recieve_generateAST_tieMarkdown(
+    jsn: string,
+    position: number,
+    forceTie: string,
+    options: { [key: string]: any }
+  ): NodeyCode {
+    //console.log("Recieved", jsn);
+    var dict = options;
+    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
+    else console.log("Recieved empty?", dict);
+    var nodey = Nodey.dictToCodeCellNodey(
+      dict,
+      position,
+      this.historyModel,
+      forceTie
+    );
     console.log("Recieved code!", dict, nodey);
     return nodey;
   }

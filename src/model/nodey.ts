@@ -364,7 +364,8 @@ export namespace Nodey {
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
     position: number,
-    historyModel: HistoryModel
+    historyModel: HistoryModel,
+    forceTie: string = null
   ) {
     if ("start" in dict === false) {
       dict.start = { line: 1, ch: 0 };
@@ -380,7 +381,10 @@ export namespace Nodey {
     dict.end.ch -= 1;
 
     var n = new NodeyCodeCell(dict);
-    historyModel.registerCellNodey(n, position);
+    if (forceTie) {
+      // only occurs when cells change type from code/markdown
+      historyModel.registerTiedNodey(n, forceTie);
+    } else historyModel.registerCellNodey(n, position);
 
     dictToCodeChildren(dict, historyModel, n);
     return n;
@@ -432,10 +436,14 @@ export namespace Nodey {
     text: string,
     position: number,
     historyModel: HistoryModel,
-    cell: CellListen
+    cell: CellListen,
+    forceTie: string = null
   ) {
     var n = new NodeyMarkdown({ markdown: text, cell: cell });
-    historyModel.registerCellNodey(n, position);
+    if (forceTie) {
+      // only occurs when cells change type from code/markdown
+      historyModel.registerTiedNodey(n, forceTie);
+    } else historyModel.registerCellNodey(n, position);
     return n;
   }
 
