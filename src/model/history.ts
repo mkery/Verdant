@@ -57,6 +57,7 @@ export class HistoryModel {
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
       this.fromJSON(history);
+      console.log("Historical Notebook is", this.dump());
       return true;
     }
     return false;
@@ -207,7 +208,10 @@ export class HistoryModel {
 
   public registerCellNodey(nodey: NodeyCell, position: number): void {
     this.registerNodey(nodey);
-    this._cellList[position] = nodey.id;
+    if (this._cellList[position]) {
+      // everybody got to shove over
+      this._cellList.splice(position, 0, nodey.id);
+    } else this._cellList[position] = nodey.id;
   }
 
   public registerOutputNodey(nodey: NodeyOutput) {
@@ -488,7 +492,9 @@ export class HistoryModel {
       "NODES",
       this._nodeyStore,
       "OUTPUT",
-      this._outputStore
+      this._outputStore,
+      "DELETED CELLS",
+      this._deletedCellList
     );
   }
 }

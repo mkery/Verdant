@@ -157,7 +157,10 @@ export class CodeCellListen extends CellListen {
   }
 
   public async cellRun() {
-    let text: string = this.cell.editor.model.value.text;
+    let text: string = "";
+    // check cell wasn't just deleted
+    if (this.cell.inputArea) text = this.cell.editor.model.value.text;
+    else this.status = ChangeType.REMOVED;
     let editedNode = (await this.astUtils.repairFullAST(
       <NodeyCodeCell>this.nodey,
       text
@@ -201,12 +204,16 @@ export class MarkdownCellListen extends CellListen {
   protected async init(matchPrior: boolean) {
     if (matchPrior) {
       var nodeyCell = this.historyModel.cellList[this.position]; //TODO could easily fail!!!
+      //console.log("Prior match is", nodeyCell, this.position);
       if (nodeyCell instanceof NodeyMarkdown) {
         nodeyCell.cell = this;
         this._nodey = nodeyCell.id;
-        this.astUtils.repairMarkdown(nodeyCell, this.cell.model.value.text);
+        await this.astUtils.repairMarkdown(
+          nodeyCell,
+          this.cell.model.value.text
+        );
       } else if (nodeyCell instanceof NodeyCodeCell) {
-        var nodey = Nodey.dictToMarkdownNodey(
+        var nodey = await Nodey.dictToMarkdownNodey(
           this.cell.model.value.text,
           this.position,
           this.historyModel,
@@ -216,7 +223,7 @@ export class MarkdownCellListen extends CellListen {
         this._nodey = nodey.id;
       }
     } else {
-      var nodey = Nodey.dictToMarkdownNodey(
+      var nodey = await Nodey.dictToMarkdownNodey(
         this.cell.model.value.text,
         this.position,
         this.historyModel,

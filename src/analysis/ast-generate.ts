@@ -1444,7 +1444,7 @@ if(debug): parse(text)
     });
 
     // turn ipython magics commands into comments
-    newCode = newCode.replace(/%/g, "#");
+    //newCode = newCode.replace(/%/g, "#"); TODO can't do bc styled strings!
 
     // remove any triple quotes, which will mess us up
     newCode = newCode.replace(/"""/g, "'''");
@@ -1538,6 +1538,9 @@ if(debug): parse(text)
           var jsn = (<any>msg.content)["text"];
           //console.log("py 2 ast execution finished!", jsn)
           accept(recieve_reply(jsn));
+        } else if (msg.header.msg_type === "error") {
+          console.error("Failed to parse", newCode);
+          reject();
         }
       };
       this.parseCode(newCode, onReply, onIOPub);
@@ -1565,6 +1568,9 @@ if(debug): parse(text)
           var jsn = (<any>msg.content)["text"];
           //console.log("py 2 ast execution finished!", jsn)
           accept(recieve_reply(jsn));
+        } else if (msg.header.msg_type === "error") {
+          console.error("Failed to parse", newCode);
+          reject();
         }
       };
       this.parseCode(newCode, onReply, onIOPub);
@@ -1584,6 +1590,9 @@ if(debug): parse(text)
           var jsn = (<any>msg.content)["text"];
           //console.log("py 2 ast execution finished!", jsn)
           accept(recieve_reply(jsn));
+        } else if (msg.header.msg_type === "error") {
+          console.error("Failed to parse", newCode);
+          reject();
         }
       };
       this.parseCode(newCode, onReply, onIOPub);
