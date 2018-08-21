@@ -46,6 +46,26 @@ export class ASTResolve {
     }
   }
 
+  repairFullAST(nodey: NodeyCodeCell, text: string) {
+    let textOrig = this.historyModel.inspector.renderNode(nodey).text;
+    console.log(
+      "The exact affected nodey is",
+      nodey,
+      "|" + text + "|",
+      "|" + textOrig + "|"
+    );
+
+    var updateID = crypto.randomBytes(20).toString("hex");
+    nodey.pendingUpdate = updateID;
+
+    var kernel_reply = this.match.recieve_newVersion.bind(
+      this.match,
+      nodey,
+      updateID
+    );
+    return [kernel_reply, text];
+  }
+
   repairAST(
     nodey: NodeyCodeCell,
     change: CodeMirror.EditorChange,

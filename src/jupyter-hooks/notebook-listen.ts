@@ -216,17 +216,17 @@ export class NotebookListen {
         matchPrior
       );
     this.cells.set(cell.model.id, cellListen);
-    this.listenToCellSelection(cellListen);
+    cellListen.ready.then(() => this.listenToCellSelection(cellListen));
     return cellListen;
   }
 
   private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
-      console.log("adding a new cell!", cell, newIndex, newValues);
       var cellListen = this.createCellListen(cell, newIndex, false);
       cellListen.status = ChangeType.ADDED;
       await cellListen.ready;
+      console.log("adding a new cell!", cell, cellListen, cellListen.nodey);
       this._cellStructureChanged.emit([index, cellListen]);
       cellListen.cellRun();
     });

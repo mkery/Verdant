@@ -297,6 +297,7 @@ export class RunCluster {
       return this._runs.every((i: number) => {
         let member = this.model.getRun(i);
         return (
+          r.runCell &&
           (r.runCell.node !== member.runCell.node ||
             r.runCell.changeType === member.runCell.changeType) &&
           r.runCell.changeType !== ChangeType.REMOVED &&

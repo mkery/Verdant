@@ -109,6 +109,8 @@ export class ASTMatch {
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
+    } else {
+      console.log("RECIEVED OLD UPDATE", updateID, jsn, nodey.pendingUpdate);
     }
     return nodey;
   }

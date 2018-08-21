@@ -16,9 +16,9 @@ import {
   NodeyMarkdown
 } from "../model/nodey";
 
-import * as CodeMirror from "codemirror";
+//import * as CodeMirror from "codemirror";
 
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
+//import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 import { HistoryModel } from "../model/history";
 
@@ -156,13 +156,23 @@ export class CodeCellListen extends CellListen {
     return (this.cell as CodeCell).outputArea;
   }
 
+  public async cellRun() {
+    var node = this.nodey;
+    if (node.id === "*" || node.version === "*")
+      if (this.status === ChangeType.SAME) this.status = ChangeType.CHANGED;
+
+    let text: string = this.cell.editor.model.value.text;
+    await this.astUtils.repairFullAST(<NodeyCodeCell>this.nodey, text);
+    this.historyModel.handleCellRun(node);
+  }
+
   protected listen(): void {
     super.listen();
     (this.cell as CodeCell).outputArea.node.addEventListener("click", () => {
       this._outputSelected.emit(this.output);
     });
 
-    if (this.cell.editor instanceof CodeMirrorEditor) {
+    /*  if (this.cell.editor instanceof CodeMirrorEditor) {
       var editor = <CodeMirrorEditor>this.cell.editor;
       //editor.model.value.changed //listen in
       //editor.model.selections.changed //listen in
@@ -175,7 +185,7 @@ export class CodeCellListen extends CellListen {
           this.astUtils.repairAST(<NodeyCodeCell>this.nodey, change, editor);
         }
       );
-    }
+    }*/
   }
 }
 
