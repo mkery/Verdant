@@ -1,5 +1,4 @@
-print("food")
-print(Y.head())
+print(Y.head()) #goooo
 print(house_model.predict(X.head()))
 
 while end < textEnd - 1 and char == ',':

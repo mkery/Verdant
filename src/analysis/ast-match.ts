@@ -17,11 +17,11 @@ export class ASTMatch {
     this.resolver = resolver;
   }
 
-  recieve_newVersion(
+  async recieve_newVersion(
     nodey: NodeyCode,
     updateID: string,
     jsn: string
-  ): NodeyCode {
+  ): Promise<NodeyCode> {
     if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
       //console.log("Time to resolve", jsn, "with", nodey);
       var dict: ParserNodey;
@@ -105,14 +105,21 @@ export class ASTMatch {
           );
         }
       }
-      this.finalizeMatch(parsedList.length - 1, parsedList, nodeyList, nodey);
+      let newNodey = this.finalizeMatch(
+        parsedList.length - 1,
+        parsedList,
+        nodeyList,
+        nodey
+      );
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
+
+      return newNodey;
     } else {
       console.log("RECIEVED OLD UPDATE", updateID, jsn, nodey.pendingUpdate);
+      return nodey;
     }
-    return nodey;
   }
 
   finalizeMatch(
@@ -120,7 +127,7 @@ export class ASTMatch {
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyOptions[],
     relativeTo: NodeyCode
-  ) {
+  ): NodeyCode {
     var parsedNode = parsedList[root].nodey;
     var match = parsedList[root].match;
     var nodeyEdited: NodeyCode;

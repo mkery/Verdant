@@ -157,13 +157,16 @@ export class CodeCellListen extends CellListen {
   }
 
   public async cellRun() {
-    var node = this.nodey;
-    if (node.id === "*" || node.version === "*")
+    let text: string = this.cell.editor.model.value.text;
+    let editedNode = (await this.astUtils.repairFullAST(
+      <NodeyCodeCell>this.nodey,
+      text
+    )) as NodeyCodeCell;
+
+    if (editedNode.id === "*" || editedNode.version === "*")
       if (this.status === ChangeType.SAME) this.status = ChangeType.CHANGED;
 
-    let text: string = this.cell.editor.model.value.text;
-    await this.astUtils.repairFullAST(<NodeyCodeCell>this.nodey, text);
-    this.historyModel.handleCellRun(node);
+    this.historyModel.handleCellRun(editedNode);
   }
 
   protected listen(): void {
