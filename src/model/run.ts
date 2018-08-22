@@ -323,7 +323,11 @@ export class RunCluster {
     keyword: string,
     otherFilters: (r: Run) => boolean
   ): number {
-    let fun = (t: string) => t.indexOf(keyword) > -1;
+    let keys = keyword.toLowerCase().split(" ");
+
+    let fun = (t: string) => {
+      return keys.every((k: string) => t.indexOf(k) > -1);
+    };
     let nodesMemo: { node: string; match: boolean }[][] = [];
     let matches: number = 0;
     this._runs.forEach((i: number) => {
@@ -341,7 +345,9 @@ export class RunCluster {
           }
           if (match === null) {
             // no memo found
-            let text = this.model.historyModel.inspector.renderNode(node).text;
+            let text = this.model.historyModel.inspector
+              .renderNode(node)
+              .text.toLowerCase();
             match = fun(text);
             console.log("RENDERED", match, text);
             if (!nodesMemo[id]) nodesMemo[id] = [];

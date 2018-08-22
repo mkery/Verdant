@@ -266,9 +266,9 @@ export class RunItem extends Widget {
 
   private hideHeaderAnnotations() {
     let next = this.caret.nextElementSibling;
-    if (next.classList.contains(RUN_ITEM_STAR)) next.remove();
+    if (next && next.classList.contains(RUN_ITEM_STAR)) next.remove();
     let notes = this.node.getElementsByClassName(NOTES);
-    if (notes.length > 0) this.node.removeChild(notes[0]);
+    if (notes.length > 0) notes[0].parentElement.removeChild(notes[0]);
   }
 
   private buildHeaderAnnotations() {

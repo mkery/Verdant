@@ -73,7 +73,9 @@ export class Inspect {
       if (textFocus) {
         let index = -1;
         let focusLine = lines.find(ln => {
-          let i = ln.indexOf(textFocus);
+          let i = ln
+            .toLowerCase()
+            .indexOf(textFocus.toLowerCase().split(" ")[0]);
           if (i > -1) index = i;
           return i > -1;
         });
@@ -83,9 +85,11 @@ export class Inspect {
       let nodeyCode = nodey as NodeyCode;
       if (textFocus) {
         let index = -1;
-        let lines = this.renderNode(nodeyCode).text.split("\n");
+        let lines = this.renderNode(nodeyCode)
+          .text.toLowerCase()
+          .split("\n");
         let focusLine = lines.find(ln => {
-          let i = ln.indexOf(textFocus);
+          let i = ln.toLowerCase().indexOf(textFocus.split(" ")[0]);
           if (i > -1) index = i;
           return i > -1;
         });
@@ -641,19 +645,22 @@ export class Inspect {
 
   private highlightText(textFocus: string, elem: HTMLElement) {
     let i = 0;
-    let index = elem.innerHTML.indexOf(textFocus, i);
+    let split = textFocus.split(" ");
+    let keys = textFocus.toLowerCase().split(" ");
+    let lower = elem.innerHTML.toLowerCase();
+    let index = lower.indexOf(keys[0], i);
     let html = "";
-
+    console.log("Index is ", index, lower, keys[0]);
     while (index > -1) {
       html +=
         elem.innerHTML.slice(i, index) +
         '<span class="' +
         SEARCH_FILTER_RESULTS +
         '">' +
-        textFocus +
+        split[0] +
         "</span>";
-      i = index + textFocus.length;
-      index = elem.innerHTML.indexOf(textFocus, i);
+      i = index + split[0].length;
+      index = lower.indexOf(keys[0], i);
     }
 
     html += elem.innerHTML.slice(i);

@@ -28,14 +28,15 @@ export namespace Sampler {
       if (textFilter) index = sample.innerHTML.indexOf(textFilter);
     }
     if (textFilter) {
+      let key = textFilter.split(" ")[0];
       sample.innerHTML =
         sample.innerHTML.slice(0, index) +
         '<span class="' +
         SEARCH_RESULT +
         '">' +
-        textFilter +
+        key +
         "</span>" +
-        sample.innerHTML.slice(index + textFilter.length);
+        sample.innerHTML.slice(index + key.length);
     }
 
     sample.addEventListener("click", () => {
