@@ -148,6 +148,7 @@ export class Inspect {
   public diffNodey(
     nodey: NodeyCode,
     prior: NodeyCode,
+    sourceText: string,
     changeAcc: NodeChangeDesc[] = []
   ): NodeChangeDesc[] {
     // check for any nodes that where deleted or added between the prior version and this
@@ -157,7 +158,7 @@ export class Inspect {
     if (max === 0) {
       //both are literals
       if (prior.literal != nodey.literal)
-        changeAcc.push(this._literalChanged(prior, nodey));
+        changeAcc.push(this._literalChanged(prior, nodey, sourceText));
       return changeAcc;
     }
 
@@ -166,13 +167,15 @@ export class Inspect {
     while (i < max || j < max) {
       var c0 = children0[i] as string;
       var c1 = children1[j] as string;
-
-      if (!c0) {
-        changeAcc.push(this._nodeAdded(c1));
+      if (!c0 && !c1) {
+        i++;
+        j++;
+      } else if (!c0) {
+        changeAcc.push(this._nodeAdded(c1, sourceText));
         i++;
         j++;
       } else if (!c1) {
-        changeAcc.push(this._nodeDeleted(c0));
+        changeAcc.push(this._nodeDeleted(c0, sourceText));
         i++;
         j++;
       } else {
@@ -185,17 +188,18 @@ export class Inspect {
             changeAcc = this.diffNodey(
               this._historyModel.getNodey(c1) as NodeyCode,
               this._historyModel.getNodey(c0) as NodeyCode,
+              sourceText,
               changeAcc
             );
           j++;
           i++;
         } else if (n0 > n1) {
           // n1 can't exist in children0, meaning it was added
-          changeAcc.push(this._nodeAdded(c1));
+          changeAcc.push(this._nodeAdded(c1, sourceText));
           j++;
         } else if (n0 < n1) {
           //n0 can't exist in children1, meaning it was deleted
-          changeAcc.push(this._nodeDeleted(c0));
+          changeAcc.push(this._nodeDeleted(c0, sourceText));
           i++;
         }
       }
@@ -205,51 +209,101 @@ export class Inspect {
 
   public getChangesInRun(
     nodey: NodeyCode,
-    _: number,
+    sourceText: string,
     changeAcc: NodeChangeDesc[] = []
   ): NodeChangeDesc[] {
     //check each node in the version prior to this, if there is one
     // and see if any nodes where deleted or added
     var prior = this._historyModel.getPriorVersion(nodey) as NodeyCode;
-    if (prior) changeAcc = this.diffNodey(nodey, prior, changeAcc);
+    if (prior) changeAcc = this.diffNodey(nodey, prior, sourceText, changeAcc);
     else {
       // this cell is all new
       console.log("has not prior!", nodey);
-      changeAcc.push(this._nodeAdded(nodey.name));
+      changeAcc.push(this._nodeAdded(nodey.name, sourceText));
     }
     return changeAcc;
   }
 
-  private _nodeDeleted(name: string): NodeChangeDesc {
-    var node = this._historyModel.getNodey(name) as NodeyCode;
-    var text = this.renderNode(node).text;
-    return {
-      change: ChangeType.REMOVED,
-      start: node.start,
-      end: node.end,
-      text: text
-    };
+  private posFromText(textPos: number, text: string) {
+    let snippet = text.slice(0, textPos + 1);
+    let lines = snippet.split("\n");
+    let ln = lines.length;
+    let ch = lines[Math.max(lines.length - 1, 0)].length;
+    return { line: ln, ch: ch };
   }
 
-  private _nodeAdded(name: string): NodeChangeDesc {
+  private _nodeDeleted(name: string, sourceText: string): NodeChangeDesc {
     var node = this._historyModel.getNodey(name) as NodeyCode;
     var text = this.renderNode(node).text;
-    return {
-      change: ChangeType.ADDED,
-      start: node.start,
-      end: node.end,
-      text: text
-    };
+    if (node.start && node.end) {
+      return {
+        change: ChangeType.REMOVED,
+        start: node.start,
+        end: node.end,
+        text: text
+      };
+    } else {
+      let index = sourceText.indexOf(text);
+      let start = this.posFromText(index, sourceText);
+      let end = this.posFromText(index + text.length - 1, sourceText);
+      return {
+        change: ChangeType.REMOVED,
+        start: start,
+        end: end,
+        text: text
+      };
+    }
   }
 
-  private _literalChanged(prior: NodeyCode, nodey: NodeyCode): NodeChangeDesc {
+  private _nodeAdded(name: string, sourceText: string): NodeChangeDesc {
+    var node = this._historyModel.getNodey(name) as NodeyCode;
+    console.log("NODE ADDED IS", name, node);
+    var text = this.renderNode(node).text;
+    if (node.start && node.end) {
+      return {
+        change: ChangeType.ADDED,
+        start: node.start,
+        end: node.end,
+        text: text
+      };
+    } else {
+      let index = sourceText.indexOf(text); //TODO fix so don't need to recalculate?
+      let start = this.posFromText(index, sourceText);
+      let end = this.posFromText(index + text.length, sourceText);
+      return {
+        change: ChangeType.ADDED,
+        start: start,
+        end: end,
+        text: text
+      };
+    }
+  }
+
+  private _literalChanged(
+    prior: NodeyCode,
+    node: NodeyCode,
+    sourceText: string
+  ): NodeChangeDesc {
+    var text = this.renderNode(node).text;
+    if (node.start && node.end) {
+      return {
+        change: ChangeType.CHANGED,
+        start: node.start,
+        end: node.end,
+        text: prior.literal
+      };
+    } else {
+      let index = sourceText.indexOf(text); //TODO fix so don't need to recalculate?
+      let start = this.posFromText(index, sourceText);
+      let end = this.posFromText(index + text.length, sourceText);
+      return {
+        change: ChangeType.CHANGED,
+        start: start,
+        end: end,
+        text: prior.literal
+      };
+    }
     //TODO better comparison
-    return {
-      change: ChangeType.CHANGED,
-      start: nodey.start,
-      end: nodey.end,
-      text: prior.literal
-    };
   }
 
   public async produceNotebook(
@@ -275,23 +329,29 @@ export class Inspect {
     let cells = cellMap.map((cellDat: CellRunData, cellIndex: number) => {
       var nodey = this._historyModel.getNodey(cellDat.node);
       console.log("found node?", cellDat, cellDat.node, nodey);
+      if (!nodey) {
+        //TODO error case only!!! // BUG: occurs if for some reasona 23.* starred node is there
+        let id = parseInt(cellDat.node.split(".")[0]);
+        nodey = this._historyModel.getNodeyCell(id);
+      }
       var jsn: nbformat.ICell = {
         cell_type: nodey.typeName,
         metadata: { nodey: nodey.name },
         source: [] as string[]
       };
+      let sourceText = this.renderNode(nodey).text || "";
       if (cellDat.changeType !== ChangeType.SAME) {
         // this nodey was run
         jsn.metadata["change"] = cellDat.changeType;
         if (cellDat.changeType === ChangeType.CHANGED) {
-          var changes = this.getChangesInRun(nodey as NodeyCode, target.id);
+          var changes = this.getChangesInRun(nodey as NodeyCode, sourceText);
           jsn.metadata["edits"] = changes;
           for (var i = 0; i < changes.length; i++) {
             totalChanges.push(cellIndex);
           }
         }
       }
-      var str = (this.renderNode(nodey).text || "").split("\n");
+      let str = sourceText.split("\n");
       jsn.source = str.map((str: string, index: number) => {
         if (index !== jsn.source.length - 1) return str + "\n";
         else return str;
@@ -301,7 +361,9 @@ export class Inspect {
         var outputList: {}[] = [];
         nodey.output.map(outName => {
           var outputNode = this._historyModel.getOutput(outName);
-          outputList.push(outputNode.raw);
+          console.log("OUTPUT IS", outputNode);
+          if (outputNode.run.indexOf(runId) > -1)
+            outputList.push(outputNode.raw);
         });
         jsn.outputs = outputList;
       }

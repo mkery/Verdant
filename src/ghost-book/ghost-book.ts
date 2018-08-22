@@ -465,10 +465,10 @@ export class GhostBook extends Widget {
         case ChangeType.REMOVED:
           break;
         case ChangeType.ADDED:
-          let marker = codemirror.doc.markText(edit.start, edit.end, {
+          console.log("MARK ADD TEXT", edit);
+          codemirror.doc.markText(edit.start, edit.end, {
             className: GHOST_CODE_ADDED
           });
-          console.log("MARK ADD TEXT", edit, marker);
           break;
       }
     });
