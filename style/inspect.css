@@ -116,7 +116,7 @@
   border-bottom: 1px solid var(--jp-warn-color0);
   margin-bottom: 10px;
 }
-.v-VerdantPanel-inspect-version-content.overflow::after {
+/*.v-VerdantPanel-inspect-version-content.overflow::after {
   position: absolute;
   top: 292px;
   right: 0px;
@@ -130,7 +130,7 @@
   font-size: x-small;
   border-bottom-left-radius: 0.25em;
   border-bottom-right-radius: 0.25em;
-}
+}*/
 .v-VerdantPanel-inspect-version-content.markdown {
   font-family: var(--jp-content-font-family);
   width: calc(100% - 8px);

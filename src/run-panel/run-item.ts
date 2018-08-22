@@ -70,7 +70,8 @@ export class RunItem extends Widget {
     caret.classList.add(RUN_ITEM_CARET);
 
     let eventLabel = document.createElement("div");
-    eventLabel.textContent = "(" + this.runs.length + ")";
+    if (this.runs.length > 1)
+      eventLabel.textContent = "(" + this.runs.length + ")";
     eventLabel.classList.add(RUN_LABEL);
     if (this.isNested) {
       eventLabel.textContent = this.runs.checkpointType;
@@ -124,7 +125,8 @@ export class RunItem extends Widget {
   }
 
   private updateLabel() {
-    this.label.textContent = "(" + this.runs.length + ")";
+    if (this.runs.length === 1) this.label.textContent = "";
+    else this.label.textContent = "(" + this.runs.length + ")";
     let dots = this.dotMap.update(this.runs.getCellMap());
     this.header.replaceChild(dots, this.header.lastElementChild);
   }
@@ -183,7 +185,8 @@ export class RunItem extends Widget {
       if (match === 0) {
         this.node.style.display = "none";
       } else {
-        this.label.textContent = "(" + match + ")";
+        if (this.runs.length === 1) this.label.textContent = "";
+        else this.label.textContent = "(" + match + ")";
       }
       this.openSubruns.map(item => item.filter(fun));
       return match;
@@ -269,6 +272,7 @@ export class RunItem extends Widget {
   }
 
   private buildHeaderAnnotations() {
+    this.hideHeaderAnnotations();
     let run = this.runs.first;
     let next = this.caret.nextElementSibling;
     if (run.star > -1 && !next.classList.contains(RUN_ITEM_STAR)) {

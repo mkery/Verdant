@@ -57,9 +57,9 @@ export class InspectWidget extends Widget {
     this._header = document.createElement("div");
     this._header.classList.add(INSPECT_HEADER);
 
-    let icon = document.createElement("div");
+    /*let icon = document.createElement("div");
     icon.classList.add(INSPECT_ICON);
-    icon.addEventListener("click", this.toggleWishbone.bind(this));
+    icon.addEventListener("click", this.toggleWishbone.bind(this));*/
 
     let title = document.createElement("div");
     title.classList.add(INSPECT_TITLE);
@@ -80,7 +80,7 @@ export class InspectWidget extends Widget {
     op2.addEventListener("click", this.switchDiffType.bind(this, 2));
     diffOptions.appendChild(op2);*/
 
-    this._header.appendChild(icon);
+    //this._header.appendChild(icon);
     this._header.appendChild(title);
     //this._header.appendChild(diffOptions);
 
@@ -190,10 +190,10 @@ export class InspectWidget extends Widget {
     this.changeTarget(this.inspector.target);
   }
 
-  public changeTarget(target: Nodey) {
+  public changeTarget(target: Nodey[]) {
     if (this._active) {
       this.headerTitle.textContent =
-        "Inspecting " + target.typeName + " node " + target.name;
+        "Inspecting " + target[0].typeName + " node " + target[0].name;
       this.content.innerHTML = "";
       this.fillContent(target, this.inspector.versionsOfTarget);
     }
@@ -206,8 +206,9 @@ export class InspectWidget extends Widget {
     ops[diffType - 1].classList.add("active");
   }
 
-  private switchPane(runs: number[]) {
+  private switchPane(runWithVersion: Nodey, runs: number[]) {
     this.parentPanel.switchToNotebookHistory();
+    this.parentPanel.searchBar.runContainsNode(runWithVersion);
     console.log("FOCUS ON RUNS", runs);
   }
 
@@ -234,8 +235,8 @@ export class InspectWidget extends Widget {
   }
 
   private async fillContent(
-    target: Nodey,
-    verList: { version: number; runs: any; text: string }[]
+    target: Nodey[],
+    verList: { version: string; runs: any; text: string }[]
   ) {
     var contentDiv = this.content;
     let matches = 0;
@@ -244,7 +245,11 @@ export class InspectWidget extends Widget {
       let li = document.createElement("div");
       li.classList.add(INSPECT_VERSION);
 
-      let nodeyVer = this._historyModel.getPriorVersion(target, item.version);
+      let nodeyVer;
+      if (target[0] instanceof NodeyOutput)
+        nodeyVer = this._historyModel.getOutput(item.version);
+      else nodeyVer = this._historyModel.getNodey(item.version);
+
       if (!this.activeFilters || this.activeFilters.filter(nodeyVer)) {
         console.log("This node was used in runs", nodeyVer, target);
         if (!this.textQuery || text.indexOf(this.textQuery) > -1) {
@@ -284,7 +289,7 @@ export class InspectWidget extends Widget {
           }
 
           contentDiv.insertBefore(li, contentDiv.firstElementChild);
-          console.log("HEIGHT?", content.scrollHeight, content.clientHeight);
+
           if (content.scrollHeight > content.clientHeight) {
             content.classList.add("overflow");
           }
@@ -333,7 +338,10 @@ export class InspectWidget extends Widget {
         ", used in ";
       let r = document.createElement("span");
       r.classList.add(RUN_LINK);
-      r.addEventListener("click", this.switchPane.bind(this, nodeyVer.run));
+      r.addEventListener(
+        "click",
+        this.switchPane.bind(this, nodeyVer, nodeyVer.run)
+      );
       if (nodeyVer.run.length > 1)
         r.textContent = nodeyVer.run.length + " runs";
       else r.textContent = nodeyVer.run.length + " run";

@@ -39,9 +39,9 @@ export class Inspect {
   private _ready = new PromiseDelegate<void>();
   private _notebook: NotebookListen;
   private _historyModel: HistoryModel;
-  private _targetChanged = new Signal<this, Nodey>(this);
+  private _targetChanged = new Signal<this, Nodey[]>(this);
   private _cellStructureChanged = new Signal<this, [number, NodeyCell]>(this);
-  private _target: Nodey;
+  private _target: Nodey[];
   private renderBaby: RenderBaby;
 
   constructor(historyModel: HistoryModel, renderBaby: RenderBaby) {
@@ -340,7 +340,9 @@ export class Inspect {
   get target() {
     if (!this._target) {
       if (this._notebook.activeCell) {
-        this._target = this._notebook.getNodeForCell(this._notebook.activeCell);
+        this._target = [
+          this._notebook.getNodeForCell(this._notebook.activeCell)
+        ];
       }
     }
     return this._target;
@@ -350,23 +352,29 @@ export class Inspect {
     return this._cellStructureChanged;
   }
 
-  get targetChanged(): Signal<this, Nodey> {
+  get targetChanged(): Signal<this, Nodey[]> {
     return this._targetChanged;
   }
 
   get versionsOfTarget() {
-    var nodeVerList = this._historyModel.getVersionsFor(this._target);
+    var nodeVerList = this._target.map(target => {
+      return this._historyModel.getVersionsFor(target);
+    });
     console.log("Found versions", nodeVerList);
-    var recovered = nodeVerList.versions.map((item: Nodey) =>
-      this.renderNode(item)
-    );
+    var recovered: { version: string; runs: any; text: string }[] = [];
+
+    nodeVerList.map(targetList => {
+      targetList.versions.forEach((item: Nodey) =>
+        recovered.push(this.renderNode(item))
+      );
+    });
     return recovered;
   }
 
   changeTarget(nodey: Nodey[]) {
     //this._historyModel.dump();
     console.log("new target!", nodey);
-    this._target = nodey[0]; //TODO
+    this._target = nodey;
     this._targetChanged.emit(this._target);
   }
 
@@ -428,22 +436,22 @@ export class Inspect {
 
   public renderNode(
     nodey: Nodey
-  ): { version: number; runs: any; text: string } {
+  ): { version: string; runs: any; text: string } {
     if (nodey instanceof NodeyCode)
       return {
-        version: parseInt(nodey.version),
+        version: nodey.name,
         runs: nodey.run,
         text: this.renderCodeNode(nodey)
       };
     else if (nodey instanceof NodeyMarkdown)
       return {
-        version: parseInt(nodey.version),
+        version: nodey.name,
         runs: nodey.run,
         text: this.renderMarkdownNode(nodey)
       };
     else if (nodey instanceof NodeyOutput)
       return {
-        version: parseInt(nodey.version),
+        version: nodey.name,
         runs: nodey.run,
         text: this.renderOutputNode(nodey)
       };

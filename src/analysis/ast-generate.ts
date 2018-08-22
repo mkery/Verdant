@@ -29,7 +29,7 @@ export class ASTGenerate {
 
 # coding: utf-8
 
-# In[6]:
+# In[70]:
 
 
 # coding: utf-8
@@ -45,7 +45,7 @@ import json
 import io
 
 
-# In[7]:
+# In[71]:
 
 
 def posFromText(text, textPos):
@@ -57,7 +57,7 @@ def posFromText(text, textPos):
 
 
 
-# In[8]:
+# In[72]:
 
 
 def findNodeStart(node):
@@ -72,7 +72,7 @@ def findNodeStart(node):
         return findNodeStart(firstChild)
 
 
-# In[9]:
+# In[73]:
 
 
 def findNextChild(children, itr):
@@ -87,16 +87,7 @@ def findNextChild(children, itr):
         return None, itr + 1
 
 
-# In[10]:
-
-
-def captureComment(text, textStart, textEnd):
-    line = text[textStart:textEnd]
-    line = line[:line.find("\\n")]
-    return textStart + len(line), line
-
-
-# In[11]:
+# In[74]:
 
 
 def captureStuff(text, end, nodeItem, puncStop = "", puncNL = False):
@@ -109,7 +100,7 @@ def captureStuff(text, end, nodeItem, puncStop = "", puncNL = False):
     return end, content
 
 
-# In[12]:
+# In[75]:
 
 
 def stmtOrExpr(node):
@@ -120,7 +111,7 @@ def stmtOrExpr(node):
     return me
 
 
-# In[13]:
+# In[76]:
 
 
 '''
@@ -137,7 +128,7 @@ def visitModule(node, text, textStart, textEnd):
     myStart = posFromText(text, textStart)
     end = textStart
     # get any symbols like new lines and spaces
-    end, symbols = getSpacing(text, end, textEnd, True)
+    end, symbols = getCommentsAndSpace(text, end, textEnd)
     myContent += symbols
     if(debug): print("Start:", myContent)
 
@@ -150,7 +141,7 @@ def visitModule(node, text, textStart, textEnd):
         end, expr = visit(node.body, text, end, textEnd, None)
 
     # get any symbols like commas and spaces
-    end, symbols = getSpacing(text, end, textEnd, True)
+    end, symbols = getCommentsAndSpace(text, end, textEnd)
     myContent += symbols
     if(debug): print("END:", myContent)
 
@@ -160,7 +151,7 @@ def visitModule(node, text, textStart, textEnd):
     return end, me
 
 
-# In[14]:
+# In[77]:
 
 
 '''
@@ -233,7 +224,7 @@ def visitReturn(node, text, textStart, textEnd):
     return end, me
 
 
-# In[37]:
+# In[78]:
 
 
 '''
@@ -278,7 +269,7 @@ def visitAugAssign(node, text, textStart, textEnd):
     return end, me
 
 
-# In[16]:
+# In[79]:
 
 
 '''
@@ -301,6 +292,8 @@ def visitFor(node, text, textStart, textEnd):
     me['content'] += spaces
     me['content'].append({"syntok": "in"})
     end += len("in")
+    end, spaces = getSpacing(text, end, textEnd)
+    me['content'] += spaces
     end, itr = visit(node.iter, text, end, textEnd, None)
     me['content'].append(itr)
     # get spaces, : and any new line
@@ -451,7 +444,7 @@ def visitTry(node, text, textStart, textEnd):
 
 
 
-# In[17]:
+# In[80]:
 
 
 '''
@@ -527,7 +520,7 @@ def visitAlias(node, text, textStart, textEnd):
     return end, me
 
 
-# In[18]:
+# In[81]:
 
 
 '''
@@ -543,7 +536,7 @@ def visitExpr(node, text, textStart, textEnd):
     return end, me
 
 
-# In[19]:
+# In[82]:
 
 
 '''
@@ -726,7 +719,7 @@ def visitNum(node, text, textStart, textEnd):
     return end, me
 
 
-# In[6]:
+# In[83]:
 
 
 '''
@@ -797,8 +790,6 @@ def visitList(node, text, textStart, textEnd):
     end += 1
     end, spaces = getSpacing(text, end, textEnd)
     myContent += spaces
-    end, commas = getCommas(text, end, textEnd)
-    myContent += commas
     for elem in node.elts:
         end, value = visit(elem, text, end, textEnd, None)
         myContent.append(value)
@@ -852,7 +843,7 @@ def visitTuple(node, text, textStart, textEnd):
     return end, me
 
 
-# In[21]:
+# In[84]:
 
 
 '''
@@ -881,7 +872,7 @@ def visitIndex(node, text, textStart, textEnd):
     return end, me
 
 
-# In[22]:
+# In[85]:
 
 
 '''
@@ -913,7 +904,7 @@ def visitOp(node, text, textStart, textEnd):
     return end, me
 
 
-# In[23]:
+# In[86]:
 
 
 '''
@@ -1022,7 +1013,7 @@ def visitDict(node, text, textStart, textEnd):
 
 
 
-# In[24]:
+# In[87]:
 
 
 '''
@@ -1063,7 +1054,7 @@ def visitExceptHandler(node, text, textStart, textEnd):
 
 
 
-# In[25]:
+# In[88]:
 
 
 '''
@@ -1091,7 +1082,7 @@ arg = (identifier arg, expr? annotation)
 '''
 
 
-# In[26]:
+# In[89]:
 
 
 '''
@@ -1122,7 +1113,7 @@ def visitKeyword(node, text, textStart, textEnd):
 
 
 
-# In[27]:
+# In[90]:
 
 
 def visit(node, text, textStart, textEnd, nextNode):
@@ -1214,7 +1205,7 @@ def visitLiteral(node, text, start):
     return (end, me)
 
 
-# In[28]:
+# In[91]:
 
 
 def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
@@ -1238,7 +1229,7 @@ def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
     return i, content
 
 
-# In[29]:
+# In[92]:
 
 
 def getSpacing(text, textStart, textEnd, line=False):
@@ -1246,16 +1237,41 @@ def getSpacing(text, textStart, textEnd, line=False):
     content = []
     char = text[min(end, len(text) - 1)]
     # warning: great regex exist for this in py3 but they fail badly in py2!
-    while end < len(text) - 1 and char in spaces or (line and char in newline):
+    while end < len(text) - 1 and (char in spaces or (line and char in newline)):
         content.append({"syntok": str(char)})
         end += 1
         if(end <= len(text) - 1):
             char = str(text[end])
     return end, content
 
+def getCommentsAndSpace(text, textStart, textEnd):
+    end = textStart
+    content = []
+    char = text[min(end, len(text) - 1)]
+    commentTokens = set(["#","'''"])
+    # warning: great regex exist for this in py3 but they fail badly in py2!
+    while end < len(text) - 1 and (char in spaces or char in newline or char in commentTokens):
+        if(char in commentTokens):
+            end, comment = captureComment(text, end, textEnd)
+            content.append({'syntok': str(comment)})
+        else:
+            content.append({"syntok": str(char)})
+            end += 1
+        if(end < len(text)):
+            char = str(text[end])
+    return end, content
 
 
-# In[34]:
+# In[93]:
+
+
+def captureComment(text, textStart, textEnd):
+    line = text[textStart:textEnd]
+    line = line[:line.find("\\n")]
+    return textStart + len(line), line
+
+
+# In[94]:
 
 
 def getParens(text, textStart, textEnd):
@@ -1274,7 +1290,7 @@ def getParens(text, textStart, textEnd):
     return end, content, opened
 
 
-# In[35]:
+# In[95]:
 
 
 def getCommas(text, textStart, textEnd):
@@ -1282,14 +1298,14 @@ def getCommas(text, textStart, textEnd):
     content = []
     char = text[min(end, len(text) - 1)]
     # warning: great regex exist for this in py3 but they fail badly in py2!
-    while end < textEnd - 1 and char == ',':
+    while end < textEnd  and char == ',':
         content.append({"syntok": str(char)})
         end += 1
         char = str(text[end])
     return end, content
 
 
-# In[32]:
+# In[96]:
 
 
 def parse(text):
@@ -1300,10 +1316,15 @@ def parse(text):
         print( json.dumps(visit(node, text, 0, len(text), None)[1]))
 
 
-# In[9]:
+# In[98]:
 
 
-text = """a+=9"""
+text = """
+# compare MAE with differing values of max_leaf_nodes
+for max_leaf_nodes in [5, 50, 500, 5000]:
+    my_mae = get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y)
+    print("Max leaf nodes: \\%d  \\\\t\\\\t Mean Absolute Error:  \\%d" %(max_leaf_nodes, my_mae))
+"""
 
 debug = False
 sqParens = set(["[","]"])
@@ -1326,7 +1347,6 @@ opTokens = set(["Invert", "Not", "UAdd", "USub",
 
 if(debug): parse(text)
 #print(json.dumps(main(l, tree),  indent=2))
-
 
 `;
   }

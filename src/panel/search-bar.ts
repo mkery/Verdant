@@ -2,7 +2,7 @@ import { Widget } from "@phosphor/widgets";
 
 import { Run, ChangeType } from "../model/run";
 
-import { Nodey, NodeyCode, NodeyMarkdown } from "../model/nodey";
+import { Nodey, NodeyCode, NodeyOutput, NodeyMarkdown } from "../model/nodey";
 
 import { HistoryModel } from "../model/history";
 
@@ -29,6 +29,7 @@ const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
 export class SearchBar extends Widget {
   private view: VerdantPanel;
   private textQuery: string = null;
+  private focusNode: Nodey = null;
   readonly historyModel: HistoryModel;
 
   constructor(view: VerdantPanel, historyModel: HistoryModel) {
@@ -141,6 +142,11 @@ export class SearchBar extends Widget {
     )[0] as HTMLInputElement;
   }
 
+  runContainsNode(nodey: Nodey) {
+    this.focusNode = nodey;
+    this._runFilters();
+  }
+
   toggleLegend() {
     let legend = this.legendContainer;
     if (legend.style.display === "none") {
@@ -241,12 +247,17 @@ export class SearchBar extends Widget {
   }
 
   clearFilters() {
+    this.focusNode = null;
     let searchBar = this.searchBar;
     searchBar.value = "";
     this.textQuery = null;
     let filters = this.node.getElementsByClassName(SEARCH_FILTER);
     for (let i = 0; i < filters.length; i++) {
       filters[i].classList.remove("highlight");
+    }
+    let legendButtons = this.node.getElementsByClassName(LEGEND_ITEM);
+    for (let i = 0; i < legendButtons.length; i++) {
+      legendButtons[i].classList.remove("highlight");
     }
   }
 
@@ -295,6 +306,23 @@ export class SearchBar extends Widget {
 
     if (this.view.runList.isVisible) this._runFilters();
     else this._verFilters();
+  }
+
+  private _filterRunByNodey(): FilterFunction<Run> {
+    if (this.focusNode instanceof NodeyOutput)
+      return {
+        filter: (r: Run) => {
+          return r.newOutput.indexOf(this.focusNode.name) > -1;
+        },
+        label: "output " + this.focusNode.name
+      };
+    else
+      return {
+        filter: (r: Run) => {
+          return r.notebook.indexOf(this.focusNode.name) > -1;
+        },
+        label: "node " + this.focusNode.name
+      };
   }
 
   private _filterRunByAdded(): FilterFunction<Run> {
@@ -427,6 +455,7 @@ export class SearchBar extends Widget {
       filterList.push(this._filterRunByStar());
     if (this.commentButton.classList.contains("highlight"))
       filterList.push(this._filterRunByComment());
+    if (this.focusNode) filterList.push(this._filterRunByNodey());
 
     this.view.runList.clearFilters();
     if (filterList.length < 1 && !this.textQuery && legendFilters.length < 1) {

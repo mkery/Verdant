@@ -16,6 +16,7 @@ const NOTEBOOK_HISTORY = "v-VerdantPanel-notebookHistory";
 const RUN_LIST = "v-VerdantPanel-runContainer";
 const RUN_LIST_FOOTER = "v-VerdantPanel-footer";
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-search-results-label";
+const SEARCH_CANCEL_BUTTON = "v-VerdantPanel-search-cancel";
 
 export class RunPanel extends Widget {
   readonly historyModel: HistoryModel;
@@ -41,11 +42,20 @@ export class RunPanel extends Widget {
   }
 
   private init() {
+    let labelWrapper = document.createElement("div");
     let label = document.createElement("div");
     label.textContent = "";
     label.classList.add(SEARCH_FILTER_RESULTS);
-    label.style.display = "none";
-    this.node.appendChild(label);
+    labelWrapper.appendChild(label);
+    let xButton = document.createElement("div");
+    xButton.classList.add(SEARCH_CANCEL_BUTTON);
+    labelWrapper.appendChild(xButton);
+    xButton.addEventListener("click", () => {
+      this.parentPanel.searchBar.clearFilters();
+      this.clearFilters();
+    });
+    labelWrapper.style.display = "none";
+    this.node.appendChild(labelWrapper);
     this.listContainer = this.buildRunList();
     this.node.appendChild(this.listContainer);
     this.buildFooter();
@@ -96,7 +106,7 @@ export class RunPanel extends Widget {
 
     let label = this.listLabel;
     label.textContent = matchCount + " runs found with " + fun.label;
-    label.style.display = "";
+    label.parentElement.style.display = "";
   }
 
   public filterByText(text: string) {
@@ -115,12 +125,12 @@ export class RunPanel extends Widget {
       ' runs found with the text "' +
       text +
       '"';
-    label.style.display = "";
+    label.parentElement.style.display = "";
   }
 
   public clearFilters() {
     this.sections.forEach(section => section.clearFilters());
-    this.listLabel.style.display = "none";
+    this.listLabel.parentElement.style.display = "none";
     this.listLabel.textContent = "";
   }
 

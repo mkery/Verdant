@@ -34,7 +34,7 @@ export class CellPanel extends Widget {
     this.historyModel.inspector.ready.then(async () => {
       await this.historyModel.notebook.ready;
       this.historyModel.inspector.targetChanged.connect(
-        (_: any, nodey: Nodey) => {
+        (_: any, nodey: Nodey[]) => {
           this.inspectWidget.changeTarget(nodey);
         }
       );
