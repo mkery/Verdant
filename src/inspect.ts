@@ -317,15 +317,17 @@ export class Inspect {
     var totalChanges: number[] = [];
     let cluster = this._historyModel.runModel.getCluster(clusterId);
     let target: Run | RunCluster;
-    let run;
+    let run: Run;
     let runRange = null;
     if (runId < 0) {
       run = this._historyModel.runModel.getRun(cluster.last.id);
       target = cluster;
       runRange = cluster.first.id + "-" + run.id;
+      runId = run.id;
     } else {
       run = this._historyModel.runModel.getRun(runId);
       target = run;
+      runId = run.id;
     }
 
     let cellMap = target.getCellMap();
@@ -363,12 +365,19 @@ export class Inspect {
       if (nodey instanceof NodeyCode) {
         jsn.execution_count = 0;
         var outputList: {}[] = [];
-        nodey.output.map(outName => {
-          var outputNode = this._historyModel.getOutput(outName);
-          console.log("OUTPUT IS", outputNode);
-          if (outputNode.run.indexOf(runId) > -1)
+        let max = runId;
+        let mostRecent: number = -10;
+        console.log("NODEY HAS OUTPUT?", nodey.output);
+        for (let i = 0; i < nodey.output.length; i++) {
+          var outputNode = this._historyModel.getOutput(nodey.output[i]);
+          console.log("OUTPUT IS", outputNode, max, mostRecent);
+          let lastRun = outputNode.run[outputNode.run.length - 1];
+          if (lastRun >= mostRecent && lastRun <= max) {
             outputList.push(outputNode.raw);
-        });
+            mostRecent = lastRun;
+          }
+        }
+
         jsn.outputs = outputList;
       }
       return jsn;

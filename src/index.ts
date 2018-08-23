@@ -77,7 +77,7 @@ const extension: JupyterLabPlugin<void> = {
 
     restorer.add(panel, "v-VerdantPanel");
     panel.id = "v-VerdantPanel";
-    panel.title.label = "Verdant";
+    panel.title.label = "History";
     const verdantPanel = new VerdantPanel(model);
     panel.addWidget(verdantPanel);
 
