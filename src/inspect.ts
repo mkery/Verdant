@@ -368,7 +368,7 @@ export class Inspect {
         let max = runId;
         let mostRecent: number = -10;
         console.log("NODEY HAS OUTPUT?", nodey.output);
-        for (let i = 0; i < nodey.output.length; i++) {
+        for (let i = nodey.output.length - 1; i > -1; i--) {
           var outputNode = this._historyModel.getOutput(nodey.output[i]);
           console.log("OUTPUT IS", outputNode, max, mostRecent);
           let lastRun = outputNode.run[outputNode.run.length - 1];
@@ -458,6 +458,7 @@ export class Inspect {
     cell: CodeCell,
     elem: HTMLElement
   ) {
+    console.log("figuring out target")
     var codeBlock = this.findAncestor(elem, "CodeMirror-code");
     var lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     var lineDiv = this.findAncestor(elem, "CodeMirror-line");

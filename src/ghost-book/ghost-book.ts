@@ -22,7 +22,7 @@ import { Widget, PanelLayout } from "@phosphor/widgets";
 
 import { Toolbar, ToolbarButton } from "@jupyterlab/apputils";
 
-import { NotebookModel } from "@jupyterlab/notebook";
+import { NotebookModel, Notebook } from "@jupyterlab/notebook";
 
 import { NodeChangeDesc } from "../inspect";
 
@@ -73,7 +73,7 @@ const GHOST_CELL_SELECTED = "v-Verdant-GhostBook-cell-selected";
 /**
  * A widget for images.
  */
-export class GhostBook extends Widget {
+export class GhostBook extends Notebook {
   /**
    * The ghost book's widget's context.
    */
@@ -96,9 +96,9 @@ export class GhostBook extends Widget {
    */
   constructor(
     context: DocumentRegistry.IContext<GhostBookModel>,
-    options: { [key: string]: any }
+    options: Notebook.IOptions
   ) {
-    super();
+    super(options);
     this.context = context;
     this.model = context.model;
     this.rendermime = options.rendermime;
@@ -351,14 +351,14 @@ export class GhostBook extends Widget {
     let model = context.model as NotebookModel;
     let cells = model.cells;
     each(cells, (cell: ICellModel, i: number) => {
-      this._insertCell(i, cell);
+      this._insertGhostCell(i, cell);
     });
   }
 
   /**
    * Create a cell widget and insert into the notebook.
    */
-  private _insertCell(index: number, cell: ICellModel): void {
+  private _insertGhostCell(index: number, cell: ICellModel): void {
     let widget: Cell;
     let rendermime = this.rendermime;
     switch (cell.type) {

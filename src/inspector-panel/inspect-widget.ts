@@ -57,9 +57,9 @@ export class InspectWidget extends Widget {
     this._header = document.createElement("div");
     this._header.classList.add(INSPECT_HEADER);
 
-    /*let icon = document.createElement("div");
+    let icon = document.createElement("div");
     icon.classList.add(INSPECT_ICON);
-    icon.addEventListener("click", this.toggleWishbone.bind(this));*/
+    icon.addEventListener("click", this.toggleWishbone.bind(this));
 
     let title = document.createElement("div");
     title.classList.add(INSPECT_TITLE);
@@ -80,7 +80,7 @@ export class InspectWidget extends Widget {
     op2.addEventListener("click", this.switchDiffType.bind(this, 2));
     diffOptions.appendChild(op2);*/
 
-    //this._header.appendChild(icon);
+    this._header.appendChild(icon);
     this._header.appendChild(title);
     //this._header.appendChild(diffOptions);
 
@@ -192,6 +192,7 @@ export class InspectWidget extends Widget {
 
   public changeTarget(target: Nodey[]) {
     if (this._active) {
+      console.log("Target is", target)
       this.headerTitle.textContent =
         "Inspecting " + target[0].typeName + " node " + target[0].name;
       this.content.innerHTML = "";
@@ -342,9 +343,7 @@ export class InspectWidget extends Widget {
         "click",
         this.switchPane.bind(this, nodeyVer, nodeyVer.run)
       );
-      if (nodeyVer.run.length > 1)
-        r.textContent = nodeyVer.run.length + " runs";
-      else r.textContent = nodeyVer.run.length + " run";
+      r.textContent = "these runs";
       label.appendChild(l);
       label.appendChild(r);
     } else {

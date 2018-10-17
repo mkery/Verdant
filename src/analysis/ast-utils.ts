@@ -78,14 +78,15 @@ namespace Private {
     change: { start: any; end: any },
     historyModel: HistoryModel
   ): NodeyCode {
-    var children: string[] = node.getChildren();
-    if (min >= max || max <= min || children.length < 1) return null;
+    console.log("Looking for node at", change, node)
+    var children : string[] = node.getChildren();
+    if (min > max || max < min || children.length < 1) return node;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
     console.log("CHILDREN", children, mid, children[mid]);
     var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
-    //console.log("checking mid range", midNodey, direction);
+    console.log("checking mid range", midNodey, direction);
 
     if (direction === 0) {
       var midChildren = midNodey.getChildren();

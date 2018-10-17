@@ -30,9 +30,14 @@ import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
 import { InstanceTracker } from "@jupyterlab/apputils";
 
-export class GhostBookPanel extends DocumentWidget<GhostBook, GhostBookModel> {
+export class GhostBookPanel extends NotebookPanel {
   constructor(options: DocumentWidget.IOptions<GhostBook, GhostBookModel>) {
     super(options);
+  }
+
+  get content(): GhostBook
+  {
+    return this.content
   }
 }
 
@@ -43,7 +48,7 @@ export class GhostBookFactory extends ABCWidgetFactory<
   GhostBookPanel,
   GhostBookModel
 > {
-  constructor(options: NotebookWidgetFactory.IOptions) {
+  constructor(options: NotebookWidgetFactory.IOptions<GhostBookPanel>) {
     super(options);
     this.rendermime = options.rendermime;
     /*this.contentFactory = NotebookPanel.defaultContentFactory;
@@ -73,7 +78,7 @@ export class GhostBookFactory extends ABCWidgetFactory<
   protected createNewWidget(
     context: DocumentRegistry.IContext<GhostBookModel>
   ): GhostBookPanel {
-    var ghostBook = new GhostBook(context, { rendermime: this.rendermime });
+    var ghostBook = new GhostBook(context, { rendermime: this.rendermime, mimeTypeService: null });
     let ghostPanel = new GhostBookPanel({
       content: ghostBook,
       context
@@ -169,7 +174,7 @@ export namespace GhostBookFactory {
     //console.log("Doc registrey is:", docRegistry);
 
     ghostFactory.widgetCreated.connect(
-      (_: any, widget: DocumentWidget<GhostBook, GhostBookModel>) => {
+      (_: any, widget: GhostBookPanel) => {
         // Notify the instance tracker if restore data needs to update.
         widget.context.pathChanged.connect(() => {
           ghostTracker.save(widget.content);

@@ -44,7 +44,7 @@ export class FilterTray extends Widget {
     output.classList.add(FILTER);
     output.classList.add("textOut");
     output.classList.add("active");
-    output.textContent = "text output";
+    output.textContent = "output";
     filterTray.appendChild(output);
     output.addEventListener("click", this.toggleFilter.bind(this, output));
 
@@ -169,8 +169,8 @@ export class FilterTray extends Widget {
     return !this._filterByCode(nodey);
   }
 
-  private _filterByTextOutput(s: string) {
-    return s === "stream" || s === "execute_result";
+  private _filterByTextOutput(_: string) {
+    return true; //s === "stream" || s === "execute_result";
   }
 
   private _filterByTableOutput(s: string) {
