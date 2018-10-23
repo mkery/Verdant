@@ -87,7 +87,7 @@ const extension: JupyterLabPlugin<void> = {
       const populate = () => {
         var widg = shell.currentWidget;
         if (widg instanceof NotebookPanel) {
-          verdantPanel.onNotebookSwitch(widg);
+          //verdantPanel.onNotebookSwitch(widg);
           if (!activePanel || activePanel !== widg) {
             activePanel = widg;
             notebook = new NotebookListen(activePanel, astUtils, model);

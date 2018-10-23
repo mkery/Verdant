@@ -1,4 +1,4 @@
-import { HistoryModel } from "../model/history";
+import { HistoryModel } from "../../model/history";
 
 const NOTES = "v-VerdantPanel-noteContainer";
 const STAR_BUTTON = "v-VerdantPanel-starButton";

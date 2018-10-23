@@ -12,6 +12,7 @@ const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 
 export namespace Wishbone {
   export function startWishbone(historyModel: HistoryModel) {
+    console.log("starting wishbone!", historyModel);
     historyModel.notebook.cells.forEach((cellListen: CellListen, _: string) => {
       var cell = cellListen.cell;
       Private.addEvents(
@@ -60,6 +61,7 @@ export namespace Wishbone {
 */
 namespace Private {
   export function highlightSelection(event: Event) {
+    // signal known cell node of selection
     (<Element>event.target).classList.add(WISHBONE_HIGHLIGHT);
   }
 

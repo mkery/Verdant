@@ -2,9 +2,7 @@ import { Widget } from "@phosphor/widgets";
 
 import { RunActions } from "./run-panel";
 
-import { RunModel, RunDate, RunCluster, Run } from "../model/run";
-
-import { FilterFunction } from "../panel/search-bar";
+import { RunModel, RunDate, RunCluster } from "../../model/run";
 
 import { RunItem } from "./run-item";
 
@@ -76,7 +74,7 @@ export class RunSection extends Widget {
     this.clusters.push(runItem);
   }
 
-  public filter(fun: FilterFunction<Run>) {
+  /*public filter(fun: FilterFunction<Run>) {
     let matchCount = 0;
     this.clusters.forEach(runItem => {
       matchCount += runItem.filter(fun.filter);
@@ -97,7 +95,7 @@ export class RunSection extends Widget {
   public clearFilters() {
     this.clusters.forEach(runItem => runItem.clearFilters());
     this.node.style.display = "";
-  }
+  }*/
 
   private toggleSection(sectionDiv: HTMLElement, caret: HTMLElement) {
     if (sectionDiv.style.display === "none") {

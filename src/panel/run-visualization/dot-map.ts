@@ -1,6 +1,6 @@
-import { CellRunData, ChangeType } from "../model/run";
+import { CellRunData, ChangeType } from "../../model/run";
 
-import { HistoryModel } from "../model/history";
+import { HistoryModel } from "../../model/history";
 
 const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
 const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";

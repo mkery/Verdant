@@ -174,8 +174,7 @@
 }
 
 .v-VerdantPanel-wishbone-code-highlight {
-  background-color: var(--verdant-highlight-color2);
-  text-decoration: underline;
+  background: var(--jp-editor-selected-focused-background);
 }
 
 .v-Verdant-inspect-code-same {

@@ -205,3 +205,97 @@
   width: calc(100% - 8px);
   text-align: center;
 }
+
+.v-VerdantPanel-headerContainer {
+  display: inline-block;
+  border-bottom: 1px solid var(--jp-border-color0);
+}
+
+.v-VerdantPanel-searchContainer {
+  display: inline-block;
+  vertical-align: text-bottom;
+  width: calc(100% - 1.5em - 19px);
+  padding: 5px;
+  height: 2em;
+  padding-left: 3px;
+}
+
+.v-VerdantPanel-searchIcon {
+  display: inline-block;
+  background-image: var(--verdant-icon-search);
+  width: 1.5em;
+  height: 2em;
+  background-size: 20px 18px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.v-VerdantPanel-filterOptsIcon {
+  display: inline-block;
+  background-image: var(--verdant-icon-caretup);
+  width: 1em;
+  height: 2em;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+}
+
+.v-VerdantPanel-searchText {
+  display: inline-block;
+  width: calc(100% - 3em);
+  height: 2em;
+  vertical-align: text-bottom;
+  outline: transparent;
+  padding-left: 5px;
+  overflow: overlay;
+}
+
+.v-VerdantPanel-inspectorButton {
+  display: inline-block;
+  vertical-align: text-bottom;
+  background-image: var(--verdant-icon-timeinspect);
+  width: 1.5em;
+  height: 2em;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1.5em;
+  border-left: 1px solid var(--jp-border-color0);
+  padding: 5px;
+}
+.v-VerdantPanel-inspectorButton:hover {
+  background-image: var(--verdant-icon-timeinspect-active);
+  background-color: var(--jp-cell-editor-active-border-color);
+}
+.v-VerdantPanel-inspectorButton.active {
+  background-image: var(--verdant-icon-timeinspect-active);
+  background-color: var(--jp-cell-editor-active-border-color);
+}
+.v-VerdantPanel-inspectorButton.active:hover {
+  background-color: var(--jp-brand-color0);
+}
+
+.v-VerdantPanel-crumbMenu {
+  display: inline-block;
+  min-height: 1.5em;
+  width: 100%;
+  padding: 5px;
+  padding-left: 3px;
+  border-bottom: 1px solid var(--jp-border-color0);
+}
+
+.v-VerdantPanel-crumbMenu-item {
+  display: inline-block;
+  font-size: var(--jp-ui-font-size0);
+  text-transform: uppercase;
+  margin-right: 5px;
+  color: var(--jp-ui-font-color0);
+  vertical-align: middle;
+}
+.v-VerdantPanel-crumbMenu-item:hover {
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.v-VerdantPanel-crumbMenu-seperator {
+  display: inline-block;
+  color: var(--jp-ui-font-color3);
+  margin-right: 4px;
+}

@@ -1,122 +1,106 @@
-import { Widget, TabBar, PanelLayout } from "@phosphor/widgets";
+import { Widget } from "@phosphor/widgets";
 
-import { NotebookPanel } from "@jupyterlab/notebook";
+//import { GhostBookPanel } from "../ghost-book/ghost-model";
 
-import { GhostBookPanel } from "../ghost-book/ghost-model";
+import { Wishbone } from "./wishbone";
 
 import { HistoryModel } from "../model/history";
 
-import { SearchBar } from "./search-bar";
+import { RunPanel } from "./run-visualization/run-panel";
 
-import { RunPanel } from "../run-panel/run-panel";
+import { CrumbBox } from "./crumb-box";
 
-import { CellPanel } from "../cell-panel/cell-panel";
-
-const TABS_ID = "v-VerdantPanel-tabs";
-const HEADER_NOTEBOOK_LABEL = "v-VerdantPanel-header-notebookLabel";
-//const HEADER_TITLE = "v-VerdantPanel-header-title";
-const HEADER_CELL_LABEL = "v-VerdantPanel-header-cellLabel";
+const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
+const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
+const SEARCH_ICON = "v-VerdantPanel-searchIcon";
+const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
+const SEARCH_TEXT = "v-VerdantPanel-searchText";
+const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
 
 /**
  * A widget which displays notebook-level history information
  */
 export class VerdantPanel extends Widget {
   readonly historyModel: HistoryModel;
-  readonly fileTabs: TabBar<Widget>;
-  readonly searchBar: SearchBar;
+  readonly contentBox: HTMLElement;
   readonly runList: RunPanel;
-  readonly cellPanel: CellPanel;
-  readonly layout: PanelLayout;
+  readonly crumbBox: CrumbBox;
 
   constructor(historyModel: HistoryModel) {
     super();
     this.addClass("v-VerdantPanel");
     this.historyModel = historyModel;
 
-    this.fileTabs = new TabBar<Widget>({ orientation: "vertical" });
-    this.fileTabs.id = TABS_ID;
-
-    this.searchBar = new SearchBar(this, historyModel);
-
-    this.runList = new RunPanel(this.historyModel, this);
-    this.cellPanel = new CellPanel(this.historyModel, this);
-
-    let layout = new PanelLayout();
-    layout.addWidget(this.fileTabs);
-    layout.addWidget(this.searchBar);
-    layout.addWidget(this.runList);
-    layout.addWidget(this.cellPanel);
-    this.cellPanel.hide();
-
     let header = this.buildHeaderNode();
-    this.fileTabs.node.insertBefore(header, this.fileTabs.contentNode);
+    this.runList = new RunPanel(this.historyModel, this);
+    this.node.appendChild(header);
 
-    this.layout = layout;
-  }
+    this.contentBox = document.createElement("div");
+    this.contentBox.appendChild(this.runList.node);
+    this.node.appendChild(this.contentBox);
 
-  onNotebookSwitch(widg: NotebookPanel) {
-    this.fileTabs.clearTabs();
-    this.fileTabs.addTab(widg.title);
+    this.crumbBox = new CrumbBox(this.historyModel, () => this.closeCrumbBox());
   }
 
   public ghostBookOpened(widg: Widget) {
     widg.disposed.connect(this.ghostBookClosed.bind(this));
     this.runList.onGhostBookOpened();
-    let book = (widg as GhostBookPanel).content;
-    this.cellPanel.onGhostBookOpened(book);
+    //let book = (widg as GhostBookPanel).content;
   }
 
   public ghostBookClosed() {
     this.runList.onGhostBookClosed();
-    this.cellPanel.onGhostBookClosed();
   }
 
   private buildHeaderNode() {
-    let header = document.createElement("header");
+    let header = document.createElement("div");
+    header.classList.add(HEADER_CONTAINER);
 
-    let notebookLabel = document.createElement("div");
-    notebookLabel.textContent = "Run & save history";
-    notebookLabel.classList.add(HEADER_NOTEBOOK_LABEL);
-    notebookLabel.addEventListener(
-      "click",
-      this.switchToNotebookHistory.bind(this)
-    );
+    let searchContainer = document.createElement("div");
+    searchContainer.classList.add(SEARCH_CONTAINER);
 
-    let cellLabel = document.createElement("div");
-    cellLabel.textContent = "inspector";
-    cellLabel.classList.add(HEADER_CELL_LABEL);
-    cellLabel.classList.add("closed");
-    cellLabel.addEventListener("click", this.switchToCellHistory.bind(this));
+    let searchIcon = document.createElement("div");
+    searchIcon.classList.add(SEARCH_ICON);
+    let filterOptsIcon = document.createElement("div");
+    filterOptsIcon.classList.add(FILTER_OPTS_ICON);
+    let searchText = document.createElement("div");
+    searchText.classList.add(SEARCH_TEXT);
+    searchText.setAttribute("contentEditable", "true");
+    searchContainer.appendChild(searchIcon);
+    searchContainer.appendChild(filterOptsIcon);
+    searchContainer.appendChild(searchText);
 
-    header.appendChild(notebookLabel);
-    header.appendChild(cellLabel);
+    let inspectorButton = document.createElement("div");
+    inspectorButton.classList.add(INSPECTOR_BUTTON);
+    inspectorButton.addEventListener("click", this.toggleInspector.bind(this));
 
+    header.appendChild(searchContainer);
+    header.appendChild(inspectorButton);
     return header;
   }
 
-  public switchToNotebookHistory() {
-    this.runList.show();
-    this.cellPanel.hide();
-    this.searchBar.clearFilters();
-    this.searchBar.enableRunButtons();
-    this.node
-      .getElementsByClassName(HEADER_NOTEBOOK_LABEL)[0]
-      .classList.remove("closed");
-    this.node
-      .getElementsByClassName(HEADER_CELL_LABEL)[0]
-      .classList.add("closed");
+  toggleInspector() {
+    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
+    if (inspectorButton.classList.contains("active")) {
+      inspectorButton.classList.remove("active");
+      Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
+    } else {
+      inspectorButton.classList.add("active");
+      Wishbone.startWishbone(this.historyModel);
+      this.contentBox.innerHTML = "";
+      this.contentBox.appendChild(this.crumbBox.node);
+      this.crumbBox.show();
+    }
   }
 
-  public switchToCellHistory() {
-    this.runList.hide();
-    this.cellPanel.show();
-    this.searchBar.clearFilters();
-    this.searchBar.enableNodeButtons();
-    this.node
-      .getElementsByClassName(HEADER_NOTEBOOK_LABEL)[0]
-      .classList.add("closed");
-    this.node
-      .getElementsByClassName(HEADER_CELL_LABEL)[0]
-      .classList.remove("closed");
+  closeCrumbBox() {
+    this.contentBox.innerHTML = "";
+    this.crumbBox.hide();
+    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
+    if (inspectorButton.classList.contains("active")) {
+      inspectorButton.classList.remove("active");
+      Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
+    }
+    this.contentBox.appendChild(this.runList.node);
   }
 }

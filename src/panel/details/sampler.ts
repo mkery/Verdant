@@ -1,6 +1,6 @@
-import { HistoryModel } from "../model/history";
+import { HistoryModel } from "../../model/history";
 
-import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../model/nodey";
+import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../../model/nodey";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 const SEARCH_RESULT = "v-VerdantPanel-sample-searchResult";
@@ -10,7 +10,7 @@ export namespace Sampler {
     historyModel: HistoryModel,
     cell: NodeyCell,
     textFilter: string = null
-  ): Promise<HTMLElement> {
+  ) {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     sample.classList.add(cell.typeName);

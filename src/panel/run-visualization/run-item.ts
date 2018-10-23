@@ -4,21 +4,21 @@ import {
   CellRunData,
   RunCluster,
   RunModel
-} from "../model/run";
+} from "../../model/run";
 
 import { Widget } from "@phosphor/widgets";
 
 import { RunActions } from "./run-panel";
 
-import { HistoryModel } from "../model/history";
+import { HistoryModel } from "../../model/history";
 
-import { Sampler } from "../inspector-panel/sampler";
+import { Sampler } from "../details/sampler";
 
-import { NodeyCell } from "../model/nodey";
+import { NodeyCell } from "../../model/nodey";
 
 import { DotMap } from "./dot-map";
 
-import { Annotator } from "./annotator";
+import { Annotator } from "../details/annotator";
 
 const RUN_ITEM_CLASS = "v-VerdantPanel-runItem";
 const RUN_ITEM_CARET = "v-VerdantPanel-runItem-caret";
@@ -358,13 +358,11 @@ export class RunItem extends Widget {
   private goToCellDetail(nodeyName: string) {
     let nodey = this.historyModel.getNodey(nodeyName);
     this.historyModel.inspector.changeTarget([nodey]);
-    this.actions.switchPane();
   }
 
   private gotToOutputDetail(outName: string) {
     let out = this.historyModel.getOutput(outName);
     this.historyModel.inspector.changeTarget([out]);
-    this.actions.switchPane();
   }
 
   private async createCellDetail(

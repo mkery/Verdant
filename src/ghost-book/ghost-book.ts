@@ -4,8 +4,6 @@ import { PathExt } from "@jupyterlab/coreutils";
 
 import { Run, ChangeType, RunModel } from "../model/run";
 
-import { InspectWidget } from "../inspector-panel/inspect-widget";
-
 import { nbformat } from "@jupyterlab/coreutils";
 
 import { RenderMimeRegistry } from "@jupyterlab/rendermime";
@@ -80,7 +78,7 @@ export class GhostBook extends Notebook {
   readonly context: DocumentRegistry.IContext<GhostBookModel>;
   readonly model: GhostBookModel;
   readonly rendermime: RenderMimeRegistry;
-  private _inspectPane: InspectWidget;
+  //private _inspectPane: InspectWidget;
   private _runModel: RunModel;
   private _toolbar: Toolbar;
   changeDivs: HTMLElement[];
@@ -171,7 +169,7 @@ export class GhostBook extends Notebook {
     //this.timeSlider.updatePointer();
   }
 
-  public connectInspectPanel(inspect: InspectWidget) {
+  /*public connectInspectPanel(inspect: InspectWidget) {
     this._inspectPane = inspect;
     console.log("connected inspector!", this._inspectPane);
     this._runModel = inspect.historyModel.runModel;
@@ -181,7 +179,7 @@ export class GhostBook extends Notebook {
     // header where users can add hideHeaderAnnotations
     // when a cell in the notebook is selected, set the target of the inspector
     // to that cell version
-  }
+  }*/
 
   public switchRun(cluster: number, id: number) {
     console.log("SWTICH to run ", id);
@@ -400,12 +398,12 @@ export class GhostBook extends Notebook {
     }
     cell.node.classList.add(GHOST_CELL_SELECTED);
     this.selectedCell = cell;
-    if (this._inspectPane) {
+    /*if (this._inspectPane) {
       let name = cell.model.metadata.get("nodey") + "";
       let nodey = this._inspectPane.historyModel.getNodey(name);
       console.log("Select", cell, nodey);
       this._inspectPane.inspector.changeTarget([nodey]);
-    }
+    }*/
   }
 
   private _decorateChanges(widget: Cell, cell: ICellModel, change: number) {

@@ -1,22 +1,19 @@
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../model/history";
+import { HistoryModel } from "../../model/history";
 
-import { Run, RunDate } from "../model/run";
+import { RunDate } from "../../model/run";
 
 import { RunItem } from "./run-item";
 
 import { RunSection } from "./run-section";
 
-import { VerdantPanel } from "../panel/verdant-panel";
-
-import { FilterFunction } from "../panel/search-bar";
+import { VerdantPanel } from "../verdant-panel";
 
 const NOTEBOOK_HISTORY = "v-VerdantPanel-notebookHistory";
 const RUN_LIST = "v-VerdantPanel-runContainer";
 const RUN_LIST_FOOTER = "v-VerdantPanel-footer";
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-search-results-label";
-const SEARCH_CANCEL_BUTTON = "v-VerdantPanel-search-cancel";
 
 export class RunPanel extends Widget {
   readonly historyModel: HistoryModel;
@@ -42,7 +39,7 @@ export class RunPanel extends Widget {
   }
 
   private init() {
-    let labelWrapper = document.createElement("div");
+    /*let labelWrapper = document.createElement("div");
     let label = document.createElement("div");
     label.textContent = "";
     label.classList.add(SEARCH_FILTER_RESULTS);
@@ -55,7 +52,7 @@ export class RunPanel extends Widget {
       this.clearFilters();
     });
     labelWrapper.style.display = "none";
-    this.node.appendChild(labelWrapper);
+    this.node.appendChild(labelWrapper);*/
     this.listContainer = this.buildRunList();
     this.node.appendChild(this.listContainer);
     this.buildFooter();
@@ -98,7 +95,7 @@ export class RunPanel extends Widget {
     console.log("load notebook!!!");
   }
 
-  public filterRunList(fun: FilterFunction<Run>) {
+  /*(public filterRunList(fun: FilterFunction<Run>) {
     let matchCount = 0;
     this.sections.forEach(section => {
       matchCount += section.filter(fun);
@@ -132,7 +129,7 @@ export class RunPanel extends Widget {
     this.sections.forEach(section => section.clearFilters());
     this.listLabel.parentElement.style.display = "none";
     this.listLabel.textContent = "";
-  }
+  }*/
 
   private buildRunList(): HTMLElement {
     var listContainer = document.createElement("div");
@@ -193,7 +190,4 @@ export class RunActions {
     }
   }
 
-  public switchPane() {
-    this.panel.parentPanel.switchToCellHistory();
-  }
 }
