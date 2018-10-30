@@ -276,7 +276,6 @@
   display: inline-block;
   min-height: 1.5em;
   width: 100%;
-  padding: 5px;
   padding-left: 3px;
   border-bottom: 1px solid var(--jp-border-color0);
 }
@@ -288,6 +287,8 @@
   margin-right: 5px;
   color: var(--jp-ui-font-color0);
   vertical-align: middle;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 .v-VerdantPanel-crumbMenu-item:hover {
   text-decoration: underline;
@@ -298,4 +299,24 @@
   display: inline-block;
   color: var(--jp-ui-font-color3);
   margin-right: 4px;
+}
+
+.v-VerdantPanel-mixin-mixButton {
+  display: inline-block;
+  vertical-align: text-bottom;
+  background-image: var(--verdant-icon-wisk);
+  width: 1.5em;
+  height: 0.75em;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1.5em;
+  border-left: 1px solid var(--jp-border-color0);
+  padding: 6px;
+  float: right;
+  padding-right: 10px;
+}
+
+.v-VerdantPanel-mixin-mixButton:hover {
+  background-color: var(--jp-inverse-layout-color2);
+  background-image: var(--verdant-icon-wisk-highlight);
 }

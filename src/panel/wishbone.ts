@@ -108,7 +108,7 @@ namespace Private {
     elem.addEventListener("mouseenter", Private.highlightSelection, false);
     elem.addEventListener("mouseleave", Private.blurSelection);
     elem.addEventListener(
-      "mousedown",
+      "mouseup",
       Private.selectTarget.bind(this, nodey, inspector)
     );
   }
@@ -121,7 +121,7 @@ namespace Private {
     elem.removeEventListener("mouseenter", Private.highlightSelection);
     elem.removeEventListener("mouseleave", Private.blurSelection);
     elem.removeEventListener(
-      "mousedown",
+      "mouseup",
       Private.selectTarget.bind(this, nodey, inspector)
     );
   }
@@ -162,7 +162,7 @@ namespace Private {
     var nodey = cellListen.nodey as NodeyCodeCell;
     var mask = document.createElement("div");
     mask.classList.add(WISHBONE_CODE_MASK);
-    mask.addEventListener("click", filterEvents);
+    mask.addEventListener("mouseup", filterEvents);
     mask.addEventListener("mouseenter", startCodeSelection.bind(this, mask));
     mask.addEventListener("mouseleave", endCodeSelection.bind(this, mask));
     cell.editorWidget.node.appendChild(mask);

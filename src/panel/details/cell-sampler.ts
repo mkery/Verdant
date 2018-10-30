@@ -5,7 +5,7 @@ import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../../model/nodey";
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 const SEARCH_RESULT = "v-VerdantPanel-sample-searchResult";
 
-export namespace Sampler {
+export namespace CellSampler {
   export async function sampleCell(
     historyModel: HistoryModel,
     cell: NodeyCell,

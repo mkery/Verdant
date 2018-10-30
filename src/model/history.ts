@@ -139,6 +139,7 @@ export class HistoryModel {
   getOutput(name: string): NodeyOutput {
     let [id, ver] = name.split(".");
     let nodeHist = this._outputStore[parseInt(id)];
+    console.log("trying to find", id, ver, name);
     return nodeHist.versions[parseInt(ver)] as NodeyOutput;
   }
 

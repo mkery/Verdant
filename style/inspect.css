@@ -159,7 +159,7 @@
 }
 
 .v-VerdantPanel-wishbone-highlight {
-  background-color: var(--verdant-highlight-color1);
+  background-color: var(--jp-editor-selected-focused-background);
 }
 
 .v-VerdantPanel-wishbone-code-mask {

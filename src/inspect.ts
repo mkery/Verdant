@@ -51,9 +51,6 @@ export class Inspect {
 
   set notebook(notebook: NotebookListen) {
     this._notebook = notebook;
-    this._notebook.selectedNodeChanged.connect((_: any, nodey: Nodey[]) => {
-      this.changeTarget(nodey);
-    });
     this._notebook.cellStructureChanged.connect(
       (_: any, cell: [number, CellListen]) => {
         this._cellStructureChanged.emit([cell[0], cell[1].nodey]);
@@ -431,9 +428,10 @@ export class Inspect {
     return this._targetChanged;
   }
 
-  get versionsOfTarget() {
-    var nodeVerList = this._target.map(target => {
-      return this._historyModel.getVersionsFor(target);
+  versionsOfTarget(target: Nodey[]) {
+    let t = target || this._target;
+    var nodeVerList = t.map(item => {
+      return this._historyModel.getVersionsFor(item);
     });
     console.log("Found versions", nodeVerList);
     var recovered: { version: string; runs: any; text: string }[] = [];
@@ -458,7 +456,7 @@ export class Inspect {
     cell: CodeCell,
     elem: HTMLElement
   ) {
-    console.log("figuring out target")
+    console.log("figuring out target");
     var codeBlock = this.findAncestor(elem, "CodeMirror-code");
     var lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     var lineDiv = this.findAncestor(elem, "CodeMirror-line");

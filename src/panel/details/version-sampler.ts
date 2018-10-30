@@ -17,7 +17,7 @@ const INSPECT_VERSION_ACTION = "v-VerdantPanel-search-filter";
 const RUN_LINK = "v-VerdantPanel-inspect-run-link";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
 
-export abstract class VersionSample extends Widget {
+export abstract class VersionSampler extends Widget {
   protected node_id: string;
   protected version: string;
   readonly inspector: Inspect;
@@ -81,7 +81,7 @@ export abstract class VersionSample extends Widget {
   ): Promise<HTMLElement>;
 }
 
-export class CodeVersionSample extends VersionSample {
+export class CodeVersionSampler extends VersionSampler {
   protected async buildContent(
     nodeyVer: NodeyCode,
     text: string,
@@ -100,7 +100,7 @@ export class CodeVersionSample extends VersionSample {
   }
 }
 
-export class OutputVersionSample extends VersionSample {
+export class OutputVersionSampler extends VersionSampler {
   protected async buildContent(
     nodeyVer: NodeyOutput,
     _: string,
@@ -111,7 +111,7 @@ export class OutputVersionSample extends VersionSample {
   }
 }
 
-export class MarkdownVersionSample extends VersionSample {
+export class MarkdownVersionSampler extends VersionSampler {
   protected async buildContent(
     nodeyVer: NodeyMarkdown,
     text: string,

@@ -29,6 +29,9 @@
   --verdant-icon-extra-filters: url("img/filter.svg");
   --verdant-icon-extra-filters-highlight: url("img/filter-highlight.svg");
 
+  --verdant-icon-wisk: url("img/wisk.svg");
+  --verdant-icon-wisk-highlight: url("img/wisk-highlight.svg");
+
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
   --verdant-icon-time: url("img/clock.svg");

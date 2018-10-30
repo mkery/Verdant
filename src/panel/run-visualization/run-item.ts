@@ -12,7 +12,7 @@ import { RunActions } from "./run-panel";
 
 import { HistoryModel } from "../../model/history";
 
-import { Sampler } from "../details/sampler";
+import { CellSampler } from "../details/cell-sampler";
 
 import { NodeyCell } from "../../model/nodey";
 
@@ -28,7 +28,7 @@ const RUN_ITEM_TIME = "v-VerdantPanel-runItem-time";
 const RUN_ITEM_LOADING = "loading";
 const RUN_ITEM_TITLE_WRAPPER = "v-VerdantPanel-runItem-title-container";
 
-const RUN_SAMPLE_ROW = "v-VerdantPanel-runItem-sampleRow";
+const RUN_SAMPLE_ROW = "v-VerdantPanel-runItem-CellSamplerow";
 const RUN_SAMPLE_BUTTON = "v-VerdantPanel-runItem-sampleButton";
 const RUN_ITEM_STAR = "v-VerdantPanel-starButton";
 const NOTES = "v-VerdantPanel-noteContainer";
@@ -388,9 +388,9 @@ export class RunItem extends Widget {
     }
 
     //cell sample
-    let sampleRow = document.createElement("div");
-    sampleRow.classList.add(RUN_SAMPLE_ROW);
-    let sample = await Sampler.sampleCell(
+    let CellSamplerow = document.createElement("div");
+    CellSamplerow.classList.add(RUN_SAMPLE_ROW);
+    let sample = await CellSampler.sampleCell(
       this.historyModel,
       nodey,
       this.activeTextFilter
@@ -401,9 +401,9 @@ export class RunItem extends Widget {
       "click",
       this.goToCellDetail.bind(this, nodey.name)
     );
-    sampleRow.appendChild(button);
-    sampleRow.appendChild(sample);
-    cellContainer.appendChild(sampleRow);
+    CellSamplerow.appendChild(button);
+    CellSamplerow.appendChild(sample);
+    cellContainer.appendChild(CellSamplerow);
 
     //output sample
     if (dat.newOutput && dat.newOutput.length > 0) {
@@ -416,7 +416,7 @@ export class RunItem extends Widget {
         let out = this.historyModel.getOutput(num);
         let outputRow = document.createElement("div");
         outputRow.classList.add(RUN_SAMPLE_ROW);
-        let sampleOut = Sampler.sampleOutput(this.historyModel, out);
+        let sampleOut = CellSampler.sampleOutput(this.historyModel, out);
         let outButton = document.createElement("div");
         outButton.addEventListener(
           "click",
