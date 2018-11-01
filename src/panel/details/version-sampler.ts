@@ -29,7 +29,7 @@ export abstract class VersionSampler extends Widget {
     this.version = nodey.version;
 
     this.node.classList.add(INSPECT_VERSION);
-    this.node.appendChild(this.buildVerHeader(nodey));
+    //this.node.appendChild(this.buildVerHeader(nodey));
 
     let content = document.createElement("div");
     content.classList.add(INSPECT_VERSION_CONTENT);

@@ -182,9 +182,8 @@ export class HistorySaveModel implements Contents.IModel {
 }
 
 export interface serialized_Nodey {
-  typeName: string;
   parent: string;
-  runs: number[];
+  created: number;
 }
 
 export interface serialized_NodeyOutput extends serialized_Nodey {

@@ -107,7 +107,7 @@
 
 .v-VerdantPanel-inspect-version-content {
   width: max-content;
-  padding-left: 8px;
+  padding-left: 24px;
   font-family: var(--jp-cell-prompt-font-family);
   max-height: 250px;
   overflow: auto;
