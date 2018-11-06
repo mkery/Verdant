@@ -8,6 +8,10 @@ import {
   NodeyCell
 } from "./nodey";
 
+import { Star } from "./history-stage";
+
+type jsn = { [id: string]: any };
+
 export class HistoryStore {
   private _notebookHistory: NodeHistory<NodeyNotebook>;
   private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
@@ -15,16 +19,22 @@ export class HistoryStore {
   private _outputStore: NodeHistory<NodeyOutput>[] = [];
   private _snippetStore: NodeHistory<NodeyCode>[] = [];
 
+  // this is a store for temporary nodes, stored by cell and cleaned out
+  // every time a save or run event occurs
+  private _starStore: { [id: string]: Star<Nodey>[] } = {};
+
   constructor() {
     this._notebookHistory = new NodeHistory<NodeyNotebook>();
   }
 
-  get notebookNodey(): NodeyNotebook {
+  get notebookNodey(): NodeyNotebook | Star<NodeyNotebook> {
     return this._notebookHistory.latest;
   }
 
   get cells(): NodeyCell[] {
-    return this.notebookNodey.cells.map(name => this.get(name) as NodeyCell);
+    let notebook = this.notebookNodey;
+    if (notebook instanceof Star) notebook = notebook.value;
+    return notebook.cells.map(name => this.get(name) as NodeyCell);
   }
 
   public getHistoryOf(name: string | Nodey): NodeHistory<Nodey> {
@@ -54,7 +64,7 @@ export class HistoryStore {
     }
   }
 
-  getLatestOf(name: string): Nodey {
+  getLatestOf(name: string): Nodey | Star<Nodey> {
     let nodeHist = this.getHistoryOf(name);
     return nodeHist.latest;
   }
@@ -68,14 +78,27 @@ export class HistoryStore {
     return nodeHist.versions[ver];
   }
 
-  public store(nodey: Nodey): void {
-    let store = this._getStoreFor(nodey);
-    let history = this._makeHistoryFor(nodey);
-    let id = store.push(history) - 1;
-    nodey.id = id;
-    let version = store[nodey.id].versions.push(nodey) - 1;
-    nodey.version = version;
+  public store(nodey: Nodey | Star<Nodey>): void {
+    if (nodey instanceof Star) {
+      // store in temp star store not in permanent storage
+      let cell = this.getCellParent(nodey.value);
+      if (!this._starStore[cell.id]) this._starStore[cell.id] = [];
+      this._starStore[cell.id].push(nodey);
+      nodey.cellId = cell.id + "";
+    } else {
+      let store = this._getStoreFor(nodey);
+      let history = this._makeHistoryFor(nodey);
+      let id = store.push(history) - 1;
+      nodey.id = id;
+      let version = store[nodey.id].versions.push(nodey) - 1;
+      nodey.version = version;
+    }
+
     return;
+  }
+
+  public cleanOutStars(nodey: NodeyCell): void {
+    this._starStore[nodey.id] = [];
   }
 
   private _getStoreFor(nodey: Nodey): NodeHistory<Nodey>[] {
@@ -102,13 +125,18 @@ export class HistoryStore {
     return;
   }
 
-  public getCellParent(relativeTo: NodeyCode): NodeyCodeCell {
+  public getCellParent(relativeTo: Nodey): NodeyCodeCell {
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
-      return this.getCellParent(this.get(relativeTo.parent) as NodeyCode);
+      return this.getCellParent(this.get(relativeTo.parent));
   }
 
-  public toJSON() {
+  public writeToFile(): void {
+    //TODO
+    console.error("TODO");
+  }
+
+  public toJSON(): jsn {
     return {
       notebook: this._notebookHistory.toJSON(),
       codeCells: this._codeCellStore.map(hist => hist.toJSON()),
@@ -117,6 +145,26 @@ export class HistoryStore {
       output: this._outputStore.map(hist => hist.toJSON())
     };
   }
+
+  public fromJSON(data: jsn) {
+    this._notebookHistory.fromJSON(data.notebook, NodeyNotebook.fromJSON);
+    this._codeCellStore = data.codeCells.map((item: jsn, id: number) => {
+      let hist = new NodeHistory<NodeyCodeCell>();
+      hist.fromJSON(item, NodeyCodeCell.fromJSON, id);
+    });
+    this._markdownStore = data.codeCells.map((item: jsn, id: number) => {
+      let hist = new NodeHistory<NodeyMarkdown>();
+      hist.fromJSON(item, NodeyMarkdown.fromJSON, id);
+    });
+    this._snippetStore = data.codeCells.map((item: jsn, id: number) => {
+      let hist = new NodeHistory<NodeyCode>();
+      hist.fromJSON(item, NodeyCode.fromJSON, id);
+    });
+    this._outputStore = data.codeCells.map((item: jsn, id: number) => {
+      let hist = new NodeHistory<NodeyOutput>();
+      hist.fromJSON(item, NodeyOutput.fromJSON, id);
+    });
+  }
 }
 
 /*
@@ -124,21 +172,24 @@ export class HistoryStore {
 */
 export class NodeHistory<T extends Nodey> {
   versions: T[] = [];
-  starNodey: T = null;
+  private unsavedEdits: Star<T> = null;
 
   get latest() {
-    if (this.starNodey !== null) return this.starNodey;
+    if (this.unsavedEdits) return this.unsavedEdits;
     return this.versions[this.versions.length - 1];
   }
 
-  deStar(runId: number, output: string[] = null) {
-    console.log("HAS OUTPUT", output);
-    let newNodey = Object.getPrototypeOf(this.starNodey)({}, this.starNodey);
-    newNodey.run.push(runId);
-    if (newNodey instanceof NodeyCode && output) {
+  setLatestToStar(s: Star<T>): void {
+    this.unsavedEdits = s;
+  }
+
+  deStar() {
+    let newNodey = this.unsavedEdits.value;
+    //newNodey.created = runId;
+    /*if (newNodey instanceof NodeyCode && output) {
       output.forEach(out => (newNodey as NodeyCode).addOutput(out));
-    }
-    this.starNodey = null;
+    }*/
+    this.unsavedEdits = null;
     this.versions.push(newNodey as T);
     newNodey.version = this.versions.length - 1;
     console.log("de-staring", newNodey, this);
@@ -147,5 +198,13 @@ export class NodeHistory<T extends Nodey> {
 
   toJSON() {
     return this.versions.map(node => node.toJSON());
+  }
+
+  fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
+    this.versions = data.map((nodeDat: jsn, version: number) => {
+      let nodey = factory(nodeDat);
+      if (id) nodey.id = id;
+      nodey.version = version;
+    });
   }
 }

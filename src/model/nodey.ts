@@ -1,10 +1,13 @@
 import { CellListen } from "../jupyter-hooks/cell-listen";
+import { Star } from "./history-stage";
+
+type jsn = { [id: string]: any };
 
 export abstract class Nodey {
   id: number; //id for this node
   version: any; //chronological number
-  readonly created: number; //id marking which checkpoint
-  readonly parent: string; //lookup id for the parent Nodey of this Nodey
+  created: number; //id marking which checkpoint
+  parent: string; //lookup id for the parent Nodey of this Nodey
 
   constructor(options: { [id: string]: any }, cloneFrom?: Nodey) {
     if (cloneFrom) {
@@ -101,7 +104,7 @@ export class NodeyOutput extends Nodey {
 export class NodeyCode extends Nodey {
   type: string;
   output: string[] = [];
-  content: any[];
+  content: (SyntaxToken | string | Star<Nodey>)[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
   literal: any;
@@ -182,14 +185,14 @@ export class NodeyCode extends Nodey {
 * Cell-level nodey interface
 */
 export interface NodeyCell extends Nodey {
-  readonly cell: CellListen;
+  cell: CellListen;
 }
 
 /*
 * Code Cell-level nodey
 */
 export class NodeyCodeCell extends NodeyCode implements NodeyCell {
-  readonly cell: CellListen;
+  cell: CellListen;
 
   constructor(options: { [id: string]: any }, cloneFrom?: NodeyCodeCell) {
     super(options, cloneFrom);
@@ -208,7 +211,7 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
 * Markdown nodey
 */
 export class NodeyMarkdown extends Nodey implements NodeyCell {
-  readonly cell: CellListen;
+  cell: CellListen;
   markdown: string;
 
   constructor(options: { [id: string]: any }, cloneFrom?: NodeyMarkdown) {
@@ -229,5 +232,60 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 
   get typeChar() {
     return "c";
+  }
+}
+
+export namespace NodeyNotebook {
+  export function fromJSON(dat: jsn): NodeyNotebook {
+    return new NodeyNotebook({
+      parent: dat.parent,
+      created: dat.created,
+      cells: dat.cells
+    });
+  }
+}
+
+export namespace NodeyOutput {
+  export function fromJSON(dat: jsn): NodeyOutput {
+    return new NodeyOutput({
+      raw: dat.raw,
+      parent: dat.parent,
+      created: dat.created
+    });
+  }
+}
+
+export namespace NodeyCodeCell {
+  export function fromJSON(dat: jsn): NodeyCodeCell {
+    return new NodeyCodeCell({
+      parent: dat.parent,
+      created: dat.created,
+      type: dat.type,
+      content: dat.content,
+      output: dat.output,
+      literal: dat.literal
+    });
+  }
+}
+
+export namespace NodeyCode {
+  export function fromJSON(dat: jsn): NodeyCode {
+    return new NodeyCode({
+      parent: dat.parent,
+      created: dat.created,
+      type: dat.type,
+      content: dat.content,
+      output: dat.output,
+      literal: dat.literal
+    });
+  }
+}
+
+export namespace NodeyMarkdown {
+  export function fromJSON(dat: jsn): NodeyMarkdown {
+    return new NodeyMarkdown({
+      parent: dat.parent,
+      created: dat.created
+    });
   }
 }
