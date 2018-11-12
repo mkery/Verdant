@@ -1,6 +1,5 @@
 import { CellListen } from "../jupyter-hooks/cell-listen";
 import { Star } from "./history-stage";
-import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
 type jsn = { [id: string]: any };
 
@@ -37,7 +36,6 @@ export abstract class Nodey {
 */
 export class NodeyNotebook extends Nodey {
   cells: string[];
-  notebook: NotebookListen;
 
   constructor(options: { [id: string]: any }, cloneFrom?: NodeyNotebook) {
     super(options, cloneFrom);
@@ -209,6 +207,16 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   }
 }
 
+export namespace NodeyNotebook {
+  export function fromJSON(dat: jsn): NodeyNotebook {
+    return new NodeyNotebook({
+      parent: dat.parent,
+      created: dat.created,
+      cell: dat.cell
+    });
+  }
+}
+
 /*
 * Markdown nodey
 */
@@ -234,16 +242,6 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 
   get typeChar() {
     return "c";
-  }
-}
-
-export namespace NodeyNotebook {
-  export function fromJSON(dat: jsn): NodeyNotebook {
-    return new NodeyNotebook({
-      parent: dat.parent,
-      created: dat.created,
-      cells: dat.cells
-    });
   }
 }
 

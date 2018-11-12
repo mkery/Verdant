@@ -4,9 +4,11 @@ import {
   NodeyOutput,
   NodeyCodeCell,
   NodeyMarkdown,
-  NodeyNotebook,
-  NodeyCell
+  NodeyCell,
+  NodeyNotebook
 } from "./nodey";
+
+import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
 import { History } from "./history";
 
@@ -152,8 +154,11 @@ export class HistoryStore {
     };
   }
 
-  public fromJSON(data: jsn) {
-    this._notebookHistory.fromJSON(data.notebook, NodeyNotebook.fromJSON);
+  public fromJSON(data: jsn, notebookListen: NotebookListen) {
+    this._notebookHistory.fromJSON(
+      data.notebook,
+      NodeyNotebook.fromJSON.bind(this, notebookListen)
+    );
     this._codeCellStore = data.codeCells.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyCodeCell>();
       hist.fromJSON(item, NodeyCodeCell.fromJSON, id);

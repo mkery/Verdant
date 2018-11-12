@@ -78,8 +78,8 @@ namespace Private {
     change: { start: any; end: any },
     historyModel: History
   ): NodeyCode {
-    console.log("Looking for node at", change, node)
-    var children : string[] = node.getChildren();
+    console.log("Looking for node at", change, node);
+    var children: string[] = node.getChildren();
     if (min > max || max < min || children.length < 1) return node;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;

@@ -21,25 +21,19 @@ export class History {
 
   constructor(renderBaby: RenderBaby, fileManager: FileManager) {
     this._inspector = new Inspect(this, renderBaby);
-    this._historyStore = new HistoryStore(fileManager);
-    this._historyStage = new HistoryStage(this._historyStore);
-    this._historyCheckpoints = new HistoryCheckpoints(
-      this._historyStage,
-      this._historyStore
-    );
+    this.store = new HistoryStore(fileManager);
+    this.stage = new HistoryStage(this.store);
+    this.checkpoints = new HistoryCheckpoints(this.stage, this.store);
   }
 
   private readonly _inspector: Inspect;
-  private readonly _notebook: NotebookListen;
-  private readonly _historyStore: HistoryStore;
-  private readonly _historyStage: HistoryStage;
-  private readonly _historyCheckpoints: HistoryCheckpoints;
+  readonly store: HistoryStore;
+  readonly stage: HistoryStage;
+  private readonly checkpoints: HistoryCheckpoints;
 
-  public async init(): Promise<boolean> {
+  public async init(notebook: NotebookListen): Promise<boolean> {
     // check if there is an existing history file for this notebook
-    var data = await this._historyStore.fileManager.loadFromFile(
-      this._notebook
-    );
+    var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
       this.fromJSON(history);
@@ -49,19 +43,28 @@ export class History {
   }
 
   getHistoryOf(n: string | Nodey) {
-    return this._historyStore.getHistoryOf(n);
+    return this.store.getHistoryOf(n);
   }
 
   get(n: string) {
-    return this._historyStore.get(n);
+    return this.store.get(n);
   }
 
-  store(n: Nodey) {
-    return this._historyStore.store(n);
+  getLatestOf(n: string) {
+    return this.store.getLatestOf(n);
   }
 
-  get notebook() {
-    return this._historyStore.notebookNodey;
+  storeNode(n: Nodey) {
+    return this.store.store(n);
+  }
+
+  /*
+  * NOTE star form should not leave history store or commit
+  * TODO check this design choice l8r
+  */
+  getNotebook(): NodeyNotebook {
+    let note = this.store.notebookNodey;
+    if (note instanceof Star) return note.value;
   }
 
   get inspector(): Inspect {
@@ -69,13 +72,13 @@ export class History {
   }
 
   handleCellRun(nodey: NodeyCell | Star<NodeyCell>) {
-    let [checkpoint, resolve] = this._historyCheckpoints.cellRun();
-    this._historyStage.commit(checkpoint, nodey);
-    let newNodey = this._historyStore.getLatestOf(nodey.name) as NodeyCell;
+    let [checkpoint, resolve] = this.checkpoints.cellRun();
+    this.stage.commit(checkpoint, nodey);
+    let newNodey = this.store.getLatestOf(nodey.name) as NodeyCell;
     let same = newNodey.name === nodey.name;
     resolve(newNodey, same);
-    let notebook = this._historyStore.get(checkpoint.notebook) as NodeyNotebook;
-    this._historyStore.writeToFile(notebook, this);
+    let notebook = this.store.get(checkpoint.notebook) as NodeyNotebook;
+    this.store.writeToFile(notebook, this);
   }
 
   /*public moveCell(old_pos: number, new_pos: number) {
@@ -83,15 +86,17 @@ export class History {
   }*/
 
   private fromJSON(data: serialized_NodeyHistory) {
-    this._historyCheckpoints.fromJSON(data.runs);
-    this._historyStore.fromJSON(data);
+    this.checkpoints.fromJSON(data.runs);
+    this.store.fromJSON(data, this.notebookListen);
   }
 
   public toJSON() {
-    var jsn = this._historyStore.toJSON();
-    jsn.runs = this._historyCheckpoints.toJSON();
+    var jsn = this.store.toJSON();
+    jsn.runs = this.checkpoints.toJSON();
     return jsn;
   }
 
-  public dump() {}
+  public dump(): void {
+    console.log(this.store.toJSON());
+  }
 }

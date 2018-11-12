@@ -1597,7 +1597,7 @@ if(debug): parse(text)
     });
   }
 
-  async repairFullAST(nodey: NodeyCodeCell, text: string) {
+  async repairFullAST(nodey: NodeyCell, text: string) {
     return new Promise<NodeyCode>((accept, reject) => {
       var [recieve_reply, newCode] = this.astResolve.repairFullAST(nodey, text);
 
