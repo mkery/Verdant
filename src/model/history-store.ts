@@ -8,11 +8,17 @@ import {
   NodeyCell
 } from "./nodey";
 
+import { History } from "./history";
+
+import { FileManager } from "../file-manager";
+
 import { Star } from "./history-stage";
 
 type jsn = { [id: string]: any };
 
 export class HistoryStore {
+  readonly fileManager: FileManager;
+
   private _notebookHistory: NodeHistory<NodeyNotebook>;
   private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
   private _markdownStore: NodeHistory<NodeyMarkdown>[] = [];
@@ -23,7 +29,8 @@ export class HistoryStore {
   // every time a save or run event occurs
   private _starStore: { [id: string]: Star<Nodey>[] } = {};
 
-  constructor() {
+  constructor(fileManager: FileManager) {
+    this.fileManager = fileManager;
     this._notebookHistory = new NodeHistory<NodeyNotebook>();
   }
 
@@ -131,9 +138,8 @@ export class HistoryStore {
       return this.getCellParent(this.get(relativeTo.parent));
   }
 
-  public writeToFile(): void {
-    //TODO
-    console.error("TODO");
+  public writeToFile(notebook: NodeyNotebook, history: History): void {
+    this.fileManager.writeToFile(notebook, history);
   }
 
   public toJSON(): jsn {

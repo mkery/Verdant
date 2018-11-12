@@ -1,37 +1,33 @@
 import { CodeCell } from "@jupyterlab/cells";
 
-import { HistoryModel } from "./history";
+import { CellListen } from "../jupyter-hooks/cell-listen";
 
-import {
-  serialized_NodeyOutput,
-  serialized_Nodey,
-  serialized_NodeyCode,
-  serialized_NodeyMarkdown,
-  serialized_NodeyCodeCell
-} from "../file-manager";
+import { HistoryStore } from "./history-store";
 
 import {
   Nodey,
   NodeyCode,
-  NodeyCell,
   NodeyOutput,
   NodeyCodeCell,
   NodeyMarkdown,
-  NodeyNotebook,
   SyntaxToken
 } from "./nodey";
+
+/* TODO temporary type
+*/
+type jsn = { [id: string]: any };
 
 /**
  * A namespace for Nodey statics.
  */
 export namespace NodeyFactory {
-  export function fromJSON(dat: serialized_Nodey): Nodey {
+  export function fromJSON(dat: jsn): Nodey {
     switch (dat.typeName) {
       case "code":
-        var codedat = dat as serialized_NodeyCode;
+        var codedat = dat as jsn;
         var content = codedat.content;
         if (content) {
-          content = content.map(item => {
+          content = content.map((item: any) => {
             if (typeof item === "string" || item instanceof String) return item;
             else return new SyntaxToken(item[SyntaxToken.KEY]);
           });
@@ -46,10 +42,10 @@ export namespace NodeyFactory {
           run: codedat.runs
         });
       case "codeCell":
-        var codedat = dat as serialized_NodeyCode;
+        var codedat = dat as jsn;
         var content = codedat.content;
         if (content) {
-          content = content.map(item => {
+          content = content.map((item: any) => {
             if (typeof item === "string" || item instanceof String) return item;
             else return new SyntaxToken(item[SyntaxToken.KEY]);
           });
@@ -64,7 +60,7 @@ export namespace NodeyFactory {
           run: codedat.runs
         });
       case "markdown":
-        var markdat = dat as serialized_NodeyMarkdown;
+        var markdat = dat as jsn;
         return new NodeyMarkdown({
           markdown: markdat.markdown,
           parent: markdat.parent,
@@ -75,7 +71,7 @@ export namespace NodeyFactory {
     }
   }
 
-  export function outputFromJSON(dat: serialized_NodeyOutput): NodeyOutput {
+  export function outputFromJSON(dat: jsn): NodeyOutput {
     return new NodeyOutput({
       raw: dat.raw,
       parent: dat.parent,
@@ -86,7 +82,7 @@ export namespace NodeyFactory {
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
     position: number,
-    historyModel: HistoryModel,
+    historyStore: HistoryStore,
     forceTie: string = null
   ) {
     if ("start" in dict === false) {
@@ -105,16 +101,19 @@ export namespace NodeyFactory {
     var n = new NodeyCodeCell(dict);
     if (forceTie) {
       // only occurs when cells change type from code/markdown
-      historyModel.registerTiedNodey(n, forceTie);
-    } else historyModel.registerCellNodey(n, position);
+      historyStore.registerTiedNodey(n, forceTie);
+    } else historyStore.store(n);
 
-    dictToCodeChildren(dict, historyModel, n);
+    //TODO fix cell position
+    console.log(position);
+
+    dictToCodeChildren(dict, historyStore, n);
     return n;
   }
 
   export function dictToCodeNodeys(
     dict: { [id: string]: any },
-    historyModel: HistoryModel,
+    historyStore: HistoryStore,
     prior: NodeyCode = null
   ): NodeyCode {
     dict.start.line -= 1; // convert the coordinates of the range to code mirror style
@@ -124,17 +123,17 @@ export namespace NodeyFactory {
 
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict);
-    historyModel.store(n);
+    historyStore.store(n);
 
     if (prior) prior.right = n.name;
 
-    dictToCodeChildren(dict, historyModel, n);
+    dictToCodeChildren(dict, historyStore, n);
     return n;
   }
 
   function dictToCodeChildren(
     dict: { [id: string]: any },
-    historyModel: HistoryModel,
+    historyStore: HistoryStore,
     n: NodeyCode
   ) {
     var prior = null;
@@ -143,7 +142,7 @@ export namespace NodeyFactory {
       if (SyntaxToken.KEY in dict.content[item]) {
         n.content.push(new SyntaxToken(dict.content[item][SyntaxToken.KEY]));
       } else {
-        var child = dictToCodeNodeys(dict.content[item], historyModel, prior);
+        var child = dictToCodeNodeys(dict.content[item], historyStore, prior);
         child.parent = n.name;
         if (prior) prior.right = child.name;
         n.content.push(child.name);
@@ -157,21 +156,23 @@ export namespace NodeyFactory {
   export function dictToMarkdownNodey(
     text: string,
     position: number,
-    historyModel: HistoryModel,
+    historyStore: HistoryStore,
     cell: CellListen,
     forceTie: string = null
   ) {
     var n = new NodeyMarkdown({ markdown: text, cell: cell });
     if (forceTie) {
       // only occurs when cells change type from code/markdown
-      historyModel.registerTiedNodey(n, forceTie);
-    } else historyModel.registerCellNodey(n, position);
+      historyStore.registerTiedNodey(n, forceTie);
+    } else historyStore.store(n);
+    //TODO update
+    console.log(position, "cell changed!");
     return n;
   }
 
   export function outputToNodey(
     cell: CodeCell,
-    historyModel: HistoryModel,
+    historyStore: HistoryStore,
     oldOutput: NodeyOutput[] = null,
     runId: number = -1
   ): string[] {
@@ -192,8 +193,8 @@ export namespace NodeyFactory {
 
     if (output.length > 0) {
       for (var item in output) {
-        var out = dictToOutputNodey(output[item], historyModel);
-        if (runId !== -1) out.run.push(runId);
+        var out = dictToOutputNodey(output[item], historyStore);
+        if (runId !== -1) out.created = runId;
         outNode.push(out.name);
       }
     }
@@ -202,10 +203,10 @@ export namespace NodeyFactory {
 
   function dictToOutputNodey(
     output: { [id: string]: any },
-    historyModel: HistoryModel
+    historyStore: HistoryStore
   ) {
     var n = new NodeyOutput({ raw: output });
-    historyModel.store(n);
+    historyStore.store(n);
     return n;
   }
 }

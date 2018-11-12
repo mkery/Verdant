@@ -1,6 +1,6 @@
 import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../model/nodey";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 import { ASTUtils } from "./ast-utils";
 
@@ -9,10 +9,10 @@ import * as levenshtein from "fast-levenshtein";
 import { ASTResolve } from "./ast-resolve";
 
 export class ASTMatch {
-  historyModel: HistoryModel;
+  historyModel: History;
   resolver: ASTResolve;
 
-  constructor(historyModel: HistoryModel, resolver: ASTResolve) {
+  constructor(historyModel: History, resolver: ASTResolve) {
     this.historyModel = historyModel;
     this.resolver = resolver;
   }

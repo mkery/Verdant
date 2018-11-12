@@ -1,17 +1,19 @@
 import {
   Nodey,
   NodeyCode,
-  NodeyCell,
   NodeyOutput,
+  NodeyCell,
   NodeyCodeCell,
-  NodeyMarkdown,
-  NodeyNotebook,
   SyntaxToken
 } from "./nodey";
 
+import { CodeCell } from "@jupyterlab/cells";
+
 import { HistoryStore } from "./history-store";
 
-import { ChangeType } from "./run";
+import { NodeyFactory } from "./nodey-factory";
+
+import { Checkpoint } from "./checkpoint";
 
 /*
 * little wrapper class for pending changes with a star
@@ -79,7 +81,23 @@ export class HistoryStage {
     return starNode;
   }
 
-  public commitCell(starCell: Star<NodeyCell>, runId: number) {
+  /*
+  * should return if there is any changes to commit true/false
+  */
+  public commit(
+    checkpoint: Checkpoint,
+    starCell?: Star<NodeyCell> | NodeyCell
+  ) {
+    //TODO commit the notebook
+
+    if (starCell) {
+      if (starCell instanceof Star) {
+        this.commitCell(starCell, checkpoint.id);
+      }
+    }
+  }
+
+  private commitCell(starCell: Star<NodeyCell>, runId: number) {
     let cell = this.deStarCell(starCell);
     console.log("Cell to commit is " + cell.name, cell, runId);
 
@@ -133,11 +151,16 @@ export class HistoryStage {
     let oldRun = -1;
     let old = oldOutput.map(out => {
       let output = this.store.get(out);
-      if (oldRun < 0 || output.run.indexOf(oldRun) > -1) {
-        return output;
+      if (oldRun < 0 || output.created === oldRun) {
+        return output as NodeyOutput;
       }
     });
-    return Nodey.outputToNodey(nodey.cell.cell as CodeCell, this, old, runId);
+    return NodeyFactory.outputToNodey(
+      nodey.cell.cell as CodeCell,
+      this.store,
+      old,
+      runId
+    );
   }
 
   private _commitCode(

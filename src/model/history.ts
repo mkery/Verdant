@@ -1,6 +1,4 @@
-import { Nodey, NodeyCell } from "./nodey";
-
-import { RunModel } from "./run";
+import { Nodey, NodeyCell, NodeyNotebook } from "./nodey";
 
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
@@ -14,23 +12,34 @@ import { serialized_NodeyHistory } from "../file-manager";
 
 import { HistoryStore } from "./history-store";
 
-export class HistoryModel {
+import { HistoryStage, Star } from "./history-stage";
+
+import { HistoryCheckpoints } from "./checkpoint";
+
+export class History {
+  public notebookListen: NotebookListen;
+
   constructor(renderBaby: RenderBaby, fileManager: FileManager) {
     this._inspector = new Inspect(this, renderBaby);
-    this.fileManager = fileManager;
-    this._historyStore = new HistoryStore();
-    this._runModel = new RunModel(this);
+    this._historyStore = new HistoryStore(fileManager);
+    this._historyStage = new HistoryStage(this._historyStore);
+    this._historyCheckpoints = new HistoryCheckpoints(
+      this._historyStage,
+      this._historyStore
+    );
   }
 
-  private _inspector: Inspect;
-  readonly fileManager: FileManager;
-  private _runModel: RunModel;
-  private _notebook: NotebookListen;
-  private _historyStore: HistoryStore;
+  private readonly _inspector: Inspect;
+  private readonly _notebook: NotebookListen;
+  private readonly _historyStore: HistoryStore;
+  private readonly _historyStage: HistoryStage;
+  private readonly _historyCheckpoints: HistoryCheckpoints;
 
   public async init(): Promise<boolean> {
     // check if there is an existing history file for this notebook
-    var data = await this.fileManager.loadFromFile(this._notebook);
+    var data = await this._historyStore.fileManager.loadFromFile(
+      this._notebook
+    );
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
       this.fromJSON(history);
@@ -51,29 +60,22 @@ export class HistoryModel {
     return this._historyStore.store(n);
   }
 
-  set notebook(notebook: NotebookListen) {
-    this._notebook = notebook;
-    this._inspector.notebook = this._notebook;
-  }
-
   get notebook() {
-    return this._notebook;
+    return this._historyStore.notebookNodey;
   }
 
   get inspector(): Inspect {
     return this._inspector;
   }
 
-  get runModel(): RunModel {
-    return this._runModel;
-  }
-
-  public writeToFile() {
-    this.fileManager.writeToFile(this.notebook, this);
-  }
-
-  handleCellRun(nodey: NodeyCell) {
-    this._runModel.cellRun(nodey);
+  handleCellRun(nodey: NodeyCell | Star<NodeyCell>) {
+    let [checkpoint, resolve] = this._historyCheckpoints.cellRun();
+    this._historyStage.commit(checkpoint, nodey);
+    let newNodey = this._historyStore.getLatestOf(nodey.name) as NodeyCell;
+    let same = newNodey.name === nodey.name;
+    resolve(newNodey, same);
+    let notebook = this._historyStore.get(checkpoint.notebook) as NodeyNotebook;
+    this._historyStore.writeToFile(notebook, this);
   }
 
   /*public moveCell(old_pos: number, new_pos: number) {
@@ -81,13 +83,15 @@ export class HistoryModel {
   }*/
 
   private fromJSON(data: serialized_NodeyHistory) {
-    this._runModel.fromJSON(data.runs);
+    this._historyCheckpoints.fromJSON(data.runs);
     this._historyStore.fromJSON(data);
   }
 
   public toJSON() {
     var jsn = this._historyStore.toJSON();
-    jsn.runs = this._runModel.toJSON();
+    jsn.runs = this._historyCheckpoints.toJSON();
     return jsn;
   }
+
+  public dump() {}
 }

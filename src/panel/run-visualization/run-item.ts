@@ -10,7 +10,7 @@ import { Widget } from "@phosphor/widgets";
 
 import { RunActions } from "./run-panel";
 
-import { HistoryModel } from "../../model/history";
+import { History } from "../../model/history";
 
 import { CellSampler } from "../details/cell-sampler";
 
@@ -45,7 +45,7 @@ export class RunItem extends Widget {
   readonly header: HTMLElement;
   readonly dotMap: DotMap;
   readonly runModel: RunModel;
-  readonly historyModel: HistoryModel;
+  readonly historyModel: History;
   readonly actions: RunActions;
 
   private activeFilter: (r: Run) => boolean;

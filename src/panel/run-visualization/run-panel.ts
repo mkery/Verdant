@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../../model/history";
+import { History } from "../../model/history";
 
 import { RunDate } from "../../model/run";
 
@@ -16,13 +16,13 @@ const RUN_LIST_FOOTER = "v-VerdantPanel-footer";
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-search-results-label";
 
 export class RunPanel extends Widget {
-  readonly historyModel: HistoryModel;
+  readonly historyModel: History;
   readonly parentPanel: VerdantPanel;
   private listContainer: HTMLElement;
   readonly actions: RunActions;
   sections: RunSection[];
 
-  constructor(historyModel: HistoryModel, parentPanel: VerdantPanel) {
+  constructor(historyModel: History, parentPanel: VerdantPanel) {
     super();
     this.historyModel = historyModel;
     this.actions = new RunActions(this);

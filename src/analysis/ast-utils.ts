@@ -1,6 +1,6 @@
 import { NodeyCode } from "../model/nodey";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 /*
 *
@@ -12,7 +12,7 @@ export namespace ASTUtils {
   export function findNodeAtRange(
     nodey: NodeyCode,
     change: { start: any; end: any },
-    historyModel: HistoryModel
+    historyModel: History
   ): NodeyCode {
     return Private._findNodeAtRange(
       nodey,
@@ -76,7 +76,7 @@ namespace Private {
     min: number,
     max: number,
     change: { start: any; end: any },
-    historyModel: HistoryModel
+    historyModel: History
   ): NodeyCode {
     console.log("Looking for node at", change, node)
     var children : string[] = node.getChildren();

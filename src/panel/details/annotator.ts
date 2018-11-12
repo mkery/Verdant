@@ -1,4 +1,4 @@
-import { HistoryModel } from "../../model/history";
+import { History } from "../../model/history";
 
 const NOTES = "v-VerdantPanel-noteContainer";
 const STAR_BUTTON = "v-VerdantPanel-starButton";
@@ -8,7 +8,7 @@ const NOTE_INPUT = "v-VerdantPanel-noteInput";
 export namespace Annotator {
   export function buildTextArea(
     run: any,
-    historyModel: HistoryModel
+    historyModel: History
   ): HTMLElement {
     let input = document.createElement("textarea");
     input.addEventListener("keyup", () => {
@@ -32,7 +32,7 @@ export namespace Annotator {
 
   export function buildHeaderNotes(
     run: any,
-    historyModel: HistoryModel
+    historyModel: History
   ): HTMLElement {
     let noteBar = document.createElement("div");
     noteBar.classList.add(NOTES);
@@ -50,7 +50,7 @@ export namespace Annotator {
 
   export function buildDetailNotes(
     run: any,
-    historyModel: HistoryModel
+    historyModel: History
   ): HTMLElement {
     let noteBar = document.createElement("div");
     noteBar.classList.add(NOTES);
@@ -76,7 +76,7 @@ export namespace Annotator {
   export function star(
     starDiv: HTMLElement,
     run: any,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     if (starDiv.classList.contains("active")) {
       starDiv.classList.remove("active");
@@ -92,7 +92,7 @@ export namespace Annotator {
   export function updateNote(
     noteInput: HTMLTextAreaElement,
     run: any,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     if (run.note === -1) {
       let note = historyModel.registerNote(noteInput.value, run);

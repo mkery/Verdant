@@ -4,7 +4,7 @@ import { Widget } from "@phosphor/widgets";
 
 import { Wishbone } from "./wishbone";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 import { RunPanel } from "./run-visualization/run-panel";
 
@@ -21,12 +21,12 @@ const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
  * A widget which displays notebook-level history information
  */
 export class VerdantPanel extends Widget {
-  readonly historyModel: HistoryModel;
+  readonly historyModel: History;
   readonly contentBox: HTMLElement;
   readonly runList: RunPanel;
   readonly crumbBox: CrumbBox;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(historyModel: History) {
     super();
     this.addClass("v-VerdantPanel");
     this.historyModel = historyModel;

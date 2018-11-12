@@ -22,7 +22,7 @@ import { RunCluster, CellRunData, ChangeType, Run } from "./model/run";
 
 import { CodeCell } from "@jupyterlab/cells";
 
-import { HistoryModel } from "./model/history";
+import { History } from "./model/history";
 
 import { CellListen } from "./jupyter-hooks/cell-listen";
 
@@ -38,13 +38,13 @@ const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 export class Inspect {
   private _ready = new PromiseDelegate<void>();
   private _notebook: NotebookListen;
-  private _historyModel: HistoryModel;
+  private _historyModel: History;
   private _targetChanged = new Signal<this, Nodey[]>(this);
   private _cellStructureChanged = new Signal<this, [number, NodeyCell]>(this);
   private _target: Nodey[];
   private renderBaby: RenderBaby;
 
-  constructor(historyModel: HistoryModel, renderBaby: RenderBaby) {
+  constructor(historyModel: History, renderBaby: RenderBaby) {
     this._historyModel = historyModel;
     this.renderBaby = renderBaby;
   }

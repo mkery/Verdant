@@ -2,7 +2,7 @@ import { NotebookPanel, Notebook, NotebookActions } from "@jupyterlab/notebook";
 
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { ChangeType } from "../model/run";
+import { ChangeType } from "../model/checkpoint";
 
 import { IObservableJSON } from "@jupyterlab/observables";
 
@@ -20,7 +20,7 @@ import { CellListen, CodeCellListen, MarkdownCellListen } from "./cell-listen";
 
 import { KernelListen } from "./kernel-listen";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
@@ -31,12 +31,12 @@ export class NotebookListen {
   astGen: ASTGenerate;
   cells: Map<string, CellListen>;
   activeCell: Cell;
-  historyModel: HistoryModel;
+  historyModel: History;
 
   constructor(
     notebookPanel: NotebookPanel,
     astGen: ASTGenerate,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     this._notebookPanel = notebookPanel;
     this.astGen = astGen;
@@ -92,7 +92,7 @@ export class NotebookListen {
   private async init() {
     await this._notebookPanel.revealed;
     this._notebook = this._notebookPanel.content;
-    this.historyModel.notebook = this;
+    this.historyModel.notebookListen = this;
     this.kernUtil = new KernelListen(this._notebookPanel.session);
     this.astGen.setKernUtil(this.kernUtil);
     //load in prior data if exists
@@ -228,7 +228,7 @@ export class NotebookListen {
       var cellListen: CellListen = this.cells.get(item.id);
       cellListen.status = ChangeType.CHANGED;
       console.log("moving cell", oldIndex, newIndex, newValues);
-      this.historyModel.moveCell(oldIndex, newIndex);
+      //TODO  this.historyModel.moveCell(oldIndex, newIndex);
       this._cellStructureChanged.emit([newIndex, cellListen]);
       cellListen.cellRun();
     });

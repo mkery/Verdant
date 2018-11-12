@@ -14,26 +14,28 @@ import {
   NodeyMarkdown
 } from "../model/nodey";
 
+import { NodeyFactory } from "../model/nodey-factory";
+
 //import * as CodeMirror from "codemirror";
 
 //import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
-import { ChangeType } from "../model/run";
+import { ChangeType } from "../model/checkpoint";
 
 export abstract class CellListen {
   cell: Cell;
   astUtils: ASTGenerate;
-  protected _nodey: number;
-  historyModel: HistoryModel;
+  protected _nodey: string;
+  historyModel: History;
   status: number;
   position: number;
 
   constructor(
     cell: Cell,
     astUtils: ASTGenerate,
-    historyModel: HistoryModel,
+    historyModel: History,
     position: number,
     matchPrior: boolean
   ) {
@@ -50,7 +52,7 @@ export abstract class CellListen {
   }
 
   get nodey(): NodeyCell {
-    return this.historyModel.getNodeyCell(this._nodey);
+    return this.historyModel.get(this._nodey) as NodeyCell;
   }
 
   get nodeyName(): string {
@@ -78,8 +80,6 @@ export abstract class CellListen {
 
   public cellRun() {
     var node = this.nodey;
-    if (node.id === "*" || node.version === "*")
-      if (this.status === ChangeType.SAME) this.status = ChangeType.CHANGED;
     this.historyModel.handleCellRun(node);
   }
 
@@ -103,7 +103,7 @@ export class CodeCellListen extends CellListen {
         await this.astUtils.matchASTOnInit(nodeyCell, text);
         //TODO match output too
       } else if (nodeyCell instanceof NodeyMarkdown) {
-        var output = Nodey.outputToNodey(cell, this.historyModel);
+        var output = NodeyFactory.outputToNodey(cell, this.historyModel.st);
         let nodey = await this.astUtils.markdownToCodeNodey(
           nodeyCell,
           text,
@@ -172,7 +172,7 @@ export class MarkdownCellListen extends CellListen {
           this.cell.model.value.text
         );
       } else if (nodeyCell instanceof NodeyCodeCell) {
-        var nodey = await Nodey.dictToMarkdownNodey(
+        var nodey = await NodeyFactory.dictToMarkdownNodey(
           this.cell.model.value.text,
           this.position,
           this.historyModel,
@@ -182,7 +182,7 @@ export class MarkdownCellListen extends CellListen {
         this._nodey = nodey.id;
       }
     } else {
-      var nodey = await Nodey.dictToMarkdownNodey(
+      var nodey = await NodeyFactory.dictToMarkdownNodey(
         this.cell.model.value.text,
         this.position,
         this.historyModel,

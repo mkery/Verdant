@@ -1,5 +1,6 @@
 import { CellListen } from "../jupyter-hooks/cell-listen";
 import { Star } from "./history-stage";
+import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 
 type jsn = { [id: string]: any };
 
@@ -36,6 +37,7 @@ export abstract class Nodey {
 */
 export class NodeyNotebook extends Nodey {
   cells: string[];
+  notebook: NotebookListen;
 
   constructor(options: { [id: string]: any }, cloneFrom?: NodeyNotebook) {
     super(options, cloneFrom);

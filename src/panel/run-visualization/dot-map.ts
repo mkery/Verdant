@@ -1,6 +1,6 @@
 import { CellRunData, ChangeType } from "../../model/run";
 
-import { HistoryModel } from "../../model/history";
+import { History } from "../../model/history";
 
 const RUN_CELL_MAP_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
 const RUN_CELL_MAP_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
@@ -11,9 +11,9 @@ const RUN_CELL_MAP_CELL = "v-VerdantPanel-runCellMap-cell";
 
 export class DotMap {
   public node: HTMLElement;
-  ///private historyModel: HistoryModel;
+  ///private historyModel: History;
 
-  constructor(_: HistoryModel, runData: CellRunData[]) {
+  constructor(_: History, runData: CellRunData[]) {
     //this.historyModel = historyModel;
     this.node = this.buildDotMap(runData);
   }

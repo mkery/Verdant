@@ -12,7 +12,7 @@ import { KernelListen } from "../jupyter-hooks/kernel-listen";
 
 import { ASTResolve } from "./ast-resolve";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 export class ASTGenerate {
   //Properties
@@ -20,9 +20,9 @@ export class ASTGenerate {
   session: Session.ISession;
   astResolve: ASTResolve;
   parserText: string;
-  historyModel: HistoryModel;
+  historyModel: History;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(historyModel: History) {
     this.historyModel = historyModel;
     this.astResolve = new ASTResolve(historyModel);
     this.parserText = `

@@ -31,7 +31,7 @@ import { DocumentRegistry } from "@jupyterlab/docregistry";
 
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 
-import { HistoryModel } from "./model/history";
+import { History } from "./model/history";
 
 import { VerdantPanel } from "./panel/verdant-panel";
 
@@ -64,7 +64,7 @@ const extension: JupyterLabPlugin<void> = {
     const fileManager = new FileManager(docManager);
     var notebook: NotebookListen;
     const renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
-    const model = new HistoryModel(renderBaby, fileManager);
+    const model = new History(renderBaby, fileManager);
     const astUtils = new ASTGenerate(model);
     const ghostFactory = GhostBookFactory.registerFileType(
       app.docRegistry as DocumentRegistry,

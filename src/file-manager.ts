@@ -8,13 +8,13 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { CellRunData } from "./model/run";
+import { CellRunData } from "./model/checkpoint";
 
-import { NodeyCode } from "./model/nodey";
+import { NodeyCode, NodeyNotebook } from "./model/nodey";
 
 import { GhostBook } from "./ghost-book/ghost-book";
 
-import { HistoryModel } from "./model/history";
+import { History } from "./model/history";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
@@ -25,9 +25,10 @@ export class FileManager {
   }
 
   public writeToFile(
-    notebook: NotebookListen,
-    historyModel: HistoryModel
+    notebookNodey: NodeyNotebook,
+    historyModel: History
   ): Promise<void> {
+    let notebook = notebookNodey.notebook;
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)

@@ -1,4 +1,4 @@
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 import { Nodey, NodeyCodeCell } from "../model/nodey";
 import { Inspect } from "../inspect";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
@@ -11,7 +11,7 @@ const WISHBONE_CODE = "v-VerdantPanel-wishbone-code";
 const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 
 export namespace Wishbone {
-  export function startWishbone(historyModel: HistoryModel) {
+  export function startWishbone(historyModel: History) {
     console.log("starting wishbone!", historyModel);
     historyModel.notebook.cells.forEach((cellListen: CellListen, _: string) => {
       var cell = cellListen.cell;
@@ -34,7 +34,7 @@ export namespace Wishbone {
 
   export function endWishbone(
     notebook: NotebookListen,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     notebook.cells.forEach((cellListen: CellListen, _: string) => {
       var cell = cellListen.cell;
@@ -128,7 +128,7 @@ namespace Private {
 
   export function addOutputEvents(
     cellListen: CodeCellListen,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     var outputNodey = cellListen.output;
     console.log("output nodey are", outputNodey);
@@ -140,7 +140,7 @@ namespace Private {
 
   export function removeOutputEvents(
     cellListen: CodeCellListen,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     var outputNodey = cellListen.output;
     if (outputNodey)
@@ -157,7 +157,7 @@ namespace Private {
   export function addLineEvents(
     cell: CodeCell,
     cellListen: CodeCellListen,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     var nodey = cellListen.nodey as NodeyCodeCell;
     var mask = document.createElement("div");
@@ -229,7 +229,7 @@ namespace Private {
   export function removeLineEvents(
     cell: CodeCell,
     cellListen: CodeCellListen,
-    historyModel: HistoryModel
+    historyModel: History
   ) {
     var nodey = cellListen.nodey as NodeyCodeCell;
     var mask = cell.inputArea.node.getElementsByClassName(

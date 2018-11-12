@@ -8,7 +8,7 @@ import {
   NodeyOutput
 } from "../../model/nodey";
 
-import { HistoryModel } from "../../model/history";
+import { History } from "../../model/history";
 
 import {
   CodeVersionSampler,
@@ -23,14 +23,14 @@ const HEADER_WISK = "v-VerdantPanel-mixin-mixButton";
 const CRUMB_MENU_SEPERATOR = "v-VerdantPanel-crumbMenu-seperator";
 
 export class Mixin extends Widget {
-  readonly historyModel: HistoryModel;
+  readonly historyModel: History;
   readonly targetList: Nodey[];
   private _headerShowing: boolean;
   private header: HTMLElement;
   private content: HTMLElement;
 
   constructor(
-    historyModel: HistoryModel,
+    historyModel: History,
     target: Nodey[],
     header: boolean = true
   ) {
@@ -110,7 +110,7 @@ export namespace Mixin {
   export function labelNodeyCode(
     menu: HTMLElement,
     target: NodeyCode,
-    historyModel: HistoryModel
+    historyModel: History
   ): void {
     if (target instanceof NodeyCodeCell) {
       Mixin.addItem(menu, "cell " + target.id);

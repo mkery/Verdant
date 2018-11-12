@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 import { Mixin } from "./details/mixin";
 
@@ -10,14 +10,14 @@ const CRUMB_MENU = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
 
 export class CrumbBox extends Widget {
-  readonly historyModel: HistoryModel;
+  readonly historyModel: History;
   private onClose: () => void;
   private _target: Nodey;
   private _active: boolean = false;
   private menu: HTMLElement;
   private content: HTMLElement;
 
-  constructor(historyModel: HistoryModel, onClose: () => void) {
+  constructor(historyModel: History, onClose: () => void) {
     super();
     this.historyModel = historyModel;
     this.onClose = onClose;

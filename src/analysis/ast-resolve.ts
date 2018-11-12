@@ -9,7 +9,7 @@ import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
 
 import { ASTUtils } from "./ast-utils";
 
@@ -24,10 +24,10 @@ import {
 } from "./ast-match";
 
 export class ASTResolve {
-  historyModel: HistoryModel;
+  historyModel: History;
   match: ASTMatch;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(historyModel: History) {
     this.historyModel = historyModel;
     this.match = new ASTMatch(historyModel, this);
   }
