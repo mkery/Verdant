@@ -1,5 +1,4 @@
 import { CellListen } from "../jupyter-hooks/cell-listen";
-import { Star } from "./history-stage";
 
 type jsn = { [id: string]: any };
 
@@ -104,11 +103,12 @@ export class NodeyOutput extends Nodey {
 export class NodeyCode extends Nodey {
   type: string;
   output: string[] = [];
-  content: (SyntaxToken | string | Star<Nodey>)[];
+  content: (SyntaxToken | string)[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
   literal: any;
   right: string; // lookup id for the next Nodey to the right of this one
+  pendingUpdate: string;
 
   constructor(options: { [id: string]: any }, cloneFrom?: NodeyCode) {
     super(options, cloneFrom);
@@ -171,9 +171,11 @@ export class NodeyCode extends Nodey {
     this.output.push(name);
   }
 
-  getChildren() {
+  public getChildren(): string[] {
     if (!this.content || this.content.length === 0) return [];
-    return this.content.filter(item => !(item instanceof SyntaxToken));
+    return this.content.filter(
+      item => !(item instanceof SyntaxToken)
+    ) as string[];
   }
 
   static EMPTY() {

@@ -4,16 +4,21 @@ import { History } from "../model/history";
 
 import { ASTUtils } from "./ast-utils";
 
+import { Star } from "../model/history-stage";
+
 import * as levenshtein from "fast-levenshtein";
 
 import { ASTResolve } from "./ast-resolve";
 
+type Pos = { line: number; ch: number };
+type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
+
 export class ASTMatch {
-  historyModel: History;
+  history: History;
   resolver: ASTResolve;
 
-  constructor(historyModel: History, resolver: ASTResolve) {
-    this.historyModel = historyModel;
+  constructor(history: History, resolver: ASTResolve) {
+    this.history = history;
     this.resolver = resolver;
   }
 
@@ -21,7 +26,7 @@ export class ASTMatch {
     nodey: NodeyCode,
     updateID: string,
     jsn: string
-  ): Promise<NodeyCode> {
+  ): Promise<$NodeyCode$> {
     if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
       //console.log("Time to resolve", jsn, "with", nodey);
       var dict: ParserNodey;
@@ -59,7 +64,7 @@ export class ASTMatch {
           dict = ASTUtils.reduceASTDict(dict) as ParserNodey;
         }
         console.log("Reduced AST", dict, nodey);
-        console.log(this.historyModel.dump());
+        console.log(this.history.dump());
 
         /*
       * First, create a list of Parser nodey options,
@@ -126,23 +131,26 @@ export class ASTMatch {
     root: number,
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyOptions[],
-    relativeTo: NodeyCode
-  ): NodeyCode {
+    relativeTo: $NodeyCode$
+  ): $NodeyCode$ {
     var parsedNode = parsedList[root].nodey;
     var match = parsedList[root].match;
-    var nodeyEdited: NodeyCode;
+    var nodeyEdited: Star<NodeyCode> | NodeyCode;
     if (match !== null && match.index > -1) {
       var nodeyMatch = nodeyList[match.index];
-      var nodey = this.historyModel.getNodey(nodeyMatch.nodey) as NodeyCode;
+      var nodey = this.history.store.get(nodeyMatch.nodey) as NodeyCode;
       //console.log("PARSED NODE", parsedNode, nodey);
       if (match.score !== 0) {
         // there was some change
-        nodeyEdited = this.historyModel.markAsEdited(nodey);
-        if (parsedNode.literal) nodeyEdited.literal = parsedNode.literal;
+        nodeyEdited = this.history.stage.markAsEdited(nodey) as Star<NodeyCode>;
+        if (parsedNode.literal) nodeyEdited.value.literal = parsedNode.literal;
       } else nodeyEdited = nodey; // exactly the same
 
       // unfortunately we traverse even if no change if positions aren't set
-      if (parsedNode.content && (match.score !== 0 || !nodeyEdited.end)) {
+      if (
+        parsedNode.content &&
+        (match.score !== 0 || !this.getEnd(nodeyEdited))
+      ) {
         //TODO optimize
         var content = parsedNode.content.map(num => {
           if (num instanceof SyntaxToken) return num;
@@ -155,34 +163,34 @@ export class ASTMatch {
             nodeyList,
             nodeyEdited
           );
-          child.parent = nodeyEdited.name;
+          this.setParent(child, nodeyEdited.name);
           return child.name;
         });
-        nodeyEdited.content = content;
+        this.setContent(nodeyEdited, content);
         //console.log("edited node is ", nodeyEdited);
       }
       //fix position
-      if (!nodeyEdited.end) {
-        nodeyEdited.start = {
+      if (!this.getEnd(nodeyEdited)) {
+        this.setStart(nodeyEdited, {
           line: parsedNode.start.line - 1,
           ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
-        };
-        nodeyEdited.end = {
+        });
+        this.setEnd(nodeyEdited, {
           line: parsedNode.end.line - 1,
           ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
-        };
+        });
       } else {
         // fix position but be sure it's relative to this node snippet
         // because may not be the whole cell, so does not start at 0
-        nodeyEdited.start = {
+        this.setStart(nodeyEdited, {
           line: parsedNode.start.line - 1,
           ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
-        };
-        nodeyEdited.end = {
+        });
+        this.setEnd(nodeyEdited, {
           line: parsedNode.end.line - 1,
           ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
-        };
-        nodeyEdited.positionRelativeTo(relativeTo);
+        });
+        this.positionRelativeTo(nodeyEdited, relativeTo);
       }
     } else {
       console.log("New Node!", parsedNode);
@@ -197,8 +205,9 @@ export class ASTMatch {
         nodeyEdited = this.forceReplace(relativeTo, parsedNode);
       } else {
         nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
-        if (!relativeTo.content) relativeTo.content = [];
-        relativeTo.content.push(nodeyEdited.name);
+        let content = this.getContent(relativeTo);
+        if (!content) this.setContent(relativeTo, []);
+        content.push(nodeyEdited.name);
       }
     }
     return nodeyEdited;
@@ -356,7 +365,7 @@ export class ASTMatch {
       return score;
     }
 
-    var nodeyNode = this.historyModel.getNodey(nodeyProfile.nodey) as NodeyCode;
+    var nodeyNode = this.history.store.get(nodeyProfile.nodey) as NodeyCode;
     /*
     * Literal match score
     * Literal nodes do not score for type or children
@@ -443,8 +452,8 @@ export class ASTMatch {
     if (!nodeyOp) rendered = "(V●ᴥ●V)";
     else if (nodeyOp.syntok) rendered = nodeyOp.nodey;
     else {
-      let nodey = this.historyModel.getNodey(nodeyOp.nodey);
-      this.historyModel.inspector.renderNode(nodey).text;
+      let nodey = this.history.store.get(nodeyOp.nodey);
+      this.history.inspector.renderNode(nodey).text;
     }
     console.log(
       "Best match for ",
@@ -532,24 +541,24 @@ export class ASTMatch {
 
   buildStarNode(
     node: ParserNodey,
-    target: NodeyCode,
+    target: $NodeyCode$,
     newNodeList: ParsedNodeOptions[],
     prior: NodeyCode = null
   ): NodeyCode {
     var n = new NodeyCode(node);
     console.log("Building star node for ", node, target);
-    n.id = "*";
     n.start.line -= 1; // convert the coordinates of the range to code mirror style
     n.end.line -= 1;
     n.start.ch -= 1;
     n.end.ch -= 1;
-    if (target.start) n.positionRelativeTo(target); //TODO if from the past, target may not have a position
-    if (target.parent) {
-      n.parent = target.parent;
+    if (this.getStart(target)) this.positionRelativeTo(n, target); //TODO if from the past, target may not have a position
+    let parent = this.getParent(target);
+    if (parent) {
+      n.parent = parent;
     } else {
       n.parent = target.name;
     }
-    var label = this.historyModel.addStarNode(n, target);
+    var label = this.history.store.store(n);
     n.version = label;
 
     if (prior) prior.right = n.name;
@@ -583,12 +592,75 @@ export class ASTMatch {
   }
 
   // HACK: see special case in finalizeMatch above, need a more robust solution
-  private forceReplace(nodey: NodeyCode, parsedSyntok: ParserNodey) {
-    let nodeyEdited = this.historyModel.markAsEdited(nodey);
-    if (nodeyEdited.literal) nodeyEdited.literal = null;
-    nodeyEdited.content = [new SyntaxToken(parsedSyntok.syntok)];
+  private forceReplace(
+    nodey: $NodeyCode$,
+    parsedSyntok: ParserNodey
+  ): Star<NodeyCode> {
+    let nodeyEdited;
+    if (nodey instanceof Star) nodeyEdited = nodey;
+    else
+      nodeyEdited = this.history.stage.markAsEdited(nodey) as Star<NodeyCode>;
+    if (nodeyEdited.value.literal) nodeyEdited.value.literal = null;
+    nodeyEdited.value.content = [new SyntaxToken(parsedSyntok.syntok)];
     console.log("FORCE REPLACE", nodeyEdited);
     return nodeyEdited;
+  }
+
+  /*
+  * Helper functions for matching
+  */
+  private getEnd(nodey: NodeyCode | Star<NodeyCode>): Pos {
+    if (nodey instanceof NodeyCode) return nodey.end;
+    return nodey.value.end;
+  }
+
+  private setEnd(nodey: NodeyCode | Star<NodeyCode>, end: Pos) {
+    if (nodey instanceof NodeyCode) nodey.end = end;
+    else nodey.value.end = end;
+  }
+
+  private getStart(nodey: NodeyCode | Star<NodeyCode>): Pos {
+    if (nodey instanceof NodeyCode) return nodey.start;
+    return nodey.value.start;
+  }
+
+  private setStart(nodey: NodeyCode | Star<NodeyCode>, start: Pos) {
+    if (nodey instanceof NodeyCode) nodey.start = start;
+    else nodey.value.start = start;
+  }
+
+  private getParent(nodey: NodeyCode | Star<NodeyCode>): string {
+    if (nodey instanceof NodeyCode) return nodey.parent;
+    return nodey.value.parent;
+  }
+
+  private setParent(nodey: NodeyCode | Star<NodeyCode>, parent: string) {
+    if (nodey instanceof NodeyCode) nodey.parent = parent;
+    else nodey.value.parent = parent;
+  }
+
+  private positionRelativeTo(
+    nodey: NodeyCode | Star<NodeyCode>,
+    relativeTo: NodeyCode | Star<NodeyCode>
+  ) {
+    let target: NodeyCode;
+    if (relativeTo instanceof Star) target = relativeTo.value;
+    else target = relativeTo;
+    if (nodey instanceof NodeyCode) nodey.positionRelativeTo(target);
+    else nodey.value.positionRelativeTo(target);
+  }
+
+  private getContent(nodey: NodeyCode | Star<NodeyCode>) {
+    if (nodey instanceof NodeyCode) return nodey.content;
+    else return nodey.value.content;
+  }
+
+  private setContent(
+    nodey: NodeyCode | Star<NodeyCode>,
+    content: (string | SyntaxToken)[]
+  ) {
+    if (nodey instanceof NodeyCode) nodey.content = content;
+    else nodey.value.content = content;
   }
 }
 

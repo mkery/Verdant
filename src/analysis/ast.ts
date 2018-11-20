@@ -6,15 +6,22 @@ import { Session, KernelMessage } from "@jupyterlab/services";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
-import { Nodey, NodeyCode, NodeyCodeCell, NodeyMarkdown } from "../model/nodey";
+import {
+  NodeyCell,
+  NodeyCode,
+  NodeyCodeCell,
+  NodeyMarkdown
+} from "../model/nodey";
 
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 
 import { ASTResolve } from "./ast-resolve";
 
+import { NodeyFactory } from "../model/nodey-factory";
+
 import { History } from "../model/history";
 
-export class ASTGenerate {
+export class AST {
   //Properties
   kernUtil: KernelListen;
   session: Session.ISession;
@@ -1499,7 +1506,11 @@ if(debug): parse(text)
     var dict = options;
     if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
     else console.log("Recieved empty?", dict);
-    var nodey = Nodey.dictToCodeCellNodey(dict, position, this.historyModel);
+    var nodey = NodeyFactory.dictToCodeCellNodey(
+      dict,
+      position,
+      this.historyModel.store
+    );
     console.log("Recieved code!", dict, nodey);
     return nodey;
   }
@@ -1514,10 +1525,10 @@ if(debug): parse(text)
     var dict = options;
     if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
     else console.log("Recieved empty?", dict);
-    var nodey = Nodey.dictToCodeCellNodey(
+    var nodey = NodeyFactory.dictToCodeCellNodey(
       dict,
       position,
-      this.historyModel,
+      this.historyModel.store,
       forceTie
     );
     console.log("Recieved code!", dict, nodey);
@@ -1598,6 +1609,11 @@ if(debug): parse(text)
   }
 
   async repairFullAST(nodey: NodeyCell, text: string) {
+    if (nodey instanceof NodeyCode) return this.repairCodeCell(nodey, text);
+    else return this.astResolve.repairMarkdown(nodey as NodeyMarkdown, text);
+  }
+
+  private async repairCodeCell(nodey: NodeyCodeCell, text: string) {
     return new Promise<NodeyCode>((accept, reject) => {
       var [recieve_reply, newCode] = this.astResolve.repairFullAST(nodey, text);
 

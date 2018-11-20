@@ -87,7 +87,7 @@ export class CrumbBox extends Widget {
 
     if (this._target instanceof NodeyCode) {
       let output = (this._target as NodeyCode).output.map(item => {
-        return this.historyModel.getOutput(item);
+        return this.historyModel.store.get(item);
       });
       let outMix = new Mixin(this.historyModel, output, true);
       this.content.appendChild(outMix.node);

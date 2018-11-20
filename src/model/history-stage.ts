@@ -4,6 +4,7 @@ import {
   NodeyOutput,
   NodeyCell,
   NodeyCodeCell,
+  NodeyMarkdown,
   SyntaxToken
 } from "./nodey";
 
@@ -26,7 +27,7 @@ export class Star<T extends Nodey> {
     this.value = nodey;
   }
 
-  get name() {
+  get name(): string {
     return this.value.typeChar + "." + this.value.id + ".?";
   }
 }
@@ -51,7 +52,28 @@ export class HistoryStage {
     }
   }*/
 
-  public markAsEdited(unedited: NodeyCode): Star<NodeyCode> {
+  public markAsEdited(unedited: Nodey): Star<Nodey> {
+    if (unedited instanceof NodeyCode) {
+      return this.markCodeAsEdited(unedited);
+    } else if (unedited instanceof NodeyMarkdown) {
+      return this.markMarkdownAsEdited(unedited);
+    }
+  }
+
+  private markMarkdownAsEdited(unedited: NodeyMarkdown): Star<NodeyMarkdown> {
+    if (unedited instanceof Star) {
+      //already a star node
+      return unedited;
+    }
+    let history = this.store.getHistoryOf(unedited);
+    let nodey = history.versions[history.versions.length - 1];
+    let nodeyCopy = new NodeyMarkdown(nodey);
+    let starNode = new Star<NodeyMarkdown>(nodeyCopy);
+    history.setLatestToStar(starNode);
+    return starNode;
+  }
+
+  private markCodeAsEdited(unedited: NodeyCode): Star<NodeyCode> {
     if (unedited instanceof Star) {
       //already a star node
       return unedited;
@@ -70,7 +92,8 @@ export class HistoryStage {
       console.log("parent is", starNode.value.parent, starNode.value);
       // star all the way up the chain
       let parent = this.store.getLatestOf(starNode.value.parent) as NodeyCode;
-      var starParent = this.markAsEdited(parent);
+      var starParent = this.markCodeAsEdited(parent);
+      //TODO eventually the parent should be the notebook
 
       //finally, fix pointer names to be stars too
       starNode.value.parent = starParent.name;

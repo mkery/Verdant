@@ -2,7 +2,11 @@
 // Distributed under the terms of the Modified BSD License.
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { Run, ChangeType, RunModel } from "../model/run";
+import {
+  Checkpoint,
+  ChangeType,
+  HistoryCheckpoints
+} from "../model/checkpoint";
 
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -79,7 +83,7 @@ export class GhostBook extends Notebook {
   readonly model: GhostBookModel;
   readonly rendermime: RenderMimeRegistry;
   //private _inspectPane: InspectWidget;
-  private _runModel: RunModel;
+  private _runModel: HistoryCheckpoints;
   private _toolbar: Toolbar;
   changeDivs: HTMLElement[];
   cellArea: Widget;
@@ -183,7 +187,7 @@ export class GhostBook extends Notebook {
 
   public switchRun(cluster: number, id: number) {
     console.log("SWTICH to run ", id);
-    this._runModel.historyModel.inspector.produceNotebook(cluster, id);
+    this._runModel.history.inspector.produceNotebook(cluster, id);
   }
 
   public filterCells(
@@ -196,7 +200,7 @@ export class GhostBook extends Notebook {
     console.log("attempting to filter", cellList, this.cellArea.children());
     each(cellList, (cell: ICellModel, i: number) => {
       let name = cell.metadata.get("nodey") as string;
-      let node = this._runModel.historyModel.getNodey(name);
+      let node = this._runModel.history.store.get(name);
       let match = filter(node);
       if (!match) {
         (cellWidgets[i] as Cell).inputArea.node.style.display = "none";
@@ -325,9 +329,9 @@ export class GhostBook extends Notebook {
       "Checkpoint #" +
         run +
         " run " +
-        Run.formatDate(timestamp) +
+        Checkpoint.formatDate(timestamp) +
         " " +
-        Run.formatTime(timestamp)
+        Checkpoint.formatTime(timestamp)
     );
     var min = Math.min(1, totalChanges.length);
     this.changeLabel.setText(min + "/" + totalChanges.length + " changes");

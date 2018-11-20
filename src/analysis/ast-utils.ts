@@ -12,14 +12,14 @@ export namespace ASTUtils {
   export function findNodeAtRange(
     nodey: NodeyCode,
     change: { start: any; end: any },
-    historyModel: History
+    history: History
   ): NodeyCode {
     return Private._findNodeAtRange(
       nodey,
       0,
       Math.max(0, nodey.getChildren().length - 1),
       change,
-      historyModel
+      history
     );
   }
 
@@ -76,7 +76,7 @@ namespace Private {
     min: number,
     max: number,
     change: { start: any; end: any },
-    historyModel: History
+    history: History
   ): NodeyCode {
     console.log("Looking for node at", change, node);
     var children: string[] = node.getChildren();
@@ -84,7 +84,7 @@ namespace Private {
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
     console.log("CHILDREN", children, mid, children[mid]);
-    var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);
+    var midNodey = <NodeyCode>history.store.getLatestOf(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
     console.log("checking mid range", midNodey, direction);
 
@@ -100,16 +100,16 @@ namespace Private {
             0,
             Math.max(0, midChildren.length - 1),
             change,
-            historyModel
+            history
           ) || midNodey; // found!
     } else if (direction === 2) return null;
     // there is no match at this level
     else if (direction === -1)
       // check the left
-      match = _findNodeAtRange(node, min, mid - 1, change, historyModel);
+      match = _findNodeAtRange(node, min, mid - 1, change, history);
     else if (direction === 1)
       // check the right
-      match = _findNodeAtRange(node, mid + 1, max, change, historyModel);
+      match = _findNodeAtRange(node, mid + 1, max, change, history);
 
     if (match) {
       // if there's a match, now find it's closest parsable parent

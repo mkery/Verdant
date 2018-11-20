@@ -1,7 +1,5 @@
 DESIGN NOTES
 
---- reconsider model. maybe cells, output, and snippets should be their own category, also current getNodey is very error prone, so maybe put the type of nodey in the lookup name.
-
 --- get mixins working UI
 
 - start on search, designing what that should look like
@@ -17,9 +15,6 @@ DESIGN NOTES
 
 - re-address output relationship
 
-* star state
+- fix ast generate so it's a server extension and not the hacky kernel thing it is now
 
-- once a node is identified as edited, its new version is in star state
-- Star<T extends Nodey> where Star is a wrapper for error prevention purposes
-- the history store's NodeHistory is responsible for telling if it's content is in star state or not. This should be sure to keep the star'd nodes separate from the node store so it does not get contaminated.
-- a nodey itself should never know if it's in star state or not. so to un-star a nodey just involves unboxing it from the Star wrapper
+- eventually the parent of all cell types should be the notebook

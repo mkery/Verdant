@@ -45,14 +45,14 @@ export class VerCell {
   }
 
   get model(): NodeyCell {
-    return this.notebook.history.get(this.modelName) as NodeyCell;
+    return this.notebook.history.store.get(this.modelName) as NodeyCell;
   }
 
   get output(): NodeyOutput[] {
     var output = (this.model as NodeyCodeCell).output;
     if (output)
       return output.map(o => {
-        return this.notebook.history.get(o) as NodeyOutput;
+        return this.notebook.history.store.get(o) as NodeyOutput;
       });
   }
 
@@ -88,7 +88,7 @@ export class VerCell {
     var text: string = cell.editor.model.value.text;
     if (matchPrior) {
       let name = this.notebook.model.cells[this.position]; //TODO could easily fail!!!
-      var nodeyCell = this.notebook.history.get(name);
+      var nodeyCell = this.notebook.history.store.get(name);
       if (nodeyCell instanceof NodeyCodeCell) {
         let nodey = await this.notebook.ast.matchASTOnInit(nodeyCell, text);
         this.modelName = nodey.name;
@@ -124,7 +124,7 @@ export class VerCell {
   private async initMarkdownCell(matchPrior: boolean) {
     if (matchPrior) {
       let name = this.notebook.model.cells[this.position]; //TODO could easily fail!!!
-      var nodeyCell = this.notebook.history.get(name);
+      var nodeyCell = this.notebook.history.store.get(name);
       //console.log("Prior match is", nodeyCell, this.position);
       if (nodeyCell instanceof NodeyMarkdown) {
         this.modelName = nodeyCell.name;

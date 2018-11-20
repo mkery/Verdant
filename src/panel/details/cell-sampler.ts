@@ -13,13 +13,13 @@ export namespace CellSampler {
   ) {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    sample.classList.add(cell.typeName);
+    sample.classList.add(cell.typeChar);
     let index: number = 0;
     [sample.textContent, index] = historyModel.inspector.sampleNode(
       cell,
       textFilter
     );
-    if (cell.typeName === "markdown") {
+    if (cell.typeChar === "m") {
       await historyModel.inspector.renderMarkdownVersionDiv(
         cell as NodeyMarkdown,
         sample.textContent,

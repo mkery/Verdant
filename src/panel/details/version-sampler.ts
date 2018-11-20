@@ -6,7 +6,7 @@ import {
   NodeyOutput
 } from "../../model/nodey";
 
-import { Run } from "../../model/run";
+import { Checkpoint } from "../../model/checkpoint";
 
 import { Inspect } from "../../inspect";
 
@@ -25,7 +25,7 @@ export abstract class VersionSampler extends Widget {
   constructor(inspector: Inspect, nodey: Nodey, text: string) {
     super();
     this.inspector = inspector;
-    this.node_id = nodey.id;
+    this.node_id = nodey.id + "";
     this.version = nodey.version;
 
     this.node.classList.add(INSPECT_VERSION);
@@ -49,7 +49,7 @@ export abstract class VersionSampler extends Widget {
         "v" +
         (nodeyVer.version + 1) +
         ": created " +
-        Run.formatTime(timestamp) +
+        Checkpoint.formatTime(timestamp) +
         ", used in ";
       let r = document.createElement("span");
       r.classList.add(RUN_LINK);
@@ -66,7 +66,7 @@ export abstract class VersionSampler extends Widget {
     let star = document.createElement("div");
     star.classList.add(INSPECT_VERSION_ACTION);
     star.classList.add("star");
-    if (nodeyVer.star > -1) star.classList.add("active");
+    //TODO if (nodeyVer.star > -1) star.classList.add("active");
 
     annotator.appendChild(star);
     label.appendChild(annotator);

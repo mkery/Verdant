@@ -1,6 +1,5 @@
-import { NodeyCell, NodeyCode } from "./nodey";
-import { HistoryStore } from "./history-store";
-import { HistoryStage } from "./history-stage";
+import { NodeyCell, NodeyCode, NodeyNotebook } from "./nodey";
+import { History } from "./history";
 import { serialized_Run } from "../file-manager";
 
 export enum ChangeType {
@@ -36,13 +35,11 @@ type jsn = { [id: string]: any };
 */
 
 export class HistoryCheckpoints {
-  readonly stage: HistoryStage;
-  readonly store: HistoryStore;
+  readonly history: History;
   private checkpointList: Checkpoint[];
 
-  constructor(stage: HistoryStage, store: HistoryStore) {
-    this.stage = stage;
-    this.store = store;
+  constructor(history: History) {
+    this.history = history;
     this.checkpointList = [];
   }
 
@@ -70,6 +67,16 @@ export class HistoryCheckpoints {
     });
     this.checkpointList[id] = checkpoint;
     return checkpoint;
+  }
+
+  public getCellMap(checkpoint: Checkpoint): CellRunData[] {
+    let notebook = this.history.store.get(checkpoint.notebook) as NodeyNotebook;
+    let targets = checkpoint.targetCells;
+    return notebook.cells.map(name => {
+      let match = targets.find(item => item.node === name);
+      if (match) return match;
+      return { node: name, changeType: ChangeType.SAME };
+    });
   }
 
   public notebookSaved() {
@@ -114,7 +121,7 @@ export class HistoryCheckpoints {
       if (cell instanceof NodeyCode) {
         let out = cell.getOutput();
         for (let i = out.length - 1; i > -1; i--) {
-          let output = this.store.get(out[i]);
+          let output = this.history.store.get(out[i]);
           if (output.created === saveId) newOutput.push(output.name);
           else break;
         }
@@ -157,7 +164,7 @@ export class HistoryCheckpoints {
     if (cellRun instanceof NodeyCode) {
       let out = cellRun.getOutput();
       for (let i = out.length - 1; i > -1; i--) {
-        let output = this.store.get(out[i]);
+        let output = this.history.store.get(out[i]);
         if (output.created === runID) newOutput.push(output.name);
         else break;
       }

@@ -1,6 +1,6 @@
-import { Nodey, NodeyCell, NodeyNotebook } from "./nodey";
+import { NodeyCell, NodeyNotebook } from "./nodey";
 
-import { NotebookListen } from "../jupyter-hooks/notebook-listen";
+import { VerNotebook } from "../components/notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 
@@ -17,21 +17,21 @@ import { HistoryStage, Star } from "./history-stage";
 import { HistoryCheckpoints } from "./checkpoint";
 
 export class History {
-  public notebookListen: NotebookListen;
+  public notebook: VerNotebook;
 
   constructor(renderBaby: RenderBaby, fileManager: FileManager) {
     this._inspector = new Inspect(this, renderBaby);
     this.store = new HistoryStore(fileManager);
     this.stage = new HistoryStage(this.store);
-    this.checkpoints = new HistoryCheckpoints(this.stage, this.store);
+    this.checkpoints = new HistoryCheckpoints(this);
   }
 
   private readonly _inspector: Inspect;
   readonly store: HistoryStore;
   readonly stage: HistoryStage;
-  private readonly checkpoints: HistoryCheckpoints;
+  readonly checkpoints: HistoryCheckpoints;
 
-  public async init(notebook: NotebookListen): Promise<boolean> {
+  public async init(notebook: VerNotebook): Promise<boolean> {
     // check if there is an existing history file for this notebook
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
@@ -40,22 +40,6 @@ export class History {
       return true;
     }
     return false;
-  }
-
-  getHistoryOf(n: string | Nodey) {
-    return this.store.getHistoryOf(n);
-  }
-
-  get(n: string) {
-    return this.store.get(n);
-  }
-
-  getLatestOf(n: string) {
-    return this.store.getLatestOf(n);
-  }
-
-  storeNode(n: Nodey) {
-    return this.store.store(n);
   }
 
   /*
@@ -77,8 +61,7 @@ export class History {
     let newNodey = this.store.getLatestOf(nodey.name) as NodeyCell;
     let same = newNodey.name === nodey.name;
     resolve(newNodey, same);
-    let notebook = this.store.get(checkpoint.notebook) as NodeyNotebook;
-    this.store.writeToFile(notebook, this);
+    this.store.writeToFile(this.notebook, this);
   }
 
   /*public moveCell(old_pos: number, new_pos: number) {
@@ -87,7 +70,7 @@ export class History {
 
   private fromJSON(data: serialized_NodeyHistory) {
     this.checkpoints.fromJSON(data.runs);
-    this.store.fromJSON(data, this.notebookListen);
+    this.store.fromJSON(data, this.notebook);
   }
 
   public toJSON() {

@@ -29,11 +29,7 @@ export class Mixin extends Widget {
   private header: HTMLElement;
   private content: HTMLElement;
 
-  constructor(
-    historyModel: History,
-    target: Nodey[],
-    header: boolean = true
-  ) {
+  constructor(historyModel: History, target: Nodey[], header: boolean = true) {
     super();
     this.historyModel = historyModel;
     this.targetList = target || [];
@@ -85,18 +81,18 @@ export class Mixin extends Widget {
       let nodeyVer;
       let sample;
 
-      switch (target.typeName) {
-        case "output":
-          nodeyVer = this.historyModel.getOutput(item.version);
+      switch (target.typeChar) {
+        case "o":
+          nodeyVer = this.historyModel.store.get(item.version);
           sample = new OutputVersionSampler(inspector, nodeyVer, text);
           break;
-        case "codeCell":
-        case "code":
-          nodeyVer = this.historyModel.getNodey(item.version);
+        case "c":
+        case "s":
+          nodeyVer = this.historyModel.store.get(item.version);
           sample = new CodeVersionSampler(inspector, nodeyVer, text);
           break;
-        case "markdown":
-          nodeyVer = this.historyModel.getNodey(item.version);
+        case "m":
+          nodeyVer = this.historyModel.store.get(item.version);
           sample = new MarkdownVersionSampler(inspector, nodeyVer, text);
           break;
       }
@@ -115,7 +111,7 @@ export namespace Mixin {
     if (target instanceof NodeyCodeCell) {
       Mixin.addItem(menu, "cell " + target.id);
     } else {
-      let cell = historyModel.getCellParent(target);
+      let cell = historyModel.store.getCellParent(target);
       let cellItem = Mixin.addItem(menu, "cell " + cell.id);
       cellItem.addEventListener("click", () =>
         historyModel.inspector.changeTarget([cell])

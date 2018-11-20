@@ -1,9 +1,10 @@
 import { History } from "../model/history";
+import { CodeCellListen } from "../jupyter-hooks/cell-listen";
 import { Nodey, NodeyCodeCell } from "../model/nodey";
 import { Inspect } from "../inspect";
-import { NotebookListen } from "../jupyter-hooks/notebook-listen";
+import { VerNotebook } from "../components/notebook";
 import { CodeCell } from "@jupyterlab/cells";
-import { CellListen, CodeCellListen } from "../jupyter-hooks/cell-listen";
+import { VerCell } from "../components/cell";
 
 const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
 const WISHBONE_HIGHLIGHT_CODE = "v-VerdantPanel-wishbone-code-highlight";
@@ -13,44 +14,33 @@ const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 export namespace Wishbone {
   export function startWishbone(historyModel: History) {
     console.log("starting wishbone!", historyModel);
-    historyModel.notebook.cells.forEach((cellListen: CellListen, _: string) => {
-      var cell = cellListen.cell;
+    historyModel.notebook.cells.forEach((verCell: VerCell) => {
+      var cell = verCell.view.cell;
       Private.addEvents(
         cell.inputArea.promptNode,
-        [cellListen.nodey],
+        [verCell.model],
         historyModel.inspector
       );
 
       if (cell instanceof CodeCell) {
-        Private.addLineEvents(
-          cell as CodeCell,
-          cellListen as CodeCellListen,
-          historyModel
-        );
-        Private.addOutputEvents(cellListen as CodeCellListen, historyModel);
+        Private.addLineEvents(cell as CodeCell, verCell, historyModel);
+        Private.addOutputEvents(verCell, historyModel);
       }
     });
   }
 
-  export function endWishbone(
-    notebook: NotebookListen,
-    historyModel: History
-  ) {
-    notebook.cells.forEach((cellListen: CellListen, _: string) => {
-      var cell = cellListen.cell;
+  export function endWishbone(notebook: VerNotebook, historyModel: History) {
+    notebook.cells.forEach((cellListen: VerCell) => {
+      var cell = cellListen.view.cell;
       Private.removeEvents(
         cell.inputArea.promptNode,
-        [cellListen.nodey],
+        [cellListen.model],
         historyModel.inspector
       );
 
       if (cell instanceof CodeCell) {
-        Private.removeLineEvents(
-          cell as CodeCell,
-          cellListen as CodeCellListen,
-          historyModel
-        );
-        Private.removeOutputEvents(cellListen as CodeCellListen, historyModel);
+        Private.removeLineEvents(cell as CodeCell, cellListen, historyModel);
+        Private.removeOutputEvents(cellListen, historyModel);
       }
     });
   }
@@ -126,20 +116,21 @@ namespace Private {
     );
   }
 
-  export function addOutputEvents(
-    cellListen: CodeCellListen,
-    historyModel: History
-  ) {
+  export function addOutputEvents(cellListen: VerCell, historyModel: History) {
     var outputNodey = cellListen.output;
     console.log("output nodey are", outputNodey);
     if (outputNodey)
       outputNodey.forEach(out =>
-        addEvents(cellListen.outputArea.node, [out], historyModel.inspector)
+        addEvents(
+          (cellListen.view as CodeCellListen).outputArea.node,
+          [out],
+          historyModel.inspector
+        )
       );
   }
 
   export function removeOutputEvents(
-    cellListen: CodeCellListen,
+    cellListen: VerCell,
     historyModel: History
   ) {
     var outputNodey = cellListen.output;
@@ -147,7 +138,7 @@ namespace Private {
       if (outputNodey)
         outputNodey.forEach(out =>
           removeEvents(
-            cellListen.outputArea.node,
+            (cellListen.view as CodeCellListen).outputArea.node,
             [out],
             historyModel.inspector
           )
@@ -156,10 +147,10 @@ namespace Private {
 
   export function addLineEvents(
     cell: CodeCell,
-    cellListen: CodeCellListen,
+    cellListen: VerCell,
     historyModel: History
   ) {
-    var nodey = cellListen.nodey as NodeyCodeCell;
+    var nodey = cellListen.model as NodeyCodeCell;
     var mask = document.createElement("div");
     mask.classList.add(WISHBONE_CODE_MASK);
     mask.addEventListener("mouseup", filterEvents);
@@ -228,10 +219,10 @@ namespace Private {
 
   export function removeLineEvents(
     cell: CodeCell,
-    cellListen: CodeCellListen,
+    cellListen: VerCell,
     historyModel: History
   ) {
-    var nodey = cellListen.nodey as NodeyCodeCell;
+    var nodey = cellListen.model as NodeyCodeCell;
     var mask = cell.inputArea.node.getElementsByClassName(
       WISHBONE_CODE_MASK
     )[0];

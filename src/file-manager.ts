@@ -1,6 +1,6 @@
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { NotebookListen } from "./jupyter-hooks/notebook-listen";
+import { VerNotebook } from "./components/notebook";
 
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -10,7 +10,7 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { CellRunData } from "./model/checkpoint";
 
-import { NodeyCode, NodeyNotebook } from "./model/nodey";
+import { NodeyCode } from "./model/nodey";
 
 import { GhostBook } from "./ghost-book/ghost-book";
 
@@ -25,10 +25,9 @@ export class FileManager {
   }
 
   public writeToFile(
-    notebookNodey: NodeyNotebook,
-    historyModel: History
+    historyModel: History,
+    notebook: VerNotebook
   ): Promise<void> {
-    let notebook = notebookNodey.notebook;
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
@@ -67,7 +66,7 @@ export class FileManager {
 
   public async openGhost(
     data: nbformat.INotebookContent,
-    notebook: NotebookListen
+    notebook: VerNotebook
   ): Promise<boolean> {
     let wasOpen = true;
     if (!this.ghostPath) {
@@ -91,7 +90,7 @@ export class FileManager {
     return wasOpen;
   }
 
-  public writeGhostFile(notebook: NotebookListen, data: {}): Promise<string> {
+  public writeGhostFile(notebook: VerNotebook, data: {}): Promise<string> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
@@ -128,7 +127,7 @@ export class FileManager {
     });
   }
 
-  public loadFromFile(notebook: NotebookListen): Promise<any> {
+  public loadFromFile(notebook: VerNotebook): Promise<any> {
     return new Promise(accept => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)

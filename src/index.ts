@@ -25,11 +25,11 @@ import "../style/inspect.css";
 import "../style/run-history.css";
 import "../style/verdant-panel.css";
 
-import { ASTGenerate } from "./analysis/ast-generate";
+import { AST } from "./analysis/ast";
 
 import { DocumentRegistry } from "@jupyterlab/docregistry";
 
-import { NotebookListen } from "./jupyter-hooks/notebook-listen";
+import { VerNotebook } from "./components/notebook";
 
 import { History } from "./model/history";
 
@@ -62,10 +62,10 @@ const extension: JupyterLabPlugin<void> = {
       }
     };
     const fileManager = new FileManager(docManager);
-    var notebook: NotebookListen;
+    var notebook: VerNotebook;
     const renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     const model = new History(renderBaby, fileManager);
-    const astUtils = new ASTGenerate(model);
+    const astUtils = new AST(model);
     const ghostFactory = GhostBookFactory.registerFileType(
       app.docRegistry as DocumentRegistry,
       restorer,
@@ -90,7 +90,7 @@ const extension: JupyterLabPlugin<void> = {
           //verdantPanel.onNotebookSwitch(widg);
           if (!activePanel || activePanel !== widg) {
             activePanel = widg;
-            notebook = new NotebookListen(activePanel, astUtils, model);
+            notebook = new VerNotebook(activePanel, model, astUtils);
             notebook.ready.then(() => {
               console.log("Notebook is ready");
             });

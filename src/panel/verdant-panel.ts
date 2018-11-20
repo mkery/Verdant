@@ -6,8 +6,6 @@ import { Wishbone } from "./wishbone";
 
 import { History } from "../model/history";
 
-import { RunPanel } from "./run-visualization/run-panel";
-
 import { CrumbBox } from "./crumb-box";
 
 const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
@@ -23,7 +21,6 @@ const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
 export class VerdantPanel extends Widget {
   readonly historyModel: History;
   readonly contentBox: HTMLElement;
-  readonly runList: RunPanel;
   readonly crumbBox: CrumbBox;
 
   constructor(historyModel: History) {
@@ -32,11 +29,11 @@ export class VerdantPanel extends Widget {
     this.historyModel = historyModel;
 
     let header = this.buildHeaderNode();
-    this.runList = new RunPanel(this.historyModel, this);
+    //this.runList = new RunPanel(this.historyModel, this);
     this.node.appendChild(header);
 
     this.contentBox = document.createElement("div");
-    this.contentBox.appendChild(this.runList.node);
+    //this.contentBox.appendChild(this.runList.node);
     this.node.appendChild(this.contentBox);
 
     this.crumbBox = new CrumbBox(this.historyModel, () => this.closeCrumbBox());
@@ -44,12 +41,12 @@ export class VerdantPanel extends Widget {
 
   public ghostBookOpened(widg: Widget) {
     widg.disposed.connect(this.ghostBookClosed.bind(this));
-    this.runList.onGhostBookOpened();
+    //this.runList.onGhostBookOpened();
     //let book = (widg as GhostBookPanel).content;
   }
 
   public ghostBookClosed() {
-    this.runList.onGhostBookClosed();
+    //this.runList.onGhostBookClosed();
   }
 
   private buildHeaderNode() {
@@ -101,6 +98,6 @@ export class VerdantPanel extends Widget {
       inspectorButton.classList.remove("active");
       Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
     }
-    this.contentBox.appendChild(this.runList.node);
+    //this.contentBox.appendChild(this.runList.node);
   }
 }

@@ -5,7 +5,7 @@ import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
-import { ASTGenerate } from "../analysis/ast-generate";
+import { AST } from "../analysis/ast";
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
 
@@ -16,18 +16,18 @@ export class VerNotebook {
   private kernUtil: KernelListen;
   readonly view: NotebookListen;
   readonly history: History;
-  readonly ast: ASTGenerate;
+  readonly ast: AST;
   cells: VerCell[];
 
-  constructor(
-    notebookPanel: NotebookPanel,
-    history: History,
-    ast: ASTGenerate
-  ) {
+  constructor(notebookPanel: NotebookPanel, history: History, ast: AST) {
     this.history = history;
     this.ast = ast;
     this.view = new NotebookListen(notebookPanel, this);
     this.init();
+  }
+
+  public get ready(): Promise<void> {
+    return this._ready.promise;
   }
 
   private async init() {
@@ -36,7 +36,7 @@ export class VerNotebook {
     this.kernUtil = new KernelListen(this.view.panel.session);
     this.ast.setKernUtil(this.kernUtil);
     //load in prior data if exists
-    var prior = await this.history.init(this.view);
+    var prior = await this.history.init(this);
     await this.ast.ready;
 
     var cellsReady: Promise<void>[] = [];
@@ -65,6 +65,10 @@ export class VerNotebook {
     return PathExt.basename(this.path);
   }
 
+  get metadata() {
+    return this.view.metadata;
+  }
+
   public getCell(cell: ICellModel): VerCell {
     return this.cells.find(item => item.view.cell.model.id === cell.id);
   }
@@ -77,6 +81,7 @@ export class VerNotebook {
 
   public moveCell(cell: VerCell, newPos: number) {
     //TODO
+    console.error("TODO MOVE CELL NOT IMPLIMENTED", cell, newPos);
   }
 
   public dump(): void {

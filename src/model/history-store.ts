@@ -8,7 +8,7 @@ import {
   NodeyNotebook
 } from "./nodey";
 
-import { NotebookListen } from "../jupyter-hooks/notebook-listen";
+import { VerNotebook } from "../components/notebook";
 
 import { History } from "./history";
 
@@ -73,9 +73,22 @@ export class HistoryStore {
     }
   }
 
-  getLatestOf(name: string): Nodey | Star<Nodey> {
+  getLatestOf(name: string | Nodey): Nodey | Star<Nodey> {
     let nodeHist = this.getHistoryOf(name);
     return nodeHist.latest;
+  }
+
+  getPriorVersion(name: string | Nodey): Nodey {
+    if (!name) return null;
+    let ver;
+    if (name instanceof Nodey) ver = parseInt(name.version) - 1;
+    else {
+      let [, , verVal] = name.split(".");
+      ver = parseInt(verVal) - 1;
+    }
+    let nodeHist = this.getHistoryOf(name);
+    if (ver > -1) return nodeHist.versions[ver];
+    else return null;
   }
 
   get(name: string): Nodey {
@@ -140,8 +153,13 @@ export class HistoryStore {
       return this.getCellParent(this.get(relativeTo.parent));
   }
 
-  public writeToFile(notebook: NodeyNotebook, history: History): void {
-    this.fileManager.writeToFile(notebook, history);
+  public writeToFile(notebook: VerNotebook, history: History): void {
+    this.fileManager.writeToFile(history, notebook);
+  }
+
+  public dump() {
+    //TODO only for debug
+    console.log(this._codeCellStore);
   }
 
   public toJSON(): jsn {
@@ -154,10 +172,10 @@ export class HistoryStore {
     };
   }
 
-  public fromJSON(data: jsn, notebookListen: NotebookListen) {
+  public fromJSON(data: jsn, notebook: VerNotebook) {
     this._notebookHistory.fromJSON(
       data.notebook,
-      NodeyNotebook.fromJSON.bind(this, notebookListen)
+      NodeyNotebook.fromJSON.bind(this, notebook)
     );
     this._codeCellStore = data.codeCells.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyCodeCell>();
