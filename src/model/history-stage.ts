@@ -110,13 +110,13 @@ export class HistoryStage {
   public commit(
     checkpoint: Checkpoint,
     starCell?: Star<NodeyCell> | NodeyCell
-  ) {
+  ): NodeyCell {
     //TODO commit the notebook
 
     if (starCell) {
       if (starCell instanceof Star) {
-        this.commitCell(starCell, checkpoint.id);
-      }
+        return this.commitCell(starCell, checkpoint.id);
+      } else return starCell;
     }
   }
 

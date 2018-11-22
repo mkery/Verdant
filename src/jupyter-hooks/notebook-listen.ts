@@ -31,7 +31,6 @@ export class NotebookListen {
   private async init() {
     await this._notebookPanel.revealed;
     this._notebook = this._notebookPanel.content;
-    this.focusCell(this._notebook.activeCell);
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -72,7 +71,7 @@ export class NotebookListen {
     return this._notebook.model.nbformat;
   }
 
-  async focusCell(cell: Cell): Promise<void> {
+  async focusCell(cell: Cell = this._notebook.activeCell): Promise<void> {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       let cellListen = this._verNotebook.getCell(cell.model);
       if (cellListen) {
@@ -125,8 +124,7 @@ export class NotebookListen {
 
       console.log("Executed cell:", cell);
       console.log("Parent notebook:", notebook);
-      let cellListen = this._verNotebook.getCell(cell.model);
-      cellListen.run();
+      this._verNotebook.run(cell.model);
     });
   }
 

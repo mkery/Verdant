@@ -33,6 +33,8 @@ export class History {
 
   public async init(notebook: VerNotebook): Promise<boolean> {
     // check if there is an existing history file for this notebook
+    this.notebook = notebook;
+    this._inspector.notebook = notebook;
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
@@ -61,6 +63,7 @@ export class History {
     let newNodey = this.store.getLatestOf(nodey.name) as NodeyCell;
     let same = newNodey.name === nodey.name;
     resolve(newNodey, same);
+    console.log("commited cell", newNodey);
     this.store.writeToFile(this.notebook, this);
   }
 

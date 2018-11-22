@@ -45,7 +45,7 @@ export class VerCell {
   }
 
   get model(): NodeyCell {
-    return this.notebook.history.store.get(this.modelName) as NodeyCell;
+    return this.notebook.history.store.getLatestOf(this.modelName) as NodeyCell;
   }
 
   get output(): NodeyOutput[] {
@@ -56,11 +56,12 @@ export class VerCell {
       });
   }
 
-  public async run() {
+  public async repair() {
     let text: string = "";
     // check cell wasn't just deleted
     if (this.view.cell.inputArea) text = this.view.cell.editor.model.value.text;
     await this.notebook.ast.repairFullAST(this.model, text);
+    console.log("Repaired cell", this.model);
   }
 
   public async added() {
@@ -103,6 +104,7 @@ export class VerCell {
           text,
           this.position
         );
+        if (!nodey.output) nodey.output = [];
         nodey.output = nodey.output.concat(output);
         this.modelName = nodey.name;
       }
@@ -115,6 +117,7 @@ export class VerCell {
         text,
         this.position
       );
+      if (!nodey.output) nodey.output = [];
       nodey.output = nodey.output.concat(output);
       this.modelName = nodey.name;
       console.log("created Output!", output, nodey);

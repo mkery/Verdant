@@ -30,7 +30,6 @@ export class CrumbBox extends Widget {
     this.node.appendChild(this.content);
 
     this.historyModel.inspector.ready.then(async () => {
-      await this.historyModel.notebook.ready;
       this.historyModel.inspector.targetChanged.connect(
         (_: any, nodey: Nodey[]) => {
           this.changeTarget(nodey);
@@ -48,6 +47,7 @@ export class CrumbBox extends Widget {
   }
 
   changeTarget(node: Nodey[]) {
+    console.log("CHANGE TARGET", node);
     if (this._active && this._target !== node[0]) {
       this._target = node[0];
       this.buildCrumbMenu();

@@ -23,6 +23,7 @@ export class VerNotebook {
     this.history = history;
     this.ast = ast;
     this.view = new NotebookListen(notebookPanel, this);
+    this.cells = [];
     this.init();
   }
 
@@ -48,6 +49,7 @@ export class VerNotebook {
       }
     });
     await Promise.all(cellsReady);
+    this.view.focusCell();
     console.log("Loaded Notebook", this.view.notebook, this.model);
     this.dump();
     this._ready.resolve(undefined);
@@ -67,6 +69,12 @@ export class VerNotebook {
 
   get metadata() {
     return this.view.metadata;
+  }
+
+  public async run(cellModel: ICellModel) {
+    let cell = this.getCell(cellModel);
+    await cell.repair();
+    this.history.handleCellRun(cell.model);
   }
 
   public getCell(cell: ICellModel): VerCell {

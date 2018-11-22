@@ -6,11 +6,11 @@ import { VerCell } from "../components/cell";
 
 export abstract class CellListen {
   cell: Cell;
-  private readonly verCell: VerCell;
+  //private readonly verCell: VerCell;
 
   constructor(cell: Cell, verCell: VerCell) {
     this.cell = cell;
-    this.verCell = verCell;
+    //this.verCell = verCell;
   }
 
   /**
@@ -23,10 +23,6 @@ export abstract class CellListen {
   public focus(): void {}
 
   public blur(): void {}
-
-  public async cellRun() {
-    this.verCell.run();
-  }
 }
 
 /*

@@ -12,35 +12,35 @@ const WISHBONE_CODE = "v-VerdantPanel-wishbone-code";
 const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 
 export namespace Wishbone {
-  export function startWishbone(historyModel: History) {
-    console.log("starting wishbone!", historyModel);
-    historyModel.notebook.cells.forEach((verCell: VerCell) => {
+  export function startWishbone(history: History) {
+    console.log("starting wishbone!", history);
+    history.notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view.cell;
       Private.addEvents(
         cell.inputArea.promptNode,
         [verCell.model],
-        historyModel.inspector
+        history.inspector
       );
 
       if (cell instanceof CodeCell) {
-        Private.addLineEvents(cell as CodeCell, verCell, historyModel);
-        Private.addOutputEvents(verCell, historyModel);
+        Private.addLineEvents(cell as CodeCell, verCell, history);
+        Private.addOutputEvents(verCell, history);
       }
     });
   }
 
-  export function endWishbone(notebook: VerNotebook, historyModel: History) {
+  export function endWishbone(notebook: VerNotebook, history: History) {
     notebook.cells.forEach((cellListen: VerCell) => {
       var cell = cellListen.view.cell;
       Private.removeEvents(
         cell.inputArea.promptNode,
         [cellListen.model],
-        historyModel.inspector
+        history.inspector
       );
 
       if (cell instanceof CodeCell) {
-        Private.removeLineEvents(cell as CodeCell, cellListen, historyModel);
-        Private.removeOutputEvents(cellListen, historyModel);
+        Private.removeLineEvents(cell as CodeCell, cellListen, history);
+        Private.removeOutputEvents(cellListen, history);
       }
     });
   }
@@ -116,7 +116,7 @@ namespace Private {
     );
   }
 
-  export function addOutputEvents(cellListen: VerCell, historyModel: History) {
+  export function addOutputEvents(cellListen: VerCell, history: History) {
     var outputNodey = cellListen.output;
     console.log("output nodey are", outputNodey);
     if (outputNodey)
@@ -124,15 +124,12 @@ namespace Private {
         addEvents(
           (cellListen.view as CodeCellListen).outputArea.node,
           [out],
-          historyModel.inspector
+          history.inspector
         )
       );
   }
 
-  export function removeOutputEvents(
-    cellListen: VerCell,
-    historyModel: History
-  ) {
+  export function removeOutputEvents(cellListen: VerCell, history: History) {
     var outputNodey = cellListen.output;
     if (outputNodey)
       if (outputNodey)
@@ -140,7 +137,7 @@ namespace Private {
           removeEvents(
             (cellListen.view as CodeCellListen).outputArea.node,
             [out],
-            historyModel.inspector
+            history.inspector
           )
         );
   }
@@ -148,7 +145,7 @@ namespace Private {
   export function addLineEvents(
     cell: CodeCell,
     cellListen: VerCell,
-    historyModel: History
+    history: History
   ) {
     var nodey = cellListen.model as NodeyCodeCell;
     var mask = document.createElement("div");
@@ -162,7 +159,7 @@ namespace Private {
       code[i].classList.add(WISHBONE_CODE);
       code[i].addEventListener(
         "click",
-        Private.selectCodeTarget.bind(this, nodey, historyModel.inspector, cell)
+        Private.selectCodeTarget.bind(this, nodey, history.inspector, cell)
       );
     }
     var lines = cell.inputArea.node.getElementsByClassName("CodeMirror-line");
@@ -170,7 +167,7 @@ namespace Private {
       lines[i].classList.add(WISHBONE_CODE);
       lines[i].addEventListener(
         "click",
-        Private.selectCodeTarget.bind(this, nodey, historyModel.inspector, cell)
+        Private.selectCodeTarget.bind(this, nodey, history.inspector, cell)
       );
     }
   }
@@ -220,7 +217,7 @@ namespace Private {
   export function removeLineEvents(
     cell: CodeCell,
     cellListen: VerCell,
-    historyModel: History
+    history: History
   ) {
     var nodey = cellListen.model as NodeyCodeCell;
     var mask = cell.inputArea.node.getElementsByClassName(
@@ -231,7 +228,7 @@ namespace Private {
     for (var i = 0; i < code.length; i++) {
       code[i].removeEventListener(
         "click",
-        Private.selectCodeTarget.bind(this, nodey, historyModel.inspector, cell)
+        Private.selectCodeTarget.bind(this, nodey, history.inspector, cell)
       );
       code[i].classList.remove(WISHBONE_CODE);
     }
