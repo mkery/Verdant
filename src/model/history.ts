@@ -64,7 +64,7 @@ export class History {
     let same = newNodey.name === nodey.name;
     resolve(newNodey, same);
     console.log("commited cell", newNodey);
-    this.store.writeToFile(this.notebook, this);
+    //this.store.writeToFile(this.notebook, this);
   }
 
   /*public moveCell(old_pos: number, new_pos: number) {

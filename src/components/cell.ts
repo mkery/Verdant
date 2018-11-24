@@ -140,7 +140,6 @@ export class VerCell {
           this.view.cell.model.value.text,
           this.position,
           this.notebook.history.store,
-          this.view,
           nodeyCell.name
         );
       }
@@ -148,8 +147,7 @@ export class VerCell {
       var nodey = await NodeyFactory.dictToMarkdownNodey(
         this.view.cell.model.value.text,
         this.position,
-        this.notebook.history.store,
-        this.view
+        this.notebook.history.store
       );
     }
     this.modelName = nodey.name;

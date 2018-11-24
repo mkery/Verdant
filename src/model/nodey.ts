@@ -1,5 +1,3 @@
-import { CellListen } from "../jupyter-hooks/cell-listen";
-
 type jsn = { [i: string]: any };
 
 type NodeyOptions = {
@@ -16,7 +14,6 @@ type NodeyOptions = {
   end?: { line: number; ch: number };
   literal?: any;
   right?: string;
-  cell?: CellListen;
   markdown?: string;
 };
 
@@ -187,19 +184,14 @@ export class NodeyCode extends Nodey {
 /*
 * Cell-level nodey interface
 */
-export interface NodeyCell extends Nodey {
-  cell: CellListen;
-}
+export interface NodeyCell extends Nodey {}
 
 /*
 * Code Cell-level nodey
 */
 export class NodeyCodeCell extends NodeyCode implements NodeyCell {
-  cell: CellListen;
-
   constructor(options: NodeyOptions) {
     super(options);
-    if (options.cell) this.cell = options.cell;
   }
 
   get typeChar() {
@@ -211,8 +203,7 @@ export namespace NodeyNotebook {
   export function fromJSON(dat: jsn): NodeyNotebook {
     return new NodeyNotebook({
       parent: dat.parent,
-      created: dat.created,
-      cell: dat.cell
+      created: dat.created
     });
   }
 }
@@ -221,12 +212,10 @@ export namespace NodeyNotebook {
 * Markdown nodey
 */
 export class NodeyMarkdown extends Nodey implements NodeyCell {
-  cell: CellListen;
   markdown: string;
 
   constructor(options: NodeyOptions) {
     super(options);
-    if (options.cell) this.cell = options.cell;
     if (options.markdown) this.markdown = options.markdown;
   }
 

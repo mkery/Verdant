@@ -1,7 +1,5 @@
 import { CodeCell } from "@jupyterlab/cells";
 
-import { CellListen } from "../jupyter-hooks/cell-listen";
-
 import { HistoryStore } from "./history-store";
 
 import {
@@ -157,10 +155,9 @@ export namespace NodeyFactory {
     text: string,
     position: number,
     historyStore: HistoryStore,
-    cell: CellListen,
     forceTie: string = null
   ) {
-    var n = new NodeyMarkdown({ markdown: text, cell: cell });
+    var n = new NodeyMarkdown({ markdown: text });
     if (forceTie) {
       // only occurs when cells change type from code/markdown
       historyStore.registerTiedNodey(n, forceTie);

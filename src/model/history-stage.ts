@@ -27,8 +27,12 @@ export class Star<T extends Nodey> {
     this.value = nodey;
   }
 
+  get id(): number {
+    return this.value.id;
+  }
+
   get name(): string {
-    return "*" + this.cellId + "." + this.value.typeChar + "." + this.value.id;
+    return "*" + "." + this.value.typeChar + "." + this.value.id;
   }
 }
 
@@ -141,7 +145,7 @@ export class HistoryStage {
   }
 
   private commitCell(starCell: Star<NodeyCell>, runId: number) {
-    let cell = this.deStarCell(starCell);
+    let cell = this.deStar(starCell) as NodeyCell;
     console.log("Cell to commit is " + cell.name, cell, runId);
 
     if (cell instanceof NodeyCodeCell) {
@@ -154,16 +158,9 @@ export class HistoryStage {
     return cell;
   }
 
-  private deStarCell(star: Star<NodeyCell>): NodeyCell {
-    let history = this.store.getHistoryOf(star.value);
-    return history.deStar() as NodeyCell;
-  }
-
   private deStar(star: Star<Nodey>) {
-    let newNodey = star.value;
-    this.store.store(newNodey);
-    console.log("star node now ", newNodey);
-    return newNodey;
+    let history = this.store.getHistoryOf(star.value);
+    return history.deStar();
   }
 
   /*private _commitMarkdown(nodey: NodeyMarkdown, runId: number) {
@@ -193,7 +190,7 @@ export class HistoryStage {
     let oldOutput = nodey.getOutput();
     let oldRun = -1;
     let old = oldOutput.map(out => {
-      let output = this.store.get(out);
+      let output = this.store.get(out) as NodeyOutput;
       if (oldRun < 0 || output.created === oldRun) {
         return output as NodeyOutput;
       }
@@ -218,22 +215,27 @@ export class HistoryStage {
 
     if (parentNodey.content)
       parentNodey.content = parentNodey.content.map(
-        (child: Star<Nodey> | string | SyntaxToken, index: number) => {
-          if (child instanceof Star) {
-            let newChild = this.deStar(child) as NodeyCode;
-            output.forEach(out => newChild.addOutput(out));
-            newChild.created = runId;
+        (child: string | SyntaxToken, index: number) => {
+          if (typeof child === "string") {
+            let nodeChild = this.store.getLatestOf(child);
+            //console.log("child is", child, nodeChild);
+            if (nodeChild instanceof Star) {
+              let newChild = this.deStar(nodeChild) as NodeyCode;
+              output.forEach(out => newChild.addOutput(out));
+              newChild.created = runId;
 
-            parentNodey.content[index] = newChild.name;
-            newChild.parent = parentNodey.name;
-            if (prior) prior.right = newChild.name;
-            prior = newChild;
-            return newChild.name;
-          } else if (typeof child === "string") {
-            let nodeChild = this.store.get(child);
+              parentNodey.content[index] = newChild.name;
+              newChild.parent = parentNodey.name;
+              this._commitCode(newChild, runId, output, prior);
+              prior = newChild;
+              return newChild.name;
+            }
+
             nodeChild.parent = parentNodey.name;
             if (prior) prior.right = nodeChild.name;
+            prior = nodeChild as NodeyCode;
           }
+
           return child;
         }
       );

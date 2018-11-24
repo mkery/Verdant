@@ -59,7 +59,7 @@ export class HistoryStore {
       id = name.id;
       ver = name.version;
     }
-    console.log("looking for history of", name, typeChar, id, ver);
+
     switch (typeChar) {
       case "n":
         return this._notebookHistory;
@@ -71,6 +71,8 @@ export class HistoryStore {
         return this._snippetStore[id];
       case "m":
         return this._markdownStore[id];
+      case "*": // a star node
+        return this.getHistoryOf(idVal + "." + ver);
       default:
         throw new Error("nodey type not found" + name);
     }
@@ -142,7 +144,7 @@ export class HistoryStore {
   }
 
   public registerTiedNodey(nodey: NodeyCell, forceTie: string): void {
-    let oldNodey = this.get(forceTie);
+    let oldNodey = this.get(forceTie) as NodeyCell;
     let history = this.getHistoryOf(oldNodey);
     let version = history.versions.push(nodey) - 1;
     nodey.id = oldNodey.id;
@@ -150,7 +152,12 @@ export class HistoryStore {
     return;
   }
 
-  public getCellParent(relativeTo: Nodey): NodeyCodeCell {
+  public getCellParent(relativeTo: Nodey | Star<Nodey>): NodeyCodeCell {
+    if (relativeTo instanceof Star) {
+      let val = relativeTo.value;
+      if (val instanceof NodeyCodeCell) return val;
+      else return this.getCellParent(this.get(val.parent));
+    }
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
       return this.getCellParent(this.get(relativeTo.parent));
