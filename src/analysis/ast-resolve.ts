@@ -21,7 +21,7 @@ import * as levenshtein from "fast-levenshtein";
 import {
   ParserNodey,
   ASTMatch,
-  NodeyOptions,
+  NodeyMatchOptions,
   ParsedNodeOptions
 } from "./ast-match";
 
@@ -316,13 +316,13 @@ export class ASTResolve {
 
   nodeyToLeaves(
     nodey: NodeyCode,
-    nodeyList: NodeyOptions[] = [],
+    nodeyList: NodeyMatchOptions[] = [],
     leaves: number[] = [],
     parentIndex: number = -1,
     level: number = 0,
     row: number = 0
-  ): [NodeyOptions[], number[]] {
-    var option: NodeyOptions = new NodeyOptions({
+  ): [NodeyMatchOptions[], number[]] {
+    var option: NodeyMatchOptions = new NodeyMatchOptions({
       nodey: nodey.name,
       match: null,
       possibleMatches: [],
@@ -340,7 +340,7 @@ export class ASTResolve {
         if (name instanceof SyntaxToken) {
           if (name.tokens !== " ") {
             //ignore spaces
-            var toktok: NodeyOptions = new NodeyOptions({
+            var toktok: NodeyMatchOptions = new NodeyMatchOptions({
               nodey: name.tokens,
               syntok: true,
               match: null,

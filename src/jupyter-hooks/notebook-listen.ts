@@ -120,10 +120,8 @@ export class NotebookListen {
     });
 
     NotebookActions.executed.connect((_, args) => {
-      const { notebook, cell } = args;
-
+      const cell = args.cell;
       console.log("Executed cell:", cell);
-      console.log("Parent notebook:", notebook);
       this._verNotebook.run(cell.model);
     });
   }

@@ -8,6 +8,7 @@ import { History } from "../model/history";
 import { AST } from "../analysis/ast";
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
+import { NodeyCell } from "../model/nodey";
 
 /*
 * Notebook holds a list of cells
@@ -79,6 +80,10 @@ export class VerNotebook {
 
   public getCell(cell: ICellModel): VerCell {
     return this.cells.find(item => item.view.cell.model.id === cell.id);
+  }
+
+  public getCellByNode(cell: NodeyCell): VerCell {
+    return this.cells.find(item => item.model === cell);
   }
 
   public createCell(cell: Cell, index: number, match: boolean): VerCell {

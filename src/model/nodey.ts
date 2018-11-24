@@ -1,6 +1,24 @@
 import { CellListen } from "../jupyter-hooks/cell-listen";
 
-type jsn = { [id: string]: any };
+type jsn = { [i: string]: any };
+
+type NodeyOptions = {
+  id?: number; //id for this node
+  version?: any; //chronological number
+  created?: number; //id marking which checkpoint
+  parent?: string | number; //lookup id for the parent Nodey of this Nodey
+  cells?: string[];
+  raw?: { [i: string]: any };
+  type?: string;
+  output?: string[];
+  content?: (SyntaxToken | string)[];
+  start?: { line: number; ch: number };
+  end?: { line: number; ch: number };
+  literal?: any;
+  right?: string;
+  cell?: CellListen;
+  markdown?: string;
+};
 
 export abstract class Nodey {
   id: number; //id for this node
@@ -8,22 +26,17 @@ export abstract class Nodey {
   created: number; //id marking which checkpoint
   parent: string; //lookup id for the parent Nodey of this Nodey
 
-  constructor(options: { [id: string]: any }, cloneFrom?: Nodey) {
-    if (cloneFrom) {
-      this.id = cloneFrom.id;
-      this.created = cloneFrom.created;
-      this.parent = cloneFrom.parent;
-    }
-    if (options.id) this.id = options.id;
+  constructor(options: NodeyOptions) {
+    this.id = options.id;
     if (options.created) this.created = options.created;
-    if (options.parent) this.parent = options.parent;
+    if (options.parent) this.parent = options.parent + "";
   }
 
   get name(): string {
     return this.typeChar + "." + this.id + "." + this.version;
   }
 
-  public toJSON(): { [id: string]: any } {
+  public toJSON(): { [i: string]: any } {
     return { created: this.created, parent: this.parent };
   }
 
@@ -36,12 +49,10 @@ export abstract class Nodey {
 export class NodeyNotebook extends Nodey {
   cells: string[];
 
-  constructor(options: { [id: string]: any }, cloneFrom?: NodeyNotebook) {
-    super(options, cloneFrom);
-    if (cloneFrom) {
-      this.cells = cloneFrom.cells;
-    }
-    if (options.cells) this.cells = options.cells;
+  constructor(options: NodeyOptions) {
+    super(options);
+    if (options.cells && options.cells.length > 0)
+      this.cells = options.cells.slice(0);
   }
 
   public toJSON() {
@@ -72,13 +83,10 @@ export namespace SyntaxToken {
 * Output holds raw output
 */
 export class NodeyOutput extends Nodey {
-  raw: { [id: string]: any };
+  raw: { [i: string]: any };
 
-  constructor(options: { [id: string]: any }, cloneFrom?: NodeyOutput) {
-    super(options, cloneFrom);
-    if (cloneFrom) {
-      this.raw = cloneFrom.raw;
-    }
+  constructor(options: NodeyOptions) {
+    super(options);
     if (options.raw) this.raw = options.raw;
   }
 
@@ -93,7 +101,7 @@ export class NodeyOutput extends Nodey {
   }
 
   static EMPTY() {
-    return new NodeyOutput({ raw: {}, dependsOn: [] });
+    return new NodeyOutput({ raw: {} });
   }
 }
 
@@ -110,24 +118,17 @@ export class NodeyCode extends Nodey {
   right: string; // lookup id for the next Nodey to the right of this one
   pendingUpdate: string;
 
-  constructor(options: { [id: string]: any }, cloneFrom?: NodeyCode) {
-    super(options, cloneFrom);
-    if (cloneFrom) {
-      this.type = cloneFrom.type;
-      if (cloneFrom.content) this.content = cloneFrom.content.slice(0);
-      if (cloneFrom.output) this.output = cloneFrom.output.slice(0);
-      this.literal = cloneFrom.literal;
-      this.start = cloneFrom.start;
-      this.end = cloneFrom.end;
-      this.right = cloneFrom.right;
-    }
-    if (options.type) this.type = options.type;
-    if (options.content) this.content = options.content;
-    if (this.output) this.output = options.output;
-    if (options.literal) this.literal = options.literal;
-    if (options.start) this.start = options.start;
-    if (options.end) this.end = options.end;
-    if (options.right) this.right = options.right;
+  constructor(options: NodeyOptions) {
+    super(options);
+    this.type = options.type;
+    if (options.content && options.content.length > 0)
+      this.content = options.content.slice(0);
+    if (options.output && options.output.length > 0)
+      this.output = options.output.slice(0);
+    this.literal = options.literal;
+    this.start = options.start;
+    this.end = options.end;
+    this.right = options.right;
   }
 
   public toJSON() {
@@ -196,11 +197,8 @@ export interface NodeyCell extends Nodey {
 export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   cell: CellListen;
 
-  constructor(options: { [id: string]: any }, cloneFrom?: NodeyCodeCell) {
-    super(options, cloneFrom);
-    if (cloneFrom) {
-      this.cell = cloneFrom.cell;
-    }
+  constructor(options: NodeyOptions) {
+    super(options);
     if (options.cell) this.cell = options.cell;
   }
 
@@ -226,12 +224,8 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
   cell: CellListen;
   markdown: string;
 
-  constructor(options: { [id: string]: any }, cloneFrom?: NodeyMarkdown) {
-    super(options, cloneFrom);
-    if (cloneFrom) {
-      this.cell = cloneFrom.cell;
-      this.markdown = cloneFrom.markdown;
-    }
+  constructor(options: NodeyOptions) {
+    super(options);
     if (options.cell) this.cell = options.cell;
     if (options.markdown) this.markdown = options.markdown;
   }

@@ -49,14 +49,17 @@ export class HistoryStore {
   public getHistoryOf(name: string | Nodey): NodeHistory<Nodey> {
     let typeChar: string;
     let id: number;
+    let ver: string;
     if (typeof name === "string") {
       var idVal;
-      [typeChar, idVal] = name.split(".");
+      [typeChar, idVal, ver] = name.split(".");
       id = parseInt(idVal);
     } else if (name instanceof Nodey) {
       typeChar = name.typeChar;
       id = name.id;
+      ver = name.version;
     }
+    console.log("looking for history of", name, typeChar, id, ver);
     switch (typeChar) {
       case "n":
         return this._notebookHistory;

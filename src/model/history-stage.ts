@@ -10,7 +10,7 @@ import {
 
 import { CodeCell } from "@jupyterlab/cells";
 
-import { HistoryStore } from "./history-store";
+import { History } from "./history";
 
 import { NodeyFactory } from "./nodey-factory";
 
@@ -28,15 +28,19 @@ export class Star<T extends Nodey> {
   }
 
   get name(): string {
-    return this.value.typeChar + "." + this.value.id + ".?";
+    return "*" + this.cellId + "." + this.value.typeChar + "." + this.value.id;
   }
 }
 
 export class HistoryStage {
-  readonly store: HistoryStore;
+  readonly history: History;
 
-  constructor(store: HistoryStore) {
-    this.store = store;
+  constructor(history: History) {
+    this.history = history;
+  }
+
+  private get store() {
+    return this.history.store;
   }
 
   // in charge of the stage and commit phases of history
@@ -52,7 +56,8 @@ export class HistoryStage {
     }
   }*/
 
-  public markAsEdited(unedited: Nodey): Star<Nodey> {
+  public markAsEdited(unedited: Nodey | Star<Nodey>): Star<Nodey> {
+    if (unedited instanceof Star) return unedited;
     if (unedited instanceof NodeyCode) {
       return this.markCodeAsEdited(unedited);
     } else if (unedited instanceof NodeyMarkdown) {
@@ -61,45 +66,60 @@ export class HistoryStage {
   }
 
   private markMarkdownAsEdited(unedited: NodeyMarkdown): Star<NodeyMarkdown> {
-    if (unedited instanceof Star) {
-      //already a star node
-      return unedited;
-    }
     let history = this.store.getHistoryOf(unedited);
-    let nodey = history.versions[history.versions.length - 1];
-    let nodeyCopy = new NodeyMarkdown(nodey);
-    let starNode = new Star<NodeyMarkdown>(nodeyCopy);
-    history.setLatestToStar(starNode);
+    let nodey = history.latest;
+    let starNode: Star<NodeyMarkdown>;
+    if (nodey instanceof Star) {
+      starNode = nodey as Star<NodeyMarkdown>;
+    } else {
+      starNode = this.createStar(nodey) as Star<NodeyMarkdown>;
+      history.setLatestToStar(starNode);
+    }
+    return starNode;
+  }
+
+  private createStar(nodey: Nodey) {
+    let starNode;
+    if (nodey instanceof NodeyMarkdown) {
+      let nodeyCopy = new NodeyMarkdown(nodey as NodeyMarkdown);
+      starNode = new Star<NodeyMarkdown>(nodeyCopy);
+    } else if (nodey instanceof NodeyCodeCell) {
+      let nodeyCopy = new NodeyCodeCell(nodey);
+      starNode = new Star<NodeyCodeCell>(nodeyCopy);
+    } else if (nodey instanceof NodeyCode) {
+      let nodeyCopy = new NodeyCode(nodey);
+      starNode = new Star<NodeyCode>(nodeyCopy);
+    }
     return starNode;
   }
 
   private markCodeAsEdited(unedited: NodeyCode): Star<NodeyCode> {
-    if (unedited instanceof Star) {
-      //already a star node
-      return unedited;
-    }
-
     //otherwise, a normal node with a history
-    let history = this.store.getHistoryOf(unedited);
-    console.log("history of this node", history, unedited);
+    let nodey = this.store.getLatestOf(unedited) as NodeyCode;
+    if (nodey instanceof Star) return nodey;
 
     //newly entering star state!
-    let nodey = history.versions[history.versions.length - 1];
-    let nodeyCopy = new NodeyCode(nodey);
-    let starNode = new Star<NodeyCode>(nodeyCopy);
+    let starNode = this.createStar(nodey) as Star<NodeyCode>;
 
+    // must make the whole chain up Star nodes
     if (starNode.value.parent) {
-      console.log("parent is", starNode.value.parent, starNode.value);
-      // star all the way up the chain
-      let parent = this.store.getLatestOf(starNode.value.parent) as NodeyCode;
-      var starParent = this.markCodeAsEdited(parent);
-      //TODO eventually the parent should be the notebook
+      console.log("parent is", starNode.value.parent);
+      let parent = this.store.getLatestOf(starNode.value.parent);
+
+      let starParent: Star<Nodey>;
+      if (parent instanceof Star) starParent = parent as Star<NodeyCode>;
+      else starParent = this.markAsEdited(parent);
 
       //finally, fix pointer names to be stars too
       starNode.value.parent = starParent.name;
-      let childIndex = starParent.value.content.indexOf(nodey.name);
-      starParent.value.content[childIndex] = starNode.name;
+      if (starParent.value instanceof NodeyCode) {
+        let childIndex = starParent.value.content.indexOf(nodey.name);
+        starParent.value.content[childIndex] = starNode.name;
+      }
     }
+
+    console.log("STAR NODE", starNode, starNode.value);
+    let history = this.store.getHistoryOf(starNode.value);
     history.setLatestToStar(starNode);
     return starNode;
   }
@@ -178,8 +198,9 @@ export class HistoryStage {
         return output as NodeyOutput;
       }
     });
+    let cell = this.history.notebook.getCellByNode(nodey);
     return NodeyFactory.outputToNodey(
-      nodey.cell.cell as CodeCell,
+      cell.view.cell as CodeCell,
       this.store,
       old,
       runId

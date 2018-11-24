@@ -22,7 +22,7 @@ export class History {
   constructor(renderBaby: RenderBaby, fileManager: FileManager) {
     this._inspector = new Inspect(this, renderBaby);
     this.store = new HistoryStore(fileManager);
-    this.stage = new HistoryStage(this.store);
+    this.stage = new HistoryStage(this);
     this.checkpoints = new HistoryCheckpoints(this);
   }
 

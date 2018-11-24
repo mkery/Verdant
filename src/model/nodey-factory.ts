@@ -39,7 +39,7 @@ export namespace NodeyFactory {
           literal: codedat.literal,
           right: codedat.right,
           parent: codedat.parent,
-          run: codedat.runs
+          created: codedat.created
         });
       case "codeCell":
         var codedat = dat as jsn;
@@ -57,14 +57,14 @@ export namespace NodeyFactory {
           literal: codedat.literal,
           right: codedat.right,
           parent: codedat.parent,
-          run: codedat.runs
+          created: codedat.created
         });
       case "markdown":
         var markdat = dat as jsn;
         return new NodeyMarkdown({
           markdown: markdat.markdown,
           parent: markdat.parent,
-          run: markdat.runs
+          created: markdat.created
         });
       default:
         return;
@@ -75,7 +75,7 @@ export namespace NodeyFactory {
     return new NodeyOutput({
       raw: dat.raw,
       parent: dat.parent,
-      run: dat.runs
+      created: dat.created
     });
   }
 

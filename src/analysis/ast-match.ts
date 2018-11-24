@@ -28,7 +28,8 @@ export class ASTMatch {
     jsn: string
   ): Promise<$NodeyCode$> {
     if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
-      //console.log("Time to resolve", jsn, "with", nodey);
+      console.log("Time to resolve", jsn, "with", nodey);
+
       var dict: ParserNodey;
       if (jsn.length < 2) {
         //just an empty cell
@@ -46,8 +47,8 @@ export class ASTMatch {
             row: 0
           }
         ];
-        var nodeyList: NodeyOptions[] = [
-          new NodeyOptions({
+        var nodeyList: NodeyMatchOptions[] = [
+          new NodeyMatchOptions({
             nodey: nodey.name,
             match: { index: 0, score: 0 },
             possibleMatches: [],
@@ -110,6 +111,7 @@ export class ASTMatch {
           );
         }
       }
+
       let newNodey = this.finalizeMatch(
         parsedList.length - 1,
         parsedList,
@@ -119,7 +121,6 @@ export class ASTMatch {
 
       //resolved
       if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
-
       return newNodey;
     } else {
       console.log("RECIEVED OLD UPDATE", updateID, jsn, nodey.pendingUpdate);
@@ -130,15 +131,17 @@ export class ASTMatch {
   finalizeMatch(
     root: number,
     parsedList: ParsedNodeOptions[],
-    nodeyList: NodeyOptions[],
+    nodeyList: NodeyMatchOptions[],
     relativeTo: $NodeyCode$
   ): $NodeyCode$ {
     var parsedNode = parsedList[root].nodey;
     var match = parsedList[root].match;
-    var nodeyEdited: Star<NodeyCode> | NodeyCode;
+    var nodeyEdited: $NodeyCode$;
     if (match !== null && match.index > -1) {
       var nodeyMatch = nodeyList[match.index];
-      var nodey = this.history.store.get(nodeyMatch.nodey) as NodeyCode;
+      var nodey = this.history.store.getLatestOf(
+        nodeyMatch.nodey
+      ) as $NodeyCode$;
       //console.log("PARSED NODE", parsedNode, nodey);
       if (match.score !== 0) {
         // there was some change
@@ -217,7 +220,7 @@ export class ASTMatch {
     matchedLeaves: number[],
     newParents: number[][],
     parsedList: ParsedNodeOptions[],
-    nodeyList: NodeyOptions[]
+    nodeyList: NodeyMatchOptions[]
   ): number[][] {
     //console.log("GRAB grabUnmatchedParents ", matchedLeaves);
     if (matchedLeaves.length < 1) {
@@ -274,7 +277,7 @@ export class ASTMatch {
   matchParentNodes(
     newParents: number[],
     parsedList: ParsedNodeOptions[],
-    nodeyList: NodeyOptions[]
+    nodeyList: NodeyMatchOptions[]
   ) {
     var nodeyCandidates: number[] = [];
     //for each leaf node, get its possible parents
@@ -338,9 +341,9 @@ export class ASTMatch {
 
   scoreMatch(
     parsedProfile: ParsedNodeOptions,
-    nodeyProfile: NodeyOptions,
+    nodeyProfile: NodeyMatchOptions,
     parsedList: ParsedNodeOptions[],
-    nodeyList: NodeyOptions[]
+    nodeyList: NodeyMatchOptions[]
   ): number {
     /*
     * Start with a perfect score
@@ -444,7 +447,7 @@ export class ASTMatch {
 
   // a debugging method only
   private declareMatch(
-    nodeyOp: NodeyOptions,
+    nodeyOp: NodeyMatchOptions,
     parsedOp: ParsedNodeOptions,
     score: number
   ) {
@@ -467,7 +470,7 @@ export class ASTMatch {
   matchLeaves(
     parsedList: ParsedNodeOptions[],
     newLeaves: number[],
-    nodeyList: NodeyOptions[],
+    nodeyList: NodeyMatchOptions[],
     oldLeaves: number[]
   ) {
     newLeaves.forEach((leafIndex: number) => {
@@ -504,7 +507,7 @@ export class ASTMatch {
   findMatchOptions(
     parsedIndex: number,
     nodeyCandidates: number[],
-    nodeyList: NodeyOptions[],
+    nodeyList: NodeyMatchOptions[],
     parsedList: ParsedNodeOptions[]
   ) {
     var parsedProfile = parsedList[parsedIndex];
@@ -672,7 +675,7 @@ export interface ParsedNodeOptions {
   row: number;
 }
 
-export class NodeyOptions {
+export class NodeyMatchOptions {
   nodey: string;
   parentIndex?: number;
   match: Match;
