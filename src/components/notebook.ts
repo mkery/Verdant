@@ -5,6 +5,7 @@ import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
+import { Star } from "../model/history-stage";
 import { AST } from "../analysis/ast";
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
@@ -41,6 +42,8 @@ export class VerNotebook {
     var prior = await this.history.init(this);
     await this.ast.ready;
 
+    this.initNotebook(prior);
+
     var cellsReady: Promise<void>[] = [];
     this.view.notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
@@ -56,8 +59,15 @@ export class VerNotebook {
     this._ready.resolve(undefined);
   }
 
-  get model(): NodeyNotebook {
-    return this.history.getNotebook();
+  private initNotebook(matchPrior: boolean) {
+    if (!matchPrior) {
+      var n = new NodeyNotebook();
+      this.history.store.store(n);
+    } //TODO got to check match prior if we need a new notebook
+  }
+
+  get model(): NodeyNotebook | Star<NodeyNotebook> {
+    return this.history.store.currentNotebook;
   }
 
   get path(): string {
@@ -73,13 +83,57 @@ export class VerNotebook {
   }
 
   public async run(cellModel: ICellModel) {
+    // first start a checkpoint for this run
+    let [checkpoint, resolve] = this.history.checkpoints.cellRun();
+
+    // now repair the cell against the prior version
     let cell = this.getCell(cellModel);
-    await cell.repair();
-    this.history.handleCellRun(cell.model);
+    let nodey = cell.model;
+    let newNodey = await cell.repairAndCommit(checkpoint);
+
+    // commit the notebook if the cell has changed
+    let notebook = this.history.stage.commit(checkpoint, this.model);
+    console.log("notebook commited", notebook, this.model);
+
+    // finish the checkpoint with info from this run
+    let same = newNodey.name === nodey.name;
+    resolve(newNodey, same, notebook.name);
+
+    // save the data to file
+    //this.history.store.writeToFile(this, this.history);
+    console.log("commited cell", newNodey);
+  }
+
+  public async save() {
+    //  start a checkpoint for this run
+    let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
+
+    // now see if there are any unsaved changes
+    let nodey = this.model;
+    if (nodey instanceof Star) {
+      // look through cells for unsaved changes
+      let cellCommits: Promise<NodeyCell>[] = [];
+      this.cells.forEach(cell => {
+        let cellNode = cell.model;
+        if (cellNode instanceof Star)
+          cellCommits.push(cell.repairAndCommit(checkpoint));
+      });
+
+      Promise.all(cellCommits).then(cellsDone => {
+        // commit the notebook if the cell has changed
+        let notebook = this.history.stage.commit(checkpoint, this.model);
+        console.log("notebook commited", notebook, this.model);
+
+        // finish the checkpoint with info from this run
+        resolve(cellsDone, nodey.name);
+      });
+    } else {
+      resolve([], nodey.name);
+    }
   }
 
   public getCell(cell: ICellModel): VerCell {
-    return this.cells.find(item => item.view.cell.model.id === cell.id);
+    return this.cells.find(item => item.view.model.id === cell.id);
   }
 
   public getCellByNode(cell: NodeyCell): VerCell {

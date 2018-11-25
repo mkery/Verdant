@@ -46,7 +46,7 @@ export abstract class Nodey {
 export class NodeyNotebook extends Nodey {
   cells: string[];
 
-  constructor(options: NodeyOptions) {
+  constructor(options: NodeyOptions = {}) {
     super(options);
     if (options.cells && options.cells.length > 0)
       this.cells = options.cells.slice(0);

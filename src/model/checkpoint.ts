@@ -29,6 +29,7 @@ type jsn = { [id: string]: any };
 * NOTE: Checkpoints (for now) are
 * - cell is run
 * - save
+* - load
 * - cell is added
 * - cell is deleted
 * NOTE: signal new events so views update
@@ -79,7 +80,10 @@ export class HistoryCheckpoints {
     });
   }
 
-  public notebookSaved() {
+  public notebookSaved(): [
+    Checkpoint,
+    (newCells: NodeyCell[], notebook: string) => void
+  ] {
     let checkpoint = this.generateCheckpoint(CheckpointType.SAVE);
     return [checkpoint, this.handleNotebookSaved.bind(this, checkpoint.id)];
   }
@@ -96,7 +100,7 @@ export class HistoryCheckpoints {
 
   public cellRun(): [
     Checkpoint,
-    (cellRun: NodeyCell, cellSame: boolean) => void
+    (cellRun: NodeyCell, cellSame: boolean, notebookName: string) => void
   ] {
     let checkpoint = this.generateCheckpoint(CheckpointType.RUN);
     return [checkpoint, this.handleCellRun.bind(this, checkpoint.id)];
@@ -115,7 +119,11 @@ export class HistoryCheckpoints {
     });
   }
 
-  private handleNotebookSaved(saveId: number, newCells: NodeyCell[]) {
+  private handleNotebookSaved(
+    saveId: number,
+    newCells: NodeyCell[],
+    notebook: string
+  ) {
     newCells.forEach(cell => {
       let newOutput: string[] = [];
       if (cell instanceof NodeyCode) {
@@ -135,6 +143,7 @@ export class HistoryCheckpoints {
       } as CellRunData;
 
       this.checkpointList[saveId].targetCells.push(cellSaved);
+      this.checkpointList[saveId].notebook = notebook;
     });
   }
 
@@ -154,8 +163,12 @@ export class HistoryCheckpoints {
     this.checkpointList[id].targetCells.push(cellDat);
   }
 
-  private handleCellRun(runID: number, cellRun: NodeyCell, cellSame: boolean) {
-    console.log("Cell run!", cellRun);
+  private handleCellRun(
+    runID: number,
+    cellRun: NodeyCell,
+    cellSame: boolean,
+    notebook: string
+  ) {
     let cellChange;
     if (cellSame) cellChange = ChangeType.SAME;
     else cellChange = ChangeType.CHANGED;
@@ -178,13 +191,15 @@ export class HistoryCheckpoints {
     } as CellRunData;
 
     this.checkpointList[runID].targetCells.push(runCell);
+    this.checkpointList[runID].notebook = notebook;
+    console.log("RUN recorded", this.checkpointList[runID]);
   }
 }
 
 export class Checkpoint {
   readonly timestamp: number;
   readonly id: number;
-  readonly notebook: string;
+  notebook: string;
   readonly targetCells: CellRunData[];
   readonly checkpointType: CheckpointType;
 

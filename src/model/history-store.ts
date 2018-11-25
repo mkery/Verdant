@@ -36,12 +36,12 @@ export class HistoryStore {
     this._notebookHistory = new NodeHistory<NodeyNotebook>();
   }
 
-  get notebookNodey(): NodeyNotebook | Star<NodeyNotebook> {
+  get currentNotebook(): NodeyNotebook | Star<NodeyNotebook> {
     return this._notebookHistory.latest;
   }
 
   get cells(): NodeyCell[] {
-    let notebook = this.notebookNodey;
+    let notebook = this.currentNotebook;
     if (notebook instanceof Star) notebook = notebook.value;
     return notebook.cells.map(name => this.get(name) as NodeyCell);
   }
@@ -112,6 +112,11 @@ export class HistoryStore {
       if (!this._starStore[cell.id]) this._starStore[cell.id] = [];
       this._starStore[cell.id].push(nodey);
       nodey.cellId = cell.id + "";
+    } else if (nodey instanceof NodeyNotebook) {
+      let id = 0;
+      nodey.id = id;
+      let ver = this._notebookHistory.versions.push(nodey) - 1;
+      nodey.version = ver;
     } else {
       let store = this._getStoreFor(nodey);
       let history = this._makeHistoryFor(nodey);
@@ -120,8 +125,6 @@ export class HistoryStore {
       let version = store[nodey.id].versions.push(nodey) - 1;
       nodey.version = version;
     }
-
-    return;
   }
 
   public cleanOutStars(nodey: NodeyCell): void {

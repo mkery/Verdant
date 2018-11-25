@@ -1,5 +1,3 @@
-import { NodeyCell, NodeyNotebook } from "./nodey";
-
 import { VerNotebook } from "../components/notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
@@ -12,7 +10,7 @@ import { serialized_NodeyHistory } from "../file-manager";
 
 import { HistoryStore } from "./history-store";
 
-import { HistoryStage, Star } from "./history-stage";
+import { HistoryStage } from "./history-stage";
 
 import { HistoryCheckpoints } from "./checkpoint";
 
@@ -44,32 +42,9 @@ export class History {
     return false;
   }
 
-  /*
-  * NOTE star form should not leave history store or commit
-  * TODO check this design choice l8r
-  */
-  getNotebook(): NodeyNotebook {
-    let note = this.store.notebookNodey;
-    if (note instanceof Star) return note.value;
-  }
-
   get inspector(): Inspect {
     return this._inspector;
   }
-
-  handleCellRun(nodey: NodeyCell | Star<NodeyCell>) {
-    let [checkpoint, resolve] = this.checkpoints.cellRun();
-    this.stage.commit(checkpoint, nodey);
-    let newNodey = this.store.getLatestOf(nodey.name) as NodeyCell;
-    let same = newNodey.name === nodey.name;
-    resolve(newNodey, same);
-    console.log("commited cell", newNodey);
-    //this.store.writeToFile(this.notebook, this);
-  }
-
-  /*public moveCell(old_pos: number, new_pos: number) {
-    this._cellList.splice(new_pos, 0, this._cellList.splice(old_pos, 1)[0]);
-  }*/
 
   private fromJSON(data: serialized_NodeyHistory) {
     this.checkpoints.fromJSON(data.runs);

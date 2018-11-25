@@ -10,7 +10,6 @@ import { Signal } from "@phosphor/signaling";
 
 import { IObservableList } from "@jupyterlab/observables";
 
-import { CellListen } from "./cell-listen";
 import { VerNotebook } from "../components/notebook";
 
 export class NotebookListen {
@@ -25,8 +24,8 @@ export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
   private _notebookPanel: NotebookPanel;
   private _verNotebook: VerNotebook;
-  private _activeCellChanged = new Signal<this, CellListen>(this);
-  private _cellStructureChanged = new Signal<this, [number, CellListen]>(this);
+  private _activeCellChanged = new Signal<this, Cell>(this);
+  private _cellStructureChanged = new Signal<this, [number, Cell]>(this);
 
   private async init() {
     await this._notebookPanel.revealed;
@@ -51,11 +50,11 @@ export class NotebookListen {
     return this._ready.promise;
   }
 
-  get activeCellChanged(): Signal<this, CellListen> {
+  get activeCellChanged(): Signal<this, Cell> {
     return this._activeCellChanged;
   }
 
-  get cellStructureChanged(): Signal<this, [number, CellListen]> {
+  get cellStructureChanged(): Signal<this, [number, Cell]> {
     return this._cellStructureChanged;
   }
 
@@ -73,18 +72,16 @@ export class NotebookListen {
 
   async focusCell(cell: Cell = this._notebook.activeCell): Promise<void> {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
-      let cellListen = this._verNotebook.getCell(cell.model);
-      if (cellListen) {
-        await cellListen.ready;
-        this._activeCellChanged.emit(cellListen.view);
-        cellListen.view.focus();
+      let verCell = this._verNotebook.getCell(cell.model);
+      if (verCell) {
+        await verCell.ready;
+        this._activeCellChanged.emit(verCell.view);
       }
     }
     if (this.activeCell && this.activeCell.model) {
       //verify cell hasn't been deleted
-      let cellListen = this._verNotebook.getCell(cell.model);
-      await cellListen.ready;
-      cellListen.view.blur();
+      let verCell = this._verNotebook.getCell(cell.model);
+      await verCell.ready;
     }
     this.activeCell = cell;
   }
@@ -129,20 +126,20 @@ export class NotebookListen {
   private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
-      var cellListen = this._verNotebook.createCell(cell, newIndex, false);
-      await cellListen.ready;
-      console.log("adding a new cell!", cell, cellListen, cellListen.model);
-      this._cellStructureChanged.emit([index, cellListen.view]);
-      cellListen.added();
+      var verCell = this._verNotebook.createCell(cell, newIndex, false);
+      await verCell.ready;
+      console.log("adding a new cell!", cell, verCell, verCell.model);
+      this._cellStructureChanged.emit([index, verCell.view]);
+      verCell.added();
     });
   }
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
     console.log("removing cells", oldIndex, oldValues);
     oldValues.forEach(removed => {
-      var cellListen = this._verNotebook.getCell(removed);
-      this._cellStructureChanged.emit([oldIndex, cellListen.view]);
-      cellListen.deleted();
+      var verCell = this._verNotebook.getCell(removed);
+      this._cellStructureChanged.emit([oldIndex, verCell.view]);
+      verCell.deleted();
     });
   }
 
@@ -152,11 +149,11 @@ export class NotebookListen {
     newValues: ICellModel[]
   ) {
     newValues.forEach(async item => {
-      let cellListen = this._verNotebook.getCell(item);
+      let verCell = this._verNotebook.getCell(item);
       console.log("moving cell", oldIndex, newIndex, newValues);
       //TODO  this.historyModel.moveCell(oldIndex, newIndex);
-      this._cellStructureChanged.emit([newIndex, cellListen.view]);
-      this._verNotebook.moveCell(cellListen, newIndex);
+      this._cellStructureChanged.emit([newIndex, verCell.view]);
+      this._verNotebook.moveCell(verCell, newIndex);
     });
   }
 

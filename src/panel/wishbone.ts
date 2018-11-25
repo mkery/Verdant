@@ -1,5 +1,4 @@
 import { History } from "../model/history";
-import { CodeCellListen } from "../jupyter-hooks/cell-listen";
 import { Nodey, NodeyCodeCell } from "../model/nodey";
 import { Inspect } from "../inspect";
 import { VerNotebook } from "../components/notebook";
@@ -15,7 +14,7 @@ export namespace Wishbone {
   export function startWishbone(history: History) {
     console.log("starting wishbone!", history);
     history.notebook.cells.forEach((verCell: VerCell) => {
-      var cell = verCell.view.cell;
+      var cell = verCell.view;
       Private.addEvents(
         cell.inputArea.promptNode,
         [verCell.model],
@@ -30,17 +29,17 @@ export namespace Wishbone {
   }
 
   export function endWishbone(notebook: VerNotebook, history: History) {
-    notebook.cells.forEach((cellListen: VerCell) => {
-      var cell = cellListen.view.cell;
+    notebook.cells.forEach((verCell: VerCell) => {
+      var cell = verCell.view;
       Private.removeEvents(
         cell.inputArea.promptNode,
-        [cellListen.model],
+        [verCell.model],
         history.inspector
       );
 
       if (cell instanceof CodeCell) {
-        Private.removeLineEvents(cell as CodeCell, cellListen, history);
-        Private.removeOutputEvents(cellListen, history);
+        Private.removeLineEvents(cell as CodeCell, verCell, history);
+        Private.removeOutputEvents(verCell, history);
       }
     });
   }
@@ -116,38 +115,30 @@ namespace Private {
     );
   }
 
-  export function addOutputEvents(cellListen: VerCell, history: History) {
-    var outputNodey = cellListen.output;
+  export function addOutputEvents(verCell: VerCell, history: History) {
+    var outputNodey = verCell.output;
     console.log("output nodey are", outputNodey);
     if (outputNodey)
       outputNodey.forEach(out =>
-        addEvents(
-          (cellListen.view as CodeCellListen).outputArea.node,
-          [out],
-          history.inspector
-        )
+        addEvents(verCell.outputArea.node, [out], history.inspector)
       );
   }
 
-  export function removeOutputEvents(cellListen: VerCell, history: History) {
-    var outputNodey = cellListen.output;
+  export function removeOutputEvents(verCell: VerCell, history: History) {
+    var outputNodey = verCell.output;
     if (outputNodey)
       if (outputNodey)
         outputNodey.forEach(out =>
-          removeEvents(
-            (cellListen.view as CodeCellListen).outputArea.node,
-            [out],
-            history.inspector
-          )
+          removeEvents(verCell.outputArea.node, [out], history.inspector)
         );
   }
 
   export function addLineEvents(
     cell: CodeCell,
-    cellListen: VerCell,
+    verCell: VerCell,
     history: History
   ) {
-    var nodey = cellListen.model as NodeyCodeCell;
+    var nodey = verCell.model as NodeyCodeCell;
     var mask = document.createElement("div");
     mask.classList.add(WISHBONE_CODE_MASK);
     mask.addEventListener("mouseup", filterEvents);
@@ -216,10 +207,10 @@ namespace Private {
 
   export function removeLineEvents(
     cell: CodeCell,
-    cellListen: VerCell,
+    verCell: VerCell,
     history: History
   ) {
-    var nodey = cellListen.model as NodeyCodeCell;
+    var nodey = verCell.model as NodeyCodeCell;
     var mask = cell.inputArea.node.getElementsByClassName(
       WISHBONE_CODE_MASK
     )[0];

@@ -5,12 +5,9 @@ import {
   NodeyCodeCell
 } from "../model/nodey";
 import { PromiseDelegate } from "@phosphor/coreutils";
-import {
-  CellListen,
-  CodeCellListen,
-  MarkdownCellListen
-} from "../jupyter-hooks/cell-listen";
+import { OutputArea } from "@jupyterlab/outputarea";
 import { VerNotebook } from "./notebook";
+import { Checkpoint } from "../model/checkpoint";
 import { NodeyFactory } from "../model/nodey-factory";
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 
@@ -23,19 +20,18 @@ export class VerCell {
   ) {
     this.notebook = notebook;
     this.position = index;
-    this.view = this.createCellListen(cell);
+    this.view = cell;
     this.init(matchPrior);
   }
 
   private position: number;
-  readonly view: CellListen;
+  readonly view: Cell;
   private modelName: string;
   private readonly notebook: VerNotebook;
 
   private async init(matchPrior: boolean) {
-    if (this.view instanceof CodeCellListen)
-      await this.initCodeCell(matchPrior);
-    else if (this.view instanceof MarkdownCellListen)
+    if (this.view instanceof CodeCell) await this.initCodeCell(matchPrior);
+    else if (this.view instanceof MarkdownCell)
       await this.initMarkdownCell(matchPrior);
     this._ready.resolve(undefined);
   }
@@ -56,12 +52,28 @@ export class VerCell {
       });
   }
 
+  public get outputArea(): OutputArea {
+    if (this.view instanceof CodeCell)
+      return (this.view as CodeCell).outputArea;
+  }
+
   public async repair() {
     let text: string = "";
     // check cell wasn't just deleted
-    if (this.view.cell.inputArea) text = this.view.cell.editor.model.value.text;
+    if (this.view.inputArea) text = this.view.editor.model.value.text;
     await this.notebook.ast.repairFullAST(this.model, text);
     console.log("Repaired cell", this.model);
+  }
+
+  public async repairAndCommit(checkpoint: Checkpoint): Promise<NodeyCell> {
+    // repair the cell against the prior version
+    await this.repair();
+    let nodey = this.model;
+
+    // commit the cell if it has changed
+    let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
+    console.log("Cell committed", newNodey);
+    return newNodey;
   }
 
   public async added() {
@@ -76,19 +88,11 @@ export class VerCell {
     //TODO
   }
 
-  private createCellListen(cell: Cell) {
-    var cellListen: CellListen;
-    if (cell instanceof CodeCell) cellListen = new CodeCellListen(cell, this);
-    else if (cell instanceof MarkdownCell)
-      cellListen = new MarkdownCellListen(cell, this);
-    return cellListen;
-  }
-
   private async initCodeCell(matchPrior: boolean) {
-    var cell = this.view.cell as CodeCell;
+    var cell = this.view as CodeCell;
     var text: string = cell.editor.model.value.text;
     if (matchPrior) {
-      let name = this.notebook.model.cells[this.position]; //TODO could easily fail!!!
+      let name = this.notebook.cells[this.position].model.name;
       var nodeyCell = this.notebook.history.store.get(name);
       if (nodeyCell instanceof NodeyCodeCell) {
         let nodey = await this.notebook.ast.matchASTOnInit(nodeyCell, text);
@@ -126,18 +130,18 @@ export class VerCell {
 
   private async initMarkdownCell(matchPrior: boolean) {
     if (matchPrior) {
-      let name = this.notebook.model.cells[this.position]; //TODO could easily fail!!!
+      let name = this.notebook.cells[this.position].model.name; //TODO could easily fail!!!
       var nodeyCell = this.notebook.history.store.get(name);
       //console.log("Prior match is", nodeyCell, this.position);
       if (nodeyCell instanceof NodeyMarkdown) {
         this.modelName = nodeyCell.name;
         await this.notebook.ast.repairMarkdown(
           nodeyCell,
-          this.view.cell.model.value.text
+          this.view.model.value.text
         );
       } else if (nodeyCell instanceof NodeyCodeCell) {
         var nodey = await NodeyFactory.dictToMarkdownNodey(
-          this.view.cell.model.value.text,
+          this.view.model.value.text,
           this.position,
           this.notebook.history.store,
           nodeyCell.name
@@ -145,7 +149,7 @@ export class VerCell {
       }
     } else {
       var nodey = await NodeyFactory.dictToMarkdownNodey(
-        this.view.cell.model.value.text,
+        this.view.model.value.text,
         this.position,
         this.notebook.history.store
       );
