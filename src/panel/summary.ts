@@ -10,6 +10,9 @@ const CELL = "v-VerdantPanel-Summary-cell";
 const NOTEBOOK_ICON = "v-VerdantPanel-Summary-notebook-icon";
 const NOTEBOOK_LABEL = "v-VerdantPanel-Summary-notebook-label";
 const NOTEBOOK_TITLE = "v-VerdantPanel-Summary-notebook-title";
+const HEADER = "v-VerdantPanel-Summary-header";
+const HEADER_ALABEL = "v-VerdantPanel-Summary-header-aLabel";
+const HEADER_VLABEL = "v-VerdantPanel-Summary-header-vLabel";
 
 export class Summary extends Widget {
   readonly history: History;
@@ -19,21 +22,44 @@ export class Summary extends Widget {
   constructor(history: History) {
     super();
     this.history = history;
-    this.node.classList.add(SUMMARY);
+
+    let header = this.buildHeader();
+    this.node.appendChild(header);
+
+    let table = document.createElement("div");
+    table.classList.add(SUMMARY);
+    this.node.appendChild(table);
 
     this.artifactCol = document.createElement("div");
     this.artifactCol.classList.add(COL);
     this.artifactCol.classList.add("artifactCol");
-    this.node.appendChild(this.artifactCol);
+    table.appendChild(this.artifactCol);
 
     this.verCol = document.createElement("div");
     this.verCol.classList.add(COL);
-    this.node.appendChild(this.verCol);
+    table.appendChild(this.verCol);
 
     this.history.ready.then(async () => {
       await this.history.notebook.ready;
       this.build(this.history);
     });
+  }
+
+  buildHeader() {
+    let header = document.createElement("div");
+    header.classList.add(HEADER);
+
+    let aLabel = document.createElement("div");
+    aLabel.classList.add(HEADER_ALABEL);
+    aLabel.textContent = "artifact";
+    header.appendChild(aLabel);
+
+    let vLabel = document.createElement("div");
+    vLabel.classList.add(HEADER_VLABEL);
+    vLabel.textContent = "versions";
+    header.appendChild(vLabel);
+
+    return header;
   }
 
   buildNotebookTitle(title: string) {
@@ -93,6 +119,24 @@ export class Summary extends Widget {
       if (i === index) children[i].classList.add("highlight");
       else children[i].classList.remove("highlight");
     }
+  }
+
+  addCell(cell: VerCell, index: number) {
+    cell.ready.then(() => {
+      index++; //skip the notebook
+      let model = cell.model;
+      let sample = CellSampler.sampleCell(this.history, model);
+      let vers = this.history.store.getHistoryOf(model.name);
+      let [cellA, cellV] = this.buildCell(sample, vers.length);
+      this.artifactCol.insertBefore(cellA, this.artifactCol.children[index]);
+      this.verCol.insertBefore(cellV, this.verCol.children[index + 1]);
+    });
+  }
+
+  removeCell(index: number) {
+    index++; //skip the notebook
+    this.artifactCol.removeChild(this.artifactCol.children[index]);
+    this.verCol.removeChild(this.verCol.children[index]);
   }
 
   buildCell(title: HTMLElement, vers: number) {

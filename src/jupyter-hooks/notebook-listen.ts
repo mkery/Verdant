@@ -71,6 +71,7 @@ export class NotebookListen {
   }
 
   async focusCell(cell: Cell = this._notebook.activeCell): Promise<void> {
+    if (!cell.model) return; //cell was just deleted
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       let verCell = this._verNotebook.getCell(cell.model);
       if (verCell) {
@@ -138,10 +139,8 @@ export class NotebookListen {
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
     console.log("removing cells", oldIndex, oldValues);
-    oldValues.forEach(removed => {
-      var verCell = this._verNotebook.getCell(removed);
-      this._cellStructureChanged.emit([oldIndex, verCell.view]);
-      verCell.deleted();
+    oldValues.forEach(() => {
+      this._verNotebook.deleteCell(oldIndex);
     });
   }
 

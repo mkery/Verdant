@@ -176,7 +176,14 @@ export class VerNotebook {
   public createCell(cell: Cell, index: number, match: boolean): VerCell {
     let newCell = new VerCell(this, cell, index, match);
     this.cells.splice(index, 0, newCell);
+    this.panel.addCell(newCell, index);
     return newCell;
+  }
+
+  public deleteCell(index: number) {
+    let oldCell = this.cells.splice(index, 1);
+    oldCell[0].deleted();
+    this.panel.removeCell(index);
   }
 
   public moveCell(cell: VerCell, newPos: number) {

@@ -377,3 +377,22 @@
   line-height: 24px;
   vertical-align: top;
 }
+
+.v-VerdantPanel-Summary-header {
+  display: inline-block;
+  width: calc(100% - 10px);
+  padding: 5px;
+  border-bottom: 1px solid var(--jp-border-color2);
+  padding-bottom: 2px;
+  margin: 0px;
+  color: var(--jp-content-font-color2);
+  font-style: italic;
+}
+.v-VerdantPanel-Summary-header-aLabel {
+  display: inline-block;
+  float: left;
+}
+.v-VerdantPanel-Summary-header-vLabel {
+  display: inline-block;
+  float: right;
+}
