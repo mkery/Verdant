@@ -66,6 +66,15 @@ export class Summary extends Widget {
     this.replaceCell(cellA, cellV, index);
   }
 
+  highlightCell(index: number) {
+    index++; //skip the notebook
+    let children = this.artifactCol.children;
+    for (var i = 0; i < children.length; i++) {
+      if (i === index) children[i].classList.add("highlight");
+      else children[i].classList.remove("highlight");
+    }
+  }
+
   buildCell(title: string | HTMLElement, vers: number) {
     let cellA = document.createElement("div");
     cellA.classList.add(CELL);
@@ -75,6 +84,7 @@ export class Summary extends Widget {
 
     let cellV = document.createElement("div");
     cellV.classList.add(CELL);
+    cellV.classList.add("ver");
 
     cellV.textContent = vers + "";
 

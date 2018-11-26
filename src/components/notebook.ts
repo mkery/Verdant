@@ -184,6 +184,11 @@ export class VerNotebook {
     console.error("TODO MOVE CELL NOT IMPLIMENTED", cell, newPos);
   }
 
+  public focusCell(cell: VerCell) {
+    let index = this.indexOf(cell);
+    this.panel.highlightCell(index);
+  }
+
   public dump(): void {
     return this.history.dump();
   }

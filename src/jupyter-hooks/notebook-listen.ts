@@ -75,15 +75,11 @@ export class NotebookListen {
       let verCell = this._verNotebook.getCell(cell.model);
       if (verCell) {
         await verCell.ready;
+        this._verNotebook.focusCell(verCell);
         this._activeCellChanged.emit(verCell.view);
-      }
+        this.activeCell = cell;
+      } else this.activeCell = null;
     }
-    if (this.activeCell && this.activeCell.model) {
-      //verify cell hasn't been deleted
-      let verCell = this._verNotebook.getCell(cell.model);
-      await verCell.ready;
-    }
-    this.activeCell = cell;
   }
 
   private listen() {
