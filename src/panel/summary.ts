@@ -7,6 +7,9 @@ import { VerCell } from "../components/cell";
 const SUMMARY = "v-VerdantPanel-Summary";
 const COL = "v-VerdantPanel-Summary-column";
 const CELL = "v-VerdantPanel-Summary-cell";
+const NOTEBOOK_ICON = "v-VerdantPanel-Summary-notebook-icon";
+const NOTEBOOK_LABEL = "v-VerdantPanel-Summary-notebook-label";
+const NOTEBOOK_TITLE = "v-VerdantPanel-Summary-notebook-title";
 
 export class Summary extends Widget {
   readonly history: History;
@@ -33,17 +36,32 @@ export class Summary extends Widget {
     });
   }
 
+  buildNotebookTitle(title: string) {
+    let name = document.createElement("div");
+    name.classList.add(NOTEBOOK_LABEL);
+    let icon = document.createElement("div");
+    icon.classList.add(NOTEBOOK_ICON);
+    icon.classList.add("jp-NotebookIcon");
+    let titleDiv = document.createElement("div");
+    titleDiv.classList.add(NOTEBOOK_TITLE);
+    titleDiv.textContent = title;
+    name.appendChild(icon);
+    name.appendChild(titleDiv);
+    return name;
+  }
+
   build(history: History) {
     let notebook = history.notebook;
     let title = notebook.name;
+    let sample = this.buildNotebookTitle(title);
     let vers = history.store.getHistoryOf(notebook.model.name);
-    let [cellA, cellV] = this.buildCell(title, vers.length);
+    let [cellA, cellV] = this.buildCell(sample, vers.length);
     this.artifactCol.appendChild(cellA);
     this.verCol.appendChild(cellV);
 
     notebook.cells.forEach(cell => {
       let model = cell.model;
-      let sample = CellSampler.sampleCell(history, model);
+      sample = CellSampler.sampleCell(history, model);
       vers = history.store.getHistoryOf(model.name);
       [cellA, cellV] = this.buildCell(sample, vers.length);
       this.artifactCol.appendChild(cellA);
@@ -54,11 +72,13 @@ export class Summary extends Widget {
   updateNotebook(notebook: VerNotebook) {
     let title = notebook.name;
     let vers = this.history.store.getHistoryOf(notebook.model.name);
-    let [cellA, cellV] = this.buildCell(title, vers.length);
+    let sample = this.buildNotebookTitle(title);
+    let [cellA, cellV] = this.buildCell(sample, vers.length);
     this.replaceCell(cellA, cellV, 0);
   }
 
   updateCell(cell: VerCell, index: number) {
+    index++; //skip the notebook
     let model = cell.model;
     let sample = CellSampler.sampleCell(this.history, model);
     let vers = this.history.store.getHistoryOf(model.name);
@@ -75,12 +95,11 @@ export class Summary extends Widget {
     }
   }
 
-  buildCell(title: string | HTMLElement, vers: number) {
+  buildCell(title: HTMLElement, vers: number) {
     let cellA = document.createElement("div");
     cellA.classList.add(CELL);
 
-    if (title instanceof HTMLElement) cellA.appendChild(title);
-    else cellA.textContent = title;
+    cellA.appendChild(title);
 
     let cellV = document.createElement("div");
     cellV.classList.add(CELL);

@@ -346,15 +346,34 @@
   display: block;
   border-bottom: 1px solid var(--jp-border-color2);
   width: 100%;
-  height: calc(2em + var(--jp-code-padding));
+  height: calc(2em + var(--jp-code-padding) * 2);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .v-VerdantPanel-Summary-cell.ver {
   width: unset;
   padding: var(--jp-code-padding);
-  height: calc(2em - var(--jp-code-padding));
+  height: 2em;
 }
 .v-VerdantPanel-Summary-cell.highlight {
   border-left: var(--jp-cell-collapser-width) solid var(--jp-brand-color1);
+}
+
+.v-VerdantPanel-Summary-notebook-label {
+  padding: var(--jp-cell-padding);
+}
+
+.v-VerdantPanel-Summary-notebook-icon {
+  width: 14px;
+  height: 24px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  margin-right: 4px;
+  display: inline-block;
+}
+
+.v-VerdantPanel-Summary-notebook-title {
+  display: inline-block;
+  line-height: 24px;
+  vertical-align: top;
 }
