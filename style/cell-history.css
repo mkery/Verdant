@@ -44,24 +44,37 @@
 
 .v-VerdantPanel-cellList-sample {
   white-space: nowrap;
-  padding: 2px;
-  flex: 1 1 calc(100% - 6em);
-  background-color: aliceblue;
-  border-left: 2px solid var(--jp-brand-color3);
-  overflow: auto;
-  margin-bottom: 0.5em;
+  padding: var(--jp-code-padding);
+  width: calc(100% - var(--jp-code-padding));
+  text-overflow: ellipsis;
+  margin: 0px;
+  overflow: hidden;
+  height: calc(2em + var(--jp-code-padding));
 }
+
 .v-VerdantPanel-cellList-sample.highlight {
   margin-left: calc(0.5em - 2px);
   border-color: var(--jp-brand-color1);
   border-width: 4px;
   border-radius: var(--jp-border-radius);
 }
-.v-VerdantPanel-cellList-sample.code {
-  padding: 8px;
+.v-VerdantPanel-cellList-sample.c {
+  background-color: var(--jp-cell-editor-background);
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
+  padding: var(--jp-code-padding);
   line-height: var(--jp-code-line-height);
+}
+
+.v-VerdantPanel-cellList-sample h1,
+.v-VerdantPanel-cellList-sample h2,
+.v-VerdantPanel-cellList-sample h3,
+.v-VerdantPanel-cellList-sample h4,
+.v-VerdantPanel-cellList-sample h5,
+.v-VerdantPanel-cellList-sample h6,
+.v-VerdantPanel-cellList-sample p {
+  padding: 0px;
+  margin: 0px;
 }
 
 .v-VerdantPanel-cellList-container {

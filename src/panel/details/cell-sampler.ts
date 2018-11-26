@@ -6,7 +6,7 @@ const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 const SEARCH_RESULT = "v-VerdantPanel-sample-searchResult";
 
 export namespace CellSampler {
-  export async function sampleCell(
+  export function sampleCell(
     historyModel: History,
     cell: NodeyCell,
     textFilter: string = null
@@ -20,7 +20,7 @@ export namespace CellSampler {
       textFilter
     );
     if (cell.typeChar === "m") {
-      await historyModel.inspector.renderMarkdownVersionDiv(
+      historyModel.inspector.renderMarkdownVersionDiv(
         cell as NodeyMarkdown,
         sample.textContent,
         sample

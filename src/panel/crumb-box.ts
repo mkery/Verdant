@@ -10,16 +10,16 @@ const CRUMB_MENU = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
 
 export class CrumbBox extends Widget {
-  readonly historyModel: History;
+  readonly history: History;
   private onClose: () => void;
   private _target: Nodey;
   private _active: boolean = false;
   private menu: HTMLElement;
   private content: HTMLElement;
 
-  constructor(historyModel: History, onClose: () => void) {
+  constructor(history: History, onClose: () => void) {
     super();
-    this.historyModel = historyModel;
+    this.history = history;
     this.onClose = onClose;
 
     this.menu = document.createElement("div");
@@ -29,12 +29,10 @@ export class CrumbBox extends Widget {
     this.content = document.createElement("div");
     this.node.appendChild(this.content);
 
-    this.historyModel.inspector.ready.then(async () => {
-      this.historyModel.inspector.targetChanged.connect(
-        (_: any, nodey: Nodey[]) => {
-          this.changeTarget(nodey);
-        }
-      );
+    this.history.inspector.ready.then(async () => {
+      this.history.inspector.targetChanged.connect((_: any, nodey: Nodey[]) => {
+        this.changeTarget(nodey);
+      });
     });
   }
 
@@ -70,7 +68,7 @@ export class CrumbBox extends Widget {
 
     if (this._target) {
       if (this._target instanceof NodeyCode)
-        Mixin.labelNodeyCode(menu, this._target, this.historyModel);
+        Mixin.labelNodeyCode(menu, this._target, this.history);
       else if (this._target instanceof NodeyMarkdown)
         Mixin.addItem(menu, "markdown " + this._target.id);
       else if (this._target instanceof NodeyOutput)
@@ -82,14 +80,14 @@ export class CrumbBox extends Widget {
 
   buildDetails() {
     this.content.innerHTML = "";
-    let mixin = new Mixin(this.historyModel, [this._target], false);
+    let mixin = new Mixin(this.history, [this._target], false);
     this.content.appendChild(mixin.node);
 
     if (this._target instanceof NodeyCode) {
       let output = (this._target as NodeyCode).output.map(item => {
-        return this.historyModel.store.get(item);
+        return this.history.store.get(item);
       });
-      let outMix = new Mixin(this.historyModel, output, true);
+      let outMix = new Mixin(this.history, output, true);
       this.content.appendChild(outMix.node);
     }
   }

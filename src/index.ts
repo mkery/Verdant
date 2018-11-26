@@ -90,7 +90,12 @@ const extension: JupyterLabPlugin<void> = {
           //verdantPanel.onNotebookSwitch(widg);
           if (!activePanel || activePanel !== widg) {
             activePanel = widg;
-            notebook = new VerNotebook(activePanel, model, astUtils);
+            notebook = new VerNotebook(
+              activePanel,
+              model,
+              astUtils,
+              verdantPanel
+            );
             notebook.ready.then(() => {
               console.log("Notebook is ready");
             });

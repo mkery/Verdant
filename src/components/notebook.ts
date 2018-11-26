@@ -10,20 +10,29 @@ import { AST } from "../analysis/ast";
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
 import { NodeyCell } from "../model/nodey";
+import { VerdantPanel } from "../panel/verdant-panel";
+import { Summary } from "../panel/summary";
 
 /*
 * Notebook holds a list of cells
 */
 export class VerNotebook {
   private kernUtil: KernelListen;
+  private panel: Summary;
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
   cells: VerCell[];
 
-  constructor(notebookPanel: NotebookPanel, history: History, ast: AST) {
+  constructor(
+    notebookPanel: NotebookPanel,
+    history: History,
+    ast: AST,
+    panel: VerdantPanel
+  ) {
     this.history = history;
     this.ast = ast;
+    this.panel = panel.summary;
     this.view = new NotebookListen(notebookPanel, this);
     this.cells = [];
     this.init();
@@ -33,6 +42,7 @@ export class VerNotebook {
     return this._ready.promise;
   }
 
+  /* also a load event */
   private async init() {
     await this.view.ready;
 
@@ -101,6 +111,10 @@ export class VerNotebook {
     // save the data to file
     //this.history.store.writeToFile(this, this.history);
     console.log("commited cell", newNodey);
+    if (!same) {
+      this.panel.updateCell(cell, this.indexOf(cell));
+      this.panel.updateNotebook(this);
+    }
   }
 
   public async save() {
@@ -134,6 +148,13 @@ export class VerNotebook {
 
         // finish the checkpoint with info from this run
         resolve(changedCells, nodey.name);
+
+        changedCells.forEach(n => {
+          let index = this.cells.findIndex(item => item.model.name === n.name);
+          this.panel.updateCell(this.cells[index], index);
+        });
+
+        this.panel.updateNotebook(this);
       });
     } else {
       resolve([], nodey.name);
@@ -146,6 +167,10 @@ export class VerNotebook {
 
   public getCellByNode(cell: NodeyCell): VerCell {
     return this.cells.find(item => item.model === cell);
+  }
+
+  private indexOf(cell: VerCell): number {
+    return this.cells.findIndex(item => item === cell);
   }
 
   public createCell(cell: Cell, index: number, match: boolean): VerCell {

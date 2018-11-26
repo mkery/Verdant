@@ -8,6 +8,8 @@ import { History } from "../model/history";
 
 import { CrumbBox } from "./crumb-box";
 
+import { Summary } from "./summary";
+
 const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
@@ -19,24 +21,26 @@ const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
  * A widget which displays notebook-level history information
  */
 export class VerdantPanel extends Widget {
-  readonly historyModel: History;
+  readonly history: History;
   readonly contentBox: HTMLElement;
+  readonly summary: Summary;
   readonly crumbBox: CrumbBox;
 
-  constructor(historyModel: History) {
+  constructor(history: History) {
     super();
     this.addClass("v-VerdantPanel");
-    this.historyModel = historyModel;
+    this.history = history;
 
     let header = this.buildHeaderNode();
-    //this.runList = new RunPanel(this.historyModel, this);
+    this.summary = new Summary(this.history);
     this.node.appendChild(header);
 
     this.contentBox = document.createElement("div");
-    //this.contentBox.appendChild(this.runList.node);
+    this.contentBox.appendChild(this.summary.node);
+    this.contentBox.classList.add("v-VerdantPanel-content");
     this.node.appendChild(this.contentBox);
 
-    this.crumbBox = new CrumbBox(this.historyModel, () => this.closeCrumbBox());
+    this.crumbBox = new CrumbBox(this.history, () => this.closeCrumbBox());
   }
 
   public ghostBookOpened(widg: Widget) {
@@ -80,10 +84,10 @@ export class VerdantPanel extends Widget {
     let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
     if (inspectorButton.classList.contains("active")) {
       inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
+      Wishbone.endWishbone(this.history.notebook, this.history);
     } else {
       inspectorButton.classList.add("active");
-      Wishbone.startWishbone(this.historyModel);
+      Wishbone.startWishbone(this.history);
       this.contentBox.innerHTML = "";
       this.contentBox.appendChild(this.crumbBox.node);
       this.crumbBox.show();
@@ -96,8 +100,8 @@ export class VerdantPanel extends Widget {
     let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
     if (inspectorButton.classList.contains("active")) {
       inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
+      Wishbone.endWishbone(this.history.notebook, this.history);
     }
-    //this.contentBox.appendChild(this.runList.node);
+    this.contentBox.appendChild(this.summary.node);
   }
 }

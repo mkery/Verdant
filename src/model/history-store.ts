@@ -221,6 +221,10 @@ export class NodeHistory<T extends Nodey> {
     return this.versions[this.versions.length - 1];
   }
 
+  get length() {
+    return this.versions.length;
+  }
+
   setLatestToStar(s: Star<T>): void {
     this.unsavedEdits = s;
   }

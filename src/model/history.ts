@@ -1,7 +1,7 @@
 import { VerNotebook } from "../components/notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
-
+import { PromiseDelegate } from "@phosphor/coreutils";
 import { Inspect } from "../inspect";
 
 import { FileManager } from "../file-manager";
@@ -37,9 +37,15 @@ export class History {
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
       this.fromJSON(history);
+      this._ready.resolve(undefined);
       return true;
     }
+    this._ready.resolve(undefined);
     return false;
+  }
+
+  public get ready(): Promise<void> {
+    return this._ready.promise;
   }
 
   get inspector(): Inspect {
@@ -60,4 +66,6 @@ export class History {
   public dump(): void {
     console.log(this.store.toJSON());
   }
+
+  private _ready = new PromiseDelegate<void>();
 }

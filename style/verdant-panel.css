@@ -3,6 +3,10 @@
   flex-direction: column;
 }
 
+.v-VerdantPanel-content {
+  overflow: scroll;
+}
+
 .v-VerdantPanel-header-title {
   padding-top: 8px;
 }
@@ -319,4 +323,29 @@
 .v-VerdantPanel-mixin-mixButton:hover {
   background-color: var(--jp-inverse-layout-color2);
   background-image: var(--verdant-icon-wisk-highlight);
+}
+
+.v-VerdantPanel-Summary {
+  display: inline-flex;
+  flex-direction: row;
+  width: 100%;
+}
+.v-VerdantPanel-Summary-column {
+  flex: 1 1 auto;
+  display: inline-block;
+  overflow: hidden;
+  min-width: calc(1em + 10px);
+  text-align: center;
+}
+.v-VerdantPanel-Summary-column.artifactCol {
+  border-right: 1px solid var(--jp-border-color2);
+  text-align: left;
+}
+.v-VerdantPanel-Summary-cell {
+  display: block;
+  border-bottom: 1px solid var(--jp-border-color2);
+  width: 100%;
+  height: calc(2em + var(--jp-code-padding));
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
