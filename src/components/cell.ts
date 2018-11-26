@@ -137,30 +137,25 @@ export class VerCell {
   }
 
   private async initMarkdownCell(matchPrior: boolean) {
+    let nodey: NodeyMarkdown;
     if (matchPrior) {
       let name = this.notebook.cells[this.position].model.name; //TODO could easily fail!!!
       var nodeyCell = this.notebook.history.store.get(name);
       //console.log("Prior match is", nodeyCell, this.position);
       if (nodeyCell instanceof NodeyMarkdown) {
-        this.modelName = nodeyCell.name;
         await this.notebook.ast.repairMarkdown(
           nodeyCell,
           this.view.model.value.text
         );
       } else if (nodeyCell instanceof NodeyCodeCell) {
-        var nodey = await NodeyFactory.dictToMarkdownNodey(
-          this.view.model.value.text,
-          this.position,
-          this.notebook.history.store,
-          nodeyCell.name
-        );
+        let text = this.view.model.value.text;
+        nodey = new NodeyMarkdown({ markdown: text });
+        this.notebook.history.store.registerTiedNodey(nodey, nodeyCell.name);
       }
     } else {
-      var nodey = await NodeyFactory.dictToMarkdownNodey(
-        this.view.model.value.text,
-        this.position,
-        this.notebook.history.store
-      );
+      let text = this.view.model.value.text;
+      nodey = new NodeyMarkdown({ markdown: text });
+      this.notebook.history.store.store(nodey);
     }
     this.modelName = nodey.name;
   }

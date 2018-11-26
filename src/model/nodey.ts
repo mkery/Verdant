@@ -226,7 +226,7 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
   }
 
   get typeChar() {
-    return "c";
+    return "m";
   }
 }
 

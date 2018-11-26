@@ -53,6 +53,7 @@ export class VerNotebook {
       }
     });
     await Promise.all(cellsReady);
+    console.log(this.cells);
     this.view.focusCell();
     console.log("Loaded Notebook", this.view.notebook, this.model);
     this.dump();
@@ -114,9 +115,7 @@ export class VerNotebook {
       let cellCommits: Promise<[NodeyCell, boolean]>[] = [];
       this.cells.forEach(cell => {
         let cellNode = cell.model;
-        console.log("CELL", cellNode);
         if (cellNode instanceof Star) {
-          console.log("STAR", cellNode);
           cellCommits.push(cell.repairAndCommit(checkpoint));
         }
       });

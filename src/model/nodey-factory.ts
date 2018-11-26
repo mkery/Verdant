@@ -151,22 +151,6 @@ export namespace NodeyFactory {
     return n;
   }
 
-  export function dictToMarkdownNodey(
-    text: string,
-    position: number,
-    historyStore: HistoryStore,
-    forceTie: string = null
-  ) {
-    var n = new NodeyMarkdown({ markdown: text });
-    if (forceTie) {
-      // only occurs when cells change type from code/markdown
-      historyStore.registerTiedNodey(n, forceTie);
-    } else historyStore.store(n);
-    //TODO update
-    console.log(position, "cell changed!");
-    return n;
-  }
-
   export function outputToNodey(
     cell: CodeCell,
     historyStore: HistoryStore,
