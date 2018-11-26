@@ -144,6 +144,7 @@ export class HistoryCheckpoints {
 
       this.checkpointList[saveId].targetCells.push(cellSaved);
       this.checkpointList[saveId].notebook = notebook;
+      console.log("SAVE Checkpoint", this.checkpointList[saveId]);
     });
   }
 

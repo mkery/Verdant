@@ -6,6 +6,8 @@ import { Session, KernelMessage } from "@jupyterlab/services";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
+import { Star } from "../model/history-stage";
+
 import {
   NodeyCell,
   NodeyCode,
@@ -1551,7 +1553,10 @@ if(debug): parse(text)
     return future.done;
   }
 
-  async repairMarkdown(nodey: NodeyMarkdown, newText: string) {
+  async repairMarkdown(
+    nodey: NodeyMarkdown | Star<NodeyMarkdown>,
+    newText: string
+  ) {
     this.astResolve.repairMarkdown(nodey, newText);
   }
 
@@ -1608,12 +1613,25 @@ if(debug): parse(text)
     });
   }
 
-  async repairFullAST(nodey: NodeyCell, text: string) {
+  async repairFullAST(nodey: NodeyCell | Star<NodeyCell>, text: string) {
+    if (nodey instanceof Star) {
+      if (nodey.value instanceof NodeyCode)
+        return this.repairCodeCell(nodey as Star<NodeyCodeCell>, text);
+      else if (nodey.value instanceof NodeyMarkdown)
+        return this.astResolve.repairMarkdown(
+          nodey as Star<NodeyMarkdown>,
+          text
+        );
+    }
     if (nodey instanceof NodeyCode) return this.repairCodeCell(nodey, text);
-    else return this.astResolve.repairMarkdown(nodey as NodeyMarkdown, text);
+    else if (nodey instanceof NodeyMarkdown)
+      return this.astResolve.repairMarkdown(nodey as NodeyMarkdown, text);
   }
 
-  private async repairCodeCell(nodey: NodeyCodeCell, text: string) {
+  private async repairCodeCell(
+    nodey: NodeyCodeCell | Star<NodeyCodeCell>,
+    text: string
+  ) {
     return new Promise<NodeyCode>((accept, reject) => {
       var [recieve_reply, newCode] = this.astResolve.repairFullAST(nodey, text);
 

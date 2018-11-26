@@ -87,6 +87,12 @@ export class NotebookListen {
   }
 
   private listen() {
+    /**
+     * fileChanged is "A signal emitted when the model is saved or reverted.""
+     */
+    this._notebookPanel.context.fileChanged.connect(() => {
+      this._verNotebook.save();
+    });
     this._notebook.model.cells.changed.connect(
       (sender: any, data: IObservableList.IChangedArgs<ICellModel>) => {
         var newIndex = data.newIndex;

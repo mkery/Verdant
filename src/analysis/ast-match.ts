@@ -2,16 +2,13 @@ import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../model/nodey";
 
 import { History } from "../model/history";
 
-import { ASTUtils } from "./ast-utils";
+import { ASTUtils, $NodeyCode$ } from "./ast-utils";
 
 import { Star } from "../model/history-stage";
 
 import * as levenshtein from "fast-levenshtein";
 
 import { ASTResolve } from "./ast-resolve";
-
-type Pos = { line: number; ch: number };
-type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
 
 export class ASTMatch {
   history: History;
@@ -23,11 +20,14 @@ export class ASTMatch {
   }
 
   async recieve_newVersion(
-    nodey: NodeyCode,
+    nodey: $NodeyCode$,
     updateID: string,
     jsn: string
   ): Promise<$NodeyCode$> {
-    if (nodey.pendingUpdate && nodey.pendingUpdate === updateID) {
+    if (
+      $NodeyCode$.pendingUpdate(nodey) &&
+      $NodeyCode$.pendingUpdate(nodey) === updateID
+    ) {
       console.log("Time to resolve", jsn, "with", nodey);
 
       var dict: ParserNodey;
@@ -120,10 +120,16 @@ export class ASTMatch {
       );
 
       //resolved
-      if (nodey.pendingUpdate === updateID) nodey.pendingUpdate = null;
+      if ($NodeyCode$.pendingUpdate(nodey) === updateID)
+        $NodeyCode$.setPendingUpdate(nodey, null);
       return newNodey;
     } else {
-      console.log("RECIEVED OLD UPDATE", updateID, jsn, nodey.pendingUpdate);
+      console.log(
+        "RECIEVED OLD UPDATE",
+        updateID,
+        jsn,
+        $NodeyCode$.pendingUpdate(nodey)
+      );
       return nodey;
     }
   }
@@ -152,7 +158,7 @@ export class ASTMatch {
       // unfortunately we traverse even if no change if positions aren't set
       if (
         parsedNode.content &&
-        (match.score !== 0 || !this.getEnd(nodeyEdited))
+        (match.score !== 0 || !$NodeyCode$.getEnd(nodeyEdited))
       ) {
         //TODO optimize
         var content = parsedNode.content.map(num => {
@@ -166,34 +172,34 @@ export class ASTMatch {
             nodeyList,
             nodeyEdited
           );
-          this.setParent(child, nodeyEdited.name);
+          $NodeyCode$.setParent(child, nodeyEdited.name);
           return child.name;
         });
-        this.setContent(nodeyEdited, content);
+        $NodeyCode$.setContent(nodeyEdited, content);
         //console.log("edited node is ", nodeyEdited);
       }
       //fix position
-      if (!this.getEnd(nodeyEdited)) {
-        this.setStart(nodeyEdited, {
+      if (!$NodeyCode$.getEnd(nodeyEdited)) {
+        $NodeyCode$.setStart(nodeyEdited, {
           line: parsedNode.start.line - 1,
           ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
         });
-        this.setEnd(nodeyEdited, {
+        $NodeyCode$.setEnd(nodeyEdited, {
           line: parsedNode.end.line - 1,
           ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
         });
       } else {
         // fix position but be sure it's relative to this node snippet
         // because may not be the whole cell, so does not start at 0
-        this.setStart(nodeyEdited, {
+        $NodeyCode$.setStart(nodeyEdited, {
           line: parsedNode.start.line - 1,
           ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
         });
-        this.setEnd(nodeyEdited, {
+        $NodeyCode$.setEnd(nodeyEdited, {
           line: parsedNode.end.line - 1,
           ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
         });
-        this.positionRelativeTo(nodeyEdited, relativeTo);
+        $NodeyCode$.positionRelativeTo(nodeyEdited, relativeTo);
       }
     } else {
       console.log("New Node!", parsedNode);
@@ -208,8 +214,8 @@ export class ASTMatch {
         nodeyEdited = this.forceReplace(relativeTo, parsedNode);
       } else {
         nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
-        let content = this.getContent(relativeTo);
-        if (!content) this.setContent(relativeTo, []);
+        let content = $NodeyCode$.getContent(relativeTo);
+        if (!content) $NodeyCode$.setContent(relativeTo, []);
         content.push(nodeyEdited.name);
       }
     }
@@ -554,8 +560,8 @@ export class ASTMatch {
     n.end.line -= 1;
     n.start.ch -= 1;
     n.end.ch -= 1;
-    if (this.getStart(target)) this.positionRelativeTo(n, target); //TODO if from the past, target may not have a position
-    let parent = this.getParent(target);
+    if ($NodeyCode$.getStart(target)) $NodeyCode$.positionRelativeTo(n, target); //TODO if from the past, target may not have a position
+    let parent = $NodeyCode$.getParent(target);
     if (parent) {
       n.parent = parent;
     } else {
@@ -607,63 +613,6 @@ export class ASTMatch {
     nodeyEdited.value.content = [new SyntaxToken(parsedSyntok.syntok)];
     console.log("FORCE REPLACE", nodeyEdited);
     return nodeyEdited;
-  }
-
-  /*
-  * Helper functions for matching
-  */
-  private getEnd(nodey: NodeyCode | Star<NodeyCode>): Pos {
-    if (nodey instanceof NodeyCode) return nodey.end;
-    return nodey.value.end;
-  }
-
-  private setEnd(nodey: NodeyCode | Star<NodeyCode>, end: Pos) {
-    if (nodey instanceof NodeyCode) nodey.end = end;
-    else nodey.value.end = end;
-  }
-
-  private getStart(nodey: NodeyCode | Star<NodeyCode>): Pos {
-    if (nodey instanceof NodeyCode) return nodey.start;
-    return nodey.value.start;
-  }
-
-  private setStart(nodey: NodeyCode | Star<NodeyCode>, start: Pos) {
-    if (nodey instanceof NodeyCode) nodey.start = start;
-    else nodey.value.start = start;
-  }
-
-  private getParent(nodey: NodeyCode | Star<NodeyCode>): string {
-    if (nodey instanceof NodeyCode) return nodey.parent;
-    return nodey.value.parent;
-  }
-
-  private setParent(nodey: NodeyCode | Star<NodeyCode>, parent: string) {
-    if (nodey instanceof NodeyCode) nodey.parent = parent;
-    else nodey.value.parent = parent;
-  }
-
-  private positionRelativeTo(
-    nodey: NodeyCode | Star<NodeyCode>,
-    relativeTo: NodeyCode | Star<NodeyCode>
-  ) {
-    let target: NodeyCode;
-    if (relativeTo instanceof Star) target = relativeTo.value;
-    else target = relativeTo;
-    if (nodey instanceof NodeyCode) nodey.positionRelativeTo(target);
-    else nodey.value.positionRelativeTo(target);
-  }
-
-  private getContent(nodey: NodeyCode | Star<NodeyCode>) {
-    if (nodey instanceof NodeyCode) return nodey.content;
-    else return nodey.value.content;
-  }
-
-  private setContent(
-    nodey: NodeyCode | Star<NodeyCode>,
-    content: (string | SyntaxToken)[]
-  ) {
-    if (nodey instanceof NodeyCode) nodey.content = content;
-    else nodey.value.content = content;
   }
 }
 

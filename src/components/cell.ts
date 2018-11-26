@@ -33,18 +33,19 @@ export class VerCell {
     if (this.view instanceof CodeCell) await this.initCodeCell(matchPrior);
     else if (this.view instanceof MarkdownCell)
       await this.initMarkdownCell(matchPrior);
+    this.listen();
     this._ready.resolve(undefined);
   }
 
-  get ready(): Promise<void> {
+  public get ready(): Promise<void> {
     return this._ready.promise;
   }
 
-  get model(): NodeyCell {
+  public get model(): NodeyCell {
     return this.notebook.history.store.getLatestOf(this.modelName) as NodeyCell;
   }
 
-  get output(): NodeyOutput[] {
+  public get output(): NodeyOutput[] {
     var output = (this.model as NodeyCodeCell).output;
     if (output)
       return output.map(o => {
@@ -60,12 +61,16 @@ export class VerCell {
   public async repair() {
     let text: string = "";
     // check cell wasn't just deleted
-    if (this.view.inputArea) text = this.view.editor.model.value.text;
+    if (this.view.inputArea) {
+      text = this.view.editor.model.value.text;
+    }
     await this.notebook.ast.repairFullAST(this.model, text);
     console.log("Repaired cell", this.model);
   }
 
-  public async repairAndCommit(checkpoint: Checkpoint): Promise<NodeyCell> {
+  public async repairAndCommit(
+    checkpoint: Checkpoint
+  ): Promise<[NodeyCell, boolean]> {
     // repair the cell against the prior version
     await this.repair();
     let nodey = this.model;
@@ -73,7 +78,10 @@ export class VerCell {
     // commit the cell if it has changed
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
     console.log("Cell committed", newNodey);
-    return newNodey;
+
+    let same = newNodey.name === nodey.name;
+
+    return [newNodey, same];
   }
 
   public async added() {
@@ -155,6 +163,16 @@ export class VerCell {
       );
     }
     this.modelName = nodey.name;
+  }
+
+  private listen() {
+    this.view.model.contentChanged.connect(() => {
+      /* set model of this cell to star state, although we
+       * don't know for sure yet, because of possible undo,
+       * if anything has truly changed yet
+       */
+      this.notebook.history.stage.markAsEdited(this.model);
+    });
   }
 
   private _ready = new PromiseDelegate<void>();

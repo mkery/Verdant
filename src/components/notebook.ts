@@ -88,15 +88,13 @@ export class VerNotebook {
 
     // now repair the cell against the prior version
     let cell = this.getCell(cellModel);
-    let nodey = cell.model;
-    let newNodey = await cell.repairAndCommit(checkpoint);
+    let [newNodey, same] = await cell.repairAndCommit(checkpoint);
 
     // commit the notebook if the cell has changed
     let notebook = this.history.stage.commit(checkpoint, this.model);
     console.log("notebook commited", notebook, this.model);
 
     // finish the checkpoint with info from this run
-    let same = newNodey.name === nodey.name;
     resolve(newNodey, same, notebook.name);
 
     // save the data to file
@@ -105,27 +103,38 @@ export class VerNotebook {
   }
 
   public async save() {
+    console.log("SAVE EVENT DETECTED");
     //  start a checkpoint for this run
     let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
-
+    console.log(checkpoint);
     // now see if there are any unsaved changes
     let nodey = this.model;
     if (nodey instanceof Star) {
       // look through cells for unsaved changes
-      let cellCommits: Promise<NodeyCell>[] = [];
+      let cellCommits: Promise<[NodeyCell, boolean]>[] = [];
       this.cells.forEach(cell => {
         let cellNode = cell.model;
-        if (cellNode instanceof Star)
+        console.log("CELL", cellNode);
+        if (cellNode instanceof Star) {
+          console.log("STAR", cellNode);
           cellCommits.push(cell.repairAndCommit(checkpoint));
+        }
       });
 
       Promise.all(cellCommits).then(cellsDone => {
+        // check which cells are verified to have changed
+        let changedCells: NodeyCell[] = [];
+        cellsDone.forEach(item => {
+          let [newNodey, same] = item;
+          if (!same) changedCells.push(newNodey);
+        });
+
         // commit the notebook if the cell has changed
         let notebook = this.history.stage.commit(checkpoint, this.model);
         console.log("notebook commited", notebook, this.model);
 
         // finish the checkpoint with info from this run
-        resolve(cellsDone, nodey.name);
+        resolve(changedCells, nodey.name);
       });
     } else {
       resolve([], nodey.name);

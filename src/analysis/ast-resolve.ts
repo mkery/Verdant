@@ -15,6 +15,8 @@ import { Star } from "../model/history-stage";
 
 import { ASTUtils } from "./ast-utils";
 
+import { $NodeyCode$ } from "./ast-utils";
+
 import * as crypto from "crypto";
 import * as levenshtein from "fast-levenshtein";
 
@@ -34,8 +36,10 @@ export class ASTResolve {
     this.match = new ASTMatch(history, this);
   }
 
-  repairMarkdown(nodey: NodeyMarkdown, newText: string) {
-    var oldText = nodey.markdown;
+  repairMarkdown(nodey: NodeyMarkdown | Star<NodeyMarkdown>, newText: string) {
+    let oldText: string;
+    if (nodey instanceof Star) oldText = nodey.value.markdown;
+    else oldText = nodey.markdown;
     var score = levenshtein.get(oldText, newText);
     if (score !== 0) {
       let edited = this.history.stage.markAsEdited(nodey) as Star<
@@ -45,7 +49,11 @@ export class ASTResolve {
     }
   }
 
-  repairFullAST(nodey: NodeyCodeCell, text: string) {
+  repairFullAST(nodeToFix: NodeyCodeCell | Star<NodeyCodeCell>, text: string) {
+    let nodey: NodeyCodeCell;
+    if (nodeToFix instanceof Star) nodey = nodeToFix.value;
+    else nodey = nodeToFix;
+
     let textOrig = this.history.inspector.renderNode(nodey).text;
     console.log(
       "The exact affected nodey is",
@@ -59,7 +67,7 @@ export class ASTResolve {
 
     var kernel_reply = this.match.recieve_newVersion.bind(
       this.match,
-      nodey,
+      nodeToFix,
       updateID
     );
     return [kernel_reply, text];
@@ -315,7 +323,7 @@ export class ASTResolve {
   }
 
   nodeyToLeaves(
-    nodey: NodeyCode,
+    nodey: $NodeyCode$,
     nodeyList: NodeyMatchOptions[] = [],
     leaves: number[] = [],
     parentIndex: number = -1,
@@ -333,10 +341,10 @@ export class ASTResolve {
     if (parentIndex > -1) option.parentIndex = parentIndex;
     var index = nodeyList.push(option) - 1;
 
-    if (nodey.literal) leaves.push(index);
-    else if (nodey.content) {
+    if ($NodeyCode$.getLiteral(nodey)) leaves.push(index);
+    else if ($NodeyCode$.getContent(nodey)) {
       var kidRow = 0;
-      nodey.content.forEach(name => {
+      $NodeyCode$.getContent(nodey).forEach(name => {
         if (name instanceof SyntaxToken) {
           if (name.tokens !== " ") {
             //ignore spaces
