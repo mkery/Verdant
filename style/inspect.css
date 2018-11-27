@@ -160,6 +160,7 @@
 
 .v-VerdantPanel-wishbone-highlight {
   background-color: var(--jp-editor-selected-focused-background);
+  opacity: 0.4;
 }
 
 .v-VerdantPanel-wishbone-code-mask {
@@ -171,6 +172,10 @@
   top: 0px;
   left: 0px;
   cursor: default;
+}
+.v-VerdantPanel-wishbone-code-mask.highlight {
+  background-color: var(--jp-editor-selected-focused-background);
+  opacity: 0.4;
 }
 
 .v-VerdantPanel-wishbone-code-highlight {

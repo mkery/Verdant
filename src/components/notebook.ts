@@ -11,14 +11,14 @@ import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
 import { NodeyCell } from "../model/nodey";
 import { VerdantPanel } from "../panel/verdant-panel";
-import { Summary } from "../panel/summary";
+//import { Summary } from "../panel/summary";
 
 /*
 * Notebook holds a list of cells
 */
 export class VerNotebook {
   private kernUtil: KernelListen;
-  private panel: Summary;
+  //private panel: Summary;
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
@@ -32,7 +32,7 @@ export class VerNotebook {
   ) {
     this.history = history;
     this.ast = ast;
-    this.panel = panel.summary;
+    // this.panel = panel.summary;
     this.view = new NotebookListen(notebookPanel, this);
     this.cells = [];
     this.init();
@@ -112,8 +112,8 @@ export class VerNotebook {
     //this.history.store.writeToFile(this, this.history);
     console.log("commited cell", newNodey);
     if (!same) {
-      this.panel.updateCell(cell, this.indexOf(cell));
-      this.panel.updateNotebook(this);
+      // this.panel.updateCell(cell, this.indexOf(cell));
+      // this.panel.updateNotebook(this);
     }
   }
 
@@ -149,12 +149,12 @@ export class VerNotebook {
         // finish the checkpoint with info from this run
         resolve(changedCells, nodey.name);
 
-        changedCells.forEach(n => {
-          let index = this.cells.findIndex(item => item.model.name === n.name);
-          this.panel.updateCell(this.cells[index], index);
+        /*changedCells.forEach(n => {
+          //let index = this.cells.findIndex(item => item.model.name === n.name);
+          // this.panel.updateCell(this.cells[index], index);
         });
 
-        this.panel.updateNotebook(this);
+        // this.panel.updateNotebook(this);*/
       });
     } else {
       resolve([], nodey.name);
@@ -169,31 +169,28 @@ export class VerNotebook {
     return this.cells.find(item => item.model === cell);
   }
 
-  private indexOf(cell: VerCell): number {
-    return this.cells.findIndex(item => item === cell);
-  }
-
   public createCell(cell: Cell, index: number, match: boolean): VerCell {
     let newCell = new VerCell(this, cell, index, match);
     this.cells.splice(index, 0, newCell);
-    this.panel.addCell(newCell, index);
+    // this.panel.addCell(newCell, index);
     return newCell;
   }
 
   public deleteCell(index: number) {
     let oldCell = this.cells.splice(index, 1);
     oldCell[0].deleted();
-    this.panel.removeCell(index);
+    // this.panel.removeCell(index);
   }
 
-  public moveCell(cell: VerCell, newPos: number) {
-    //TODO
-    console.error("TODO MOVE CELL NOT IMPLIMENTED", cell, newPos);
+  public moveCell(cell: VerCell, oldPos: number, newPos: number) {
+    this.cells.splice(oldPos, 1);
+    this.cells.splice(newPos, 0, cell);
+    // this.panel.moveCell(oldPos, newPos);
   }
 
   public focusCell(cell: VerCell) {
-    let index = this.indexOf(cell);
-    this.panel.highlightCell(index);
+    //let index = this.indexOf(cell);
+    // this.panel.highlightCell(index);
   }
 
   public dump(): void {

@@ -139,6 +139,17 @@ export class Summary extends Widget {
     this.verCol.removeChild(this.verCol.children[index]);
   }
 
+  moveCell(oldPos: number, newPos: number) {
+    oldPos++; //skip the notebook
+    newPos++; //skip the notebook
+
+    let elem = this.artifactCol.removeChild(this.artifactCol.children[oldPos]);
+    this.artifactCol.insertBefore(elem, this.artifactCol.children[newPos]);
+
+    let ver = this.verCol.removeChild(this.verCol.children[oldPos]);
+    this.verCol.insertBefore(ver, this.verCol.children[newPos]);
+  }
+
   buildCell(title: HTMLElement, vers: number) {
     let cellA = document.createElement("div");
     cellA.classList.add(CELL);

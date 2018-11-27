@@ -2,7 +2,8 @@ import { History } from "../model/history";
 import { Nodey, NodeyCodeCell } from "../model/nodey";
 import { Inspect } from "../inspect";
 import { VerNotebook } from "../components/notebook";
-import { CodeCell } from "@jupyterlab/cells";
+import { CodeCell, Cell } from "@jupyterlab/cells";
+import { OutputArea } from "@jupyterlab/outputarea";
 import { VerCell } from "../components/cell";
 
 const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
@@ -15,11 +16,7 @@ export namespace Wishbone {
     console.log("starting wishbone!", history);
     history.notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view;
-      Private.addEvents(
-        cell.inputArea.promptNode,
-        [verCell.model],
-        history.inspector
-      );
+      Private.addCellEvents(cell, [verCell.model], history.inspector);
 
       if (cell instanceof CodeCell) {
         Private.addLineEvents(cell as CodeCell, verCell, history);
@@ -31,15 +28,10 @@ export namespace Wishbone {
   export function endWishbone(notebook: VerNotebook, history: History) {
     notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view;
-      Private.removeEvents(
-        cell.inputArea.promptNode,
-        [verCell.model],
-        history.inspector
-      );
+      Private.removeCellEvents(cell);
 
       if (cell instanceof CodeCell) {
         Private.removeLineEvents(cell as CodeCell, verCell, history);
-        Private.removeOutputEvents(verCell, history);
       }
     });
   }
@@ -49,15 +41,6 @@ export namespace Wishbone {
 * a place for Wishbone's internal functionality
 */
 namespace Private {
-  export function highlightSelection(event: Event) {
-    // signal known cell node of selection
-    (<Element>event.target).classList.add(WISHBONE_HIGHLIGHT);
-  }
-
-  export function blurSelection(event: Event) {
-    (<Element>event.target).classList.remove(WISHBONE_HIGHLIGHT);
-  }
-
   export function highlightCode(event: MouseEvent, code: Element) {
     event.stopPropagation();
     if (filterSelect(code, event)) {
@@ -93,26 +76,68 @@ namespace Private {
       ]);
   }
 
-  export function addEvents(elem: Element, nodey: Nodey[], inspector: Inspect) {
-    elem.addEventListener("mouseenter", Private.highlightSelection, false);
-    elem.addEventListener("mouseleave", Private.blurSelection);
-    elem.addEventListener(
+  export function addCellEvents(
+    area: Cell | OutputArea,
+    nodey: Nodey[],
+    inspector: Inspect
+  ) {
+    // first create a mask
+    let mask = makeMask();
+
+    if (area instanceof Cell) {
+      let inputArea = area.inputArea.node;
+      inputArea.appendChild(mask);
+      addElemEvents(mask, nodey, inspector);
+    }
+    if (area instanceof CodeCell) {
+      // detect line events for code mask
+      let lineMask = makeMask();
+      area.editorWidget.node.appendChild(lineMask);
+      lineMask.addEventListener("mouseup", filterEvents);
+      lineMask.addEventListener(
+        "mouseenter",
+        startCodeSelection.bind(this, lineMask)
+      );
+      lineMask.addEventListener(
+        "mouseleave",
+        endCodeSelection.bind(this, lineMask)
+      );
+    }
+    if (area instanceof OutputArea) {
+      area.node.appendChild(mask);
+      addElemEvents(mask, nodey, inspector);
+    }
+  }
+
+  function makeMask() {
+    var mask = document.createElement("div");
+    mask.classList.add(WISHBONE_CODE_MASK);
+    return mask;
+  }
+
+  function addElemEvents(
+    mask: HTMLElement,
+    nodey: Nodey[],
+    inspector: Inspect
+  ) {
+    mask.addEventListener("mouseenter", () => {
+      // signal known cell node of selection
+      mask.classList.add("highlight");
+    });
+    mask.addEventListener("mouseleave", () => {
+      // signal known cell node of selection
+      mask.classList.remove(WISHBONE_HIGHLIGHT);
+      mask.classList.remove("highlight");
+    });
+    mask.addEventListener(
       "mouseup",
       Private.selectTarget.bind(this, nodey, inspector)
     );
   }
 
-  export function removeEvents(
-    elem: HTMLElement,
-    nodey: Nodey[],
-    inspector: Inspect
-  ) {
-    elem.removeEventListener("mouseenter", Private.highlightSelection);
-    elem.removeEventListener("mouseleave", Private.blurSelection);
-    elem.removeEventListener(
-      "mouseup",
-      Private.selectTarget.bind(this, nodey, inspector)
-    );
+  export function removeCellEvents(area: Cell) {
+    let masks = area.node.getElementsByClassName(WISHBONE_CODE_MASK);
+    for (let i = 0; i < masks.length; i++) masks[i].remove();
   }
 
   export function addOutputEvents(verCell: VerCell, history: History) {
@@ -120,17 +145,8 @@ namespace Private {
     console.log("output nodey are", outputNodey);
     if (outputNodey)
       outputNodey.forEach(out =>
-        addEvents(verCell.outputArea.node, [out], history.inspector)
+        addCellEvents(verCell.outputArea, [out], history.inspector)
       );
-  }
-
-  export function removeOutputEvents(verCell: VerCell, history: History) {
-    var outputNodey = verCell.output;
-    if (outputNodey)
-      if (outputNodey)
-        outputNodey.forEach(out =>
-          removeEvents(verCell.outputArea.node, [out], history.inspector)
-        );
   }
 
   export function addLineEvents(
@@ -139,12 +155,6 @@ namespace Private {
     history: History
   ) {
     var nodey = verCell.model as NodeyCodeCell;
-    var mask = document.createElement("div");
-    mask.classList.add(WISHBONE_CODE_MASK);
-    mask.addEventListener("mouseup", filterEvents);
-    mask.addEventListener("mouseenter", startCodeSelection.bind(this, mask));
-    mask.addEventListener("mouseleave", endCodeSelection.bind(this, mask));
-    cell.editorWidget.node.appendChild(mask);
     var code = cell.inputArea.node.getElementsByTagName("span");
     for (var i = 0; i < code.length; i++) {
       code[i].classList.add(WISHBONE_CODE);

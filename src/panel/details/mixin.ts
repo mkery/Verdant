@@ -19,7 +19,7 @@ import {
 const HEADER = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_CONTENT = "v-VerdantPanel-inspect-content";
 const HEADER_TARGET = "v-VerdantPanel-crumbMenu-item";
-const HEADER_WISK = "v-VerdantPanel-mixin-mixButton";
+//const HEADER_WISK = "v-VerdantPanel-mixin-mixButton";
 const CRUMB_MENU_SEPERATOR = "v-VerdantPanel-crumbMenu-seperator";
 
 export class Mixin extends Widget {
@@ -57,9 +57,9 @@ export class Mixin extends Widget {
         else if (target instanceof NodeyOutput)
           Mixin.addItem(menu, "output " + target.id);
 
-        let wiskButton = document.createElement("div");
+        /*let wiskButton = document.createElement("div");
         wiskButton.classList.add(HEADER_WISK);
-        menu.appendChild(wiskButton);
+        menu.appendChild(wiskButton);*/
       } else {
         //TODO
       }

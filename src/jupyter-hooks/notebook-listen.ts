@@ -154,7 +154,7 @@ export class NotebookListen {
       console.log("moving cell", oldIndex, newIndex, newValues);
       //TODO  this.historyModel.moveCell(oldIndex, newIndex);
       this._cellStructureChanged.emit([newIndex, verCell.view]);
-      this._verNotebook.moveCell(verCell, newIndex);
+      this._verNotebook.moveCell(verCell, oldIndex, newIndex);
     });
   }
 

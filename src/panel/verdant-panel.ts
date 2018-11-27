@@ -16,6 +16,9 @@ const SEARCH_ICON = "v-VerdantPanel-searchIcon";
 const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
 const SEARCH_TEXT = "v-VerdantPanel-searchText";
 const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
+/*const CONTENT_HEADER = "v-VerdantPanel-Summary-header";
+const CONTENT_HEADER_ALABEL = "v-VerdantPanel-Summary-header-aLabel";
+const CONTENT_HEADER_VLABEL = "v-VerdantPanel-Summary-header-vLabel";*/
 
 /**
  * A widget which displays notebook-level history information
@@ -32,11 +35,12 @@ export class VerdantPanel extends Widget {
     this.history = history;
 
     let header = this.buildHeaderNode();
-    this.summary = new Summary(this.history);
+    //this.summary = new Summary(this.history);
     this.node.appendChild(header);
+    //this.node.appendChild(this.buildContentHeader());
 
     this.contentBox = document.createElement("div");
-    this.contentBox.appendChild(this.summary.node);
+    //this.contentBox.appendChild(this.summary.node);
     this.contentBox.classList.add("v-VerdantPanel-content");
     this.node.appendChild(this.contentBox);
 
@@ -80,6 +84,23 @@ export class VerdantPanel extends Widget {
     return header;
   }
 
+  /*private buildContentHeader() {
+    let header = document.createElement("div");
+    header.classList.add(CONTENT_HEADER);
+
+    let aLabel = document.createElement("div");
+    aLabel.classList.add(CONTENT_HEADER_ALABEL);
+    aLabel.textContent = "artifact";
+    header.appendChild(aLabel);
+
+    let vLabel = document.createElement("div");
+    vLabel.classList.add(CONTENT_HEADER_VLABEL);
+    vLabel.textContent = "versions";
+    header.appendChild(vLabel);
+
+    return header;
+  }*/
+
   toggleInspector() {
     let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
     if (inspectorButton.classList.contains("active")) {
@@ -102,6 +123,6 @@ export class VerdantPanel extends Widget {
       inspectorButton.classList.remove("active");
       Wishbone.endWishbone(this.history.notebook, this.history);
     }
-    this.contentBox.appendChild(this.summary.node);
+    //this.contentBox.appendChild(this.summary.node);
   }
 }
