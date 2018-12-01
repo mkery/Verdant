@@ -46,14 +46,18 @@ export class VerNotebook {
   private async init() {
     await this.view.ready;
 
+    // set up how we will run python code
     this.kernUtil = new KernelListen(this.view.panel.session);
     this.ast.setKernUtil(this.kernUtil);
+
     //load in prior data if exists
     var prior = await this.history.init(this);
     await this.ast.ready;
 
+    // load in the notebook model from data
     this.initNotebook(prior);
 
+    // start initializing all the cells
     var cellsReady: Promise<void>[] = [];
     this.view.notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
@@ -63,7 +67,14 @@ export class VerNotebook {
       }
     });
     await Promise.all(cellsReady);
-    console.log(this.cells);
+
+    // Now that the cells are loaded, set the notebook nodey's cells
+    let model: NodeyNotebook;
+    if (this.model instanceof Star) model = this.model.value;
+    else model = this.model;
+    model.cells = this.cells.map(cell => cell.model.name);
+
+    // finish initialization
     this.view.focusCell();
     console.log("Loaded Notebook", this.view.notebook, this.model);
     this.dump();

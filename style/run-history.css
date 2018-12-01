@@ -584,3 +584,8 @@
   flex: 1 1 auto;
   color: var(--jp-content-font-color2);
 }
+.Verdant-events-map {
+  padding-top: 0.25em;
+  flex: 5 1 auto;
+  text-align: right;
+}
