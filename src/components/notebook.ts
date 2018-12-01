@@ -18,7 +18,7 @@ import { VerdantPanel } from "../panel/verdant-panel";
 */
 export class VerNotebook {
   private kernUtil: KernelListen;
-  //private panel: Summary;
+  private panel: VerdantPanel;
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
@@ -32,7 +32,7 @@ export class VerNotebook {
   ) {
     this.history = history;
     this.ast = ast;
-    // this.panel = panel.summary;
+    this.panel = panel;
     this.view = new NotebookListen(notebookPanel, this);
     this.cells = [];
     this.init();
@@ -106,15 +106,12 @@ export class VerNotebook {
     console.log("notebook commited", notebook, this.model);
 
     // finish the checkpoint with info from this run
-    resolve(newNodey, same, notebook.name);
+    resolve(newNodey, same, notebook.version);
 
     // save the data to file
     //this.history.store.writeToFile(this, this.history);
     console.log("commited cell", newNodey);
-    if (!same) {
-      // this.panel.updateCell(cell, this.indexOf(cell));
-      // this.panel.updateNotebook(this);
-    }
+    this.panel.eventMap.addEvent(checkpoint);
   }
 
   public async save() {
@@ -147,8 +144,9 @@ export class VerNotebook {
         console.log("notebook commited", notebook, this.model);
 
         // finish the checkpoint with info from this run
-        resolve(changedCells, nodey.name);
+        resolve(changedCells, nodey.version);
 
+        this.panel.eventMap.addEvent(checkpoint);
         /*changedCells.forEach(n => {
           //let index = this.cells.findIndex(item => item.model.name === n.name);
           // this.panel.updateCell(this.cells[index], index);
@@ -157,7 +155,8 @@ export class VerNotebook {
         // this.panel.updateNotebook(this);*/
       });
     } else {
-      resolve([], nodey.name);
+      resolve([], nodey.version);
+      this.panel.eventMap.addEvent(checkpoint);
     }
   }
 

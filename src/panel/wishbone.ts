@@ -2,7 +2,7 @@ import { History } from "../model/history";
 import { Nodey, NodeyCodeCell } from "../model/nodey";
 import { Inspect } from "../inspect";
 import { VerNotebook } from "../components/notebook";
-import { CodeCell, Cell } from "@jupyterlab/cells";
+import { CodeCell, Cell, MarkdownCell } from "@jupyterlab/cells";
 import { OutputArea } from "@jupyterlab/outputarea";
 import { VerCell } from "../components/cell";
 
@@ -43,6 +43,7 @@ export namespace Wishbone {
 namespace Private {
   export function highlightCode(event: MouseEvent, code: Element) {
     event.stopPropagation();
+    console.log("HIGHLIGHT CODE");
     if (filterSelect(code, event)) {
       var betterMatch = false;
       for (var i = 0; i < code.children.length; i++) {
@@ -76,6 +77,10 @@ namespace Private {
       ]);
   }
 
+  function selectCode(lineMask: HTMLElement, ev: MouseEvent) {
+    codeSelection(lineMask, ev);
+  }
+
   export function addCellEvents(
     area: Cell | OutputArea,
     nodey: Nodey[],
@@ -84,7 +89,7 @@ namespace Private {
     // first create a mask
     let mask = makeMask();
 
-    if (area instanceof Cell) {
+    if (area instanceof MarkdownCell) {
       let inputArea = area.inputArea.node;
       inputArea.appendChild(mask);
       addElemEvents(mask, nodey, inspector);
@@ -92,16 +97,14 @@ namespace Private {
     if (area instanceof CodeCell) {
       // detect line events for code mask
       let lineMask = makeMask();
+      let select = selectCode.bind(this, lineMask);
       area.editorWidget.node.appendChild(lineMask);
-      lineMask.addEventListener("mouseup", filterEvents);
-      lineMask.addEventListener(
-        "mouseenter",
-        startCodeSelection.bind(this, lineMask)
-      );
-      lineMask.addEventListener(
-        "mouseleave",
-        endCodeSelection.bind(this, lineMask)
-      );
+      lineMask.addEventListener("mouseenter", () => {
+        document.addEventListener("mousemove", select);
+      });
+      lineMask.addEventListener("mouseleave", () => {
+        document.removeEventListener("mousemove", select);
+      });
     }
     if (area instanceof OutputArea) {
       area.node.appendChild(mask);
@@ -138,6 +141,12 @@ namespace Private {
   export function removeCellEvents(area: Cell) {
     let masks = area.node.getElementsByClassName(WISHBONE_CODE_MASK);
     for (let i = 0; i < masks.length; i++) masks[i].remove();
+
+    if (area instanceof CodeCell) {
+      let outputArea = area.outputArea.node;
+      let masks = outputArea.getElementsByClassName(WISHBONE_CODE_MASK);
+      for (let i = 0; i < masks.length; i++) masks[i].remove();
+    }
   }
 
   export function addOutputEvents(verCell: VerCell, history: History) {
@@ -173,37 +182,17 @@ namespace Private {
     }
   }
 
-  function startCodeSelection(mask: Element, _: MouseEvent) {
-    mask.addEventListener("mousemove", codeSelection.bind(this, mask));
-  }
-
   function codeSelection(mask: Element, ev: MouseEvent) {
     var highlighted = document.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE);
+
     for (var i = 0; i < highlighted.length; i++) {
       highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
     }
+    console.log("CODE SELECTION");
     var code = mask.parentElement.getElementsByClassName("CodeMirror-line");
     for (var i = 0; i < code.length; i++) {
       highlightCode(ev, code[i]);
     }
-  }
-
-  function endCodeSelection(mask: Element, _: MouseEvent) {
-    mask.removeEventListener("mousemove", codeSelection.bind(this, mask));
-  }
-
-  function filterEvents(ev: MouseEvent) {
-    var mask = this;
-    console.log("mask " + ev.type, ev.target, ev);
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    var event = new MouseEvent(ev.type, ev);
-
-    var code = mask.parentElement.getElementsByClassName(
-      WISHBONE_HIGHLIGHT_CODE
-    );
-    for (var i = 0; i < code.length; i++) code[i].dispatchEvent(event);
   }
 
   function filterSelect(elem: Element, ev: MouseEvent) {
@@ -221,10 +210,13 @@ namespace Private {
     history: History
   ) {
     var nodey = verCell.model as NodeyCodeCell;
-    var mask = cell.inputArea.node.getElementsByClassName(
-      WISHBONE_CODE_MASK
-    )[0];
-    mask.remove();
+
+    // get rid of any remaining highlights
+    var highlighted = document.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE);
+    for (var i = 0; i < highlighted.length; i++) {
+      highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
+    }
+    // remove event listeners
     var code = cell.inputArea.node.getElementsByClassName(WISHBONE_CODE);
     for (var i = 0; i < code.length; i++) {
       code[i].removeEventListener(

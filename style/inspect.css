@@ -162,7 +162,9 @@
   background-color: var(--jp-editor-selected-focused-background);
   opacity: 0.4;
 }
-
+.v-VerdantPanel-wishbone-code {
+  z-index: 14;
+}
 .v-VerdantPanel-wishbone-code-mask {
   width: 100%;
   height: 100%;

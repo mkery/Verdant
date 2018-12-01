@@ -40,6 +40,10 @@ export class HistoryStore {
     return this._notebookHistory.latest;
   }
 
+  public getNotebook(ver: number): NodeyNotebook {
+    return this._notebookHistory.versions[ver];
+  }
+
   get cells(): NodeyCell[] {
     let notebook = this.currentNotebook;
     if (notebook instanceof Star) notebook = notebook.value;

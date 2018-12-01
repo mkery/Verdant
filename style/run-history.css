@@ -557,3 +557,30 @@
   background-color: var(--jp-brand-color2);
   background-image: var(--verdant-icon-time-highlight);
 }
+
+/*
+* START OF REFACTOR
+*
+*/
+.Verdant-events-date-header {
+  padding: var(--jp-cell-padding);
+  border-bottom: 1px solid var(--jp-border-color3);
+  color: var(--jp-content-font-color2);
+  text-transform: uppercase;
+  font-size: var(--jp-content-font-size0);
+}
+
+.Verdant-events-row {
+  padding: var(--jp-cell-padding);
+  display: flex;
+  flex-direction: row;
+}
+.Verdant-events-notebook {
+  display: inline-block;
+  flex: 1 1 auto;
+}
+.Verdant-events-label {
+  display: inline-block;
+  flex: 1 1 auto;
+  color: var(--jp-content-font-color2);
+}

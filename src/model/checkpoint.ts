@@ -44,6 +44,10 @@ export class HistoryCheckpoints {
     this.checkpointList = [];
   }
 
+  public all(): Checkpoint[] {
+    return this.checkpointList;
+  }
+
   public get(id: number): Checkpoint {
     return this.checkpointList[id];
   }
@@ -71,8 +75,11 @@ export class HistoryCheckpoints {
   }
 
   public getCellMap(checkpoint: Checkpoint): CellRunData[] {
-    let notebook = this.history.store.get(checkpoint.notebook) as NodeyNotebook;
+    let notebook = this.history.store.getNotebook(
+      checkpoint.notebook
+    ) as NodeyNotebook;
     let targets = checkpoint.targetCells;
+    console.log("NOTEBOOK is ", notebook);
     return notebook.cells.map(name => {
       let match = targets.find(item => item.node === name);
       if (match) return match;
@@ -82,7 +89,7 @@ export class HistoryCheckpoints {
 
   public notebookSaved(): [
     Checkpoint,
-    (newCells: NodeyCell[], notebook: string) => void
+    (newCells: NodeyCell[], notebook: number) => void
   ] {
     let checkpoint = this.generateCheckpoint(CheckpointType.SAVE);
     return [checkpoint, this.handleNotebookSaved.bind(this, checkpoint.id)];
@@ -100,7 +107,7 @@ export class HistoryCheckpoints {
 
   public cellRun(): [
     Checkpoint,
-    (cellRun: NodeyCell, cellSame: boolean, notebookName: string) => void
+    (cellRun: NodeyCell, cellSame: boolean, notebookName: number) => void
   ] {
     let checkpoint = this.generateCheckpoint(CheckpointType.RUN);
     return [checkpoint, this.handleCellRun.bind(this, checkpoint.id)];
@@ -122,7 +129,7 @@ export class HistoryCheckpoints {
   private handleNotebookSaved(
     saveId: number,
     newCells: NodeyCell[],
-    notebook: string
+    notebook: number
   ) {
     newCells.forEach(cell => {
       let newOutput: string[] = [];
@@ -143,9 +150,10 @@ export class HistoryCheckpoints {
       } as CellRunData;
 
       this.checkpointList[saveId].targetCells.push(cellSaved);
-      this.checkpointList[saveId].notebook = notebook;
+
       console.log("SAVE Checkpoint", this.checkpointList[saveId]);
     });
+    this.checkpointList[saveId].notebook = notebook;
   }
 
   private handleCellAdded(id: number, cell: NodeyCell) {
@@ -168,7 +176,7 @@ export class HistoryCheckpoints {
     runID: number,
     cellRun: NodeyCell,
     cellSame: boolean,
-    notebook: string
+    notebook: number
   ) {
     let cellChange;
     if (cellSame) cellChange = ChangeType.SAME;
@@ -200,7 +208,7 @@ export class HistoryCheckpoints {
 export class Checkpoint {
   readonly timestamp: number;
   readonly id: number;
-  notebook: string;
+  notebook: number;
   readonly targetCells: CellRunData[];
   readonly checkpointType: CheckpointType;
 
@@ -258,7 +266,8 @@ export namespace Checkpoint {
     return hours + ":" + (minutes < 10 ? "0" + minutes : minutes) + ampm;
   }
 
-  export function formatDate(date: Date): string {
+  export function formatDate(date: Date | number): string {
+    if (typeof date == "number") date = new Date(date);
     var monthNames = [
       "January",
       "February",
@@ -303,7 +312,9 @@ export namespace Checkpoint {
     return dateDesc;
   }
 
-  export function sameDay(d1: Date, d2: Date) {
+  export function sameDay(d1: Date | number, d2: Date | number) {
+    if (typeof d1 == "number") d1 = new Date(d1);
+    if (typeof d2 == "number") d2 = new Date(d2);
     return (
       d1.getFullYear() === d2.getFullYear() &&
       d1.getMonth() === d2.getMonth() &&

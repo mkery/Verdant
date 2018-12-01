@@ -31,6 +31,10 @@ export class Star<T extends Nodey> {
     return this.value.id;
   }
 
+  get version(): string {
+    return "*";
+  }
+
   get name(): string {
     return "*" + "." + this.value.typeChar + "." + this.value.id;
   }

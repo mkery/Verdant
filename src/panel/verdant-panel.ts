@@ -9,6 +9,7 @@ import { History } from "../model/history";
 import { CrumbBox } from "./crumb-box";
 
 import { Summary } from "./summary";
+import { EventMap } from "./event-map";
 
 const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
@@ -28,6 +29,7 @@ export class VerdantPanel extends Widget {
   readonly contentBox: HTMLElement;
   readonly summary: Summary;
   readonly crumbBox: CrumbBox;
+  readonly eventMap: EventMap;
 
   constructor(history: History) {
     super();
@@ -36,11 +38,12 @@ export class VerdantPanel extends Widget {
 
     let header = this.buildHeaderNode();
     //this.summary = new Summary(this.history);
+    this.eventMap = new EventMap(this.history);
     this.node.appendChild(header);
     //this.node.appendChild(this.buildContentHeader());
 
     this.contentBox = document.createElement("div");
-    //this.contentBox.appendChild(this.summary.node);
+    this.contentBox.appendChild(this.eventMap.node);
     this.contentBox.classList.add("v-VerdantPanel-content");
     this.node.appendChild(this.contentBox);
 
@@ -123,6 +126,6 @@ export class VerdantPanel extends Widget {
       inspectorButton.classList.remove("active");
       Wishbone.endWishbone(this.history.notebook, this.history);
     }
-    //this.contentBox.appendChild(this.summary.node);
+    this.contentBox.appendChild(this.eventMap.node);
   }
 }
