@@ -231,8 +231,24 @@ export class VerNotebook {
   public moveCell(cell: VerCell, oldPos: number, newPos: number) {
     this.cells.splice(oldPos, 1);
     this.cells.splice(newPos, 0, cell);
-    //this.panel.eventMap.moveCell(oldPos, newPos);
-    //TODO
+
+    //get checkpoint
+    let [checkpoint, resolve] = this.history.checkpoints.cellMoved();
+
+    // make sure cell is moved in the model
+    let model = this.history.stage.markAsEdited(this.model) as Star<
+      NodeyNotebook
+    >;
+    model.value.cells.splice(oldPos, 1);
+    model.value.cells.splice(newPos, 0, cell.model.name);
+
+    // commit the notebook
+    let notebook = this.history.stage.commit(checkpoint, this.model);
+    console.log("notebook commited", notebook, this.model);
+
+    // finish up
+    resolve(cell.model, notebook.version);
+    this.panel.eventMap.addEvent(checkpoint);
   }
 
   public focusCell(cell: VerCell) {

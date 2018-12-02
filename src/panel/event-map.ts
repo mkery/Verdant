@@ -81,6 +81,9 @@ export class EventMap extends Widget {
       case CheckpointType.SAVE:
         eventTitle = "Save";
         break;
+      case CheckpointType.MOVED:
+        eventTitle = "Cell moved";
+        break;
     }
 
     let eventLabel = document.createElement("div");

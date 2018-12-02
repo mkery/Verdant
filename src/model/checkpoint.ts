@@ -6,14 +6,16 @@ export enum ChangeType {
   CHANGED = 2,
   REMOVED = 1.5,
   ADDED = 1,
-  SAME = 0
+  SAME = 0,
+  MOVED = 3
 }
 
 export enum CheckpointType {
   RUN = "r",
   SAVE = "s",
   ADD = "a",
-  DELETE = "d"
+  DELETE = "d",
+  MOVED = "m"
 }
 
 export type CellRunData = {
@@ -32,6 +34,7 @@ type jsn = { [id: string]: any };
 * - load
 * - cell is added
 * - cell is deleted
+* - cell is moved
 * NOTE: signal new events so views update
 */
 
@@ -104,6 +107,11 @@ export class HistoryCheckpoints {
     return [checkpoint, this.handleCellDeleted.bind(this, checkpoint.id)];
   }
 
+  public cellMoved() {
+    let checkpoint = this.generateCheckpoint(CheckpointType.MOVED);
+    return [checkpoint, this.handleCellMoved.bind(this, checkpoint.id)];
+  }
+
   public cellRun(): [
     Checkpoint,
     (cellRun: NodeyCell, cellSame: boolean, notebookName: number) => void
@@ -168,6 +176,15 @@ export class HistoryCheckpoints {
     let cellDat = {
       node: cell.name,
       changeType: ChangeType.REMOVED
+    } as CellRunData;
+    this.checkpointList[id].targetCells.push(cellDat);
+    this.checkpointList[id].notebook = notebook;
+  }
+
+  private handleCellMoved(id: number, cell: NodeyCell, notebook: number) {
+    let cellDat = {
+      node: cell.name,
+      changeType: ChangeType.MOVED
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
     this.checkpointList[id].notebook = notebook;
