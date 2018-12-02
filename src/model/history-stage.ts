@@ -55,7 +55,6 @@ export class HistoryStage {
     if (unedited instanceof Star) return unedited;
     if (unedited instanceof NodeyNotebook) return this.markNotebookAsEdited();
     if (unedited instanceof NodeyCode) {
-      if (unedited instanceof NodeyCodeCell) this.markNotebookAsEdited();
       return this.markCodeAsEdited(unedited);
     }
     if (unedited instanceof NodeyMarkdown) {
@@ -121,9 +120,10 @@ export class HistoryStage {
     if (starNode.value.parent) {
       console.log("parent is", starNode.value.parent);
       let parent = this.store.getLatestOf(starNode.value.parent);
+      console.log("PARENT IS", parent);
 
       let starParent: Star<Nodey>;
-      if (parent instanceof Star) starParent = parent as Star<NodeyCode>;
+      if (parent instanceof Star) starParent = parent as Star<Nodey>;
       else starParent = this.markAsEdited(parent);
 
       //finally, fix pointer names to be stars too
@@ -131,6 +131,9 @@ export class HistoryStage {
       if (starParent.value instanceof NodeyCode) {
         let childIndex = starParent.value.content.indexOf(nodey.name);
         starParent.value.content[childIndex] = starNode.name;
+      } else if (starParent.value instanceof NodeyNotebook) {
+        let childIndex = starParent.value.cells.indexOf(nodey.name);
+        starParent.value.cells[childIndex] = starNode.name;
       }
     }
 
@@ -157,11 +160,24 @@ export class HistoryStage {
   }
 
   private commitNotebook(star: Star<Nodey>, eventId: number) {
-    return this.deStar(star, eventId) as NodeyNotebook;
+    let notebook = this.deStar(star, eventId) as NodeyNotebook;
+    notebook.cells.forEach(name => {
+      let cell = this.store.get(name);
+      cell.parent = notebook.name;
+    });
+    return notebook;
   }
 
   private commitCodeCell(starCell: Star<Nodey>, eventId: number) {
+    // destar this cell
+    let starName = starCell.name;
     let cell = this.deStar(starCell, eventId) as NodeyCodeCell;
+
+    // update pointer in parent notebook
+    let parent = this.store.getLatestOf(cell.parent) as Star<NodeyNotebook>;
+    parent.value.cells[parent.value.cells.indexOf(starName)] = cell.name;
+
+    // update code nodes and output
     console.log("Cell to commit is " + cell.name, cell, eventId);
     let output = this.commitOutput(cell, eventId);
     console.log("Output committed", output);

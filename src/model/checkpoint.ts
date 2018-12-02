@@ -79,7 +79,6 @@ export class HistoryCheckpoints {
       checkpoint.notebook
     ) as NodeyNotebook;
     let targets = checkpoint.targetCells;
-    console.log("NOTEBOOK is ", notebook);
     return notebook.cells.map(name => {
       let match = targets.find(item => item.node === name);
       if (match) return match;

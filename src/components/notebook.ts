@@ -72,7 +72,10 @@ export class VerNotebook {
     let model: NodeyNotebook;
     if (this.model instanceof Star) model = this.model.value;
     else model = this.model;
-    model.cells = this.cells.map(cell => cell.model.name);
+    model.cells = this.cells.map(cell => {
+      cell.model.parent = model.name;
+      return cell.model.name;
+    });
 
     // finish initialization
     this.view.focusCell();

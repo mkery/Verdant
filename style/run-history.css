@@ -409,6 +409,7 @@
   border-color: var(--jp-content-font-color1);
   color: var(--jp-ui-font-color1);
 }
+.v-VerdantPanel-runCellMap-cell-changed,
 .v-VerdantPanel-runCellMap-cell-changed.run {
   background-color: var(--verdant-cell-change-color2);
 }
