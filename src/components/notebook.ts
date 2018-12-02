@@ -155,7 +155,7 @@ export class VerNotebook {
         console.log("notebook commited", notebook, this.model);
 
         // finish the checkpoint with info from this run
-        resolve(changedCells, nodey.version);
+        resolve(changedCells, notebook.version);
 
         this.panel.eventMap.addEvent(checkpoint);
         /*changedCells.forEach(n => {
@@ -179,23 +179,57 @@ export class VerNotebook {
     return this.cells.find(item => item.model === cell);
   }
 
-  public createCell(cell: Cell, index: number, match: boolean): VerCell {
+  public async createCell(
+    cell: Cell,
+    index: number,
+    match: boolean
+  ): Promise<VerCell> {
     let newCell = new VerCell(this, cell, index, match);
     this.cells.splice(index, 0, newCell);
-    // this.panel.addCell(newCell, index);
+    let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
+
+    // make sure cell is added to model
+    let model = this.history.stage.markAsEdited(this.model) as Star<
+      NodeyNotebook
+    >;
+    await newCell.ready;
+    model.value.cells.splice(index, 0, newCell.model.name);
+
+    // commit the notebook
+    let notebook = this.history.stage.commit(checkpoint, model);
+    console.log("notebook commited", notebook, this.model);
+
+    // finish up
+    resolve(newCell.model, notebook.version);
+    this.panel.eventMap.addEvent(checkpoint);
     return newCell;
   }
 
   public deleteCell(index: number) {
     let oldCell = this.cells.splice(index, 1);
     oldCell[0].deleted();
-    // this.panel.removeCell(index);
+    let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
+
+    // make sure cell is removed from model
+    let model = this.history.stage.markAsEdited(this.model) as Star<
+      NodeyNotebook
+    >;
+    model.value.cells.splice(index, 1);
+
+    // commit the notebook if the cell has changed
+    let notebook = this.history.stage.commit(checkpoint, this.model);
+    console.log("notebook commited", notebook, this.model);
+
+    // finish up
+    resolve(oldCell[0].model, notebook.version);
+    this.panel.eventMap.addEvent(checkpoint);
   }
 
   public moveCell(cell: VerCell, oldPos: number, newPos: number) {
     this.cells.splice(oldPos, 1);
     this.cells.splice(newPos, 0, cell);
-    // this.panel.moveCell(oldPos, newPos);
+    //this.panel.eventMap.moveCell(oldPos, newPos);
+    //TODO
   }
 
   public focusCell(cell: VerCell) {

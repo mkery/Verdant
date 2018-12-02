@@ -156,20 +156,22 @@ export class HistoryCheckpoints {
     this.checkpointList[saveId].notebook = notebook;
   }
 
-  private handleCellAdded(id: number, cell: NodeyCell) {
+  private handleCellAdded(id: number, cell: NodeyCell, notebook: number) {
     let cellDat = {
       node: cell.name,
       changeType: ChangeType.ADDED
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
+    this.checkpointList[id].notebook = notebook;
   }
 
-  private handleCellDeleted(id: number, cell: NodeyCell) {
+  private handleCellDeleted(id: number, cell: NodeyCell, notebook: number) {
     let cellDat = {
       node: cell.name,
       changeType: ChangeType.REMOVED
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
+    this.checkpointList[id].notebook = notebook;
   }
 
   private handleCellRun(

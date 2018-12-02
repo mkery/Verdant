@@ -53,15 +53,17 @@ export class HistoryStage {
 
   public markAsEdited(unedited: Nodey | Star<Nodey>): Star<Nodey> {
     if (unedited instanceof Star) return unedited;
+    if (unedited instanceof NodeyNotebook) return this.markNotebookAsEdited();
     if (unedited instanceof NodeyCode) {
       if (unedited instanceof NodeyCodeCell) this.markNotebookAsEdited();
       return this.markCodeAsEdited(unedited);
-    } else if (unedited instanceof NodeyMarkdown) {
+    }
+    if (unedited instanceof NodeyMarkdown) {
       return this.markMarkdownAsEdited(unedited);
     }
   }
 
-  private markNotebookAsEdited(): void {
+  private markNotebookAsEdited(): Star<NodeyNotebook> {
     let notebook = this.history.store.currentNotebook;
     console.log("Notebook is", notebook, this.history.notebook);
     let starNode: Star<NodeyNotebook>;
@@ -72,6 +74,7 @@ export class HistoryStage {
       starNode = this.createStar(notebook) as Star<NodeyNotebook>;
       history.setLatestToStar(starNode);
     }
+    return starNode;
   }
 
   private markMarkdownAsEdited(unedited: NodeyMarkdown): Star<NodeyMarkdown> {
