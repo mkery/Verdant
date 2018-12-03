@@ -275,7 +275,8 @@ export namespace Checkpoint {
     });
   }
 
-  export function formatTime(date: Date): string {
+  export function formatTime(date: Date | number): string {
+    if (typeof date == "number") date = new Date(date);
     var hours = date.getHours();
     var minutes = date.getMinutes();
     var ampm = hours >= 12 ? "pm" : "am";

@@ -62,11 +62,6 @@ export class EventMap extends Widget {
     let row = document.createElement("div");
     row.classList.add(EVENT_ROW);
 
-    let notebookNum = document.createElement("div");
-    notebookNum.classList.add(EVENT_NOTEBOOK);
-    notebookNum.textContent = "#" + event.notebook;
-    row.appendChild(notebookNum);
-
     let eventTitle = "";
     switch (event.checkpointType) {
       case CheckpointType.ADD:
@@ -86,14 +81,23 @@ export class EventMap extends Widget {
         break;
     }
 
-    let eventLabel = document.createElement("div");
-    eventLabel.classList.add(EVENT_LABEL);
-    eventLabel.textContent = eventTitle;
-    row.appendChild(eventLabel);
+    let dateLabel = document.createElement("div");
+    dateLabel.classList.add(EVENT_LABEL);
+    dateLabel.textContent =
+      Checkpoint.formatTime(event.timestamp) + " " + eventTitle;
+    row.appendChild(dateLabel);
 
     let eventMap = document.createElement("div");
     eventMap.classList.add(EVENT_MAP);
-    eventMap.appendChild(this.buildMap(event));
+
+    let notebookNum = document.createElement("div");
+    notebookNum.classList.add(EVENT_NOTEBOOK);
+    notebookNum.textContent = "#" + event.notebook;
+    eventMap.appendChild(notebookNum);
+
+    let map = this.buildMap(event);
+    map.classList.add(EVENT_NOTEBOOK);
+    eventMap.appendChild(map);
     row.appendChild(eventMap);
 
     return row;

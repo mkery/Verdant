@@ -543,15 +543,19 @@
 .Verdant-events-notebook {
   display: inline-block;
   flex: 1 1 auto;
+  vertical-align: baseline;
+  padding-left: var(--jp-cell-padding);
 }
 .Verdant-events-label {
   display: inline-block;
   flex: 1 1 auto;
   color: var(--jp-content-font-color2);
+  padding: var(--jp-cell-padding);
+  padding-left: 0px;
 }
 .Verdant-events-map {
   padding-top: 0.25em;
-  flex: 5 1 auto;
+  flex: 5 0 auto;
   text-align: right;
 }
 
