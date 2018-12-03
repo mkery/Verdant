@@ -181,7 +181,8 @@
 }
 
 .v-VerdantPanel-wishbone-code-highlight {
-  background: var(--jp-editor-selected-focused-background);
+  background: var(--jp-editor-selected-focused-background) !important;
+  background-color: var(--jp-editor-selected-focused-background);
 }
 
 .v-Verdant-inspect-code-same {

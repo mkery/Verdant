@@ -106,15 +106,19 @@ export class EventMap extends Widget {
     map.forEach(cell => {
       let line = document.createElement("div");
       line.classList.add(CELL);
+
       let kind = cell.changeType;
       switch (kind) {
         case ChangeType.ADDED:
+          line.classList.add("target");
           line.classList.add(CELL_ADDED);
           break;
         case ChangeType.CHANGED:
+          line.classList.add("target");
           line.classList.add(CELL_CHANGED);
           break;
         case ChangeType.REMOVED:
+          line.classList.add("target");
           line.classList.add(CELL_REMOVED);
           break;
       }

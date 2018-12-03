@@ -19,20 +19,16 @@ export namespace Wishbone {
       Private.addCellEvents(cell, [verCell.model], history.inspector);
 
       if (cell instanceof CodeCell) {
-        Private.addLineEvents(cell as CodeCell, verCell, history);
+        Private.addLineEvents(cell as CodeCell);
         Private.addOutputEvents(verCell, history);
       }
     });
   }
 
-  export function endWishbone(notebook: VerNotebook, history: History) {
+  export function endWishbone(notebook: VerNotebook) {
     notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view;
       Private.removeCellEvents(cell);
-
-      if (cell instanceof CodeCell) {
-        Private.removeLineEvents(cell as CodeCell, verCell, history);
-      }
     });
   }
 }
@@ -43,7 +39,6 @@ export namespace Wishbone {
 namespace Private {
   export function highlightCode(event: MouseEvent, code: Element) {
     event.stopPropagation();
-    console.log("HIGHLIGHT CODE");
     if (filterSelect(code, event)) {
       var betterMatch = false;
       for (var i = 0; i < code.children.length; i++) {
@@ -70,10 +65,22 @@ namespace Private {
     cell: CodeCell,
     event: MouseEvent
   ) {
+    console.log("SELECT CODE TARGET");
     event.stopPropagation();
-    if (filterSelect(event.target as Element, event))
+    let area = cell.inputArea.editorWidget.node;
+    var code = area.getElementsByClassName("CodeMirror-line");
+    let betterMatch: Element = null;
+    for (var i = 0; i < code.length; i++) {
+      if (highlightCode(event, code[i])) {
+        betterMatch = code[i];
+        break;
+      }
+    }
+
+    if (!betterMatch) this.selectTarget([nodey], inspector, event);
+    else
       inspector.changeTarget([
-        inspector.figureOutTarget(nodey, cell, event.target as HTMLElement)
+        inspector.figureOutTarget(nodey, cell, betterMatch as HTMLElement)
       ]);
   }
 
@@ -95,14 +102,29 @@ namespace Private {
       addElemEvents(mask, nodey, inspector);
     }
     if (area instanceof CodeCell) {
+      // mask on prompt area
+      let prompt = area.inputArea.promptNode;
+      prompt.appendChild(mask);
+      addElemEvents(mask, nodey, inspector);
+
       // detect line events for code mask
       let lineMask = makeMask();
       let select = selectCode.bind(this, lineMask);
       area.editorWidget.node.appendChild(lineMask);
+      lineMask.addEventListener("click", (ev: MouseEvent) => {
+        this.selectCodeTarget(nodey[0], inspector, area, ev);
+      });
       lineMask.addEventListener("mouseenter", () => {
         document.addEventListener("mousemove", select);
       });
       lineMask.addEventListener("mouseleave", () => {
+        lineMask.classList.remove("highlight");
+        let highlighted = lineMask.parentElement.getElementsByClassName(
+          WISHBONE_HIGHLIGHT_CODE
+        );
+        for (var i = 0; i < highlighted.length; i++) {
+          highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
+        }
         document.removeEventListener("mousemove", select);
       });
     }
@@ -146,52 +168,55 @@ namespace Private {
       let outputArea = area.outputArea.node;
       let masks = outputArea.getElementsByClassName(WISHBONE_CODE_MASK);
       for (let i = 0; i < masks.length; i++) masks[i].remove();
+
+      masks = area.editorWidget.node.getElementsByClassName(WISHBONE_CODE_MASK);
+      for (let i = 0; i < masks.length; i++) masks[i].remove();
+
+      // get rid of any remaining highlights
+      let highlighted = area.editorWidget.node.getElementsByClassName(
+        WISHBONE_HIGHLIGHT_CODE
+      );
+      for (var i = 0; i < highlighted.length; i++) {
+        highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
+      }
+      // remove event listeners
+      highlighted = area.editorWidget.node.getElementsByClassName(
+        WISHBONE_CODE
+      );
+      for (var i = 0; i < highlighted.length; i++) {
+        highlighted[i].classList.remove(WISHBONE_CODE);
+      }
     }
   }
 
   export function addOutputEvents(verCell: VerCell, history: History) {
     var outputNodey = verCell.output;
-    console.log("output nodey are", outputNodey);
     if (outputNodey)
       outputNodey.forEach(out =>
         addCellEvents(verCell.outputArea, [out], history.inspector)
       );
   }
 
-  export function addLineEvents(
-    cell: CodeCell,
-    verCell: VerCell,
-    history: History
-  ) {
-    var nodey = verCell.model as NodeyCodeCell;
-    var code = cell.inputArea.node.getElementsByTagName("span");
-    for (var i = 0; i < code.length; i++) {
-      code[i].classList.add(WISHBONE_CODE);
-      code[i].addEventListener(
-        "click",
-        Private.selectCodeTarget.bind(this, nodey, history.inspector, cell)
-      );
-    }
-    var lines = cell.inputArea.node.getElementsByClassName("CodeMirror-line");
-    for (var i = 0; i < lines.length; i++) {
-      lines[i].classList.add(WISHBONE_CODE);
-      lines[i].addEventListener(
-        "click",
-        Private.selectCodeTarget.bind(this, nodey, history.inspector, cell)
-      );
-    }
-  }
-
   function codeSelection(mask: Element, ev: MouseEvent) {
-    var highlighted = document.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE);
-
+    var highlighted = mask.parentElement.getElementsByClassName(
+      WISHBONE_HIGHLIGHT_CODE
+    );
     for (var i = 0; i < highlighted.length; i++) {
       highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
     }
-    console.log("CODE SELECTION");
+    mask.classList.remove("highlight");
+
     var code = mask.parentElement.getElementsByClassName("CodeMirror-line");
+    let betterMatch = null;
     for (var i = 0; i < code.length; i++) {
-      highlightCode(ev, code[i]);
+      if (highlightCode(ev, code[i])) {
+        betterMatch = code[i];
+        break;
+      }
+    }
+
+    if (!betterMatch) {
+      mask.classList.add("highlight");
     }
   }
 
@@ -204,26 +229,14 @@ namespace Private {
     );
   }
 
-  export function removeLineEvents(
-    cell: CodeCell,
-    verCell: VerCell,
-    history: History
-  ) {
-    var nodey = verCell.model as NodeyCodeCell;
-
-    // get rid of any remaining highlights
-    var highlighted = document.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE);
-    for (var i = 0; i < highlighted.length; i++) {
-      highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
-    }
-    // remove event listeners
-    var code = cell.inputArea.node.getElementsByClassName(WISHBONE_CODE);
+  export function addLineEvents(cell: CodeCell) {
+    var code = cell.inputArea.node.getElementsByTagName("span");
     for (var i = 0; i < code.length; i++) {
-      code[i].removeEventListener(
-        "click",
-        Private.selectCodeTarget.bind(this, nodey, history.inspector, cell)
-      );
-      code[i].classList.remove(WISHBONE_CODE);
+      code[i].classList.add(WISHBONE_CODE);
+    }
+    var lines = cell.inputArea.node.getElementsByClassName("CodeMirror-line");
+    for (var i = 0; i < lines.length; i++) {
+      lines[i].classList.add(WISHBONE_CODE);
     }
   }
 }

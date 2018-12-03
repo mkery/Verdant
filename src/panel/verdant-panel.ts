@@ -14,7 +14,7 @@ import { EventMap } from "./event-map";
 const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
-const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
+//const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
 const SEARCH_TEXT = "v-VerdantPanel-searchText";
 const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
 /*const CONTENT_HEADER = "v-VerdantPanel-Summary-header";
@@ -69,13 +69,13 @@ export class VerdantPanel extends Widget {
 
     let searchIcon = document.createElement("div");
     searchIcon.classList.add(SEARCH_ICON);
-    let filterOptsIcon = document.createElement("div");
-    filterOptsIcon.classList.add(FILTER_OPTS_ICON);
+    /* //TODO let filterOptsIcon = document.createElement("div");
+    filterOptsIcon.classList.add(FILTER_OPTS_ICON);*/
     let searchText = document.createElement("div");
     searchText.classList.add(SEARCH_TEXT);
     searchText.setAttribute("contentEditable", "true");
     searchContainer.appendChild(searchIcon);
-    searchContainer.appendChild(filterOptsIcon);
+    //searchContainer.appendChild(filterOptsIcon);
     searchContainer.appendChild(searchText);
 
     let inspectorButton = document.createElement("div");
@@ -108,7 +108,7 @@ export class VerdantPanel extends Widget {
     let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
     if (inspectorButton.classList.contains("active")) {
       inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.history.notebook, this.history);
+      Wishbone.endWishbone(this.history.notebook);
     } else {
       inspectorButton.classList.add("active");
       Wishbone.startWishbone(this.history);
@@ -124,7 +124,7 @@ export class VerdantPanel extends Widget {
     let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
     if (inspectorButton.classList.contains("active")) {
       inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.history.notebook, this.history);
+      Wishbone.endWishbone(this.history.notebook);
     }
     this.contentBox.appendChild(this.eventMap.node);
   }
