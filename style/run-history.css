@@ -533,6 +533,7 @@
   color: var(--jp-content-font-color2);
   text-transform: uppercase;
   font-size: var(--jp-content-font-size0);
+  margin-top: 1em;
 }
 
 .Verdant-events-row {

@@ -51,19 +51,6 @@
   margin-top: -0.25em;
 }
 
-.v-VerdantPanel-search-container {
-  padding: 2px;
-  padding-top: 4px;
-  padding-left: 6px;
-  background-color: var(--jp-layout-color2);
-  border-bottom: 1px solid var(--jp-border-color1);
-  overflow: visible;
-  z-index: 2;
-  display: inherit;
-  min-height: 33px;
-  max-height: 33px;
-}
-
 .v-VerdantPanel-search-box {
   overflow: overlay;
   flex: 1 1 auto;
@@ -210,18 +197,14 @@
   text-align: center;
 }
 
-.v-VerdantPanel-headerContainer {
-  display: inline-block;
-  border-bottom: 1px solid var(--jp-border-color0);
-}
-
 .v-VerdantPanel-searchContainer {
   display: inline-block;
   vertical-align: text-bottom;
-  width: calc(100% - 1.5em - 19px);
+  width: 100%;
   padding: 5px;
   height: 2em;
   padding-left: 3px;
+  border-bottom: 1px solid;
 }
 
 .v-VerdantPanel-searchIcon {
@@ -232,6 +215,11 @@
   background-size: 20px 18px;
   background-position: center;
   background-repeat: no-repeat;
+}
+.v-VerdantPanel-searchIcon.header {
+  height: 100%;
+  background-size: contain;
+  width: 100%;
 }
 .v-VerdantPanel-filterOptsIcon {
   display: inline-block;
@@ -256,12 +244,12 @@
   display: inline-block;
   vertical-align: text-bottom;
   background-image: var(--verdant-icon-timeinspect);
-  width: 1.5em;
-  height: 2em;
+  min-width: 1.75em;
+  min-height: 2em;
   background-position: center;
   background-repeat: no-repeat;
   background-size: 1.5em;
-  border-left: 1px solid var(--jp-border-color0);
+  /* border-left: 1px solid var(--jp-border-color0); */
   padding: 5px;
 }
 .v-VerdantPanel-inspectorButton:hover {
@@ -277,11 +265,13 @@
 }
 
 .v-VerdantPanel-crumbMenu {
+  flex: 1 1 auto;
   display: inline-block;
   min-height: 1.5em;
   width: 100%;
-  padding-left: 3px;
-  border-bottom: 1px solid var(--jp-border-color0);
+  padding: var(--jp-cell-padding);
+  padding-top: 0.5em;
+  text-overflow: ellipsis;
 }
 
 .v-VerdantPanel-crumbMenu-item {
@@ -350,6 +340,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.v-VerdantPanel-Summary-cell:hover {
+  border: 2px solid var(--jp-brand-color1);
+  width: calc(100% - 4px);
+}
 .v-VerdantPanel-Summary-cell.ver {
   width: unset;
   padding: var(--jp-code-padding);
@@ -395,4 +389,43 @@
 .v-VerdantPanel-Summary-header-vLabel {
   display: inline-block;
   float: right;
+}
+
+.VerdantPanel-search-results-message {
+  text-align: center;
+  padding: var(--jp-cell-padding);
+  font-style: italic;
+}
+
+.v-VerdantPanel-tabContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-height: 2em;
+}
+
+.v-VerdantPanel-tab {
+  display: inline-block;
+  padding: var(--jp-cell-padding);
+  border: var(--jp-border-width) solid var(--jp-border-color1);
+  flex: 1 1 auto;
+  background: var(--jp-layout-color2);
+  border-left-width: 0px;
+  text-align: center;
+  user-select: none;
+  border-top-width: 0px;
+}
+.v-VerdantPanel-tab.active {
+  background: var(--jp-layout-color0);
+  border-bottom-color: transparent;
+  /*border-top: var(--jp-private-horizontal-tab-active-top-border) solid
+    var(--jp-brand-color1);*/
+}
+
+.v-VerdantPanel-tab-header {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid;
+  /*border-bottom: 1px solid var(--jp-border-color0);
+  box-shadow: var(--jp-toolbar-box-shadow);*/
 }

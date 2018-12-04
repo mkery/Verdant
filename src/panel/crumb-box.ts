@@ -1,33 +1,45 @@
 import { Widget } from "@phosphor/widgets";
-
+import { Wishbone } from "./wishbone";
+import { Summary } from "./summary";
 import { History } from "../model/history";
 
 import { Mixin } from "./details/mixin";
 
 import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "../model/nodey";
 
+const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
 const CRUMB_MENU = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
+const HEADER = "v-VerdantPanel-tab-header";
 
 export class CrumbBox extends Widget {
   readonly history: History;
-  private onClose: () => void;
+  readonly summary: Summary;
   private _target: Nodey;
   private _active: boolean = false;
   private menu: HTMLElement;
   private content: HTMLElement;
 
-  constructor(history: History, onClose: () => void) {
+  constructor(history: History) {
     super();
     this.history = history;
-    this.onClose = onClose;
+    this.summary = new Summary(this.history);
 
+    let header = document.createElement("div");
+    header.classList.add(HEADER);
     this.menu = document.createElement("div");
+    this.menu.classList.add(CRUMB_MENU);
     this.buildCrumbMenu();
-    this.node.appendChild(this.menu);
+    header.appendChild(this.menu);
+    let inspectorButton = document.createElement("div");
+    inspectorButton.classList.add(INSPECTOR_BUTTON);
+    inspectorButton.addEventListener("click", this.toggleInspector.bind(this));
+    header.appendChild(inspectorButton);
+    this.node.appendChild(header);
 
     this.content = document.createElement("div");
     this.node.appendChild(this.content);
+    this.content.appendChild(this.summary.node);
 
     this.history.inspector.ready.then(async () => {
       this.history.inspector.targetChanged.connect((_: any, nodey: Nodey[]) => {
@@ -42,6 +54,11 @@ export class CrumbBox extends Widget {
 
   hide() {
     this._active = false;
+    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
+    if (inspectorButton.classList.contains("active")) {
+      inspectorButton.classList.remove("active");
+      Wishbone.endWishbone(this.history.notebook);
+    }
   }
 
   changeTarget(node: Nodey[]) {
@@ -55,27 +72,27 @@ export class CrumbBox extends Widget {
 
   buildCrumbMenu(): void {
     this.menu.innerHTML = "";
-    let menu = document.createElement("div");
-    menu.classList.add(CRUMB_MENU);
 
     let notebookItem = document.createElement("div");
     notebookItem.classList.add(CRUMB_MENU_ITEM);
     notebookItem.textContent = "Notebook";
-    notebookItem.addEventListener("click", () => this.onClose());
-    menu.appendChild(notebookItem);
-
-    Mixin.addSeperator(menu);
+    notebookItem.addEventListener("click", () => {
+      this.content.innerHTML = "";
+      this.menu.innerHTML = "";
+      this.menu.appendChild(notebookItem);
+      this.content.appendChild(this.summary.node);
+    });
+    this.menu.appendChild(notebookItem);
 
     if (this._target) {
+      Mixin.addSeperator(this.menu);
       if (this._target instanceof NodeyCode)
-        Mixin.labelNodeyCode(menu, this._target, this.history);
+        Mixin.labelNodeyCode(this.menu, this._target, this.history);
       else if (this._target instanceof NodeyMarkdown)
-        Mixin.addItem(menu, "markdown " + this._target.id);
+        Mixin.addItem(this.menu, "markdown " + this._target.id);
       else if (this._target instanceof NodeyOutput)
-        Mixin.addItem(menu, "output " + this._target.id);
+        Mixin.addItem(this.menu, "output " + this._target.id);
     }
-
-    this.menu.appendChild(menu);
   }
 
   buildDetails() {
@@ -89,6 +106,17 @@ export class CrumbBox extends Widget {
       });
       let outMix = new Mixin(this.history, output, true);
       this.content.appendChild(outMix.node);
+    }
+  }
+
+  toggleInspector() {
+    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
+    if (inspectorButton.classList.contains("active")) {
+      inspectorButton.classList.remove("active");
+      Wishbone.endWishbone(this.history.notebook);
+    } else {
+      inspectorButton.classList.add("active");
+      Wishbone.startWishbone(this.history);
     }
   }
 }

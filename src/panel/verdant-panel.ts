@@ -2,24 +2,17 @@ import { Widget } from "@phosphor/widgets";
 
 //import { GhostBookPanel } from "../ghost-book/ghost-model";
 
-import { Wishbone } from "./wishbone";
-
 import { History } from "../model/history";
 
 import { CrumbBox } from "./crumb-box";
 
 import { Summary } from "./summary";
 import { EventMap } from "./event-map";
+import { Search } from "./search";
 
-const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
-const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
+const TAB_CONTAINER = "v-VerdantPanel-tabContainer";
+const TAB = "v-VerdantPanel-tab";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
-//const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
-const SEARCH_TEXT = "v-VerdantPanel-searchText";
-const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
-/*const CONTENT_HEADER = "v-VerdantPanel-Summary-header";
-const CONTENT_HEADER_ALABEL = "v-VerdantPanel-Summary-header-aLabel";
-const CONTENT_HEADER_VLABEL = "v-VerdantPanel-Summary-header-vLabel";*/
 
 /**
  * A widget which displays notebook-level history information
@@ -30,6 +23,7 @@ export class VerdantPanel extends Widget {
   readonly summary: Summary;
   readonly crumbBox: CrumbBox;
   readonly eventMap: EventMap;
+  readonly search: Search;
 
   constructor(history: History) {
     super();
@@ -37,17 +31,16 @@ export class VerdantPanel extends Widget {
     this.history = history;
 
     let header = this.buildHeaderNode();
-    //this.summary = new Summary(this.history);
     this.eventMap = new EventMap(this.history);
     this.node.appendChild(header);
-    //this.node.appendChild(this.buildContentHeader());
 
     this.contentBox = document.createElement("div");
     this.contentBox.appendChild(this.eventMap.node);
     this.contentBox.classList.add("v-VerdantPanel-content");
     this.node.appendChild(this.contentBox);
 
-    this.crumbBox = new CrumbBox(this.history, () => this.closeCrumbBox());
+    this.crumbBox = new CrumbBox(this.history);
+    this.search = new Search(this.history);
   }
 
   public ghostBookOpened(widg: Widget) {
@@ -61,71 +54,77 @@ export class VerdantPanel extends Widget {
   }
 
   private buildHeaderNode() {
-    let header = document.createElement("div");
-    header.classList.add(HEADER_CONTAINER);
+    let tabContainer = document.createElement("div");
+    tabContainer.classList.add(TAB_CONTAINER);
 
-    let searchContainer = document.createElement("div");
-    searchContainer.classList.add(SEARCH_CONTAINER);
+    let eventsTab = document.createElement("div");
+    eventsTab.classList.add(TAB);
+    eventsTab.textContent = "Activity";
+    eventsTab.classList.add("active");
+    tabContainer.appendChild(eventsTab);
 
+    let artifactsTab = document.createElement("div");
+    artifactsTab.classList.add(TAB);
+    artifactsTab.textContent = "Artifacts";
+    tabContainer.appendChild(artifactsTab);
+
+    let searchTab = document.createElement("div");
+    searchTab.classList.add(TAB);
     let searchIcon = document.createElement("div");
     searchIcon.classList.add(SEARCH_ICON);
-    /* //TODO let filterOptsIcon = document.createElement("div");
-    filterOptsIcon.classList.add(FILTER_OPTS_ICON);*/
-    let searchText = document.createElement("div");
-    searchText.classList.add(SEARCH_TEXT);
-    searchText.setAttribute("contentEditable", "true");
-    searchContainer.appendChild(searchIcon);
-    //searchContainer.appendChild(filterOptsIcon);
-    searchContainer.appendChild(searchText);
+    searchIcon.classList.add("header");
+    searchTab.appendChild(searchIcon);
+    searchTab.style.borderRightWidth = "0px"; // ending
+    tabContainer.appendChild(searchTab);
 
-    let inspectorButton = document.createElement("div");
-    inspectorButton.classList.add(INSPECTOR_BUTTON);
-    inspectorButton.addEventListener("click", this.toggleInspector.bind(this));
+    eventsTab.addEventListener("click", () => {
+      if (!eventsTab.classList.contains("active")) {
+        artifactsTab.classList.remove("active");
+        searchTab.classList.remove("active");
+        eventsTab.classList.add("active");
+        this.openEvents();
+      }
+    });
 
-    header.appendChild(searchContainer);
-    header.appendChild(inspectorButton);
-    return header;
+    artifactsTab.addEventListener("click", () => {
+      if (!artifactsTab.classList.contains("active")) {
+        artifactsTab.classList.add("active");
+        searchTab.classList.remove("active");
+        eventsTab.classList.remove("active");
+        this.openCrumbBox();
+      }
+    });
+
+    searchTab.addEventListener("click", () => {
+      if (!searchTab.classList.contains("active")) {
+        artifactsTab.classList.remove("active");
+        searchTab.classList.add("active");
+        eventsTab.classList.remove("active");
+        this.openSearch();
+      }
+    });
+
+    return tabContainer;
   }
 
-  /*private buildContentHeader() {
-    let header = document.createElement("div");
-    header.classList.add(CONTENT_HEADER);
+  openSearch() {
+    this.contentBox.innerHTML = "";
+    this.contentBox.appendChild(this.search.node);
+  }
 
-    let aLabel = document.createElement("div");
-    aLabel.classList.add(CONTENT_HEADER_ALABEL);
-    aLabel.textContent = "artifact";
-    header.appendChild(aLabel);
+  openEvents() {
+    this.closeCrumbBox();
+    this.contentBox.appendChild(this.eventMap.node);
+  }
 
-    let vLabel = document.createElement("div");
-    vLabel.classList.add(CONTENT_HEADER_VLABEL);
-    vLabel.textContent = "versions";
-    header.appendChild(vLabel);
-
-    return header;
-  }*/
-
-  toggleInspector() {
-    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
-    if (inspectorButton.classList.contains("active")) {
-      inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.history.notebook);
-    } else {
-      inspectorButton.classList.add("active");
-      Wishbone.startWishbone(this.history);
-      this.contentBox.innerHTML = "";
-      this.contentBox.appendChild(this.crumbBox.node);
-      this.crumbBox.show();
-    }
+  openCrumbBox() {
+    this.contentBox.innerHTML = "";
+    this.contentBox.appendChild(this.crumbBox.node);
+    this.crumbBox.show();
   }
 
   closeCrumbBox() {
     this.contentBox.innerHTML = "";
     this.crumbBox.hide();
-    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
-    if (inspectorButton.classList.contains("active")) {
-      inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.history.notebook);
-    }
-    this.contentBox.appendChild(this.eventMap.node);
   }
 }

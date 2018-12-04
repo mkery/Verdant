@@ -135,6 +135,18 @@ export class HistoryStore {
     this._starStore[nodey.id] = [];
   }
 
+  public findMarkdown(query: string): NodeyMarkdown[] {
+    let results: NodeyMarkdown[] = [];
+    let text = query.toLowerCase();
+    this._markdownStore.forEach(history => {
+      let match = history.versions.find(
+        item => item.markdown.toLowerCase().indexOf(text) > -1
+      );
+      if (match) results.push(match);
+    });
+    return results;
+  }
+
   private _getStoreFor(nodey: Nodey): NodeHistory<Nodey>[] {
     if (nodey instanceof NodeyCodeCell) return this._codeCellStore;
     else if (nodey instanceof NodeyMarkdown) return this._markdownStore;
