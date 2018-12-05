@@ -20,6 +20,7 @@ type jsn = { [id: string]: any };
 
 export class HistoryStore {
   readonly fileManager: FileManager;
+  readonly history: History;
 
   private _notebookHistory: NodeHistory<NodeyNotebook>;
   private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
@@ -31,7 +32,8 @@ export class HistoryStore {
   // every time a save or run event occurs
   private _starStore: { [id: string]: Star<Nodey>[] } = {};
 
-  constructor(fileManager: FileManager) {
+  constructor(history: History, fileManager: FileManager) {
+    this.history = history;
     this.fileManager = fileManager;
     this._notebookHistory = new NodeHistory<NodeyNotebook>();
   }
@@ -143,6 +145,38 @@ export class HistoryStore {
         item => item.markdown.toLowerCase().indexOf(text) > -1
       );
       if (match) results.push(match);
+    });
+    return results;
+  }
+
+  public findCode(query: string): NodeyCode[] {
+    let results: NodeyCode[] = [];
+    let text = query.toLowerCase();
+    this._codeCellStore.forEach(history => {
+      history.versions.find(cell => {
+        let sourceText = this.history.inspector.renderNode(cell).text || "";
+        if (sourceText.toLowerCase().indexOf(text) > -1) {
+          results.push(cell);
+          return true;
+        }
+        return false;
+      });
+    });
+    return results;
+  }
+
+  public findOutput(query: string): NodeyOutput[] {
+    let results: NodeyOutput[] = [];
+    let text = query.toLowerCase();
+    this._outputStore.forEach(history => {
+      history.versions.find(output => {
+        let sourceText = this.history.inspector.renderNode(output).text || "";
+        if (sourceText.toLowerCase().indexOf(text) > -1) {
+          results.push(output);
+          return true;
+        }
+        return false;
+      });
     });
     return results;
   }

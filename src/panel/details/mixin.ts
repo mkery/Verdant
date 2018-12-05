@@ -10,11 +10,7 @@ import {
 
 import { History } from "../../model/history";
 
-import {
-  CodeVersionSampler,
-  OutputVersionSampler,
-  MarkdownVersionSampler
-} from "./version-sampler";
+import { VersionSampler } from "./version-sampler";
 
 const HEADER = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_CONTENT = "v-VerdantPanel-inspect-content";
@@ -70,34 +66,18 @@ export class Mixin extends Widget {
 
   buildDetails() {
     let target = this.targetList[0];
-    let inspector = this.historyModel.inspector;
-    let verList = inspector.versionsOfTarget([target]);
+    let verList = this.historyModel.inspector.versionsOfTarget([target]);
 
     let contentDiv = this.content;
     contentDiv.innerHTML = "";
 
     verList.map(async item => {
-      let text = item.text;
       let nodeyVer;
       let sample;
 
-      switch (target.typeChar) {
-        case "o":
-          nodeyVer = this.historyModel.store.get(item.version);
-          sample = new OutputVersionSampler(inspector, nodeyVer, text);
-          break;
-        case "c":
-        case "s":
-          nodeyVer = this.historyModel.store.get(item.version);
-          sample = new CodeVersionSampler(inspector, nodeyVer, text);
-          break;
-        case "m":
-          nodeyVer = this.historyModel.store.get(item.version);
-          sample = new MarkdownVersionSampler(inspector, nodeyVer, text);
-          break;
-      }
-
-      contentDiv.insertBefore(sample.node, contentDiv.firstElementChild);
+      nodeyVer = this.historyModel.store.get(item.version);
+      sample = VersionSampler.sample(this.historyModel, nodeyVer);
+      contentDiv.insertBefore(sample, contentDiv.firstElementChild);
     });
   }
 }

@@ -7,6 +7,7 @@ import { Mixin } from "./details/mixin";
 
 import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "../model/nodey";
 
+const PANEL = "v-VerdantPanel-content";
 const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
 const CRUMB_MENU = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
@@ -22,6 +23,7 @@ export class CrumbBox extends Widget {
 
   constructor(history: History) {
     super();
+    this.node.classList.add(PANEL);
     this.history = history;
     this.summary = new Summary(this.history);
 

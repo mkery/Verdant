@@ -1,20 +1,25 @@
 import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
-import { CellSampler } from "./details/cell-sampler";
+import { VersionSampler } from "./details/version-sampler";
+import { Nodey } from "../model/nodey";
 
+const PANEL = "v-VerdantPanel-content";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
 //const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
 const SEARCH_TEXT = "v-VerdantPanel-searchText";
-const RESULT_MESSAGE = "VerdantPanel-search-results-message";
+const RESULT_CATEGORY = "VerdantPanel-search-results-category";
+const RESULT_HEADER = "VerdantPanel-search-results-header";
+const RESULT_CATEGORY_CONTENT = "VerdantPanel-search-results-category-content";
+const RESULT_CATEGORY_FOOTER = "VerdantPanel-search-results-category-footer";
 
 export class Search extends Widget {
   readonly history: History;
   readonly searchContent: HTMLElement;
-  private query: string;
 
   constructor(history: History) {
     super();
+    this.node.classList.add(PANEL);
     this.history = history;
 
     let searchContainer = document.createElement("div");
@@ -46,19 +51,41 @@ export class Search extends Widget {
 
   lookFor(query: string) {
     this.searchContent.innerHTML = "";
-    this.query = query;
 
     let markdown = this.history.store.findMarkdown(query);
+    let code = this.history.store.findCode(query);
+    let output = this.history.store.findOutput(query);
 
-    let message = document.createElement("div");
-    message.textContent =
-      markdown.length + ' artifacts found with the text "' + this.query + '"';
-    message.classList.add(RESULT_MESSAGE);
-    this.searchContent.appendChild(message);
+    let codeArea = this.buildResultSection(code, "code artifacts");
+    this.searchContent.appendChild(codeArea);
 
-    markdown.forEach(item => {
-      let elem = CellSampler.sampleCell(this.history, item);
-      this.searchContent.appendChild(elem);
+    let markdownArea = this.buildResultSection(markdown, "markdown");
+    this.searchContent.appendChild(markdownArea);
+
+    let outputArea = this.buildResultSection(output, "output");
+    this.searchContent.appendChild(outputArea);
+  }
+
+  buildResultSection(results: Nodey[], header: string) {
+    let area = document.createElement("div");
+    area.classList.add(RESULT_CATEGORY);
+    let label = document.createElement("div");
+    label.classList.add(RESULT_HEADER);
+    label.textContent = "(" + results.length + " found) " + header;
+    area.appendChild(label);
+    let content = document.createElement("div");
+    content.classList.add(RESULT_CATEGORY_CONTENT);
+    area.appendChild(content);
+
+    results.forEach(item => {
+      let elem = VersionSampler.sample(this.history, item);
+      content.appendChild(elem);
     });
+
+    let footer = document.createElement("div");
+    footer.classList.add(RESULT_CATEGORY_FOOTER);
+    footer.textContent = "...";
+    area.appendChild(footer);
+    return area;
   }
 }

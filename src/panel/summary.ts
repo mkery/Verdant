@@ -5,6 +5,7 @@ import { VerNotebook } from "../components/notebook";
 import { VerCell } from "../components/cell";
 import { Nodey } from "../model/nodey";
 
+const PANEL = "v-VerdantPanel-content";
 const SUMMARY = "v-VerdantPanel-Summary";
 const COL = "v-VerdantPanel-Summary-column";
 const CELL = "v-VerdantPanel-Summary-cell";
@@ -22,6 +23,7 @@ export class Summary extends Widget {
 
   constructor(history: History) {
     super();
+    this.node.classList.add(PANEL);
     this.history = history;
 
     let header = this.buildHeader();

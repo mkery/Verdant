@@ -533,7 +533,11 @@
   color: var(--jp-content-font-color2);
   text-transform: uppercase;
   font-size: var(--jp-content-font-size0);
-  margin-top: 1em;
+  padding-top: 1.5em;
+  position: sticky;
+  top: 0px;
+  background: var(--jp-layout-color0);
+  z-index: 2;
 }
 
 .Verdant-events-row {

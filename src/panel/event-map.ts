@@ -2,6 +2,7 @@ import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { Checkpoint, CheckpointType, ChangeType } from "../model/checkpoint";
 
+const PANEL = "v-VerdantPanel-content";
 const DATE_HEADER = "Verdant-events-date-header";
 const EVENT_ROW = "Verdant-events-row";
 const EVENT_NOTEBOOK = "Verdant-events-notebook";
@@ -18,6 +19,7 @@ export class EventMap extends Widget {
 
   constructor(history: History) {
     super();
+    this.node.classList.add(PANEL);
     this.history = history;
 
     this.history.ready.then(async () => {

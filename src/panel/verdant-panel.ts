@@ -10,6 +10,7 @@ import { Summary } from "./summary";
 import { EventMap } from "./event-map";
 import { Search } from "./search";
 
+const PANEL_CONTAINER = "v-VerdantPanel-content-container";
 const TAB_CONTAINER = "v-VerdantPanel-tabContainer";
 const TAB = "v-VerdantPanel-tab";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
@@ -35,8 +36,8 @@ export class VerdantPanel extends Widget {
     this.node.appendChild(header);
 
     this.contentBox = document.createElement("div");
+    this.contentBox.classList.add(PANEL_CONTAINER);
     this.contentBox.appendChild(this.eventMap.node);
-    this.contentBox.classList.add("v-VerdantPanel-content");
     this.node.appendChild(this.contentBox);
 
     this.crumbBox = new CrumbBox(this.history);
