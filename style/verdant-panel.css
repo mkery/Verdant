@@ -269,7 +269,7 @@
   display: inline-block;
   min-height: 1.5em;
   width: 100%;
-  padding: var(--jp-cell-padding);
+  padding: 2px;
   padding-top: 0.5em;
   text-overflow: ellipsis;
 }
@@ -340,10 +340,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.v-VerdantPanel-Summary-cell.selected,
 .v-VerdantPanel-Summary-cell:hover {
-  border: 2px solid var(--jp-brand-color1);
-  width: calc(100% - 4px);
+  background-color: var(--jp-rendermime-table-row-hover-background);
 }
+
 .v-VerdantPanel-Summary-cell.ver {
   width: unset;
   padding: var(--jp-code-padding);

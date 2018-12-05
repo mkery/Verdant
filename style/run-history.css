@@ -540,6 +540,10 @@
   padding: var(--jp-cell-padding);
   display: flex;
   flex-direction: row;
+  padding-right: 0px;
+}
+.Verdant-events-row:hover {
+  background: var(--jp-rendermime-table-row-hover-background);
 }
 .Verdant-events-notebook {
   display: inline-block;

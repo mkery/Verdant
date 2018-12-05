@@ -3,6 +3,7 @@ import { CellSampler } from "./details/cell-sampler";
 import { History } from "../model/history";
 import { VerNotebook } from "../components/notebook";
 import { VerCell } from "../components/cell";
+import { Nodey } from "../model/nodey";
 
 const SUMMARY = "v-VerdantPanel-Summary";
 const COL = "v-VerdantPanel-Summary-column";
@@ -84,6 +85,7 @@ export class Summary extends Widget {
     let [cellA, cellV] = this.buildCell(sample, vers.length);
     this.artifactCol.appendChild(cellA);
     this.verCol.appendChild(cellV);
+    this.addCellEvents(cellA, cellV);
 
     notebook.cells.forEach(cell => {
       let model = cell.model;
@@ -92,6 +94,7 @@ export class Summary extends Widget {
       [cellA, cellV] = this.buildCell(sample, vers.length);
       this.artifactCol.appendChild(cellA);
       this.verCol.appendChild(cellV);
+      this.addCellEvents(cellA, cellV, model);
     });
   }
 
@@ -101,6 +104,7 @@ export class Summary extends Widget {
     let sample = this.buildNotebookTitle(title);
     let [cellA, cellV] = this.buildCell(sample, vers.length);
     this.replaceCell(cellA, cellV, 0);
+    this.addCellEvents(cellA, cellV);
   }
 
   updateCell(cell: VerCell, index: number) {
@@ -110,6 +114,7 @@ export class Summary extends Widget {
     let vers = this.history.store.getHistoryOf(model.name);
     let [cellA, cellV] = this.buildCell(sample, vers.length);
     this.replaceCell(cellA, cellV, index);
+    this.addCellEvents(cellA, cellV, model);
   }
 
   highlightCell(index: number) {
@@ -130,6 +135,7 @@ export class Summary extends Widget {
       let [cellA, cellV] = this.buildCell(sample, vers.length);
       this.artifactCol.insertBefore(cellA, this.artifactCol.children[index]);
       this.verCol.insertBefore(cellV, this.verCol.children[index + 1]);
+      this.addCellEvents(cellA, cellV, model);
     });
   }
 
@@ -153,16 +159,40 @@ export class Summary extends Widget {
   buildCell(title: HTMLElement, vers: number) {
     let cellA = document.createElement("div");
     cellA.classList.add(CELL);
-
     cellA.appendChild(title);
 
     let cellV = document.createElement("div");
     cellV.classList.add(CELL);
     cellV.classList.add("ver");
-
     cellV.textContent = vers + "";
 
     return [cellA, cellV];
+  }
+
+  addCellEvents(cellA: HTMLElement, cellV: HTMLElement, model?: Nodey) {
+    cellA.addEventListener("mouseenter", () => {
+      cellV.classList.add("selected");
+    });
+    cellA.addEventListener("mouseleave", () => {
+      cellV.classList.remove("selected");
+    });
+    cellV.addEventListener("mouseenter", () => {
+      cellA.classList.add("selected");
+    });
+    cellV.addEventListener("mouseleave", () => {
+      cellA.classList.remove("selected");
+    });
+
+    if (model) {
+      cellA.addEventListener("click", () => {
+        this.history.inspector.changeTarget([model]);
+        cellV.classList.remove("selected");
+      });
+      cellV.addEventListener("click", () => {
+        this.history.inspector.changeTarget([model]);
+        cellA.classList.remove("selected");
+      });
+    }
   }
 
   replaceCell(cellA: HTMLElement, cellV: HTMLElement, index: number) {

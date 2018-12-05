@@ -73,18 +73,16 @@ export class CrumbBox extends Widget {
   buildCrumbMenu(): void {
     this.menu.innerHTML = "";
 
-    let notebookItem = document.createElement("div");
-    notebookItem.classList.add(CRUMB_MENU_ITEM);
-    notebookItem.textContent = "Notebook";
-    notebookItem.addEventListener("click", () => {
-      this.content.innerHTML = "";
-      this.menu.innerHTML = "";
-      this.menu.appendChild(notebookItem);
-      this.content.appendChild(this.summary.node);
-    });
-    this.menu.appendChild(notebookItem);
-
     if (this._target) {
+      let notebookItem = document.createElement("div");
+      notebookItem.classList.add(CRUMB_MENU_ITEM);
+      notebookItem.textContent = "Notebook";
+      notebookItem.addEventListener("click", () => {
+        this.content.innerHTML = "";
+        this.menu.innerHTML = "";
+        this.content.appendChild(this.summary.node);
+      });
+      this.menu.appendChild(notebookItem);
       Mixin.addSeperator(this.menu);
       if (this._target instanceof NodeyCode)
         Mixin.labelNodeyCode(this.menu, this._target, this.history);

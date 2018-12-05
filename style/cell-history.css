@@ -59,7 +59,6 @@
   border-radius: var(--jp-border-radius);
 }
 .v-VerdantPanel-cellList-sample.c {
-  background-color: var(--jp-cell-editor-background);
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
   padding: var(--jp-code-padding);
