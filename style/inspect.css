@@ -148,6 +148,7 @@
   margin-top: 10px;
   text-align: left;
   padding-bottom: 1em;
+  overflow-x: auto;
 }
 .v-VerdantPanel-inspect-version.last {
   border-bottom: var(--jp-border-width) solid transparent;
