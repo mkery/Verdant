@@ -178,8 +178,8 @@ export class VerNotebook {
     return this.cells.find(item => item.view.model.id === cell.id);
   }
 
-  public getCellByNode(cell: NodeyCell): VerCell {
-    return this.cells.find(item => item.model === cell);
+  public getCellByNode(cell: NodeyCell | Star<NodeyCell>): VerCell {
+    return this.cells.find(item => cell.name === item.model.name);
   }
 
   public async createCell(

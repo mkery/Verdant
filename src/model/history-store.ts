@@ -271,12 +271,21 @@ export class NodeHistory<T extends Nodey> {
     return this.versions[this.versions.length - 1];
   }
 
+  get lastSaved(): Nodey {
+    return this.versions[this.versions.length - 1];
+  }
+
   get length() {
     return this.versions.length;
   }
 
   setLatestToStar(s: Star<T>): void {
     this.unsavedEdits = s;
+  }
+
+  discardStar() {
+    this.unsavedEdits = null;
+    return this.versions[this.versions.length - 1];
   }
 
   deStar() {

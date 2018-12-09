@@ -172,7 +172,7 @@ export class ASTMatch {
             nodeyList,
             nodeyEdited
           );
-          $NodeyCode$.setParent(child, nodeyEdited.name);
+          child.parent = nodeyEdited.name;
           return child.name;
         });
         $NodeyCode$.setContent(nodeyEdited, content);
@@ -374,7 +374,10 @@ export class ASTMatch {
       return score;
     }
 
-    var nodeyNode = this.history.store.get(nodeyProfile.nodey) as NodeyCode;
+    var nodeyNode = this.history.store.getLatestOf(
+      nodeyProfile.nodey
+    ) as NodeyCode;
+    console.log("Looking for nodey", nodeyProfile.nodey, nodeyNode);
     /*
     * Literal match score
     * Literal nodes do not score for type or children

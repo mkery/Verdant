@@ -90,7 +90,7 @@ export class Summary extends Widget {
     this.addCellEvents(cellA, cellV);
 
     notebook.cells.forEach(cell => {
-      let model = cell.model;
+      let model = cell.lastSavedModel;
       sample = CellSampler.sampleCell(history, model);
       vers = history.store.getHistoryOf(model.name);
       [cellA, cellV] = this.buildCell(sample, vers.length);
@@ -111,7 +111,7 @@ export class Summary extends Widget {
 
   updateCell(cell: VerCell, index: number) {
     index++; //skip the notebook
-    let model = cell.model;
+    let model = cell.lastSavedModel;
     let sample = CellSampler.sampleCell(this.history, model);
     let vers = this.history.store.getHistoryOf(model.name);
     let [cellA, cellV] = this.buildCell(sample, vers.length);
@@ -131,7 +131,7 @@ export class Summary extends Widget {
   addCell(cell: VerCell, index: number) {
     cell.ready.then(() => {
       index++; //skip the notebook
-      let model = cell.model;
+      let model = cell.lastSavedModel;
       let sample = CellSampler.sampleCell(this.history, model);
       let vers = this.history.store.getHistoryOf(model.name);
       let [cellA, cellV] = this.buildCell(sample, vers.length);

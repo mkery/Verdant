@@ -16,7 +16,7 @@ export namespace Wishbone {
     console.log("starting wishbone!", history);
     history.notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view;
-      Private.addCellEvents(cell, [verCell.model], history.inspector);
+      Private.addCellEvents(cell, [verCell.lastSavedModel], history.inspector);
 
       if (cell instanceof CodeCell) {
         Private.addLineEvents(cell as CodeCell);

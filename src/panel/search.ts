@@ -54,19 +54,20 @@ export class Search extends Widget {
 
   lookFor(query: string) {
     this.searchContent.innerHTML = "";
+    if (query.length > 0) {
+      let markdown = this.history.store.findMarkdown(query);
+      let code = this.history.store.findCode(query);
+      let output = this.history.store.findOutput(query);
 
-    let markdown = this.history.store.findMarkdown(query);
-    let code = this.history.store.findCode(query);
-    let output = this.history.store.findOutput(query);
+      let codeArea = this.buildResultSection(code, "code artifacts");
+      this.searchContent.appendChild(codeArea);
 
-    let codeArea = this.buildResultSection(code, "code artifacts");
-    this.searchContent.appendChild(codeArea);
+      let markdownArea = this.buildResultSection(markdown, "markdown");
+      this.searchContent.appendChild(markdownArea);
 
-    let markdownArea = this.buildResultSection(markdown, "markdown");
-    this.searchContent.appendChild(markdownArea);
-
-    let outputArea = this.buildResultSection(output, "output");
-    this.searchContent.appendChild(outputArea);
+      let outputArea = this.buildResultSection(output, "output");
+      this.searchContent.appendChild(outputArea);
+    }
   }
 
   buildResultSection(results: Nodey[], header: string) {

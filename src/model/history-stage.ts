@@ -8,6 +8,8 @@ import {
   NodeyNotebook
 } from "./nodey";
 
+import * as levenshtein from "fast-levenshtein";
+
 import { CodeCell } from "@jupyterlab/cells";
 
 import { History } from "./history";
@@ -29,6 +31,10 @@ export class Star<T extends Nodey> {
 
   get id(): number {
     return this.value.id;
+  }
+
+  set parent(name: string) {
+    this.value.parent = name;
   }
 
   get version(): string {
@@ -85,9 +91,24 @@ export class HistoryStage {
     } else {
       starNode = this.createStar(nodey) as Star<NodeyMarkdown>;
       history.setLatestToStar(starNode);
-      this.markNotebookAsEdited();
+      this.markParentAsEdited(starNode, nodey);
     }
     return starNode;
+  }
+
+  private markParentAsEdited(starNode: Star<Nodey>, nodey: Nodey) {
+    let parent = this.store.getLatestOf(starNode.value.parent);
+    let starParent = this.markAsEdited(parent);
+
+    //finally, fix pointer names to be stars too
+    starNode.value.parent = starParent.name;
+    if (starParent.value instanceof NodeyCode) {
+      let childIndex = starParent.value.content.indexOf(nodey.name);
+      starParent.value.content[childIndex] = starNode.name;
+    } else if (starParent.value instanceof NodeyNotebook) {
+      let childIndex = starParent.value.cells.indexOf(nodey.name);
+      starParent.value.cells[childIndex] = starNode.name;
+    }
   }
 
   private createStar(nodey: Nodey) {
@@ -118,23 +139,7 @@ export class HistoryStage {
 
     // must make the whole chain up Star nodes
     if (starNode.value.parent) {
-      console.log("parent is", starNode.value.parent);
-      let parent = this.store.getLatestOf(starNode.value.parent);
-      console.log("PARENT IS", parent);
-
-      let starParent: Star<Nodey>;
-      if (parent instanceof Star) starParent = parent as Star<Nodey>;
-      else starParent = this.markAsEdited(parent);
-
-      //finally, fix pointer names to be stars too
-      starNode.value.parent = starParent.name;
-      if (starParent.value instanceof NodeyCode) {
-        let childIndex = starParent.value.content.indexOf(nodey.name);
-        starParent.value.content[childIndex] = starNode.name;
-      } else if (starParent.value instanceof NodeyNotebook) {
-        let childIndex = starParent.value.cells.indexOf(nodey.name);
-        starParent.value.cells[childIndex] = starNode.name;
-      }
+      this.markParentAsEdited(starNode, nodey);
     }
 
     console.log("STAR NODE", starNode, starNode.value);
@@ -160,29 +165,35 @@ export class HistoryStage {
   }
 
   private commitNotebook(star: Star<Nodey>, eventId: number) {
-    let notebook = this.deStar(star, eventId) as NodeyNotebook;
-    notebook.cells.forEach(name => {
-      let cell = this.store.get(name);
-      cell.parent = notebook.name;
-    });
-    return notebook;
+    if (this.verifyDifferent(star)) {
+      let notebook = this.deStar(star, eventId) as NodeyNotebook;
+      notebook.cells.forEach(name => {
+        let cell = this.store.get(name);
+        cell.parent = notebook.name;
+      });
+      return notebook;
+    } else return this.discardStar(star);
   }
 
   private commitCodeCell(starCell: Star<Nodey>, eventId: number) {
-    // destar this cell
-    let starName = starCell.name;
-    let cell = this.deStar(starCell, eventId) as NodeyCodeCell;
+    let cell: NodeyCodeCell;
+    if (this.verifyDifferent(starCell)) {
+      // destar this cell
+      cell = this.deStar(starCell, eventId) as NodeyCodeCell;
+
+      // update code nodes and output
+      console.log("Cell to commit is " + cell.name, cell, eventId);
+      let output = this.commitOutput(cell, eventId);
+      console.log("Output committed", output);
+      this.commitCode(cell, eventId, output);
+      this.store.cleanOutStars(cell);
+    } else {
+      // if nothing was changed, nothing was changed
+      cell = this.discardStar(starCell) as NodeyCodeCell;
+    }
 
     // update pointer in parent notebook
-    let parent = this.store.getLatestOf(cell.parent) as Star<NodeyNotebook>;
-    parent.value.cells[parent.value.cells.indexOf(starName)] = cell.name;
-
-    // update code nodes and output
-    console.log("Cell to commit is " + cell.name, cell, eventId);
-    let output = this.commitOutput(cell, eventId);
-    console.log("Output committed", output);
-    this.commitCode(cell, eventId, output);
-    this.store.cleanOutStars(cell);
+    this.postCommit_updateParent(cell, starCell);
     return cell;
   }
 
@@ -193,29 +204,80 @@ export class HistoryStage {
     return newNode;
   }
 
-  private commitMarkdown(nodey: Star<Nodey>, eventId: number) {
-    console.error("TODO", nodey, eventId);
-    return nodey.value;
-    /*let priorText = nodey.markdown;
-    let cell = nodey.cell.cell;
-    let score = 0;
-    if (cell && cell.model) {
-      //cell has not been deleted!
-      let newText = cell.model.value.text;
-      score = levenshtein.get(priorText, newText);
-      if (score > 0) {
-        nodey.cell.status = ChangeType.CHANGED;
-        let history = this.store.getHistoryOf(nodey);
-        let newCell = new NodeyMarkdown(nodey);
-        newCell.markdown = newText;
-        newCell.created = eventId;
-        return history.deStar(eventId) as NodeyMarkdown;
-      }
+  private discardStar(star: Star<Nodey>) {
+    let history = this.store.getHistoryOf(star.value);
+    console.log("DISCARD STAR", star);
+    // check: if the star has children, make sure their stars
+    // are discared too
+    if (star.value instanceof NodeyCode) {
+      if (star.value.content)
+        star.value.content.forEach(name => {
+          if (typeof name == "string") {
+            let nodey = this.store.getLatestOf(name);
+            if (nodey instanceof Star) this.discardStar(nodey);
+          }
+        });
     }
-    if (score === 0) {
-      nodey.run.push(eventId);
-      return nodey;
-    }*/
+
+    return history.discardStar();
+  }
+
+  private commitMarkdown(star: Star<Nodey>, eventId: number) {
+    let nodey = star as Star<NodeyMarkdown>;
+
+    let updatedNodey: NodeyMarkdown;
+    if (this.verifyDifferent(nodey)) {
+      updatedNodey = this.deStar(nodey, eventId) as NodeyMarkdown;
+    } else {
+      /*
+      * if nothing was changed, nothing was changed
+      * this protects us against undo and changes that result
+      * in no real change to the text
+      */
+      updatedNodey = this.discardStar(star) as NodeyMarkdown;
+    }
+
+    this.postCommit_updateParent(updatedNodey, nodey);
+    return updatedNodey;
+  }
+
+  private postCommit_updateParent(updatedNodey: Nodey, star: Star<Nodey>) {
+    // update pointer in parent notebook
+    let parent = this.store.getLatestOf(updatedNodey.parent) as Star<
+      NodeyNotebook
+    >;
+    let index = parent.value.cells.indexOf(star.name);
+    parent.value.cells[index] = updatedNodey.name;
+    console.log("UPDATED PARENT", index, parent.value.cells, star.name);
+  }
+
+  private verifyDifferent(nodey: Star<Nodey>): boolean {
+    // check the last non-star version of this node
+    let lastSave = this.store.getHistoryOf(nodey.value).lastSaved;
+
+    if (nodey.value instanceof NodeyNotebook) {
+      /* for a notebook just check if any of the cells have
+      * actually changed
+      */
+      return !(lastSave as NodeyNotebook).cells.every(
+        (name, index) => name === (nodey.value as NodeyNotebook).cells[index]
+      );
+    } else {
+      /*
+      * for most cells, check if the text content is different
+      */
+      let priorText: string;
+
+      if (lastSave instanceof NodeyMarkdown) priorText = lastSave.markdown;
+      else if (lastSave instanceof NodeyCode)
+        priorText = this.history.inspector.renderNode(lastSave).text;
+
+      // now check the current value of this markdown node
+      let cell = this.history.notebook.getCellByNode(nodey);
+      let newText = cell.view.model.value.text;
+      console.log("new and old", newText, priorText);
+      return levenshtein.get(priorText, newText) > 0;
+    }
   }
 
   private commitOutput(nodey: NodeyCodeCell, eventId: number) {

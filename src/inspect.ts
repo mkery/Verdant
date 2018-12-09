@@ -412,7 +412,8 @@ export class Inspect {
     if (!this._target) {
       if (this._notebook.view.activeCell) {
         this._target = [
-          this._notebook.getCell(this._notebook.view.activeCell.model).model
+          this._notebook.getCell(this._notebook.view.activeCell.model)
+            .lastSavedModel
         ];
       }
     }

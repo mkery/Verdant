@@ -164,14 +164,6 @@ export namespace $NodeyCode$ {
     return nodey.value.parent;
   }
 
-  export function setParent(
-    nodey: NodeyCode | Star<NodeyCode>,
-    parent: string
-  ) {
-    if (nodey instanceof NodeyCode) nodey.parent = parent;
-    else nodey.value.parent = parent;
-  }
-
   export function positionRelativeTo(
     nodey: NodeyCode | Star<NodeyCode>,
     relativeTo: NodeyCode | Star<NodeyCode>

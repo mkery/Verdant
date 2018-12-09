@@ -10,6 +10,7 @@ import { VerNotebook } from "./notebook";
 import { Checkpoint } from "../model/checkpoint";
 import { NodeyFactory } from "../model/nodey-factory";
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
+import { Star } from "../model/history-stage";
 
 export class VerCell {
   constructor(
@@ -41,8 +42,12 @@ export class VerCell {
     return this._ready.promise;
   }
 
-  public get model(): NodeyCell {
-    return this.notebook.history.store.getLatestOf(this.modelName) as NodeyCell;
+  public get model(): NodeyCell | Star<NodeyCell> {
+    return this.notebook.history.store.getLatestOf(this.modelName);
+  }
+
+  public get lastSavedModel(): NodeyCell {
+    return this.notebook.history.store.getHistoryOf(this.modelName).lastSaved;
   }
 
   public get output(): NodeyOutput[] {
