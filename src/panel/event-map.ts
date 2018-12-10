@@ -94,7 +94,8 @@ export class EventMap extends Widget {
 
     let notebookNum = document.createElement("div");
     notebookNum.classList.add(EVENT_NOTEBOOK);
-    notebookNum.textContent = "#" + event.notebook;
+    // add 1 to number to not start at 0
+    notebookNum.textContent = "#" + (event.notebook + 1);
     eventMap.appendChild(notebookNum);
 
     let map = this.buildMap(event);

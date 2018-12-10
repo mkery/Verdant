@@ -125,7 +125,7 @@ export class VerNotebook {
     // save the data to file
     //this.history.store.writeToFile(this, this.history);
     console.log("commited cell", newNodey);
-    this.panel.eventMap.addEvent(checkpoint);
+    this.panel.updateCells(newNodey, checkpoint);
   }
 
   public async save() {
@@ -160,17 +160,11 @@ export class VerNotebook {
         // finish the checkpoint with info from this run
         resolve(changedCells, notebook.version);
 
-        this.panel.eventMap.addEvent(checkpoint);
-        /*changedCells.forEach(n => {
-          //let index = this.cells.findIndex(item => item.model.name === n.name);
-          // this.panel.updateCell(this.cells[index], index);
-        });
-
-        // this.panel.updateNotebook(this);*/
+        this.panel.updateCells(changedCells, checkpoint);
       });
     } else {
       resolve([], nodey.version);
-      this.panel.eventMap.addEvent(checkpoint);
+      this.panel.updateCells([], checkpoint);
     }
   }
 
@@ -204,7 +198,7 @@ export class VerNotebook {
 
     // finish up
     resolve(newCell.model, notebook.version);
-    this.panel.eventMap.addEvent(checkpoint);
+    this.panel.updateCells(newCell.lastSavedModel, checkpoint, index);
     return newCell;
   }
 
@@ -225,7 +219,7 @@ export class VerNotebook {
 
     // finish up
     resolve(oldCell[0].model, notebook.version);
-    this.panel.eventMap.addEvent(checkpoint);
+    this.panel.updateCells(oldCell[0].lastSavedModel, checkpoint, index);
   }
 
   public moveCell(cell: VerCell, oldPos: number, newPos: number) {
@@ -248,12 +242,12 @@ export class VerNotebook {
 
     // finish up
     resolve(cell.model, notebook.version);
-    this.panel.eventMap.addEvent(checkpoint);
+    this.panel.updateCells(cell.lastSavedModel, checkpoint, oldPos, newPos);
   }
 
   public focusCell(cell: VerCell) {
-    //let index = this.indexOf(cell);
-    // this.panel.highlightCell(index);
+    let index = this.cells.indexOf(cell);
+    this.panel.highlightCell(index);
   }
 
   public dump(): void {

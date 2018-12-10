@@ -1,11 +1,9 @@
 import { Widget } from "@phosphor/widgets";
-
 //import { GhostBookPanel } from "../ghost-book/ghost-model";
-
+import { Checkpoint } from "../model/checkpoint";
+import { Nodey } from "../model/nodey";
 import { History } from "../model/history";
-
 import { CrumbBox } from "./crumb-box";
-
 import { Summary } from "./summary";
 import { EventMap } from "./event-map";
 import { Search } from "./search";
@@ -127,5 +125,19 @@ export class VerdantPanel extends Widget {
   closeCrumbBox() {
     this.contentBox.innerHTML = "";
     this.crumbBox.hide();
+  }
+
+  updateCells(
+    runNodey: Nodey | Nodey[],
+    checkpoint: Checkpoint,
+    index?: number,
+    indexB?: number
+  ) {
+    this.eventMap.addEvent(checkpoint);
+    this.crumbBox.updateNode(runNodey, checkpoint, index, indexB);
+  }
+
+  highlightCell(index: number) {
+    this.crumbBox.summary.highlightCell(index);
   }
 }

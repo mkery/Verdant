@@ -50,6 +50,10 @@ export class VerCell {
     return this.notebook.history.store.getHistoryOf(this.modelName).lastSaved;
   }
 
+  public get currentIndex(): number {
+    return this.notebook.cells.findIndex(item => item === this);
+  }
+
   public get output(): NodeyOutput[] {
     var output = (this.model as NodeyCodeCell).output;
     if (output)

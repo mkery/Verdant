@@ -4,6 +4,7 @@ import { History } from "../model/history";
 import { VerNotebook } from "../components/notebook";
 import { VerCell } from "../components/cell";
 import { Nodey } from "../model/nodey";
+import { Checkpoint, CheckpointType } from "../model/checkpoint";
 
 const PANEL = "v-VerdantPanel-content";
 const SUMMARY = "v-VerdantPanel-Summary";
@@ -48,7 +49,33 @@ export class Summary extends Widget {
     });
   }
 
-  buildHeader() {
+  public updateSummary(
+    verCell: VerCell,
+    checkpoint: Checkpoint,
+    index?: number,
+    indexB?: number
+  ) {
+    switch (checkpoint.checkpointType) {
+      case CheckpointType.ADD:
+        this.addCell(verCell, index);
+        break;
+      case CheckpointType.DELETE:
+        this.removeCell(index);
+        break;
+      case CheckpointType.MOVED:
+        this.moveCell(index, indexB);
+        break;
+      case CheckpointType.RUN:
+        this.updateCell(verCell);
+        break;
+      case CheckpointType.SAVE:
+        this.updateCell(verCell);
+        break;
+    }
+    this.updateNotebook(this.history.notebook);
+  }
+
+  private buildHeader() {
     let header = document.createElement("div");
     header.classList.add(HEADER);
 
@@ -65,7 +92,7 @@ export class Summary extends Widget {
     return header;
   }
 
-  buildNotebookTitle(title: string) {
+  private buildNotebookTitle(title: string) {
     let name = document.createElement("div");
     name.classList.add(NOTEBOOK_LABEL);
     let icon = document.createElement("div");
@@ -79,7 +106,7 @@ export class Summary extends Widget {
     return name;
   }
 
-  build(history: History) {
+  private build(history: History) {
     let notebook = history.notebook;
     let title = notebook.name;
     let sample = this.buildNotebookTitle(title);
@@ -100,7 +127,7 @@ export class Summary extends Widget {
     });
   }
 
-  updateNotebook(notebook: VerNotebook) {
+  private updateNotebook(notebook: VerNotebook) {
     let title = notebook.name;
     let vers = this.history.store.getHistoryOf(notebook.model.name);
     let sample = this.buildNotebookTitle(title);
@@ -109,7 +136,8 @@ export class Summary extends Widget {
     this.addCellEvents(cellA, cellV);
   }
 
-  updateCell(cell: VerCell, index: number) {
+  private updateCell(cell: VerCell) {
+    let index = cell.currentIndex;
     index++; //skip the notebook
     let model = cell.lastSavedModel;
     let sample = CellSampler.sampleCell(this.history, model);
@@ -119,7 +147,7 @@ export class Summary extends Widget {
     this.addCellEvents(cellA, cellV, model);
   }
 
-  highlightCell(index: number) {
+  public highlightCell(index: number) {
     index++; //skip the notebook
     let children = this.artifactCol.children;
     for (var i = 0; i < children.length; i++) {
@@ -128,7 +156,7 @@ export class Summary extends Widget {
     }
   }
 
-  addCell(cell: VerCell, index: number) {
+  private addCell(cell: VerCell, index: number) {
     cell.ready.then(() => {
       index++; //skip the notebook
       let model = cell.lastSavedModel;
@@ -141,13 +169,13 @@ export class Summary extends Widget {
     });
   }
 
-  removeCell(index: number) {
+  private removeCell(index: number) {
     index++; //skip the notebook
     this.artifactCol.removeChild(this.artifactCol.children[index]);
     this.verCol.removeChild(this.verCol.children[index]);
   }
 
-  moveCell(oldPos: number, newPos: number) {
+  private moveCell(oldPos: number, newPos: number) {
     oldPos++; //skip the notebook
     newPos++; //skip the notebook
 
@@ -158,7 +186,7 @@ export class Summary extends Widget {
     this.verCol.insertBefore(ver, this.verCol.children[newPos]);
   }
 
-  buildCell(title: HTMLElement, vers: number) {
+  private buildCell(title: HTMLElement, vers: number) {
     let cellA = document.createElement("div");
     cellA.classList.add(CELL);
     cellA.appendChild(title);

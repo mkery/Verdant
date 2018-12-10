@@ -428,6 +428,10 @@ export class Inspect {
     return this._targetChanged;
   }
 
+  public clearTarget() {
+    this._target = null;
+  }
+
   versionsOfTarget(target: Nodey[]) {
     let t = target || this._target;
     var nodeVerList = t.map(item => {

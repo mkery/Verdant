@@ -1,8 +1,8 @@
 import { Widget } from "@phosphor/widgets";
-import { Wishbone } from "./wishbone";
+import { Wishbone } from "./details/wishbone";
 import { Summary } from "./summary";
 import { History } from "../model/history";
-
+import { Checkpoint } from "../model/checkpoint";
 import { Mixin } from "./details/mixin";
 
 import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "../model/nodey";
@@ -20,6 +20,7 @@ export class CrumbBox extends Widget {
   private _active: boolean = false;
   private menu: HTMLElement;
   private content: HTMLElement;
+  private showingDetail: boolean;
 
   constructor(history: History) {
     super();
@@ -42,6 +43,7 @@ export class CrumbBox extends Widget {
     this.content = document.createElement("div");
     this.node.appendChild(this.content);
     this.content.appendChild(this.summary.node);
+    this.showingDetail = false;
 
     this.history.inspector.ready.then(async () => {
       this.history.inspector.targetChanged.connect((_: any, nodey: Nodey[]) => {
@@ -69,6 +71,7 @@ export class CrumbBox extends Widget {
       this._target = node[0];
       this.buildCrumbMenu();
       this.buildDetails();
+      this.showingDetail = true;
     }
   }
 
@@ -80,9 +83,7 @@ export class CrumbBox extends Widget {
       notebookItem.classList.add(CRUMB_MENU_ITEM);
       notebookItem.textContent = "Notebook";
       notebookItem.addEventListener("click", () => {
-        this.content.innerHTML = "";
-        this.menu.innerHTML = "";
-        this.content.appendChild(this.summary.node);
+        this.closeDetails();
       });
       this.menu.appendChild(notebookItem);
       Mixin.addSeperator(this.menu);
@@ -109,6 +110,15 @@ export class CrumbBox extends Widget {
     }
   }
 
+  closeDetails() {
+    this.content.innerHTML = "";
+    this.menu.innerHTML = "";
+    this.content.appendChild(this.summary.node);
+    this.showingDetail = false;
+    this.history.inspector.clearTarget();
+    this._target = null;
+  }
+
   toggleInspector() {
     let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
     if (inspectorButton.classList.contains("active")) {
@@ -118,5 +128,30 @@ export class CrumbBox extends Widget {
       inspectorButton.classList.add("active");
       Wishbone.startWishbone(this.history);
     }
+  }
+
+  updateNode(
+    nodey: Nodey | Nodey[],
+    checkpoint: Checkpoint,
+    index?: number,
+    indexB?: number
+  ) {
+    let list: Nodey[];
+    if (nodey instanceof Nodey) list = [nodey];
+    else list = nodey;
+    console.log("UPDATE crumbs", nodey, list, checkpoint);
+
+    list.forEach(item => {
+      let verCell = this.history.notebook.getCellByNode(item);
+      this.summary.updateSummary(verCell, checkpoint, index, indexB);
+      //TODO update detail view
+      if (this.showingDetail) {
+        let targetCell = this.history.store.getCellParent(this._target);
+        if (targetCell.id == item.id && targetCell.typeChar === item.typeChar) {
+          // then these two nodey are related, assuming the node is cells only
+          this.buildDetails(); // TODO OPTIMIZE
+        }
+      }
+    });
   }
 }
