@@ -13,6 +13,7 @@ export enum ChangeType {
 export enum CheckpointType {
   RUN = "r",
   SAVE = "s",
+  LOAD = "l",
   ADD = "a",
   DELETE = "d",
   MOVED = "m"
@@ -94,6 +95,15 @@ export class HistoryCheckpoints {
     (newCells: NodeyCell[], notebook: number) => void
   ] {
     let checkpoint = this.generateCheckpoint(CheckpointType.SAVE);
+    return [checkpoint, this.handleNotebookSaved.bind(this, checkpoint.id)];
+  }
+
+  public notebookLoad(): [
+    Checkpoint,
+    (newCells: NodeyCell[], notebook: number) => void
+  ] {
+    let checkpoint = this.generateCheckpoint(CheckpointType.LOAD);
+    // process is the same for save, so we'll just reuse that function for now
     return [checkpoint, this.handleNotebookSaved.bind(this, checkpoint.id)];
   }
 

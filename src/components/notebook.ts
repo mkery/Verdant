@@ -6,6 +6,7 @@ import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
 import { Star } from "../model/history-stage";
+import { Checkpoint } from "../model/checkpoint";
 import { AST } from "../analysis/ast";
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
@@ -54,14 +55,18 @@ export class VerNotebook {
     var prior = await this.history.init(this);
     await this.ast.ready;
 
+    // TODO we'll need to load checkpoints first to get the right #
+    // first start a checkpoint for this load event
+    let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
+
     // load in the notebook model from data
-    this.initNotebook(prior);
+    this.initNotebook(prior, checkpoint);
 
     // start initializing all the cells
     var cellsReady: Promise<void>[] = [];
     this.view.notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
-        let cell: VerCell = new VerCell(this, item, index, prior);
+        let cell: VerCell = new VerCell(this, item, index, prior, checkpoint);
         this.cells.push(cell);
         cellsReady.push(cell.ready);
       }
@@ -78,15 +83,18 @@ export class VerNotebook {
     });
 
     // finish initialization
-    this.view.focusCell();
+    resolve([], this.model.version); //TODO! need to figure out which cells actually changed!!!
     console.log("Loaded Notebook", this.view.notebook, this.model);
     this.dump();
     this._ready.resolve(undefined);
+
+    // update views to show notebook is loaded
+    this.view.focusCell();
   }
 
-  private initNotebook(matchPrior: boolean) {
+  private initNotebook(matchPrior: boolean, checkpoint: Checkpoint) {
     if (!matchPrior) {
-      var n = new NodeyNotebook();
+      var n = new NodeyNotebook({ created: checkpoint.id });
       this.history.store.store(n);
     } //TODO got to check match prior if we need a new notebook
   }
@@ -181,9 +189,9 @@ export class VerNotebook {
     index: number,
     match: boolean
   ): Promise<VerCell> {
-    let newCell = new VerCell(this, cell, index, match);
-    this.cells.splice(index, 0, newCell);
     let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
+    let newCell = new VerCell(this, cell, index, match, checkpoint);
+    this.cells.splice(index, 0, newCell);
 
     // make sure cell is added to model
     let model = this.history.stage.markAsEdited(this.model) as Star<

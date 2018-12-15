@@ -72,12 +72,14 @@ export class Mixin extends Widget {
     contentDiv.innerHTML = "";
 
     verList.map(async item => {
-      let nodeyVer;
-      let sample;
+      let nodeyVer = this.historyModel.store.get(item.version);
+      let header = VersionSampler.verHeader(this.historyModel, nodeyVer);
+      let sample = VersionSampler.sample(this.historyModel, nodeyVer);
 
-      nodeyVer = this.historyModel.store.get(item.version);
-      sample = VersionSampler.sample(this.historyModel, nodeyVer);
-      contentDiv.insertBefore(sample, contentDiv.firstElementChild);
+      let itemDiv = document.createElement("div");
+      itemDiv.appendChild(header);
+      itemDiv.appendChild(sample);
+      contentDiv.insertBefore(itemDiv, contentDiv.firstElementChild);
     });
   }
 }

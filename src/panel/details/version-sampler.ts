@@ -9,6 +9,7 @@ import { Inspect } from "../../inspect";
 
 const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
+const VERSION_HEADER = "v-VerdantPanel-inspect-version-header";
 
 export namespace VersionSampler {
   export function sample(history: History, nodey: Nodey) {
@@ -29,6 +30,16 @@ export namespace VersionSampler {
       buildOutput(inspector, nodey, text, content);
 
     return sample;
+  }
+
+  export function verHeader(history: History, nodey: Nodey) {
+    let ver = nodey.version;
+    let notebookVer = history.checkpoints.get(nodey.created).notebook;
+
+    let header = document.createElement("div");
+    header.classList.add(VERSION_HEADER);
+    header.textContent = "#" + ver + ", NOTEBOOK #" + notebookVer;
+    return header;
   }
 
   async function buildCode(

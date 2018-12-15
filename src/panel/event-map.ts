@@ -75,6 +75,9 @@ export class EventMap extends Widget {
       case CheckpointType.RUN:
         eventTitle = "Run";
         break;
+      case CheckpointType.LOAD:
+        eventTitle = "Load";
+        break;
       case CheckpointType.SAVE:
         eventTitle = "Save";
         break;

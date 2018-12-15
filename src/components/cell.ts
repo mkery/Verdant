@@ -17,12 +17,13 @@ export class VerCell {
     notebook: VerNotebook,
     cell: Cell,
     index: number,
-    matchPrior: boolean
+    matchPrior: boolean,
+    checkpoint: Checkpoint // what event created this cell?
   ) {
     this.notebook = notebook;
     this.position = index;
     this.view = cell;
-    this.init(matchPrior);
+    this.init(matchPrior, checkpoint);
   }
 
   private position: number;
@@ -30,10 +31,11 @@ export class VerCell {
   private modelName: string;
   private readonly notebook: VerNotebook;
 
-  private async init(matchPrior: boolean) {
-    if (this.view instanceof CodeCell) await this.initCodeCell(matchPrior);
+  private async init(matchPrior: boolean, checkpoint: Checkpoint) {
+    if (this.view instanceof CodeCell)
+      await this.initCodeCell(matchPrior, checkpoint);
     else if (this.view instanceof MarkdownCell)
-      await this.initMarkdownCell(matchPrior);
+      await this.initMarkdownCell(matchPrior, checkpoint);
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -105,7 +107,7 @@ export class VerCell {
     //TODO
   }
 
-  private async initCodeCell(matchPrior: boolean) {
+  private async initCodeCell(matchPrior: boolean, checkpoint: Checkpoint) {
     var cell = this.view as CodeCell;
     var text: string = cell.editor.model.value.text;
     if (matchPrior) {
@@ -114,7 +116,8 @@ export class VerCell {
       if (nodeyCell instanceof NodeyCodeCell) {
         let nodey = await this.notebook.ast.matchASTOnInit(nodeyCell, text);
         this.modelName = nodey.name;
-        //TODO match output too
+        // TODO figure out event if it's NOT the same
+        // TODO match output too
       } else if (nodeyCell instanceof NodeyMarkdown) {
         var output = NodeyFactory.outputToNodey(
           cell,
@@ -138,6 +141,7 @@ export class VerCell {
         text,
         this.position
       );
+      nodey.created = checkpoint.id;
       if (!nodey.output) nodey.output = [];
       nodey.output = nodey.output.concat(output);
       this.modelName = nodey.name;
@@ -145,9 +149,10 @@ export class VerCell {
     }
   }
 
-  private async initMarkdownCell(matchPrior: boolean) {
+  private async initMarkdownCell(matchPrior: boolean, checkpoint: Checkpoint) {
     let nodey: NodeyMarkdown;
     if (matchPrior) {
+      // TODO figure out event if it's NOT the same
       let name = this.notebook.cells[this.position].model.name; //TODO could easily fail!!!
       var nodeyCell = this.notebook.history.store.get(name);
       //console.log("Prior match is", nodeyCell, this.position);
@@ -163,7 +168,7 @@ export class VerCell {
       }
     } else {
       let text = this.view.model.value.text;
-      nodey = new NodeyMarkdown({ markdown: text });
+      nodey = new NodeyMarkdown({ markdown: text, created: checkpoint.id });
       this.notebook.history.store.store(nodey);
     }
     this.modelName = nodey.name;

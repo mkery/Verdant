@@ -105,7 +105,7 @@ export class Search extends Widget {
     let vertical = document.createElement("div");
     vertical.classList.add("vertical");
     circle.appendChild(vertical);
-    button.addEventListener("mousedown", () => {
+    label.addEventListener("mousedown", () => {
       if (button.classList.contains("opened")) {
         button.classList.remove("opened");
         button.classList.add("closed");

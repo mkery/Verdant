@@ -256,3 +256,10 @@
 .v-VerdantPanel-sample-searchResult {
   background-color: pink;
 }
+
+.v-VerdantPanel-inspect-version-header {
+  font-size: var(--jp-ui-font-size0);
+  padding-left: var(--jp-cell-padding);
+  padding-top: var(--jp-cell-padding);
+  color: var(--jp-content-font-color2);
+}
