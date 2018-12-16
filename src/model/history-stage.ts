@@ -284,6 +284,7 @@ export class HistoryStage {
         NodeyOutput.typeChar + "." + nodey.outputId
       );
       let output = cell.outputArea.model.toJSON();
+
       /*
       * verify different
       */
@@ -291,8 +292,7 @@ export class HistoryStage {
       let oldOutput;
       if (history) {
         oldOutput = history.lastSaved as NodeyOutput;
-        same =
-          oldOutput && JSON.stringify(output) === JSON.stringify(oldOutput.raw);
+        same = NodeyOutput.equals(output, oldOutput.raw);
       }
       if (!same) {
         // make a new output
@@ -313,7 +313,8 @@ export class HistoryStage {
       }
     }
     console.log(
-      "NEW OUTPUT",
+      "OUTPUT HISTORY FOR",
+      nodey,
       newOutput,
       this.history.store.getHistoryOf(newOutput)
     );

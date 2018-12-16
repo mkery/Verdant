@@ -240,6 +240,41 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 export namespace NodeyOutput {
   export const typeChar = "o";
 
+  export function equals(a: any, b: any): boolean {
+    console.log("COMPARING", a, b);
+    if (a === null || a === undefined || b === null || b === undefined) {
+      return a === b;
+    }
+    if (a === b || a.valueOf() === b.valueOf()) {
+      return true;
+    }
+
+    // if one of them is date, they must had equal valueOf
+    if (a instanceof Date) {
+      return false;
+    }
+    if (b instanceof Date) {
+      return false;
+    }
+
+    // if they are not function or strictly equal, they both need to be Objects
+    if (!(a instanceof Object)) {
+      return false;
+    }
+    if (!(b instanceof Object)) {
+      return false;
+    }
+
+    var p = Object.keys(a);
+    return Object.keys(b).every(function(i) {
+      return p.indexOf(i) !== -1;
+    })
+      ? p.every(function(i) {
+          return NodeyOutput.equals(a[i], b[i]);
+        })
+      : false;
+  }
+
   export function fromJSON(dat: jsn): NodeyOutput {
     return new NodeyOutput({
       raw: dat.raw,
