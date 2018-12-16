@@ -8,7 +8,8 @@ type NodeyOptions = {
   cells?: string[];
   raw?: { [i: string]: any };
   type?: string;
-  output?: string[];
+  outputId?: number;
+  outputVer?: any;
   content?: (SyntaxToken | string)[];
   start?: { line: number; ch: number };
   end?: { line: number; ch: number };
@@ -25,8 +26,8 @@ export abstract class Nodey {
 
   constructor(options: NodeyOptions) {
     this.id = options.id;
-    if (options.created) this.created = options.created;
-    if (options.parent) this.parent = options.parent + "";
+    if (options.created !== undefined) this.created = options.created;
+    if (options.parent !== undefined) this.parent = options.parent + "";
   }
 
   get name(): string {
@@ -107,21 +108,23 @@ export class NodeyOutput extends Nodey {
 */
 export class NodeyCode extends Nodey {
   type: string;
-  output: string[] = [];
   content: (SyntaxToken | string)[];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
   literal: any;
   right: string; // lookup id for the next Nodey to the right of this one
   pendingUpdate: string;
+  // output
+  outputId: number;
+  outputVer: any;
 
   constructor(options: NodeyOptions) {
     super(options);
     this.type = options.type;
     if (options.content && options.content.length > 0)
       this.content = options.content.slice(0);
-    if (options.output && options.output.length > 0)
-      this.output = options.output.slice(0);
+    if (options.outputId) this.outputId = options.outputId;
+    if (options.outputVer) this.outputId = options.outputVer;
     this.literal = options.literal;
     this.start = options.start;
     this.end = options.end;
@@ -139,6 +142,18 @@ export class NodeyCode extends Nodey {
 
   get typeChar() {
     return "s";
+  }
+
+  get output(): string {
+    if (this.outputVer)
+      return NodeyOutput.typeChar + "." + this.outputId + "." + this.outputVer;
+    else return null;
+  }
+
+  set output(name: string) {
+    let parts = name.split(".");
+    this.outputId = parseInt(parts[1]);
+    this.outputVer = parts[2];
   }
 
   positionRelativeTo(target: NodeyCode) {
@@ -159,14 +174,6 @@ export class NodeyCode extends Nodey {
     return this.content.find(
       item => item instanceof SyntaxToken === false && item === name
     );
-  }
-
-  getOutput(): string[] {
-    return this.output;
-  }
-
-  addOutput(name: string) {
-    this.output.push(name);
   }
 
   public getChildren(): string[] {
@@ -231,6 +238,8 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 }
 
 export namespace NodeyOutput {
+  export const typeChar = "o";
+
   export function fromJSON(dat: jsn): NodeyOutput {
     return new NodeyOutput({
       raw: dat.raw,
@@ -247,7 +256,8 @@ export namespace NodeyCodeCell {
       created: dat.created,
       type: dat.type,
       content: dat.content,
-      output: dat.output,
+      outputId: dat.outputId,
+      outputVer: dat.outputVer,
       literal: dat.literal
     });
   }
@@ -260,7 +270,8 @@ export namespace NodeyCode {
       created: dat.created,
       type: dat.type,
       content: dat.content,
-      output: dat.output,
+      outputId: dat.outputId,
+      outputVer: dat.outputVer,
       literal: dat.literal
     });
   }

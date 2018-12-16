@@ -8,7 +8,6 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 import { OutputArea } from "@jupyterlab/outputarea";
 import { VerNotebook } from "./notebook";
 import { Checkpoint } from "../model/checkpoint";
-import { NodeyFactory } from "../model/nodey-factory";
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 import { Star } from "../model/history-stage";
 
@@ -56,12 +55,9 @@ export class VerCell {
     return this.notebook.cells.findIndex(item => item === this);
   }
 
-  public get output(): NodeyOutput[] {
+  public get output(): NodeyOutput {
     var output = (this.model as NodeyCodeCell).output;
-    if (output)
-      return output.map(o => {
-        return this.notebook.history.store.get(o) as NodeyOutput;
-      });
+    if (output) return this.notebook.history.store.get(output) as NodeyOutput;
   }
 
   public get outputArea(): OutputArea {
@@ -109,6 +105,7 @@ export class VerCell {
 
   private async initCodeCell(matchPrior: boolean, checkpoint: Checkpoint) {
     var cell = this.view as CodeCell;
+
     var text: string = cell.editor.model.value.text;
     if (matchPrior) {
       let name = this.notebook.cells[this.position].model.name;
@@ -119,31 +116,32 @@ export class VerCell {
         // TODO figure out event if it's NOT the same
         // TODO match output too
       } else if (nodeyCell instanceof NodeyMarkdown) {
-        var output = NodeyFactory.outputToNodey(
-          cell,
-          this.notebook.history.store
-        );
         let nodey = await this.notebook.ast.markdownToCodeNodey(
           nodeyCell,
           text,
           this.position
         );
-        if (!nodey.output) nodey.output = [];
-        nodey.output = nodey.output.concat(output);
+
+        var output = this.notebook.history.stage.commitOutput(
+          nodey as NodeyCodeCell,
+          checkpoint.id,
+          this
+        );
+        nodey.output = output.name;
         this.modelName = nodey.name;
       }
     } else {
-      var output = NodeyFactory.outputToNodey(
-        cell,
-        this.notebook.history.store
-      );
       let nodey = await this.notebook.ast.generateCodeNodey(
         text,
         this.position
       );
       nodey.created = checkpoint.id;
-      if (!nodey.output) nodey.output = [];
-      nodey.output = nodey.output.concat(output);
+      var output = this.notebook.history.stage.commitOutput(
+        nodey as NodeyCodeCell,
+        checkpoint.id,
+        this
+      );
+      nodey.output = output.name;
       this.modelName = nodey.name;
       console.log("created Output!", output, nodey);
     }
@@ -163,7 +161,7 @@ export class VerCell {
         );
       } else if (nodeyCell instanceof NodeyCodeCell) {
         let text = this.view.model.value.text;
-        nodey = new NodeyMarkdown({ markdown: text });
+        nodey = new NodeyMarkdown({ markdown: text, created: checkpoint.id });
         this.notebook.history.store.registerTiedNodey(nodey, nodeyCell.name);
       }
     } else {

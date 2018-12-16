@@ -1,5 +1,3 @@
-import { CodeCell } from "@jupyterlab/cells";
-
 import { HistoryStore } from "./history-store";
 
 import {
@@ -22,48 +20,23 @@ export namespace NodeyFactory {
   export function fromJSON(dat: jsn): Nodey {
     switch (dat.typeName) {
       case "code":
-        var codedat = dat as jsn;
-        var content = codedat.content;
-        if (content) {
-          content = content.map((item: any) => {
+        if (dat.content) {
+          dat.content = dat.content.map((item: any) => {
             if (typeof item === "string" || item instanceof String) return item;
             else return new SyntaxToken(item[SyntaxToken.KEY]);
           });
         }
-        return new NodeyCode({
-          type: codedat.type,
-          content: content,
-          output: codedat.output,
-          literal: codedat.literal,
-          right: codedat.right,
-          parent: codedat.parent,
-          created: codedat.created
-        });
+        return NodeyCode.fromJSON(dat);
       case "codeCell":
-        var codedat = dat as jsn;
-        var content = codedat.content;
-        if (content) {
-          content = content.map((item: any) => {
+        if (dat.content) {
+          dat.content = dat.content.map((item: any) => {
             if (typeof item === "string" || item instanceof String) return item;
             else return new SyntaxToken(item[SyntaxToken.KEY]);
           });
         }
-        return new NodeyCodeCell({
-          type: codedat.type,
-          output: codedat.output,
-          content: content,
-          literal: codedat.literal,
-          right: codedat.right,
-          parent: codedat.parent,
-          created: codedat.created
-        });
+        return NodeyCodeCell.fromJSON(dat);
       case "markdown":
-        var markdat = dat as jsn;
-        return new NodeyMarkdown({
-          markdown: markdat.markdown,
-          parent: markdat.parent,
-          created: markdat.created
-        });
+        return NodeyMarkdown.fromJSON(dat);
       default:
         return;
     }
@@ -148,46 +121,6 @@ export namespace NodeyFactory {
       }
     }
 
-    return n;
-  }
-
-  export function outputToNodey(
-    cell: CodeCell,
-    historyStore: HistoryStore,
-    oldOutput: NodeyOutput[] = null,
-    runId: number = -1
-  ): string[] {
-    let outarea = cell.outputArea;
-    if (!outarea) return []; // no output!
-
-    var output = cell.outputArea.model.toJSON();
-
-    if (oldOutput) {
-      // need to check if the output is different
-      if (
-        JSON.stringify(output) === JSON.stringify(oldOutput.map(out => out.raw))
-      )
-        return []; //outputs are the same don't bother
-    }
-
-    var outNode: string[] = [];
-
-    if (output.length > 0) {
-      for (var item in output) {
-        var out = dictToOutputNodey(output[item], historyStore);
-        if (runId !== -1) out.created = runId;
-        outNode.push(out.name);
-      }
-    }
-    return outNode;
-  }
-
-  function dictToOutputNodey(
-    output: { [id: string]: any },
-    historyStore: HistoryStore
-  ) {
-    var n = new NodeyOutput({ raw: output });
-    historyStore.store(n);
     return n;
   }
 }

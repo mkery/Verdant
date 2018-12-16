@@ -151,12 +151,8 @@ export class HistoryCheckpoints {
     newCells.forEach(cell => {
       let newOutput: string[] = [];
       if (cell instanceof NodeyCode) {
-        let out = cell.getOutput();
-        for (let i = out.length - 1; i > -1; i--) {
-          let output = this.history.store.get(out[i]);
-          if (output.created === saveId) newOutput.push(output.name);
-          else break;
-        }
+        let output = this.history.store.get(cell.output);
+        if (output.created === saveId) newOutput.push(output.name);
       }
 
       let cellSaved = {
@@ -212,12 +208,8 @@ export class HistoryCheckpoints {
 
     let newOutput: string[] = [];
     if (cellRun instanceof NodeyCode) {
-      let out = cellRun.getOutput();
-      for (let i = out.length - 1; i > -1; i--) {
-        let output = this.history.store.get(out[i]);
-        if (output.created === runID) newOutput.push(output.name);
-        else break;
-      }
+      let output = this.history.store.get(cellRun.output);
+      if (output.created === runID) newOutput.push(output.name);
     }
 
     let runCell = {

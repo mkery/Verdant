@@ -192,9 +192,7 @@ namespace Private {
   export function addOutputEvents(verCell: VerCell, history: History) {
     var outputNodey = verCell.output;
     if (outputNodey)
-      outputNodey.forEach(out =>
-        addCellEvents(verCell.outputArea, [out], history.inspector)
-      );
+      addCellEvents(verCell.outputArea, [outputNodey], history.inspector);
   }
 
   function codeSelection(mask: Element, ev: MouseEvent) {

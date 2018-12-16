@@ -2,6 +2,7 @@ import { VerNotebook } from "./components/notebook";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
+import { Widget } from "@phosphor/widgets";
 import { nbformat } from "@jupyterlab/coreutils";
 
 import { JSONObject } from "@phosphor/coreutils";
@@ -647,8 +648,11 @@ export class Inspect {
     elem: HTMLElement,
     textFocus: string = null
   ) {
-    let widget = await this.renderBaby.renderOutput(nodey);
-    elem.appendChild(widget.node);
+    let widgetList = await this.renderBaby.renderOutput(nodey);
+    widgetList.forEach((widget: Widget) => {
+      elem.appendChild(widget.node);
+    });
+
     if (textFocus) {
       elem = this.highlightText(textFocus, elem);
     }
