@@ -108,7 +108,7 @@ export class NodeyOutput extends Nodey {
 */
 export class NodeyCode extends Nodey {
   type: string;
-  content: (SyntaxToken | string)[];
+  content: (SyntaxToken | string)[] = [];
   start: { line: number; ch: number };
   end: { line: number; ch: number };
   literal: any;
@@ -123,8 +123,8 @@ export class NodeyCode extends Nodey {
     this.type = options.type;
     if (options.content && options.content.length > 0)
       this.content = options.content.slice(0);
-    if (options.outputId) this.outputId = options.outputId;
-    if (options.outputVer) this.outputId = options.outputVer;
+    if (options.outputId !== undefined) this.outputId = options.outputId;
+    if (options.outputVer !== undefined) this.outputVer = options.outputVer;
     this.literal = options.literal;
     this.start = options.start;
     this.end = options.end;
@@ -145,7 +145,8 @@ export class NodeyCode extends Nodey {
   }
 
   get output(): string {
-    if (this.outputVer)
+    if (this.outputVer !== undefined)
+      // may be 0
       return NodeyOutput.typeChar + "." + this.outputId + "." + this.outputVer;
     else return null;
   }
@@ -240,6 +241,7 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 export namespace NodeyOutput {
   export const typeChar = "o";
 
+  // ref: https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order
   export function equals(a: any, b: any): boolean {
     console.log("COMPARING", a, b);
     if (a === null || a === undefined || b === null || b === undefined) {

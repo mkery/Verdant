@@ -1,4 +1,4 @@
-import { NodeyCode, SyntaxToken } from "../model/nodey";
+import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../model/nodey";
 
 import { Star } from "../model/history-stage";
 import { History } from "../model/history";
@@ -122,10 +122,17 @@ namespace Private {
 
 type Pos = { line: number; ch: number };
 export type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
+export type $NodeyCodeCell$ = NodeyCodeCell | Star<NodeyCodeCell>;
+
 export namespace $NodeyCode$ {
   /*
   * Helper functions for matching
   */
+  export function setRight(nodey: NodeyCode | Star<NodeyCode>, right: string) {
+    if (nodey instanceof NodeyCode) nodey.right = right;
+    else nodey.value.right = right;
+  }
+
   export function pendingUpdate(nodey: NodeyCode | Star<NodeyCode>): string {
     if (nodey instanceof NodeyCode) return nodey.pendingUpdate;
     return nodey.value.pendingUpdate;

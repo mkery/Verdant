@@ -4,7 +4,7 @@ import { History } from "../model/history";
 
 import { ASTUtils, $NodeyCode$ } from "./ast-utils";
 
-import { Star } from "../model/history-stage";
+import { Star, UnsavedStar } from "../model/history-stage";
 
 import * as levenshtein from "fast-levenshtein";
 
@@ -116,7 +116,7 @@ export class ASTMatch {
         parsedList.length - 1,
         parsedList,
         nodeyList,
-        nodey
+        null // this nodey is the starting root so no viable parent
       );
 
       //resolved
@@ -138,7 +138,7 @@ export class ASTMatch {
     root: number,
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyMatchOptions[],
-    relativeTo: $NodeyCode$
+    parent: $NodeyCode$
   ): $NodeyCode$ {
     var parsedNode = parsedList[root].nodey;
     var match = parsedList[root].match;
@@ -199,7 +199,7 @@ export class ASTMatch {
           line: parsedNode.end.line - 1,
           ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
         });
-        $NodeyCode$.positionRelativeTo(nodeyEdited, relativeTo);
+        $NodeyCode$.positionRelativeTo(nodeyEdited, parent);
       }
     } else {
       console.log("New Node!", parsedNode);
@@ -210,13 +210,10 @@ export class ASTMatch {
           of code is commented out. Probably needs some special matching case
           to make smooth matching between code being commented and not //TODO
         */
-        console.log("Attempt force match!", relativeTo);
-        nodeyEdited = this.forceReplace(relativeTo, parsedNode);
+        console.log("Attempt force match!", parent);
+        nodeyEdited = this.forceReplace(parent, parsedNode);
       } else {
-        nodeyEdited = this.buildStarNode(parsedNode, relativeTo, parsedList);
-        let content = $NodeyCode$.getContent(relativeTo);
-        if (!content) $NodeyCode$.setContent(relativeTo, []);
-        content.push(nodeyEdited.name);
+        nodeyEdited = this.buildStarNode(parsedNode, parent, parsedList);
       }
     }
     return nodeyEdited;
@@ -552,48 +549,65 @@ export class ASTMatch {
   }
 
   buildStarNode(
-    node: ParserNodey,
-    target: $NodeyCode$,
+    newNodeDat: ParserNodey,
+    parentNode: $NodeyCode$,
     newNodeList: ParsedNodeOptions[],
-    prior: NodeyCode = null
-  ): NodeyCode {
-    var n = new NodeyCode(node);
-    console.log("Building star node for ", node, target);
-    n.start.line -= 1; // convert the coordinates of the range to code mirror style
-    n.end.line -= 1;
-    n.start.ch -= 1;
-    n.end.ch -= 1;
-    if ($NodeyCode$.getStart(target)) $NodeyCode$.positionRelativeTo(n, target); //TODO if from the past, target may not have a position
-    let parent = $NodeyCode$.getParent(target);
-    if (parent) {
-      n.parent = parent;
-    } else {
-      n.parent = target.name;
-    }
-    var label = this.history.store.store(n);
-    n.version = label;
-
-    if (prior) prior.right = n.name;
+    prior: $NodeyCode$ = null
+  ): UnsavedStar {
+    /*
+    * First create a new Nodey Code
+    */
+    let nodey = new NodeyCode(newNodeDat);
+    nodey.parent = parentNode.name;
+    if (prior) $NodeyCode$.setRight(prior, nodey.name);
     prior = null;
 
-    n.content = [];
-    for (var item in node.content) {
-      if (node.content[item] instanceof SyntaxToken)
-        n.content.push(node.content[item]);
+    /* convert the coordinates of the range to code mirror style */
+    nodey.start.line -= 1;
+    nodey.end.line -= 1;
+    nodey.start.ch -= 1;
+    nodey.end.ch -= 1;
+
+    /*
+    * Adjust the coordinates of the new node to be relative
+    * to established nodes
+    */
+    if ($NodeyCode$.getStart(parentNode))
+      $NodeyCode$.positionRelativeTo(nodey, parentNode); //TODO if from the past, target may not have a position
+
+    /*
+    * Now store this new star node in temp store
+    */
+    let star = this.history.stage.markPendingNewNode(nodey);
+
+    /*
+    * Finally go through the content of this new star node
+    * and create star nodes of all its children
+    */
+    star.content = newNodeDat.content.map(item => {
+      let child: SyntaxToken | UnsavedStar;
+      if (item instanceof SyntaxToken) child = item;
       else {
-        var leaf = newNodeList[node.content[item]].nodey;
-        if ("syntok" in leaf) n.content.push(new SyntaxToken(leaf.syntok));
+        var leaf = newNodeList[item].nodey;
+        if ("syntok" in leaf) child = new SyntaxToken(leaf.syntok);
         else {
-          var child = this.buildStarNode(leaf, target, newNodeList, prior);
-          child.parent = n.name;
-          if (prior) prior.right = child.name;
-          n.content.push(child.name);
-          prior = child;
+          let babyStar = this.buildStarNode(
+            leaf,
+            parentNode,
+            newNodeList,
+            prior
+          );
+          babyStar.parent = star.name;
+          if (prior) $NodeyCode$.setRight(prior, babyStar.name);
+          prior = babyStar;
+          child = babyStar;
         }
       }
-    }
+      return child;
+    });
 
-    return n;
+    console.log("Building star node for ", newNodeDat, star, parent);
+    return star;
   }
 
   private matchLiterals(a: string, b: string) {

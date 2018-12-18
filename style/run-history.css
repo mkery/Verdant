@@ -554,6 +554,7 @@
   flex: 1 1 auto;
   vertical-align: baseline;
   padding-left: var(--jp-cell-padding);
+  padding-right: var(--jp-cell-padding);
 }
 .Verdant-events-label {
   display: inline-block;

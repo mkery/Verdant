@@ -66,7 +66,6 @@ export class CrumbBox extends Widget {
   }
 
   changeTarget(node: Nodey[]) {
-    console.log("CHANGE TARGET", node);
     if (this._active && this._target !== node[0]) {
       this._target = node[0];
       this.buildCrumbMenu();
@@ -137,7 +136,6 @@ export class CrumbBox extends Widget {
     let list: Nodey[];
     if (nodey instanceof Nodey) list = [nodey];
     else list = nodey;
-    console.log("UPDATE crumbs", nodey, list, checkpoint);
 
     list.forEach(item => {
       let verCell = this.history.notebook.getCellByNode(item);

@@ -137,10 +137,8 @@ export class VerNotebook {
   }
 
   public async save() {
-    console.log("SAVE EVENT DETECTED");
     //  start a checkpoint for this run
     let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
-    console.log(checkpoint);
     // now see if there are any unsaved changes
     let nodey = this.model;
     if (nodey instanceof Star) {

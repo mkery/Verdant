@@ -1,55 +1,11 @@
 import { HistoryStore } from "./history-store";
 
-import {
-  Nodey,
-  NodeyCode,
-  NodeyOutput,
-  NodeyCodeCell,
-  NodeyMarkdown,
-  SyntaxToken
-} from "./nodey";
-
-/* TODO temporary type
-*/
-type jsn = { [id: string]: any };
+import { NodeyCode, NodeyCodeCell, SyntaxToken } from "./nodey";
 
 /**
  * A namespace for Nodey statics.
  */
 export namespace NodeyFactory {
-  export function fromJSON(dat: jsn): Nodey {
-    switch (dat.typeName) {
-      case "code":
-        if (dat.content) {
-          dat.content = dat.content.map((item: any) => {
-            if (typeof item === "string" || item instanceof String) return item;
-            else return new SyntaxToken(item[SyntaxToken.KEY]);
-          });
-        }
-        return NodeyCode.fromJSON(dat);
-      case "codeCell":
-        if (dat.content) {
-          dat.content = dat.content.map((item: any) => {
-            if (typeof item === "string" || item instanceof String) return item;
-            else return new SyntaxToken(item[SyntaxToken.KEY]);
-          });
-        }
-        return NodeyCodeCell.fromJSON(dat);
-      case "markdown":
-        return NodeyMarkdown.fromJSON(dat);
-      default:
-        return;
-    }
-  }
-
-  export function outputFromJSON(dat: jsn): NodeyOutput {
-    return new NodeyOutput({
-      raw: dat.raw,
-      parent: dat.parent,
-      created: dat.created
-    });
-  }
-
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
     position: number,
@@ -76,7 +32,6 @@ export namespace NodeyFactory {
     } else historyStore.store(n);
 
     //TODO fix cell position
-    console.log(position);
 
     dictToCodeChildren(dict, historyStore, n);
     return n;

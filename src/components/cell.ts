@@ -72,7 +72,6 @@ export class VerCell {
       text = this.view.editor.model.value.text;
     }
     await this.notebook.ast.repairFullAST(this.model, text);
-    console.log("Repaired cell", this.model);
   }
 
   public async repairAndCommit(
@@ -84,7 +83,6 @@ export class VerCell {
 
     // commit the cell if it has changed
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
-    console.log("Cell committed", newNodey);
 
     let same = newNodey.name === nodey.name;
 
@@ -143,7 +141,6 @@ export class VerCell {
       );
       nodey.output = output.name;
       this.modelName = nodey.name;
-      console.log("created Output!", output, nodey);
     }
   }
 

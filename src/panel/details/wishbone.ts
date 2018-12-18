@@ -13,7 +13,6 @@ const WISHBONE_CODE_MASK = "v-VerdantPanel-wishbone-code-mask";
 
 export namespace Wishbone {
   export function startWishbone(history: History) {
-    console.log("starting wishbone!", history);
     history.notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view;
       Private.addCellEvents(cell, [verCell.lastSavedModel], history.inspector);
@@ -65,7 +64,6 @@ namespace Private {
     cell: CodeCell,
     event: MouseEvent
   ) {
-    console.log("SELECT CODE TARGET");
     event.stopPropagation();
     let area = cell.inputArea.editorWidget.node;
     var code = area.getElementsByClassName("CodeMirror-line");

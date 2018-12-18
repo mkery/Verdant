@@ -41,6 +41,18 @@ export class Star<T extends Nodey> {
   }
 }
 
+export class UnsavedStar extends Star<NodeyCode> {
+  content: (UnsavedStar | SyntaxToken)[];
+
+  get version(): string {
+    return "TEMP";
+  }
+
+  get name(): string {
+    return "TEMP" + "." + this.cellId + "." + this.value.id;
+  }
+}
+
 export class HistoryStage {
   readonly history: History;
 
@@ -65,7 +77,6 @@ export class HistoryStage {
 
   private markNotebookAsEdited(): Star<NodeyNotebook> {
     let notebook = this.history.store.currentNotebook;
-    console.log("Notebook is", notebook, this.history.notebook);
     let starNode: Star<NodeyNotebook>;
     if (notebook instanceof Star) {
       starNode = notebook as Star<NodeyNotebook>;
@@ -106,6 +117,13 @@ export class HistoryStage {
     }
   }
 
+  public markPendingNewNode(nodey: NodeyCode): UnsavedStar {
+    let nodeyCopy = new NodeyCode(nodey);
+    let star = new UnsavedStar(nodeyCopy);
+    this.store.store(star);
+    return star;
+  }
+
   private createStar(nodey: Nodey) {
     let starNode;
     if (nodey instanceof NodeyNotebook) {
@@ -137,7 +155,6 @@ export class HistoryStage {
       this.markParentAsEdited(starNode, nodey);
     }
 
-    console.log("STAR NODE", starNode, starNode.value);
     let history = this.store.getHistoryOf(starNode.value);
     history.setLatestToStar(starNode);
     return starNode;
@@ -197,12 +214,12 @@ export class HistoryStage {
     let history = this.store.getHistoryOf(star.value);
     let newNode = history.deStar();
     newNode.created = eventId;
+    console.log("DESTARRED", star, newNode);
     return newNode;
   }
 
   private discardStar(star: Star<Nodey>) {
     let history = this.store.getHistoryOf(star.value);
-    console.log("DISCARD STAR", star);
     // check: if the star has children, make sure their stars
     // are discared too
     if (star.value instanceof NodeyCode) {
@@ -244,7 +261,7 @@ export class HistoryStage {
     >;
     let index = parent.value.cells.indexOf(star.name);
     parent.value.cells[index] = updatedNodey.name;
-    console.log("UPDATED PARENT", index, parent.value.cells, star.name);
+    //console.log("UPDATED PARENT", index, parent.value.cells, star.name);
   }
 
   private verifyDifferent(nodey: Star<Nodey>): boolean {
@@ -271,7 +288,6 @@ export class HistoryStage {
       // now check the current value of this markdown node
       let cell = this.history.notebook.getCellByNode(nodey);
       let newText = cell.view.model.value.text;
-      console.log("new and old", newText, priorText);
       return levenshtein.get(priorText, newText) > 0;
     }
   }
@@ -312,12 +328,12 @@ export class HistoryStage {
         newOutput = oldOutput;
       }
     }
-    console.log(
+    /*console.log(
       "OUTPUT HISTORY FOR",
       nodey,
       newOutput,
       this.history.store.getHistoryOf(newOutput)
-    );
+    );*/
     return newOutput;
   }
 
@@ -336,6 +352,9 @@ export class HistoryStage {
           if (typeof child === "string") {
             let nodeChild = this.store.getLatestOf(child);
             //console.log("child is", child, nodeChild);
+            if (nodeChild instanceof UnsavedStar) {
+              console.log("MUST SAVE UNSAVED STAR", nodeChild);
+            }
             if (nodeChild instanceof Star) {
               let newChild = this.deStar(nodeChild, eventId) as NodeyCode;
               newChild.output = newOutput;

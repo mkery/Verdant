@@ -112,7 +112,7 @@ export class EventMap extends Widget {
   buildMap(event: Checkpoint): HTMLElement {
     let wrapper = document.createElement("div");
     let map = this.history.checkpoints.getCellMap(event);
-    console.log("CELL MAP", map);
+
     map.forEach(cell => {
       let line = document.createElement("div");
       line.classList.add(CELL);

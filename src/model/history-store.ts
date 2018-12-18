@@ -14,7 +14,7 @@ import { History } from "./history";
 
 import { FileManager } from "../file-manager";
 
-import { Star } from "./history-stage";
+import { Star, UnsavedStar } from "./history-stage";
 
 type jsn = { [id: string]: any };
 
@@ -30,7 +30,7 @@ export class HistoryStore {
 
   // this is a store for temporary nodes, stored by cell and cleaned out
   // every time a save or run event occurs
-  private _starStore: { [id: string]: Star<Nodey>[] } = {};
+  private _starStore: { [id: string]: UnsavedStar[] } = {};
 
   constructor(history: History, fileManager: FileManager) {
     this.history = history;
@@ -79,13 +79,20 @@ export class HistoryStore {
         return this._markdownStore[id];
       case "*": // a star node
         return this.getHistoryOf(idVal + "." + ver);
+      case "TEMP": // an unsaved star node
+        return undefined;
       default:
         throw new Error("nodey type not found" + name);
     }
   }
 
-  getLatestOf(name: string | Nodey): Nodey | Star<Nodey> {
+  getLatestOf(name: string | Nodey): Nodey | Star<Nodey> | UnsavedStar {
     let nodeHist = this.getHistoryOf(name);
+    if (nodeHist === undefined && typeof name == "string") {
+      // check if unsaved star
+      let [typeChar, cellId, id] = name.split(".");
+      if (typeChar === "TEMP") return this._starStore[cellId][parseInt(id)];
+    }
     return nodeHist.latest;
   }
 
@@ -111,13 +118,14 @@ export class HistoryStore {
     return nodeHist.versions[ver];
   }
 
-  public store(nodey: Nodey | Star<Nodey>): void {
-    if (nodey instanceof Star) {
+  public store(nodey: Nodey | UnsavedStar): void {
+    if (nodey instanceof UnsavedStar) {
       // store in temp star store not in permanent storage
       let cell = this.getCellParent(nodey.value);
       if (!this._starStore[cell.id]) this._starStore[cell.id] = [];
-      this._starStore[cell.id].push(nodey);
+      let id = this._starStore[cell.id].push(nodey) - 1;
       nodey.cellId = cell.id + "";
+      nodey.value.id = id;
     } else if (nodey instanceof NodeyNotebook) {
       let id = 0;
       nodey.id = id;
