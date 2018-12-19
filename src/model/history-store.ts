@@ -118,15 +118,8 @@ export class HistoryStore {
     return nodeHist.versions[ver];
   }
 
-  public store(nodey: Nodey | UnsavedStar): void {
-    if (nodey instanceof UnsavedStar) {
-      // store in temp star store not in permanent storage
-      let cell = this.getCellParent(nodey.value);
-      if (!this._starStore[cell.id]) this._starStore[cell.id] = [];
-      let id = this._starStore[cell.id].push(nodey) - 1;
-      nodey.cellId = cell.id + "";
-      nodey.value.id = id;
-    } else if (nodey instanceof NodeyNotebook) {
+  public store(nodey: Nodey): void {
+    if (nodey instanceof NodeyNotebook) {
       let id = 0;
       nodey.id = id;
       let ver = this._notebookHistory.versions.push(nodey) - 1;
@@ -139,6 +132,18 @@ export class HistoryStore {
       let version = store[nodey.id].versions.push(nodey) - 1;
       nodey.version = version;
     }
+  }
+
+  public storeUnsavedStar(
+    star: UnsavedStar,
+    parent: NodeyCode | Star<NodeyCode>
+  ) {
+    // store in temp star store not in permanent storage
+    let cell = this.getCellParent(parent);
+    if (!this._starStore[cell.id]) this._starStore[cell.id] = [];
+    let id = this._starStore[cell.id].push(star) - 1;
+    star.cellId = cell.id + "";
+    star.value.id = id;
   }
 
   public cleanOutStars(nodey: NodeyCell): void {

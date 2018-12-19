@@ -158,6 +158,7 @@ export class NodeyCode extends Nodey {
   }
 
   positionRelativeTo(target: NodeyCode) {
+    if (!target) return;
     //may run into historical targets that do not have position info
     let myStart = this.start || { line: 0, ch: 0 };
     if (target.start && target.end) {

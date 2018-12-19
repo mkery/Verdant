@@ -58,14 +58,20 @@ export class ASTMatch {
         ];
       } else {
         dict = JSON.parse(jsn) as ParserNodey;
-        if (nodey instanceof NodeyCodeCell === false) {
-          // only reduce if the target type is not a Module
-          // NodeyCodeCell are always Module AST type, so
-          // no need to reduce
+
+        /* only reduce if the target type is not a Module
+        * NodeyCodeCell are always Module AST type, so
+        * no need to reduce
+        */
+        let val: NodeyCode;
+        if (nodey instanceof Star) val = nodey.value;
+        else val = nodey;
+        if (val instanceof NodeyCodeCell === false) {
           dict = ASTUtils.reduceASTDict(dict) as ParserNodey;
+          console.log("Reduced AST", dict, nodey);
         }
-        console.log("Reduced AST", dict, nodey);
-        console.log(this.history.dump());
+        console.log("COMPARING AST", dict, nodey);
+        this.history.dump();
 
         /*
       * First, create a list of Parser nodey options,
@@ -202,7 +208,7 @@ export class ASTMatch {
         $NodeyCode$.positionRelativeTo(nodeyEdited, parent);
       }
     } else {
-      console.log("New Node!", parsedNode);
+      console.log("New Node!", parsedNode, parent);
       if ("syntok" in parsedNode) {
         /*
           Crud. This is a dead end for matching because if we've reached here,
@@ -373,37 +379,34 @@ export class ASTMatch {
 
     var nodeyNode = this.history.store.getLatestOf(
       nodeyProfile.nodey
-    ) as NodeyCode;
+    ) as $NodeyCode$;
     console.log("Looking for nodey", nodeyProfile.nodey, nodeyNode);
     /*
     * Literal match score
     * Literal nodes do not score for type or children
     */
-    if ("literal" in parsedNode || nodeyNode.literal) {
-      if (!("literal" in parsedNode) || !nodeyNode.literal)
-        score = NO_MATCH_SCORE;
-      else score += this.matchLiterals(parsedNode.literal, nodeyNode.literal);
+    let nodeyLiteral = $NodeyCode$.getLiteral(nodeyNode);
+    if ("literal" in parsedNode || nodeyLiteral) {
+      if (!("literal" in parsedNode) || !nodeyLiteral) score = NO_MATCH_SCORE;
+      else score += this.matchLiterals(parsedNode.literal, nodeyLiteral);
       console.log(
         "Matching two literals!",
         score,
         parsedNode.literal,
-        nodeyNode.literal,
+        nodeyLiteral,
         "literal" in parsedNode,
-        !nodeyNode.literal
+        !nodeyLiteral
       );
       return score;
     }
 
-    console.log(
-      "TYPE MATCH?",
-      nodeyNode.type,
-      parsedNode.type,
-      nodeyNode.type === parsedNode.type
-    );
     /*
     * Type score, need to have wildcard _ when type is unknown
     */
-    if (parsedNode.type != "_" && nodeyNode.type !== parsedNode.type) {
+    let nodeyType = $NodeyCode$.getType(nodeyNode);
+    let parsedType = parsedNode.type;
+    console.log("TYPE MATCH?", nodeyType, parsedType, nodeyType === parsedType);
+    if (parsedType != "_" && nodeyType !== parsedType) {
       score = NO_MATCH_SCORE;
       return score; //TODO some cases can change type
     }
@@ -411,11 +414,12 @@ export class ASTMatch {
     /*
     * Child match score
     */
-    var leafChildren = parsedNode.content;
+    let nodeyContent = $NodeyCode$.getContent(nodeyNode);
+    let parsedContent = parsedNode.content;
     let childScore = 0;
-    if (leafChildren && nodeyNode.content) {
-      childScore += nodeyNode.content.length; // number of children including syntok
-      leafChildren.forEach(index => {
+    if (parsedContent && nodeyContent) {
+      childScore += nodeyContent.length; // number of children including syntok
+      parsedContent.forEach(index => {
         if (index instanceof SyntaxToken === false) {
           var leaf = parsedList[index];
           if (leaf.match && leaf.match.index > -1) {
@@ -432,7 +436,7 @@ export class ASTMatch {
             //check if nodey child is accounted for
             if (
               matchNodey.syntok === true ||
-              nodeyNode.hasChild(matchNodey.nodey)
+              nodeyContent.indexOf(matchNodey.nodey) > -1
             ) {
               childScore -= 1;
             } else childScore += 1; //nodey child did not belong with nodeyNode
@@ -457,20 +461,14 @@ export class ASTMatch {
     parsedOp: ParsedNodeOptions,
     score: number
   ) {
-    let rendered = "";
+    /*let rendered = "";
     if (!nodeyOp) rendered = "(V●ᴥ●V)";
     else if (nodeyOp.syntok) rendered = nodeyOp.nodey;
     else {
       let nodey = this.history.store.get(nodeyOp.nodey);
-      this.history.inspector.renderNode(nodey).text;
-    }
-    console.log(
-      "Best match for ",
-      parsedOp,
-      "is " + score + " = ",
-      "|" + rendered + "|",
-      nodeyOp
-    );
+      rendered = this.history.inspector.renderNode(nodey).text;
+    }*/
+    console.log("Best match for ", parsedOp, "is " + score + " = ", nodeyOp);
   }
 
   matchLeaves(
@@ -578,35 +576,36 @@ export class ASTMatch {
     /*
     * Now store this new star node in temp store
     */
-    let star = this.history.stage.markPendingNewNode(nodey);
+    let star = this.history.stage.markPendingNewNode(nodey, parentNode);
 
     /*
     * Finally go through the content of this new star node
     * and create star nodes of all its children
     */
-    star.content = newNodeDat.content.map(item => {
-      let child: SyntaxToken | UnsavedStar;
-      if (item instanceof SyntaxToken) child = item;
-      else {
-        var leaf = newNodeList[item].nodey;
-        if ("syntok" in leaf) child = new SyntaxToken(leaf.syntok);
+    if (newNodeDat.content)
+      star.value.content = newNodeDat.content.map(item => {
+        let child: SyntaxToken | string;
+        if (item instanceof SyntaxToken) child = item;
         else {
-          let babyStar = this.buildStarNode(
-            leaf,
-            parentNode,
-            newNodeList,
-            prior
-          );
-          babyStar.parent = star.name;
-          if (prior) $NodeyCode$.setRight(prior, babyStar.name);
-          prior = babyStar;
-          child = babyStar;
+          var leaf = newNodeList[item].nodey;
+          if ("syntok" in leaf) child = new SyntaxToken(leaf.syntok);
+          else {
+            let babyStar = this.buildStarNode(
+              leaf,
+              parentNode,
+              newNodeList,
+              prior
+            );
+            babyStar.parent = star.name;
+            if (prior) $NodeyCode$.setRight(prior, babyStar.name);
+            prior = babyStar;
+            child = babyStar.name;
+          }
         }
-      }
-      return child;
-    });
+        return child;
+      });
 
-    console.log("Building star node for ", newNodeDat, star, parent);
+    console.log("Building star node for ", newNodeDat, star, parentNode);
     return star;
   }
 

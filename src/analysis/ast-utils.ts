@@ -128,6 +128,11 @@ export namespace $NodeyCode$ {
   /*
   * Helper functions for matching
   */
+  export function getType(nodey: NodeyCode | Star<NodeyCode>): string {
+    if (nodey instanceof NodeyCode) return nodey.type;
+    return nodey.value.type;
+  }
+
   export function setRight(nodey: NodeyCode | Star<NodeyCode>, right: string) {
     if (nodey instanceof NodeyCode) nodey.right = right;
     else nodey.value.right = right;

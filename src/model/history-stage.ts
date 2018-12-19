@@ -42,8 +42,6 @@ export class Star<T extends Nodey> {
 }
 
 export class UnsavedStar extends Star<NodeyCode> {
-  content: (UnsavedStar | SyntaxToken)[];
-
   get version(): string {
     return "TEMP";
   }
@@ -117,10 +115,13 @@ export class HistoryStage {
     }
   }
 
-  public markPendingNewNode(nodey: NodeyCode): UnsavedStar {
+  public markPendingNewNode(
+    nodey: NodeyCode,
+    parent: NodeyCode | Star<NodeyCode>
+  ): UnsavedStar {
     let nodeyCopy = new NodeyCode(nodey);
     let star = new UnsavedStar(nodeyCopy);
-    this.store.store(star);
+    this.store.storeUnsavedStar(star, parent);
     return star;
   }
 
@@ -211,8 +212,15 @@ export class HistoryStage {
   }
 
   private deStar(star: Star<Nodey>, eventId: number) {
-    let history = this.store.getHistoryOf(star.value);
-    let newNode = history.deStar();
+    let newNode: Nodey;
+    if (star instanceof UnsavedStar) {
+      console.log("MUST SAVE UNSAVED STAR", star);
+      newNode = star.value;
+      this.store.store(newNode);
+    } else {
+      let history = this.store.getHistoryOf(star.value);
+      newNode = history.deStar();
+    }
     newNode.created = eventId;
     console.log("DESTARRED", star, newNode);
     return newNode;
@@ -352,9 +360,6 @@ export class HistoryStage {
           if (typeof child === "string") {
             let nodeChild = this.store.getLatestOf(child);
             //console.log("child is", child, nodeChild);
-            if (nodeChild instanceof UnsavedStar) {
-              console.log("MUST SAVE UNSAVED STAR", nodeChild);
-            }
             if (nodeChild instanceof Star) {
               let newChild = this.deStar(nodeChild, eventId) as NodeyCode;
               newChild.output = newOutput;
