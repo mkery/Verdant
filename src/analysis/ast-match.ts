@@ -406,7 +406,11 @@ export class ASTMatch {
     let nodeyType = $NodeyCode$.getType(nodeyNode);
     let parsedType = parsedNode.type;
     console.log("TYPE MATCH?", nodeyType, parsedType, nodeyType === parsedType);
-    if (parsedType != "_" && nodeyType !== parsedType) {
+    if (
+      parsedType != "_" &&
+      parsedType != "Module" &&
+      nodeyType !== parsedType
+    ) {
       score = NO_MATCH_SCORE;
       return score; //TODO some cases can change type
     }

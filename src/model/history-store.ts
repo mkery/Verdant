@@ -219,14 +219,15 @@ export class HistoryStore {
   }
 
   public getCellParent(relativeTo: Nodey | Star<Nodey>): NodeyCodeCell {
+    console.log("get cell parent of ", relativeTo);
     if (relativeTo instanceof Star) {
       let val = relativeTo.value;
       if (val instanceof NodeyCodeCell) return val;
-      else return this.getCellParent(this.get(val.parent));
+      else return this.getCellParent(this.getLatestOf(val.parent));
     }
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
-      return this.getCellParent(this.get(relativeTo.parent));
+      return this.getCellParent(this.getLatestOf(relativeTo.parent));
   }
 
   public writeToFile(notebook: VerNotebook, history: History): void {
