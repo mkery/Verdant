@@ -27,14 +27,36 @@ export namespace VersionSampler {
     else if (nodey instanceof NodeyMarkdown)
       buildMarkdown(inspector, nodey, text, content);
     else if (nodey instanceof NodeyOutput)
-      buildOutput(inspector, nodey, text, content);
+      buildOutput(inspector, nodey, content);
+
+    return sample;
+  }
+
+  export function sampleSearch(history: History, nodey: Nodey, query: string) {
+    let inspector = history.inspector;
+    let text = inspector.renderNode(nodey).text;
+
+    let sample = document.createElement("div");
+    sample.classList.add(INSPECT_VERSION);
+
+    let content = document.createElement("div");
+    content.classList.add(INSPECT_VERSION_CONTENT);
+    sample.appendChild(content);
+
+    if (nodey instanceof NodeyCode)
+      buildCode(inspector, nodey, text, content, query);
+    else if (nodey instanceof NodeyMarkdown)
+      buildMarkdown(inspector, nodey, text, content, query);
+    else if (nodey instanceof NodeyOutput)
+      buildOutput(inspector, nodey, content, query);
 
     return sample;
   }
 
   export function verHeader(history: History, nodey: Nodey) {
-    let ver = nodey.version;
-    let notebookVer = history.checkpoints.get(nodey.created).notebook;
+    // 1 index instead of 0 index just for display
+    let ver = nodey.version + 1;
+    let notebookVer = history.checkpoints.get(nodey.created).notebook + 1;
 
     let header = document.createElement("div");
     header.classList.add(VERSION_HEADER);
@@ -46,7 +68,8 @@ export namespace VersionSampler {
     inspector: Inspect,
     nodeyVer: NodeyCode,
     text: string,
-    content: HTMLElement
+    content: HTMLElement,
+    query?: string
   ): Promise<HTMLElement> {
     content.classList.add("code");
     await inspector.renderCodeVerisonDiv(
@@ -54,7 +77,7 @@ export namespace VersionSampler {
       text,
       content,
       Inspect.CHANGE_DIFF,
-      null
+      query
     );
 
     return content;
@@ -63,10 +86,10 @@ export namespace VersionSampler {
   async function buildOutput(
     inspector: Inspect,
     nodeyVer: NodeyOutput,
-    _: string,
-    content: HTMLElement
+    content: HTMLElement,
+    query?: string
   ): Promise<HTMLElement> {
-    await inspector.renderOutputVerisonDiv(nodeyVer, content, null);
+    await inspector.renderOutputVerisonDiv(nodeyVer, content, query);
     return content;
   }
 
@@ -74,7 +97,8 @@ export namespace VersionSampler {
     inspector: Inspect,
     nodeyVer: NodeyMarkdown,
     text: string,
-    content: HTMLElement
+    content: HTMLElement,
+    query?: string
   ): Promise<HTMLElement> {
     content.classList.add("markdown");
     await inspector.renderMarkdownVersionDiv(
@@ -82,7 +106,7 @@ export namespace VersionSampler {
       text,
       content,
       Inspect.CHANGE_DIFF,
-      null
+      query
     );
 
     return content;

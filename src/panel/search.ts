@@ -59,18 +59,18 @@ export class Search extends Widget {
       let code = this.history.store.findCode(query);
       let output = this.history.store.findOutput(query);
 
-      let codeArea = this.buildResultSection(code, "code artifacts");
+      let codeArea = this.buildResultSection(code, "code artifacts", query);
       this.searchContent.appendChild(codeArea);
 
-      let markdownArea = this.buildResultSection(markdown, "markdown");
+      let markdownArea = this.buildResultSection(markdown, "markdown", query);
       this.searchContent.appendChild(markdownArea);
 
-      let outputArea = this.buildResultSection(output, "output");
+      let outputArea = this.buildResultSection(output, "output", query);
       this.searchContent.appendChild(outputArea);
     }
   }
 
-  buildResultSection(results: Nodey[], header: string) {
+  buildResultSection(results: Nodey[], header: string, query: string) {
     let area = document.createElement("div");
     area.classList.add(RESULT_CATEGORY);
     let label = document.createElement("div");
@@ -81,7 +81,7 @@ export class Search extends Widget {
     content.classList.add(RESULT_CATEGORY_CONTENT);
     area.appendChild(content);
     results.forEach(item => {
-      let elem = VersionSampler.sample(this.history, item);
+      let elem = VersionSampler.sampleSearch(this.history, item, query);
       content.appendChild(elem);
     });
 
