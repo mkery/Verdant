@@ -2,6 +2,7 @@ import {
   Nodey,
   NodeyCode,
   NodeyOutput,
+  NodeyCell,
   NodeyCodeCell,
   NodeyMarkdown,
   SyntaxToken,
@@ -180,9 +181,14 @@ export class HistoryStage {
   private commitNotebook(star: Star<Nodey>, eventId: number) {
     if (this.verifyDifferent(star)) {
       let notebook = this.deStar(star, eventId) as NodeyNotebook;
-      notebook.cells.forEach(name => {
+      notebook.cells.forEach((name, index) => {
         let cell = this.store.get(name);
-        cell.parent = notebook.name;
+        if (cell) cell.parent = notebook.name;
+        else {
+          // cell may not be initialized yet if just added
+          let waitCell = this.history.notebook.cells[index];
+          waitCell.ready.then(() => (waitCell.model.parent = notebook.name));
+        }
       });
       return notebook;
     } else return this.discardStar(star);
@@ -262,13 +268,19 @@ export class HistoryStage {
     return updatedNodey;
   }
 
-  private postCommit_updateParent(updatedNodey: Nodey, star: Star<Nodey>) {
+  private postCommit_updateParent(updatedNodey: NodeyCell, star: Star<Nodey>) {
     // update pointer in parent notebook
-    let parent = this.store.getLatestOf(updatedNodey.parent) as Star<
-      NodeyNotebook
-    >;
-    let index = parent.value.cells.indexOf(star.name);
-    parent.value.cells[index] = updatedNodey.name;
+    let parent = this.store.getLatestOf(updatedNodey.parent);
+    console.log("update parent notebook for ", updatedNodey, parent);
+
+    if (parent instanceof Star && parent.value instanceof NodeyNotebook) {
+      let index = parent.value.cells.indexOf(star.name);
+      parent.value.cells[index] = updatedNodey.name;
+    } else if (parent instanceof NodeyNotebook) {
+      let index = parent.cells.indexOf(star.name);
+      parent.cells[index] = updatedNodey.name;
+    }
+
     //console.log("UPDATED PARENT", index, parent.value.cells, star.name);
   }
 

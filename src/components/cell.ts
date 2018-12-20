@@ -105,6 +105,8 @@ export class VerCell {
     var cell = this.view as CodeCell;
 
     var text: string = cell.editor.model.value.text;
+    console.log("INIT CODE CELL TEXT", text);
+
     if (matchPrior) {
       let name = this.notebook.cells[this.position].model.name;
       var nodeyCell = this.notebook.history.store.get(name);
@@ -129,10 +131,17 @@ export class VerCell {
         this.modelName = nodey.name;
       }
     } else {
-      let nodey = await this.notebook.ast.generateCodeNodey(
-        text,
-        this.position
-      );
+      let nodey;
+      if (text.length > 0)
+        nodey = await this.notebook.ast.generateCodeNodey(text, this.position);
+      else {
+        nodey = new NodeyCodeCell({
+          start: { line: 1, ch: 0 },
+          end: { line: 1, ch: 0 },
+          type: "Module"
+        });
+        this.notebook.history.store.store(nodey);
+      }
       nodey.created = checkpoint.id;
       var output = this.notebook.history.stage.commitOutput(
         nodey as NodeyCodeCell,
@@ -142,6 +151,7 @@ export class VerCell {
       nodey.output = output.name;
       this.modelName = nodey.name;
     }
+    console.log("CELL NODE CREATED", this.modelName);
   }
 
   private async initMarkdownCell(matchPrior: boolean, checkpoint: Checkpoint) {

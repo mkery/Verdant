@@ -248,9 +248,18 @@ export namespace NodeyOutput {
     if (a === null || a === undefined || b === null || b === undefined) {
       return a === b;
     }
-    if (a === b || a.valueOf() === b.valueOf()) {
+    if (a === b) {
       return true;
     }
+
+    /*console.log("TYPE OF A", typeof a, typeof b);
+    if (
+      typeof a === "object" &&
+      typeof b === "object" &&
+      a.valueOf() === b.valueOf()
+    ) {
+      return true;
+    }*/
 
     // if one of them is date, they must had equal valueOf
     if (a instanceof Date) {

@@ -187,6 +187,7 @@ export class VerNotebook {
     index: number,
     match: boolean
   ): Promise<VerCell> {
+    console.log("CELL ADDED");
     let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
     let newCell = new VerCell(this, cell, index, match, checkpoint);
     this.cells.splice(index, 0, newCell);
@@ -197,6 +198,8 @@ export class VerNotebook {
     >;
     await newCell.ready;
     model.value.cells.splice(index, 0, newCell.model.name);
+    newCell.model.parent = this.model.name;
+    console.log("CELL CREATED", newCell, this.cells);
 
     // commit the notebook
     let notebook = this.history.stage.commit(checkpoint, model);
