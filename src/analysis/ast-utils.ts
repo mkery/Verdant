@@ -87,7 +87,7 @@ namespace Private {
     console.log("CHILDREN", children, mid, children[mid]);
     var midNodey = <NodeyCode>history.store.getLatestOf(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
-    console.log("checking mid range", midNodey, direction);
+    console.log("checking mid range", midNodey, direction, change);
 
     if (direction === 0) {
       var midChildren = midNodey.getChildren();

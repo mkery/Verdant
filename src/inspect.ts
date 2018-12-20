@@ -462,43 +462,39 @@ export class Inspect {
     elem: HTMLElement
   ) {
     console.log("figuring out target");
-    var codeBlock = this.findAncestor(elem, "CodeMirror-code");
-    var lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
-    var lineDiv = this.findAncestor(elem, "CodeMirror-line");
-    var lineNum = Math.round(
+    let codeBlock = this.findAncestor(elem, "CodeMirror-code");
+    let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
+    let lineDiv = this.findAncestor(elem, "CodeMirror-line");
+    let lineNum = Math.round(
       (lineDiv.offsetTop / codeBlock.offsetHeight) * lineCount
     );
-    var lineText = (cell.editor as CodeMirrorEditor).doc.getLine(lineNum);
+    let lineText = (cell.editor as CodeMirrorEditor).doc.getLine(lineNum);
+    let res;
+    let startCh = 0;
+    let endCh = lineText.length - 2;
 
-    if (elem.hasAttribute("role")) {
-      // a full line in Code Mirror
-      var res = ASTUtils.findNodeAtRange(
-        parent,
-        {
-          start: { line: lineNum, ch: 0 },
-          end: { line: lineNum, ch: lineText.length - 2 }
-        },
-        this._history
-      );
-      return res || parent; //just in case no more specific result is found
-    } else {
-      var spanRol = this.findAncestorByAttr(elem, "role");
-      var startCh = Math.round(
+    if (!elem.hasAttribute("role")) {
+      // not a full line in Code Mirror
+      let spanRol = this.findAncestorByAttr(elem, "role");
+      startCh = Math.round(
         (elem.offsetLeft / spanRol.offsetWidth) * lineText.length
       );
-      var endCh = Math.round(
+      endCh = Math.round(
         ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
           lineText.length
       );
-      return ASTUtils.findNodeAtRange(
-        parent,
-        {
-          start: { line: lineNum, ch: startCh },
-          end: { line: lineNum, ch: endCh }
-        },
-        this._history
-      );
     }
+    //console.log("CH IS", elem, lineNum, startCh, endCh);
+
+    res = ASTUtils.findNodeAtRange(
+      parent,
+      {
+        start: { line: lineNum, ch: startCh },
+        end: { line: lineNum, ch: endCh }
+      },
+      this._history
+    );
+    return res || parent; //just in case no more specific result is found
   }
 
   private findAncestorByAttr(el: HTMLElement, attr: string) {

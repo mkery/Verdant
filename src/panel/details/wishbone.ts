@@ -66,15 +66,7 @@ namespace Private {
   ) {
     event.stopPropagation();
     let area = cell.inputArea.editorWidget.node;
-    var code = area.getElementsByClassName("CodeMirror-line");
-    let betterMatch: Element = null;
-    for (var i = 0; i < code.length; i++) {
-      if (highlightCode(event, code[i])) {
-        betterMatch = code[i];
-        break;
-      }
-    }
-
+    let betterMatch = area.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE)[0];
     if (!betterMatch) this.selectTarget([nodey], inspector, event);
     else
       inspector.changeTarget([

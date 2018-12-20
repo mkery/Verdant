@@ -56,7 +56,10 @@ export namespace VersionSampler {
   export function verHeader(history: History, nodey: Nodey) {
     // 1 index instead of 0 index just for display
     let ver = nodey.version + 1;
-    let notebookVer = history.checkpoints.get(nodey.created).notebook + 1;
+    let created = history.checkpoints.get(nodey.created);
+    let notebookVer;
+    if (created) notebookVer = created.notebook + 1 + "";
+    else notebookVer = "???";
 
     let header = document.createElement("div");
     header.classList.add(VERSION_HEADER);
