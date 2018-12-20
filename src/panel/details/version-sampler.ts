@@ -2,7 +2,8 @@ import {
   Nodey,
   NodeyMarkdown,
   NodeyCode,
-  NodeyOutput
+  NodeyOutput,
+  NodeyCodeCell
 } from "../../model/nodey";
 import { History } from "../../model/history";
 import { Inspect } from "../../inspect";
@@ -10,29 +11,10 @@ import { Inspect } from "../../inspect";
 const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
 const VERSION_HEADER = "v-VerdantPanel-inspect-version-header";
+const VERSION_LINK = "v-VerdantPanel-inspect-version-header-link";
 
 export namespace VersionSampler {
-  export function sample(history: History, nodey: Nodey) {
-    let inspector = history.inspector;
-    let text = inspector.renderNode(nodey).text;
-
-    let sample = document.createElement("div");
-    sample.classList.add(INSPECT_VERSION);
-
-    let content = document.createElement("div");
-    content.classList.add(INSPECT_VERSION_CONTENT);
-    sample.appendChild(content);
-
-    if (nodey instanceof NodeyCode) buildCode(inspector, nodey, text, content);
-    else if (nodey instanceof NodeyMarkdown)
-      buildMarkdown(inspector, nodey, text, content);
-    else if (nodey instanceof NodeyOutput)
-      buildOutput(inspector, nodey, content);
-
-    return sample;
-  }
-
-  export function sampleSearch(history: History, nodey: Nodey, query: string) {
+  export function sample(history: History, nodey: Nodey, query?: string) {
     let inspector = history.inspector;
     let text = inspector.renderNode(nodey).text;
 
@@ -51,6 +33,38 @@ export namespace VersionSampler {
       buildOutput(inspector, nodey, content, query);
 
     return sample;
+  }
+
+  export function searchHeader(
+    history: History,
+    nodey: Nodey,
+    callback: () => void
+  ) {
+    let header = document.createElement("div");
+    header.classList.add(VERSION_HEADER);
+    let spanA = document.createElement("span");
+    spanA.textContent = "versions of ";
+    let spanB = document.createElement("span");
+    spanB.textContent = nameNodey(history, nodey);
+    spanB.classList.add(VERSION_LINK);
+    spanB.addEventListener("click", callback);
+    header.appendChild(spanA);
+    header.appendChild(spanB);
+    return header;
+  }
+
+  function nameNodey(history: History, nodey: Nodey): string {
+    let nodeyName: string;
+    if (nodey instanceof NodeyMarkdown) nodeyName = "markdown " + nodey.id;
+    else if (nodey instanceof NodeyCodeCell)
+      nodeyName = "code cell " + nodey.id;
+    else if (nodey instanceof NodeyOutput) nodeyName = "output " + nodey.id;
+    else if (nodey instanceof NodeyCode) {
+      let cell = history.store.getCellParent(nodey);
+      nodeyName =
+        nodey.type + " " + nodey.id + " from " + nameNodey(history, cell);
+    }
+    return nodeyName;
   }
 
   export function verHeader(history: History, nodey: Nodey) {

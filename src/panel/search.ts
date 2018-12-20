@@ -2,6 +2,7 @@ import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { VersionSampler } from "./details/version-sampler";
 import { Nodey } from "../model/nodey";
+import { VerdantPanel } from "./verdant-panel";
 
 const PANEL = "v-VerdantPanel-content";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
@@ -18,11 +19,13 @@ const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 export class Search extends Widget {
   readonly history: History;
   readonly searchContent: HTMLElement;
+  readonly parentPanel: VerdantPanel;
 
-  constructor(history: History) {
+  constructor(history: History, parentPanel: VerdantPanel) {
     super();
     this.node.classList.add(PANEL);
     this.history = history;
+    this.parentPanel = parentPanel;
 
     let searchContainer = document.createElement("div");
     searchContainer.classList.add(SEARCH_CONTAINER);
@@ -81,8 +84,14 @@ export class Search extends Widget {
     content.classList.add(RESULT_CATEGORY_CONTENT);
     area.appendChild(content);
     results.forEach(item => {
-      let elem = VersionSampler.sampleSearch(this.history, item, query);
-      content.appendChild(elem);
+      let container = document.createElement("div");
+      let header = VersionSampler.searchHeader(this.history, item, () => {
+        this.parentPanel.openCrumbBox(item);
+      });
+      container.appendChild(header);
+      let elem = VersionSampler.sample(this.history, item, query);
+      container.appendChild(elem);
+      content.appendChild(container);
     });
 
     let footer = document.createElement("div");

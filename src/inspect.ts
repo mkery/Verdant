@@ -438,7 +438,7 @@ export class Inspect {
     var nodeVerList = t.map(item => {
       return this._history.store.getHistoryOf(item);
     });
-    console.log("Found versions", nodeVerList);
+    //console.log("Found versions", nodeVerList);
     var recovered: { version: string; runs: any; text: string }[] = [];
 
     nodeVerList.map(targetList => {
@@ -461,7 +461,7 @@ export class Inspect {
     cell: CodeCell,
     elem: HTMLElement
   ) {
-    console.log("figuring out target");
+    //console.log("figuring out target");
     let codeBlock = this.findAncestor(elem, "CodeMirror-code");
     let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     let lineDiv = this.findAncestor(elem, "CodeMirror-line");
@@ -572,12 +572,12 @@ export class Inspect {
         elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
       } else {
         let priorText = this.renderCodeNode(prior);
-        console.log("vers are", nodey, prior, priorText);
+        //console.log("vers are", nodey, prior, priorText);
         let diff = JSDiff.diffWords(priorText, newText);
         let innerHTML = "";
         diff.forEach(part => {
           let partDiv = document.createElement("span");
-          console.log("DIFF", part);
+          //console.log("DIFF", part);
           partDiv.textContent = part.value;
           if (part.added) {
             partDiv.classList.add(Inspect.CHANGE_ADDED_CLASS);
@@ -662,7 +662,7 @@ export class Inspect {
     let lower = elem.innerHTML.toLowerCase();
     let index = lower.indexOf(keys[0], i);
     let html = "";
-    console.log("Index is ", index, lower, keys[0]);
+    //console.log("Index is ", index, lower, keys[0]);
     while (index > -1) {
       html +=
         elem.innerHTML.slice(i, index) +

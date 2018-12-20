@@ -23,6 +23,9 @@ export class VerdantPanel extends Widget {
   readonly crumbBox: CrumbBox;
   readonly eventMap: EventMap;
   readonly search: Search;
+  private artifactsTab: HTMLElement;
+  private searchTab: HTMLElement;
+  private eventsTab: HTMLElement;
 
   constructor(history: History) {
     super();
@@ -39,7 +42,7 @@ export class VerdantPanel extends Widget {
     this.node.appendChild(this.contentBox);
 
     this.crumbBox = new CrumbBox(this.history);
-    this.search = new Search(this.history);
+    this.search = new Search(this.history, this);
   }
 
   public ghostBookOpened(widg: Widget) {
@@ -56,49 +59,40 @@ export class VerdantPanel extends Widget {
     let tabContainer = document.createElement("div");
     tabContainer.classList.add(TAB_CONTAINER);
 
-    let eventsTab = document.createElement("div");
-    eventsTab.classList.add(TAB);
-    eventsTab.textContent = "Activity";
-    eventsTab.classList.add("active");
-    tabContainer.appendChild(eventsTab);
+    this.eventsTab = document.createElement("div");
+    this.eventsTab.classList.add(TAB);
+    this.eventsTab.textContent = "Activity";
+    this.eventsTab.classList.add("active");
+    tabContainer.appendChild(this.eventsTab);
 
-    let artifactsTab = document.createElement("div");
-    artifactsTab.classList.add(TAB);
-    artifactsTab.textContent = "Artifacts";
-    tabContainer.appendChild(artifactsTab);
+    this.artifactsTab = document.createElement("div");
+    this.artifactsTab.classList.add(TAB);
+    this.artifactsTab.textContent = "Artifacts";
+    tabContainer.appendChild(this.artifactsTab);
 
-    let searchTab = document.createElement("div");
-    searchTab.classList.add(TAB);
+    this.searchTab = document.createElement("div");
+    this.searchTab.classList.add(TAB);
     let searchIcon = document.createElement("div");
     searchIcon.classList.add(SEARCH_ICON);
     searchIcon.classList.add("header");
-    searchTab.appendChild(searchIcon);
-    searchTab.style.borderRightWidth = "0px"; // ending
-    tabContainer.appendChild(searchTab);
+    this.searchTab.appendChild(searchIcon);
+    this.searchTab.style.borderRightWidth = "0px"; // ending
+    tabContainer.appendChild(this.searchTab);
 
-    eventsTab.addEventListener("click", () => {
-      if (!eventsTab.classList.contains("active")) {
-        artifactsTab.classList.remove("active");
-        searchTab.classList.remove("active");
-        eventsTab.classList.add("active");
+    this.eventsTab.addEventListener("click", () => {
+      if (!this.eventsTab.classList.contains("active")) {
         this.openEvents();
       }
     });
 
-    artifactsTab.addEventListener("click", () => {
-      if (!artifactsTab.classList.contains("active")) {
-        artifactsTab.classList.add("active");
-        searchTab.classList.remove("active");
-        eventsTab.classList.remove("active");
+    this.artifactsTab.addEventListener("click", () => {
+      if (!this.artifactsTab.classList.contains("active")) {
         this.openCrumbBox();
       }
     });
 
-    searchTab.addEventListener("click", () => {
-      if (!searchTab.classList.contains("active")) {
-        artifactsTab.classList.remove("active");
-        searchTab.classList.add("active");
-        eventsTab.classList.remove("active");
+    this.searchTab.addEventListener("click", () => {
+      if (!this.searchTab.classList.contains("active")) {
         this.openSearch();
       }
     });
@@ -107,22 +101,35 @@ export class VerdantPanel extends Widget {
   }
 
   openSearch() {
+    this.artifactsTab.classList.remove("active");
+    this.searchTab.classList.add("active");
+    this.eventsTab.classList.remove("active");
     this.contentBox.innerHTML = "";
     this.contentBox.appendChild(this.search.node);
   }
 
   openEvents() {
+    this.artifactsTab.classList.remove("active");
+    this.searchTab.classList.remove("active");
+    this.eventsTab.classList.add("active");
+
     this.closeCrumbBox();
     this.contentBox.appendChild(this.eventMap.node);
   }
 
-  openCrumbBox() {
+  openCrumbBox(inspectTarget?: Nodey) {
+    this.artifactsTab.classList.add("active");
+    this.searchTab.classList.remove("active");
+    this.eventsTab.classList.remove("active");
+
     this.contentBox.innerHTML = "";
     this.contentBox.appendChild(this.crumbBox.node);
     this.crumbBox.show();
+
+    if (inspectTarget) this.crumbBox.changeTarget([inspectTarget]);
   }
 
-  closeCrumbBox() {
+  private closeCrumbBox() {
     this.contentBox.innerHTML = "";
     this.crumbBox.hide();
   }

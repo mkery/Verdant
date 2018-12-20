@@ -263,3 +263,8 @@
   padding-top: var(--jp-cell-padding);
   color: var(--jp-content-font-color2);
 }
+
+.v-VerdantPanel-inspect-version-header-link {
+  text-decoration: underline;
+  color: var(--jp-content-link-color);
+}
