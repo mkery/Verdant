@@ -133,7 +133,6 @@ export class NotebookListen {
       await verCell.ready;
       console.log("adding a new cell!", cell, verCell, verCell.model);
       this._cellStructureChanged.emit([index, verCell.view]);
-      verCell.added();
     });
   }
 
@@ -176,7 +175,6 @@ export class NotebookListen {
       //this.cells.set(cell.model.id, newCellListen);
       console.log("changed cell type!", oldIndex, newIndex, oldValues, item);
       this._cellStructureChanged.emit([oldIndex, newCellListen.view]);
-      newCellListen.cellTypeChanged();
     });
   }
 

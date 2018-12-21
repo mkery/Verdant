@@ -45,7 +45,7 @@ export abstract class Nodey {
 * Notebook holds a list of cells
 */
 export class NodeyNotebook extends Nodey {
-  cells: string[];
+  cells: string[] = [];
 
   constructor(options: NodeyOptions = {}) {
     super(options);

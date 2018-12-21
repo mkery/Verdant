@@ -1,42 +1,21 @@
-import {
-  NodeyCell,
-  NodeyOutput,
-  NodeyMarkdown,
-  NodeyCodeCell
-} from "../model/nodey";
+import { NodeyCell, NodeyOutput, NodeyCodeCell } from "../model/nodey";
 import { PromiseDelegate } from "@phosphor/coreutils";
 import { OutputArea } from "@jupyterlab/outputarea";
 import { VerNotebook } from "./notebook";
 import { Checkpoint } from "../model/checkpoint";
-import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
+import { Cell, CodeCell } from "@jupyterlab/cells";
 import { Star } from "../model/history-stage";
 
 export class VerCell {
-  constructor(
-    notebook: VerNotebook,
-    cell: Cell,
-    index: number,
-    matchPrior: boolean,
-    checkpoint: Checkpoint // what event created this cell?
-  ) {
-    this.notebook = notebook;
-    this.position = index;
-    this.view = cell;
-    this.init(matchPrior, checkpoint);
-  }
-
-  private position: number;
   readonly view: Cell;
-  private modelName: string;
+  private readonly modelName: string;
   private readonly notebook: VerNotebook;
 
-  private async init(matchPrior: boolean, checkpoint: Checkpoint) {
-    if (this.view instanceof CodeCell)
-      await this.initCodeCell(matchPrior, checkpoint);
-    else if (this.view instanceof MarkdownCell)
-      await this.initMarkdownCell(matchPrior, checkpoint);
+  constructor(notebook: VerNotebook, cell: Cell, modelName: string) {
+    this.notebook = notebook;
+    this.view = cell;
+    this.modelName = modelName;
     this.listen();
-    this._ready.resolve(undefined);
   }
 
   public get ready(): Promise<void> {
@@ -79,6 +58,10 @@ export class VerCell {
   ): Promise<[NodeyCell, boolean]> {
     // repair the cell against the prior version
     await this.repair();
+    return this.commit(checkpoint);
+  }
+
+  public commit(checkpoint: Checkpoint): [NodeyCell, boolean] {
     let nodey = this.model;
 
     // commit the cell if it has changed
@@ -87,96 +70,6 @@ export class VerCell {
     let same = newNodey.name === nodey.name;
 
     return [newNodey, same];
-  }
-
-  public async added() {
-    //TODO
-  }
-
-  public async deleted() {
-    //TODO
-  }
-
-  public async cellTypeChanged() {
-    //TODO
-  }
-
-  private async initCodeCell(matchPrior: boolean, checkpoint: Checkpoint) {
-    var cell = this.view as CodeCell;
-
-    var text: string = cell.editor.model.value.text;
-    console.log("INIT CODE CELL TEXT", text);
-
-    if (matchPrior) {
-      let name = this.notebook.cells[this.position].model.name;
-      var nodeyCell = this.notebook.history.store.get(name);
-      if (nodeyCell instanceof NodeyCodeCell) {
-        let nodey = await this.notebook.ast.matchASTOnInit(nodeyCell, text);
-        this.modelName = nodey.name;
-        // TODO figure out event if it's NOT the same
-        // TODO match output too
-      } else if (nodeyCell instanceof NodeyMarkdown) {
-        let nodey = await this.notebook.ast.markdownToCodeNodey(
-          nodeyCell,
-          text,
-          this.position
-        );
-
-        var output = this.notebook.history.stage.commitOutput(
-          nodey as NodeyCodeCell,
-          checkpoint.id,
-          this
-        );
-        nodey.output = output.name;
-        this.modelName = nodey.name;
-      }
-    } else {
-      let nodey;
-      if (text.length > 0)
-        nodey = await this.notebook.ast.generateCodeNodey(text, this.position);
-      else {
-        nodey = new NodeyCodeCell({
-          start: { line: 1, ch: 0 },
-          end: { line: 1, ch: 0 },
-          type: "Module"
-        });
-        this.notebook.history.store.store(nodey);
-      }
-      nodey.created = checkpoint.id;
-      var output = this.notebook.history.stage.commitOutput(
-        nodey as NodeyCodeCell,
-        checkpoint.id,
-        this
-      );
-      nodey.output = output.name;
-      this.modelName = nodey.name;
-    }
-    console.log("CELL NODE CREATED", this.modelName);
-  }
-
-  private async initMarkdownCell(matchPrior: boolean, checkpoint: Checkpoint) {
-    let nodey: NodeyMarkdown;
-    if (matchPrior) {
-      // TODO figure out event if it's NOT the same
-      let name = this.notebook.cells[this.position].model.name; //TODO could easily fail!!!
-      var nodeyCell = this.notebook.history.store.get(name);
-      //console.log("Prior match is", nodeyCell, this.position);
-      if (nodeyCell instanceof NodeyMarkdown) {
-        await this.notebook.ast.repairMarkdown(
-          nodeyCell,
-          this.view.model.value.text
-        );
-      } else if (nodeyCell instanceof NodeyCodeCell) {
-        let text = this.view.model.value.text;
-        nodey = new NodeyMarkdown({ markdown: text, created: checkpoint.id });
-        this.notebook.history.store.registerTiedNodey(nodey, nodeyCell.name);
-      }
-    } else {
-      let text = this.view.model.value.text;
-      nodey = new NodeyMarkdown({ markdown: text, created: checkpoint.id });
-      this.notebook.history.store.store(nodey);
-    }
-    this.modelName = nodey.name;
   }
 
   private listen() {

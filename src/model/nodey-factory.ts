@@ -8,7 +8,6 @@ import { NodeyCode, NodeyCodeCell, SyntaxToken } from "./nodey";
 export namespace NodeyFactory {
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
-    _: number,
     historyStore: HistoryStore,
     forceTie: string = null
   ) {

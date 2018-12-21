@@ -36,6 +36,7 @@ export class History {
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
+      console.log("FOUND HISTORY", history);
       this.fromJSON(history);
       this._ready.resolve(undefined);
       return true;

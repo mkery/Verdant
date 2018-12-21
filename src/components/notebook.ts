@@ -6,7 +6,6 @@ import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
 import { Star } from "../model/history-stage";
-import { Checkpoint } from "../model/checkpoint";
 import { AST } from "../analysis/ast";
 import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
@@ -55,35 +54,10 @@ export class VerNotebook {
     var prior = await this.history.init(this);
     await this.ast.ready;
 
-    // TODO we'll need to load checkpoints first to get the right #
-    // first start a checkpoint for this load event
-    let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
-
     // load in the notebook model from data
-    this.initNotebook(prior, checkpoint);
-
-    // start initializing all the cells
-    var cellsReady: Promise<void>[] = [];
-    this.view.notebook.widgets.forEach((item, index) => {
-      if (item instanceof Cell) {
-        let cell: VerCell = new VerCell(this, item, index, prior, checkpoint);
-        this.cells.push(cell);
-        cellsReady.push(cell.ready);
-      }
-    });
-    await Promise.all(cellsReady);
-
-    // Now that the cells are loaded, set the notebook nodey's cells
-    let model: NodeyNotebook;
-    if (this.model instanceof Star) model = this.model.value;
-    else model = this.model;
-    model.cells = this.cells.map(cell => {
-      cell.model.parent = model.name;
-      return cell.model.name;
-    });
+    await this.load(prior);
 
     // finish initialization
-    resolve([], this.model.version); //TODO! need to figure out which cells actually changed!!!
     console.log("Loaded Notebook", this.view.notebook, this.model);
     this.dump();
     this._ready.resolve(undefined);
@@ -92,11 +66,31 @@ export class VerNotebook {
     this.view.focusCell();
   }
 
-  private initNotebook(matchPrior: boolean, checkpoint: Checkpoint) {
-    if (!matchPrior) {
-      var n = new NodeyNotebook({ created: checkpoint.id });
-      this.history.store.store(n);
-    } //TODO got to check match prior if we need a new notebook
+  private async load(matchPrior: boolean) {
+    // first start a checkpoint for this load event
+    let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
+
+    let model;
+    if (matchPrior) {
+      model = this.model;
+    }
+    let [notebook, changedCells] = await this.ast.repairNotebook(
+      model,
+      this.view.notebook,
+      checkpoint
+    );
+
+    // commit the cell if it has changed
+    this.view.notebook.widgets.forEach((item, index) => {
+      if (item instanceof Cell) {
+        let name = notebook.cells[index];
+        let cell: VerCell = new VerCell(this, item, name);
+        this.cells.push(cell);
+      }
+    });
+
+    // finish the checkpoint with info from this run
+    resolve(changedCells, notebook.version);
   }
 
   get model(): NodeyNotebook | Star<NodeyNotebook> {
@@ -131,8 +125,10 @@ export class VerNotebook {
     resolve(newNodey, same, notebook.version);
 
     // save the data to file
-    //this.history.store.writeToFile(this, this.history);
+    this.history.store.writeToFile(this, this.history);
+
     console.log("commited cell", newNodey);
+    // update display
     this.panel.updateCells(newNodey, checkpoint);
   }
 
@@ -189,7 +185,8 @@ export class VerNotebook {
   ): Promise<VerCell> {
     console.log("CELL ADDED");
     let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
-    let newCell = new VerCell(this, cell, index, match, checkpoint);
+    let nodey = await this.ast.createCellNodey(cell, checkpoint);
+    let newCell = new VerCell(this, cell, nodey.name);
     this.cells.splice(index, 0, newCell);
 
     // make sure cell is added to model
@@ -213,7 +210,6 @@ export class VerNotebook {
 
   public deleteCell(index: number) {
     let oldCell = this.cells.splice(index, 1);
-    oldCell[0].deleted();
     let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
 
     // make sure cell is removed from model

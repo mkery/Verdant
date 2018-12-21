@@ -1,6 +1,5 @@
 import { NodeyCell, NodeyCode, NodeyNotebook } from "./nodey";
 import { History } from "./history";
-import { serialized_Run } from "../file-manager";
 
 export enum ChangeType {
   CHANGED = 2,
@@ -100,11 +99,11 @@ export class HistoryCheckpoints {
 
   public notebookLoad(): [
     Checkpoint,
-    (newCells: NodeyCell[], notebook: number) => void
+    (newCells: CellRunData[], notebook: number) => void
   ] {
     let checkpoint = this.generateCheckpoint(CheckpointType.LOAD);
     // process is the same for save, so we'll just reuse that function for now
-    return [checkpoint, this.handleNotebookSaved.bind(this, checkpoint.id)];
+    return [checkpoint, this.handleNotebookLoaded.bind(this, checkpoint.id)];
   }
 
   public cellAdded() {
@@ -137,10 +136,21 @@ export class HistoryCheckpoints {
     console.log("RUNS FROM JSON", this.checkpointList);
   }
 
-  public toJSON(): serialized_Run[] {
+  public toJSON(): jsn[] {
     return this.checkpointList.map(item => {
       return item.toJSON();
     });
+  }
+
+  private handleNotebookLoaded(
+    saveId: number,
+    newCells: CellRunData[],
+    notebook: number
+  ) {
+    newCells.forEach(item =>
+      this.checkpointList[saveId].targetCells.push(item)
+    );
+    this.checkpointList[saveId].notebook = notebook;
   }
 
   private handleNotebookSaved(
@@ -242,34 +252,24 @@ export class Checkpoint {
     return this.id + "";
   }
 
-  public toJSON(): serialized_Run {
-    //TODO
-    return null;
+  public toJSON(): jsn {
+    return {
+      checkpointType: this.checkpointType,
+      timestamp: this.timestamp,
+      notebook: this.notebook,
+      targetCells: this.targetCells
+    };
   }
 }
 
 export namespace Checkpoint {
-  export function fromJSON(run: jsn, id: number): Checkpoint {
-    let checkpointType = run[0] as string;
-    let timestamp = run[1] as number;
-    let cluster = run[2] as number;
-    let newOutput = run[3] as string[];
-    let runCell: CellRunData = null;
-    let notebook = run.slice(4).map((name: string | CellRunData) => {
-      if (name instanceof String || typeof name === "string") return name;
-      else {
-        runCell = name;
-        return runCell.node;
-      }
-    });
+  export function fromJSON(dat: jsn, id: number): Checkpoint {
     return new Checkpoint({
       id: id,
-      checkpointType: checkpointType,
-      timestamp: timestamp,
-      cluster: cluster,
-      notebook: notebook,
-      runCell: runCell,
-      newOutput: newOutput
+      checkpointType: dat.checkpointType,
+      timestamp: dat.timestamp,
+      notebook: dat.notebook,
+      targetCells: dat.runCell
     });
   }
 
