@@ -55,7 +55,7 @@ export class History {
 
   private fromJSON(data: serialized_NodeyHistory) {
     this.checkpoints.fromJSON(data.runs);
-    this.store.fromJSON(data, this.notebook);
+    this.store.fromJSON(data);
   }
 
   public toJSON() {

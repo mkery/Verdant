@@ -249,27 +249,32 @@ export class HistoryStore {
     };
   }
 
-  public fromJSON(data: jsn, notebook: VerNotebook) {
-    this._notebookHistory.fromJSON(
-      data.notebook,
-      NodeyNotebook.fromJSON.bind(this, notebook)
-    );
+  public fromJSON(data: jsn) {
     this._codeCellStore = data.codeCells.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyCodeCell>();
       hist.fromJSON(item, NodeyCodeCell.fromJSON, id);
+      return hist;
     });
-    this._markdownStore = data.codeCells.map((item: jsn, id: number) => {
+    this._markdownStore = data.markdownCells.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyMarkdown>();
       hist.fromJSON(item, NodeyMarkdown.fromJSON, id);
+      return hist;
     });
-    this._snippetStore = data.codeCells.map((item: jsn, id: number) => {
+    this._snippetStore = data.snippets.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyCode>();
       hist.fromJSON(item, NodeyCode.fromJSON, id);
+      return hist;
     });
-    this._outputStore = data.codeCells.map((item: jsn, id: number) => {
+    this._outputStore = data.output.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyOutput>();
       hist.fromJSON(item, NodeyOutput.fromJSON, id);
+      return hist;
     });
+    this._notebookHistory.fromJSON(
+      data.notebook,
+      NodeyNotebook.fromJSON,
+      0 // all notebooks have an id of 0, it's a singleton
+    );
   }
 }
 
@@ -320,10 +325,13 @@ export class NodeHistory<T extends Nodey> {
   }
 
   fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
+    //console.log("FROM DATA", data);
     this.versions = data.map((nodeDat: jsn, version: number) => {
       let nodey = factory(nodeDat);
-      if (id) nodey.id = id;
+      nodey.id = id;
       nodey.version = version;
+      //console.log("MADE NODEY FROM DATA", nodey, nodeDat);
+      return nodey;
     });
   }
 }

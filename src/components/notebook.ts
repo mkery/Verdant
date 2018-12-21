@@ -74,11 +74,27 @@ export class VerNotebook {
     if (matchPrior) {
       model = this.model;
     }
-    let [notebook, changedCells] = await this.ast.repairNotebook(
+    let [newNotebook, changedCells] = await this.ast.repairNotebook(
       model,
       this.view.notebook,
       checkpoint
     );
+    let notebook: NodeyNotebook;
+
+    if (newNotebook instanceof Star) {
+      this.cells.forEach(cell => {
+        let cellNode = cell.model;
+        if (cellNode instanceof Star) {
+          cell.commit(checkpoint);
+        }
+      });
+
+      // commit the notebook if the cell has changed
+      notebook = this.history.stage.commit(
+        checkpoint,
+        this.model
+      ) as NodeyNotebook;
+    } else notebook = newNotebook;
 
     // commit the cell if it has changed
     this.view.notebook.widgets.forEach((item, index) => {
@@ -88,6 +104,7 @@ export class VerNotebook {
         this.cells.push(cell);
       }
     });
+    console.log("cell names", this.cells);
 
     // finish the checkpoint with info from this run
     resolve(changedCells, notebook.version);

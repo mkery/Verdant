@@ -243,8 +243,8 @@ export class AST {
     matchTo: NodeyNotebook | Star<NodeyNotebook>,
     notebook: Notebook,
     checkpoint: Checkpoint
-  ): Promise<[NodeyNotebook, CellRunData[]]> {
-    let model: NodeyNotebook;
+  ): Promise<[NodeyNotebook | Star<NodeyNotebook>, CellRunData[]]> {
+    let model: NodeyNotebook | Star<NodeyNotebook>;
     let changedCells: CellRunData[] = [];
     if (!matchTo) {
       model = new NodeyNotebook();
@@ -254,7 +254,7 @@ export class AST {
         if (item instanceof Cell) {
           cellsReady.push(
             this.createCellNodey(item, checkpoint).then(nodey => {
-              model.cells[index] = nodey.name;
+              (model as NodeyNotebook).cells[index] = nodey.name;
               nodey.parent = model.name;
               changedCells.push({
                 node: nodey.name,
@@ -265,6 +265,35 @@ export class AST {
         }
       });
 
+      await Promise.all(cellsReady);
+    } else {
+      let priorNotebook = this.history.store.currentNotebook;
+      let newNotebook = this.history.stage.markAsEdited(priorNotebook) as Star<
+        NodeyNotebook
+      >;
+      let cellsReady: Promise<void>[] = [];
+      notebook.widgets.forEach((item, index) => {
+        if (item instanceof Cell) {
+          let name = newNotebook.value.cells[index];
+          if (name && Cell instanceof CodeCell) {
+            let oldCell = this.history.store.get(name) as NodeyCodeCell;
+            let text: string = item.editor.model.value.text;
+            cellsReady.push(
+              this.matchASTOnInit(oldCell, text).then(newCell => {
+                newNotebook.value.cells[index] = newCell.name;
+                newCell.parent = newNotebook.name;
+              })
+            );
+          } else if (name && Cell instanceof MarkdownCell) {
+            let oldCell = this.history.store.get(name) as NodeyMarkdown;
+            let newCell = this.history.stage.markAsEdited(oldCell);
+            let text = item.model.value.text;
+            (newCell.value as NodeyMarkdown).markdown = text;
+            newCell.value.parent = newNotebook.name;
+          }
+        }
+        model = newNotebook;
+      });
       await Promise.all(cellsReady);
     }
     return [model, changedCells];

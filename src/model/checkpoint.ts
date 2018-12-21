@@ -269,7 +269,7 @@ export namespace Checkpoint {
       checkpointType: dat.checkpointType,
       timestamp: dat.timestamp,
       notebook: dat.notebook,
-      targetCells: dat.runCell
+      targetCells: dat.targetCells
     });
   }
 

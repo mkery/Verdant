@@ -30,14 +30,17 @@ export class EventMap extends Widget {
 
   build(history: History) {
     let checkpoints = history.checkpoints;
-    checkpoints.all().forEach(event => {
-      let time = event.timestamp;
-      if (!this.date || !Checkpoint.sameDay(time, this.date)) {
-        this.date = time;
-        this.node.appendChild(this.buildDateHeader(this.date));
-      }
-      this.node.appendChild(this.buildEvent(event));
-    });
+    checkpoints
+      .all()
+      .reverse() // newest event goes at the top
+      .forEach(event => {
+        let time = event.timestamp;
+        if (!this.date || !Checkpoint.sameDay(time, this.date)) {
+          this.date = time;
+          this.node.appendChild(this.buildDateHeader(this.date));
+        }
+        this.node.appendChild(this.buildEvent(event));
+      });
   }
 
   addEvent(event: Checkpoint) {

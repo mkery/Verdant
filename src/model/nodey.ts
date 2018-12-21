@@ -68,8 +68,9 @@ export class NodeyNotebook extends Nodey {
 export class SyntaxToken {
   tokens: string;
 
-  constructor(tokens: string) {
-    this.tokens = tokens;
+  constructor(tokens: string | { tokens: string }) {
+    if (typeof tokens == "string") this.tokens = tokens;
+    else this.tokens = tokens.tokens;
   }
 }
 
@@ -121,8 +122,14 @@ export class NodeyCode extends Nodey {
   constructor(options: NodeyOptions) {
     super(options);
     this.type = options.type;
-    if (options.content && options.content.length > 0)
+    if (options.content && options.content.length > 0) {
       this.content = options.content.slice(0);
+      this.content = this.content.map(item => {
+        if (item instanceof SyntaxToken) return item;
+        if (typeof item == "string") return item;
+        else return new SyntaxToken(item); // fresh from a JSON file
+      });
+    }
     if (options.outputId !== undefined) this.outputId = options.outputId;
     if (options.outputVer !== undefined) this.outputVer = options.outputVer;
     this.literal = options.literal;
@@ -134,7 +141,8 @@ export class NodeyCode extends Nodey {
   public toJSON() {
     let jsn = super.toJSON();
     jsn.type = this.type;
-    jsn.output = this.output;
+    jsn.outputId = this.outputId;
+    jsn.outputVer = this.outputVer;
     if (this.content) jsn.content = this.content;
     if (this.literal) jsn.literal = this.literal;
     return jsn;
@@ -211,8 +219,8 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
 export namespace NodeyNotebook {
   export function fromJSON(dat: jsn): NodeyNotebook {
     return new NodeyNotebook({
-      parent: dat.parent,
-      created: dat.created
+      created: dat.created,
+      cells: dat.cells
     });
   }
 }
@@ -328,7 +336,8 @@ export namespace NodeyMarkdown {
   export function fromJSON(dat: jsn): NodeyMarkdown {
     return new NodeyMarkdown({
       parent: dat.parent,
-      created: dat.created
+      created: dat.created,
+      markdown: dat.markdown
     });
   }
 }
