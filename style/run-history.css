@@ -593,6 +593,10 @@
   border-color: var(--verdant-cell-remove-color2);
 }
 
+.v-VerdantPanel-runCellMap-cell-same {
+  background-color: #d0c8d2;
+}
+
 .v-VerdantPanel-runCellMap-cell-added {
   background-color: var(--verdant-cell-add-color1);
   border-color: var(--verdant-cell-add-color2);

@@ -6,7 +6,8 @@ export enum ChangeType {
   REMOVED = 1.5,
   ADDED = 1,
   SAME = 0,
-  MOVED = 3
+  MOVED = 3,
+  NONE = 4
 }
 
 export enum CheckpointType {
@@ -93,7 +94,7 @@ export class HistoryCheckpoints {
 
         // all other cells
         if (match) cellMap.push(match);
-        else cellMap.push({ node: name, changeType: ChangeType.SAME });
+        else cellMap.push({ node: name, changeType: ChangeType.NONE });
       });
     }
     return cellMap;

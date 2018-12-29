@@ -12,6 +12,7 @@ const CELL = "v-VerdantPanel-runCellMap-cell";
 const CELL_ADDED = "v-VerdantPanel-runCellMap-cell-added";
 const CELL_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
 const CELL_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
+const CELL_SAME = "v-VerdantPanel-runCellMap-cell-same";
 
 export class EventMap extends Widget {
   readonly history: History;
@@ -133,6 +134,10 @@ export class EventMap extends Widget {
         case ChangeType.REMOVED:
           line.classList.add("target");
           line.classList.add(CELL_REMOVED);
+          break;
+        case ChangeType.SAME:
+          line.classList.add("target");
+          line.classList.add(CELL_SAME);
           break;
       }
       wrapper.appendChild(line);
