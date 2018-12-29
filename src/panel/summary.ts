@@ -157,16 +157,14 @@ export class Summary extends Widget {
   }
 
   private addCell(cell: VerCell, index: number) {
-    cell.ready.then(() => {
-      index++; //skip the notebook
-      let model = cell.lastSavedModel;
-      let sample = CellSampler.sampleCell(this.history, model);
-      let vers = this.history.store.getHistoryOf(model.name);
-      let [cellA, cellV] = this.buildCell(sample, vers.length);
-      this.artifactCol.insertBefore(cellA, this.artifactCol.children[index]);
-      this.verCol.insertBefore(cellV, this.verCol.children[index + 1]);
-      this.addCellEvents(cellA, cellV, model);
-    });
+    index++; //skip the notebook
+    let model = cell.lastSavedModel;
+    let sample = CellSampler.sampleCell(this.history, model);
+    let vers = this.history.store.getHistoryOf(model.name);
+    let [cellA, cellV] = this.buildCell(sample, vers.length);
+    this.artifactCol.insertBefore(cellA, this.artifactCol.children[index]);
+    this.verCol.insertBefore(cellV, this.verCol.children[index + 1]);
+    this.addCellEvents(cellA, cellV, model);
   }
 
   private removeCell(index: number) {

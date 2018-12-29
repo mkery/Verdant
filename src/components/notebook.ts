@@ -142,7 +142,7 @@ export class VerNotebook {
     resolve(newNodey, same, notebook.version);
 
     // save the data to file
-    this.history.store.writeToFile(this, this.history);
+    //this.history.store.writeToFile(this, this.history);
 
     console.log("commited cell", newNodey);
     // update display
@@ -210,7 +210,6 @@ export class VerNotebook {
     let model = this.history.stage.markAsEdited(this.model) as Star<
       NodeyNotebook
     >;
-    await newCell.ready;
     model.value.cells.splice(index, 0, newCell.model.name);
     newCell.model.parent = this.model.name;
     console.log("CELL CREATED", newCell, this.cells);
@@ -240,7 +239,7 @@ export class VerNotebook {
     console.log("notebook commited", notebook, this.model);
 
     // finish up
-    resolve(oldCell[0].model, notebook.version);
+    resolve(oldCell[0].model, notebook.version, index);
     this.panel.updateCells(oldCell[0].lastSavedModel, checkpoint, index);
   }
 

@@ -75,7 +75,6 @@ export class NotebookListen {
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
       let verCell = this._verNotebook.getCell(cell.model);
       if (verCell) {
-        await verCell.ready;
         this._verNotebook.focusCell(verCell);
         this._activeCellChanged.emit(verCell.view);
         this.activeCell = cell;
@@ -130,7 +129,6 @@ export class NotebookListen {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
       var verCell = await this._verNotebook.createCell(cell, newIndex, false);
-      await verCell.ready;
       console.log("adding a new cell!", cell, verCell, verCell.model);
       this._cellStructureChanged.emit([index, verCell.view]);
     });
@@ -170,7 +168,6 @@ export class NotebookListen {
         newIndex,
         true
       );
-      await newCellListen.ready;
       //TODO
       //this.cells.set(cell.model.id, newCellListen);
       console.log("changed cell type!", oldIndex, newIndex, oldValues, item);

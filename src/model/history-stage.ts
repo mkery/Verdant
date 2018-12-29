@@ -187,7 +187,7 @@ export class HistoryStage {
         else {
           // cell may not be initialized yet if just added
           let waitCell = this.history.notebook.cells[index];
-          waitCell.ready.then(() => (waitCell.model.parent = notebook.name));
+          waitCell.model.parent = notebook.name;
         }
       });
       return notebook;

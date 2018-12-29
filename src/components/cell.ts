@@ -1,5 +1,4 @@
 import { NodeyCell, NodeyOutput, NodeyCodeCell } from "../model/nodey";
-import { PromiseDelegate } from "@phosphor/coreutils";
 import { OutputArea } from "@jupyterlab/outputarea";
 import { VerNotebook } from "./notebook";
 import { Checkpoint } from "../model/checkpoint";
@@ -16,10 +15,6 @@ export class VerCell {
     this.view = cell;
     this.modelName = modelName;
     this.listen();
-  }
-
-  public get ready(): Promise<void> {
-    return this._ready.promise;
   }
 
   public get model(): NodeyCell | Star<NodeyCell> {
@@ -81,6 +76,4 @@ export class VerCell {
       this.notebook.history.stage.markAsEdited(this.model);
     });
   }
-
-  private _ready = new PromiseDelegate<void>();
 }

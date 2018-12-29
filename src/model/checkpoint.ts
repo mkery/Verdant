@@ -22,6 +22,7 @@ export type CellRunData = {
   node: string;
   changeType: number;
   newOutput?: string[];
+  index?: number;
 };
 
 // NOTE temporary type to allow flexibility
@@ -82,11 +83,20 @@ export class HistoryCheckpoints {
       checkpoint.notebook
     ) as NodeyNotebook;
     let targets = checkpoint.targetCells;
-    return notebook.cells.map(name => {
-      let match = targets.find(item => item.node === name);
-      if (match) return match;
-      return { node: name, changeType: ChangeType.SAME };
-    });
+    let cellMap: CellRunData[] = [];
+    if (notebook) {
+      notebook.cells.forEach((name, index) => {
+        let match = targets.find(item => item.node === name);
+        let indexMatch = targets.find(item => item.index === index);
+        // for deleted cells
+        if (indexMatch) cellMap.push(indexMatch);
+
+        // all other cells
+        if (match) cellMap.push(match);
+        else cellMap.push({ node: name, changeType: ChangeType.SAME });
+      });
+    }
+    return cellMap;
   }
 
   public notebookSaved(): [
@@ -186,10 +196,16 @@ export class HistoryCheckpoints {
     this.checkpointList[id].notebook = notebook;
   }
 
-  private handleCellDeleted(id: number, cell: NodeyCell, notebook: number) {
+  private handleCellDeleted(
+    id: number,
+    cell: NodeyCell,
+    notebook: number,
+    index: number
+  ) {
     let cellDat = {
       node: cell.name,
-      changeType: ChangeType.REMOVED
+      changeType: ChangeType.REMOVED,
+      index: index
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
     this.checkpointList[id].notebook = notebook;
