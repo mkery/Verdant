@@ -562,6 +562,7 @@
   color: var(--jp-content-font-color2);
   padding: var(--jp-cell-padding);
   padding-left: 0px;
+  max-width: 50%;
 }
 .Verdant-events-map {
   padding-top: 0.25em;

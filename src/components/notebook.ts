@@ -141,12 +141,15 @@ export class VerNotebook {
     // finish the checkpoint with info from this run
     resolve(newNodey, same, notebook.version);
 
-    // save the data to file
-    //this.history.store.writeToFile(this, this.history);
-
     console.log("commited cell", newNodey);
     // update display
     this.panel.updateCells(newNodey, checkpoint);
+    this.saveToFile();
+  }
+
+  private saveToFile() {
+    // save the data to file
+    this.history.store.writeToFile(this, this.history);
   }
 
   public async save() {
@@ -185,6 +188,7 @@ export class VerNotebook {
       resolve([], nodey.version);
       this.panel.updateCells([], checkpoint);
     }
+    this.saveToFile();
   }
 
   public getCell(cell: ICellModel): VerCell {

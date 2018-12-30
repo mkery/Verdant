@@ -1,27 +1,22 @@
 import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
-import { Checkpoint, CheckpointType, ChangeType } from "../model/checkpoint";
+import { Checkpoint } from "../model/checkpoint";
+import { NotebookEvent } from "./details/event";
 
 const PANEL = "v-VerdantPanel-content";
 const DATE_HEADER = "Verdant-events-date-header";
 const EVENT_ROW = "Verdant-events-row";
-const EVENT_NOTEBOOK = "Verdant-events-notebook";
-const EVENT_LABEL = "Verdant-events-label";
-const EVENT_MAP = "Verdant-events-map";
-const CELL = "v-VerdantPanel-runCellMap-cell";
-const CELL_ADDED = "v-VerdantPanel-runCellMap-cell-added";
-const CELL_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
-const CELL_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
-const CELL_SAME = "v-VerdantPanel-runCellMap-cell-same";
 
 export class EventMap extends Widget {
   readonly history: History;
   private date: number;
+  private events: NotebookEvent[];
 
   constructor(history: History) {
     super();
     this.node.classList.add(PANEL);
     this.history = history;
+    this.events = [];
 
     this.history.ready.then(async () => {
       await this.history.notebook.ready;
@@ -30,18 +25,9 @@ export class EventMap extends Widget {
   }
 
   build(history: History) {
-    let checkpoints = history.checkpoints;
-    checkpoints
-      .all()
-      .reverse() // newest event goes at the top
-      .forEach(event => {
-        let time = event.timestamp;
-        if (!this.date || !Checkpoint.sameDay(time, this.date)) {
-          this.date = time;
-          this.node.appendChild(this.buildDateHeader(this.date));
-        }
-        this.node.appendChild(this.buildEvent(event));
-      });
+    history.checkpoints.all().forEach(event => {
+      this.addEvent(event);
+    });
   }
 
   addEvent(event: Checkpoint) {
@@ -50,7 +36,15 @@ export class EventMap extends Widget {
       this.date = time;
       this.addToTop(this.buildDateHeader(this.date));
     }
-    this.addToTop(this.buildEvent(event));
+
+    let lastEvent = this.events[this.events.length - 1];
+    if (lastEvent && lastEvent.notebook === event.notebook) {
+      lastEvent.addEvent(event);
+    } else {
+      let newEvent = new NotebookEvent(this.history, event);
+      this.events.push(newEvent);
+      this.addToTop(newEvent.node);
+    }
   }
 
   addToTop(div: HTMLElement) {
@@ -62,87 +56,5 @@ export class EventMap extends Widget {
     header.classList.add(DATE_HEADER);
     header.textContent = Checkpoint.formatDate(date);
     return header;
-  }
-
-  buildEvent(event: Checkpoint): HTMLElement {
-    let row = document.createElement("div");
-    row.classList.add(EVENT_ROW);
-
-    let eventTitle = "";
-    switch (event.checkpointType) {
-      case CheckpointType.ADD:
-        eventTitle = "Cell added";
-        break;
-      case CheckpointType.DELETE:
-        eventTitle = "Cell removed";
-        break;
-      case CheckpointType.RUN:
-        eventTitle = "Run";
-        break;
-      case CheckpointType.LOAD:
-        eventTitle = "Load";
-        break;
-      case CheckpointType.SAVE:
-        eventTitle = "Save";
-        break;
-      case CheckpointType.MOVED:
-        eventTitle = "Cell moved";
-        break;
-    }
-
-    let dateLabel = document.createElement("div");
-    dateLabel.classList.add(EVENT_LABEL);
-    dateLabel.textContent =
-      Checkpoint.formatTime(event.timestamp) + " " + eventTitle;
-    row.appendChild(dateLabel);
-
-    let eventMap = document.createElement("div");
-    eventMap.classList.add(EVENT_MAP);
-
-    let notebookNum = document.createElement("div");
-    notebookNum.classList.add(EVENT_NOTEBOOK);
-    // add 1 to number to not start at 0
-    notebookNum.textContent = "#" + (event.notebook + 1);
-    eventMap.appendChild(notebookNum);
-
-    let map = this.buildMap(event);
-    map.classList.add(EVENT_NOTEBOOK);
-    eventMap.appendChild(map);
-    row.appendChild(eventMap);
-
-    return row;
-  }
-
-  buildMap(event: Checkpoint): HTMLElement {
-    let wrapper = document.createElement("div");
-    let map = this.history.checkpoints.getCellMap(event);
-
-    map.forEach(cell => {
-      let line = document.createElement("div");
-      line.classList.add(CELL);
-
-      let kind = cell.changeType;
-      switch (kind) {
-        case ChangeType.ADDED:
-          line.classList.add("target");
-          line.classList.add(CELL_ADDED);
-          break;
-        case ChangeType.CHANGED:
-          line.classList.add("target");
-          line.classList.add(CELL_CHANGED);
-          break;
-        case ChangeType.REMOVED:
-          line.classList.add("target");
-          line.classList.add(CELL_REMOVED);
-          break;
-        case ChangeType.SAME:
-          line.classList.add("target");
-          line.classList.add(CELL_SAME);
-          break;
-      }
-      wrapper.appendChild(line);
-    });
-
-    return wrapper;
   }
 }
