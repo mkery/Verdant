@@ -90,7 +90,7 @@ export class FileManager {
     return wasOpen;
   }
 
-  public writeGhostFile(notebook: VerNotebook, data: {}): Promise<string> {
+  private writeGhostFile(notebook: VerNotebook, data: {}): Promise<string> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)

@@ -57,6 +57,16 @@ export class HistoryCheckpoints {
     return this.checkpointList[id];
   }
 
+  public getByNotebook(version: number): Checkpoint[] {
+    let events: Checkpoint[] = [];
+    for (var i = 0; i < this.checkpointList.length; i++) {
+      let item = this.checkpointList[i];
+      if (item.notebook === version) events.push(item);
+      if (item.notebook > version) break;
+    }
+    return events;
+  }
+
   private generateId(): number {
     let id = this.checkpointList.push(null) - 1;
     return id;

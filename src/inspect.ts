@@ -1,7 +1,3 @@
-import { VerNotebook } from "./components/notebook";
-
-import { PromiseDelegate } from "@phosphor/coreutils";
-
 import { Widget } from "@phosphor/widgets";
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -19,7 +15,7 @@ import {
   NodeyCodeCell
 } from "./model/nodey";
 
-import { CellRunData, ChangeType, Checkpoint } from "./model/checkpoint";
+import { ChangeType } from "./model/checkpoint";
 
 import { CodeCell } from "@jupyterlab/cells";
 
@@ -35,32 +31,19 @@ import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 
 export class Inspect {
-  private _ready = new PromiseDelegate<void>();
-  private _notebook: VerNotebook;
-  private _history: History;
+  private history: History;
   private _targetChanged = new Signal<this, Nodey[]>(this);
-  private _cellStructureChanged = new Signal<this, [number, NodeyCell]>(this);
+
   private _target: Nodey[];
   private renderBaby: RenderBaby;
 
   constructor(historyModel: History, renderBaby: RenderBaby) {
-    this._history = historyModel;
+    this.history = historyModel;
     this.renderBaby = renderBaby;
   }
 
-  set notebook(notebook: VerNotebook) {
-    this._notebook = notebook; //TODO
-    /*this._notebook.cellStructureChanged.connect(
-      (_: any, cell: [number, CellListen]) => {
-        this._cellStructureChanged.emit([cell[0], cell[1].nodey]);
-      }
-    );*/ this._ready.resolve(
-      undefined
-    );
-  }
-
-  get ready(): Promise<void> {
-    return this._ready.promise;
+  get notebook() {
+    return this.history.notebook;
   }
 
   public sampleNode(nodey: Nodey, textFocus: string = null): [string, number] {
@@ -112,7 +95,7 @@ export class Inspect {
         if (name instanceof SyntaxToken) {
           line += name.tokens;
         } else {
-          var child = this._history.store.get(name) as NodeyCode;
+          var child = this.history.store.get(name) as NodeyCode;
           if (child.start) {
             if (child.start.line === lineNum)
               line = this.getLineContent(lineNum, line, child);
@@ -130,7 +113,7 @@ export class Inspect {
   public getRunChangeCount(
     nodey: NodeyCell
   ): { added: number; deleted: number } {
-    let prior = this._history.store.getPriorVersion(nodey);
+    let prior = this.history.store.getPriorVersion(nodey);
     let newText = this.renderNode(nodey).text;
     if (!prior) return { added: newText.length, deleted: 0 };
     else {
@@ -187,8 +170,8 @@ export class Inspect {
           //same node
           if (v0 !== v1)
             changeAcc = this.diffNodey(
-              this._history.store.get(c1) as NodeyCode,
-              this._history.store.get(c0) as NodeyCode,
+              this.history.store.get(c1) as NodeyCode,
+              this.history.store.get(c0) as NodeyCode,
               sourceText,
               changeAcc
             );
@@ -215,7 +198,7 @@ export class Inspect {
   ): NodeChangeDesc[] {
     //check each node in the version prior to this, if there is one
     // and see if any nodes where deleted or added
-    var prior = this._history.store.getPriorVersion(nodey) as NodeyCode;
+    var prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
     if (prior) changeAcc = this.diffNodey(nodey, prior, sourceText, changeAcc);
     else {
       // this cell is all new
@@ -234,7 +217,7 @@ export class Inspect {
   }
 
   private _nodeDeleted(name: string, sourceText: string): NodeChangeDesc {
-    var node = this._history.store.get(name) as NodeyCode;
+    var node = this.history.store.get(name) as NodeyCode;
     var text = this.renderNode(node).text;
     if (node.start && node.end) {
       return {
@@ -257,7 +240,7 @@ export class Inspect {
   }
 
   private _nodeAdded(name: string, sourceText: string): NodeChangeDesc {
-    var node = this._history.store.get(name) as NodeyCode;
+    var node = this.history.store.get(name) as NodeyCode;
     console.log("NODE ADDED IS", name, node);
     var text = this.renderNode(node).text;
     if (node.start && node.end) {
@@ -312,36 +295,20 @@ export class Inspect {
     else if (nodey instanceof NodeyMarkdown) return "markdown";
   }
 
-  public async produceNotebook(
-    clusterId: number,
-    runId: number = -1
-  ): Promise<boolean> {
-    var totalChanges: number[] = [];
-    let cluster = this._history.checkpoints.get(clusterId);
-    let run: Checkpoint;
-    let runRange = null;
+  public async produceNotebook(version: number): Promise<boolean> {
+    let events = this.history.checkpoints.getByNotebook(version);
+    let notebook = this.history.store.getNotebook(version);
 
-    run = this._history.checkpoints.get(runId);
-    runId = run.id;
-
-    let cellMap = this._history.checkpoints.getCellMap(run);
-    console.log("Cell map!", cellMap);
-    let cells = cellMap.map((cellDat: CellRunData, cellIndex: number) => {
-      var nodey = this._history.store.get(cellDat.node);
-      console.log("found node?", cellDat, cellDat.node, nodey);
-      if (!nodey) {
-        //TODO error case only!!! // BUG: occurs if for some reasona 23.* starred node is there
-        //let id = parseInt(cellDat.node.split(".")[0]);
-        nodey = this._history.store.get(cellDat.node);
-      }
+    let cells = notebook.cells.map((name: string) => {
+      let nodey = this.history.store.get(name);
       let typeName = this.getTypeName(nodey);
-      var jsn: nbformat.ICell = {
+      let jsn: nbformat.ICell = {
         cell_type: typeName,
         metadata: { nodey: nodey.name },
         source: [] as string[]
       };
       let sourceText = this.renderNode(nodey).text || "";
-      if (cellDat.changeType !== ChangeType.SAME) {
+      /*if (cellDat.changeType !== ChangeType.SAME) {
         // this nodey was run
         jsn.metadata["change"] = cellDat.changeType;
         if (cellDat.changeType === ChangeType.CHANGED) {
@@ -351,7 +318,7 @@ export class Inspect {
             totalChanges.push(cellIndex);
           }
         }
-      }
+      }*/
       let str = sourceText.split("\n");
       jsn.source = str.map((str: string, index: number) => {
         if (index !== jsn.source.length - 1) return str + "\n";
@@ -359,70 +326,40 @@ export class Inspect {
       });
       if (nodey instanceof NodeyCode) {
         jsn.execution_count = 0;
-        var outputList: {}[] = [];
-        let max = runId;
-        let mostRecent: number = -10;
-        console.log("NODEY HAS OUTPUT?", nodey.output);
-        for (let i = nodey.output.length - 1; i > -1; i--) {
-          var outputNode = this._history.store.get(
-            nodey.output[i]
-          ) as NodeyOutput;
-          console.log("OUTPUT IS", outputNode, max, mostRecent);
-          let lastRun = outputNode.created;
-          if (lastRun >= mostRecent && lastRun <= max) {
-            outputList.push(outputNode.raw);
-            mostRecent = lastRun;
-          }
-        }
-
-        jsn.outputs = outputList;
+        let output = this.history.store.get(nodey.output) as NodeyOutput;
+        jsn.outputs = output.raw;
       }
       return jsn;
     });
 
-    var metadata = this._notebook.metadata;
+    var metadata = this.notebook.metadata;
     let metaJsn = Object.create(null) as nbformat.INotebookMetadata;
     for (let key of metadata.keys()) {
       metaJsn[key] = JSON.parse(JSON.stringify(metadata.get(key)));
     }
-    metaJsn["run"] = run.id;
-    metaJsn["run_range"] = runRange;
-    metaJsn["cluster"] = cluster.id;
-    metaJsn["timestamp"] = run.timestamp;
-    metaJsn["origin"] = this._notebook.name;
-    metaJsn["totalChanges"] = totalChanges;
+    metaJsn["timestamp"] = events[0].timestamp;
+    metaJsn["origin"] = version;
 
     var file = {
       cells: cells,
       metadata: metaJsn,
-      nbformat_minor: this._notebook.view.nbformatMinor,
-      nbformat: this._notebook.view.nbformat
+      nbformat_minor: this.notebook.view.nbformatMinor,
+      nbformat: this.notebook.view.nbformat
     };
 
-    /*var path = await this._history.fileManager.writeGhostFile(
-      this._notebook,
-      this._history,
-      run.id,
-      file
-    );*/
-
-    return this._history.store.fileManager.openGhost(file, this._notebook);
+    return this.history.store.fileManager.openGhost(file, this.notebook);
   }
 
   get target() {
     if (!this._target) {
-      if (this._notebook.view.activeCell) {
+      if (this.notebook.view.activeCell) {
         this._target = [
-          this._notebook.getCell(this._notebook.view.activeCell.model)
+          this.notebook.getCell(this.notebook.view.activeCell.model)
             .lastSavedModel
         ];
       }
     }
     return this._target;
-  }
-
-  get cellStructureChanged(): Signal<this, [number, NodeyCell]> {
-    return this._cellStructureChanged;
   }
 
   get targetChanged(): Signal<this, Nodey[]> {
@@ -436,7 +373,7 @@ export class Inspect {
   versionsOfTarget(target: Nodey[]) {
     let t = target || this._target;
     var nodeVerList = t.map(item => {
-      return this._history.store.getHistoryOf(item);
+      return this.history.store.getHistoryOf(item);
     });
     //console.log("Found versions", nodeVerList);
     var recovered: { version: string; runs: any; text: string }[] = [];
@@ -450,7 +387,7 @@ export class Inspect {
   }
 
   changeTarget(nodey: Nodey[]) {
-    //this._history.dump();
+    //this.history.dump();
     console.log("new target!", nodey);
     this._target = nodey;
     this._targetChanged.emit(this._target);
@@ -492,7 +429,7 @@ export class Inspect {
         start: { line: lineNum, ch: startCh },
         end: { line: lineNum, ch: endCh }
       },
-      this._history
+      this.history
     );
     return res || parent; //just in case no more specific result is found
   }
@@ -539,7 +476,7 @@ export class Inspect {
         if (name instanceof SyntaxToken) {
           literal += name.tokens;
         } else {
-          var child = this._history.store.get(name);
+          var child = this.history.store.get(name);
           literal += this.renderCodeNode(child as NodeyCode);
         }
       });
@@ -562,10 +499,10 @@ export class Inspect {
     diffKind: number = Inspect.NO_DIFF,
     textFocus: string = null
   ) {
-    console.log("rendering code versions!", this._history.dump());
+    console.log("rendering code versions!", this.history.dump());
     if (diffKind === Inspect.NO_DIFF) elem.textContent = newText;
     else if (diffKind === Inspect.CHANGE_DIFF) {
-      let prior = this._history.store.getPriorVersion(nodey) as NodeyCode;
+      let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
       if (!prior) {
         // easy, everything is added
         elem.textContent = newText;
@@ -609,7 +546,7 @@ export class Inspect {
     if (diffKind === Inspect.NO_DIFF)
       await this.renderBaby.renderMarkdown(elem, newText);
     else if (diffKind === Inspect.CHANGE_DIFF) {
-      let prior = this._history.store.getPriorVersion(nodey) as NodeyMarkdown;
+      let prior = this.history.store.getPriorVersion(nodey) as NodeyMarkdown;
       if (!prior) {
         // easy, everything is added
         await this.renderBaby.renderMarkdown(elem, newText);

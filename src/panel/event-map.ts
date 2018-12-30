@@ -2,6 +2,7 @@ import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { Checkpoint } from "../model/checkpoint";
 import { NotebookEvent } from "./details/event";
+import { VerdantPanel } from "./verdant-panel";
 
 const PANEL = "v-VerdantPanel-content";
 const DATE_HEADER = "Verdant-events-date-header";
@@ -9,13 +10,15 @@ const EVENT_ROW = "Verdant-events-row";
 
 export class EventMap extends Widget {
   readonly history: History;
+  readonly parentPanel: VerdantPanel;
   private date: number;
   private events: NotebookEvent[];
 
-  constructor(history: History) {
+  constructor(history: History, panel: VerdantPanel) {
     super();
     this.node.classList.add(PANEL);
     this.history = history;
+    this.parentPanel = panel;
     this.events = [];
 
     this.history.ready.then(async () => {
@@ -31,6 +34,7 @@ export class EventMap extends Widget {
   }
 
   addEvent(event: Checkpoint) {
+    let onClick = () => this.parentPanel.openGhostBook(event.notebook);
     let time = event.timestamp;
     if (!this.date || !Checkpoint.sameDay(time, this.date)) {
       this.date = time;
@@ -41,7 +45,7 @@ export class EventMap extends Widget {
     if (lastEvent && lastEvent.notebook === event.notebook) {
       lastEvent.addEvent(event);
     } else {
-      let newEvent = new NotebookEvent(this.history, event);
+      let newEvent = new NotebookEvent(this.history, event, onClick);
       this.events.push(newEvent);
       this.addToTop(newEvent.node);
     }

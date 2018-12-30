@@ -32,7 +32,6 @@ export class History {
   public async init(notebook: VerNotebook): Promise<boolean> {
     // check if there is an existing history file for this notebook
     this.notebook = notebook;
-    this._inspector.notebook = notebook;
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;

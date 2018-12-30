@@ -275,6 +275,11 @@ export class VerNotebook {
     this.panel.highlightCell(index);
   }
 
+  public showGhostBook(version: number) {
+    console.log("OPEN GHOST BOOK", version);
+    this.history.inspector.produceNotebook(version);
+  }
+
   public dump(): void {
     return this.history.dump();
   }

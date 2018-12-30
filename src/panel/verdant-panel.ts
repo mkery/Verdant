@@ -33,7 +33,7 @@ export class VerdantPanel extends Widget {
     this.history = history;
 
     let header = this.buildHeaderNode();
-    this.eventMap = new EventMap(this.history);
+    this.eventMap = new EventMap(this.history, this);
     this.node.appendChild(header);
 
     this.contentBox = document.createElement("div");
@@ -98,6 +98,10 @@ export class VerdantPanel extends Widget {
     });
 
     return tabContainer;
+  }
+
+  openGhostBook(notebook: number) {
+    this.history.notebook.showGhostBook(notebook);
   }
 
   openSearch() {

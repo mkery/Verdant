@@ -45,10 +45,8 @@ export class CrumbBox extends Widget {
     this.content.appendChild(this.summary.node);
     this.showingDetail = false;
 
-    this.history.inspector.ready.then(async () => {
-      this.history.inspector.targetChanged.connect((_: any, nodey: Nodey[]) => {
-        this.changeTarget(nodey);
-      });
+    this.history.inspector.targetChanged.connect((_: any, nodey: Nodey[]) => {
+      this.changeTarget(nodey);
     });
   }
 

@@ -18,11 +18,12 @@ export class NotebookEvent extends Widget {
   private map: HTMLElement;
   private label: NotebookEventLabel;
 
-  constructor(history: History, event: Checkpoint) {
+  constructor(history: History, event: Checkpoint, onClick: () => void) {
     super();
     this.history = history;
     this.notebook = event.notebook;
     this.node.classList.add(EVENT_ROW);
+    this.node.addEventListener("click", onClick);
     this.build(event);
   }
 

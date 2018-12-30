@@ -32,8 +32,6 @@ import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 import { FilterTray } from "./filter-tray";
 
-//import { TimeSlider } from "./time-slider";
-
 import { Nodey } from "../model/nodey";
 
 import {
@@ -91,7 +89,6 @@ export class GhostBook extends Notebook {
   changeLabel: ToolbarLabel;
   selectedCell: Cell;
   filterButton: FilterTray;
-  //timeSlider: TimeSlider;
 
   /**
    * Construct a new image widget.
@@ -101,6 +98,7 @@ export class GhostBook extends Notebook {
     options: Notebook.IOptions
   ) {
     super(options);
+    console.log("CONTEXT IS", context, options);
     this.context = context;
     this.model = context.model;
     this.rendermime = options.rendermime;
@@ -111,9 +109,6 @@ export class GhostBook extends Notebook {
 
     this.filterButton = new FilterTray(this);
     layout.addWidget(this.filterButton);
-
-    /*this.timeSlider = new TimeSlider(this);
-    layout.addWidget(this.timeSlider);*/
 
     this._onTitleChanged();
     context.pathChanged.connect(
@@ -184,11 +179,6 @@ export class GhostBook extends Notebook {
     // when a cell in the notebook is selected, set the target of the inspector
     // to that cell version
   }*/
-
-  public switchRun(cluster: number, id: number) {
-    console.log("SWTICH to run ", id);
-    this._runModel.history.inspector.produceNotebook(cluster, id);
-  }
 
   public filterCells(
     filter: (n: Nodey) => boolean,

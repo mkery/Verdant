@@ -530,7 +530,6 @@
 .Verdant-events-date-header {
   padding: var(--jp-cell-padding);
   border-bottom: 1px solid var(--jp-border-color3);
-  color: var(--jp-content-font-color2);
   text-transform: uppercase;
   font-size: var(--jp-content-font-size0);
   padding-top: 1.5em;
