@@ -150,46 +150,58 @@ export class HistoryStore {
     this._starStore[nodey.id] = [];
   }
 
-  public findMarkdown(query: string): NodeyMarkdown[] {
-    let results: NodeyMarkdown[] = [];
+  /*
+  * Returns a list of Markdown artifacts, each with a list
+  * of all the versions of that artifact that match the query
+  */
+  public findMarkdown(query: string): NodeyMarkdown[][] {
+    let results: NodeyMarkdown[][] = [];
     let text = query.toLowerCase();
     this._markdownStore.forEach(history => {
-      let match = history.versions.find(
+      let match = history.versions.filter(
         item => item.markdown.toLowerCase().indexOf(text) > -1
       );
-      if (match) results.push(match);
+      if (match.length > 0) results.push(match);
     });
     return results;
   }
 
-  public findCode(query: string): NodeyCode[] {
-    let results: NodeyCode[] = [];
+  /*
+  * Returns a list of code artifacts, each with a list
+  * of all the versions of that artifact that match the query
+  */
+  public findCode(query: string): NodeyCode[][] {
+    let results: NodeyCode[][] = [];
     let text = query.toLowerCase();
     this._codeCellStore.forEach(history => {
-      history.versions.find(cell => {
+      let matches = history.versions.filter(cell => {
         let sourceText = this.history.inspector.renderNode(cell).text || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
-          results.push(cell);
           return true;
         }
         return false;
       });
+      if (matches.length > 0) results.push(matches);
     });
     return results;
   }
 
-  public findOutput(query: string): NodeyOutput[] {
-    let results: NodeyOutput[] = [];
+  /*
+  * Returns a list of output artifacts, each with a list
+  * of all the versions of that artifact that match the query
+  */
+  public findOutput(query: string): NodeyOutput[][] {
+    let results: NodeyOutput[][] = [];
     let text = query.toLowerCase();
     this._outputStore.forEach(history => {
-      history.versions.find(output => {
+      let matches = history.versions.filter(output => {
         let sourceText = this.history.inspector.renderNode(output).text || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
-          results.push(output);
           return true;
         }
         return false;
       });
+      if (matches.length > 0) results.push(matches);
     });
     return results;
   }

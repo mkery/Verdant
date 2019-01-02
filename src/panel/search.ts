@@ -13,7 +13,6 @@ const SEARCH_TEXT = "v-VerdantPanel-searchText";
 const RESULT_CATEGORY = "VerdantPanel-search-results-category";
 const RESULT_HEADER = "VerdantPanel-search-results-header";
 const RESULT_CATEGORY_CONTENT = "VerdantPanel-search-results-category-content";
-const RESULT_CATEGORY_FOOTER = "VerdantPanel-search-results-category-footer";
 const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export class Search extends Widget {
@@ -73,7 +72,9 @@ export class Search extends Widget {
     }
   }
 
-  buildResultSection(results: Nodey[], header: string, query: string) {
+  buildResultSection(results: Nodey[][], header: string, query: string) {
+    let totalResults = 0;
+
     let area = document.createElement("div");
     area.classList.add(RESULT_CATEGORY);
     let label = document.createElement("div");
@@ -84,19 +85,14 @@ export class Search extends Widget {
     content.classList.add(RESULT_CATEGORY_CONTENT);
     area.appendChild(content);
     results.forEach(item => {
+      totalResults += item.length;
       let container = document.createElement("div");
-      let header = VersionSampler.searchHeader(this.history, item, () => {
-        this.parentPanel.openCrumbBox(item);
+      let elem = VersionSampler.sampleSearch(this.history, item, query, () => {
+        this.parentPanel.openCrumbBox(item[0]);
       });
-      container.appendChild(header);
-      let elem = VersionSampler.sample(this.history, item, query);
       container.appendChild(elem);
       content.appendChild(container);
     });
-
-    let footer = document.createElement("div");
-    footer.classList.add(RESULT_CATEGORY_FOOTER);
-    area.appendChild(footer);
 
     /*
     * animated button, thus the extra divs
@@ -120,22 +116,20 @@ export class Search extends Widget {
         button.classList.add("closed");
         setTimeout(() => {
           content.style.display = "";
-          footer.style.display = "";
         }, 300);
       } else if (button.classList.contains("closed")) {
         button.classList.remove("closed");
         button.classList.add("opened");
         setTimeout(() => {
           content.style.display = "block";
-          footer.style.display = "block";
         }, 300);
       }
     });
 
     let textContent = document.createElement("span");
     if (results.length > 1)
-      textContent.textContent = "(" + results.length + " matches) " + header;
-    else textContent.textContent = "(" + results.length + " match) " + header;
+      textContent.textContent = "(" + totalResults + " matches) " + header;
+    else textContent.textContent = "(" + totalResults + " match) " + header;
     label.appendChild(textContent);
 
     return area;

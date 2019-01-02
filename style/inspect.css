@@ -263,6 +263,14 @@
   padding-top: var(--jp-cell-padding);
   color: var(--jp-content-font-color2);
   text-transform: uppercase;
+  border-top: 1px solid var(--jp-border-color2);
+}
+.v-VerdantPanel-inspect-version-header.search {
+  border-top: 0px;
+}
+.v-VerdantPanel-inspect-version-header.searchVerLabel {
+  padding-inline-start: 2em;
+  border-top: 0px;
 }
 
 .v-VerdantPanel-inspect-version-header-link {

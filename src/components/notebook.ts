@@ -289,7 +289,6 @@ export class VerNotebook {
       this.ghost = this.openGhost(this.history, version);
       this.ghost.disposed.connect(() => {
         this.ghost = null;
-        console.log("DISPOSED");
       });
     } else this.ghost.showVersion(version);
   }
