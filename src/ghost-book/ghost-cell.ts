@@ -15,7 +15,7 @@ export class GhostCell extends Widget {
   private name: string;
   private cell: HTMLElement;
   private header: HTMLElement;
-  private events: Checkpoint[];
+  readonly events: Checkpoint[];
 
   constructor(
     history: History,
@@ -81,7 +81,7 @@ export class GhostCell extends Widget {
 
   private describeEvents(): string {
     let cell = this.history.store.get(this.name);
-    let text = "version #" + cell.version + " of " + this.describeCell(cell);
+    let text = "v" + cell.version + " of " + this.describeCell(cell);
     if (this.events.length > 0) {
       let run = false;
       let changed = false;
@@ -105,8 +105,14 @@ export class GhostCell extends Widget {
         if (changed) text += "edited then run";
         else text += "run but not edited";
       }
-      if (added) text += "created";
-      if (deleted) text += "deleted";
+      if (added) {
+        text += "created";
+        this.cell.classList.add("added");
+      }
+      if (deleted) {
+        text += "deleted";
+        this.cell.classList.add("removed");
+      }
       if (moved) text += "moved";
     }
     return text;

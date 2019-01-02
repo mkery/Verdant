@@ -7,6 +7,8 @@ const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";
 const TOOLBAR = "jp-Toolbar";
 const GHOST_TOOLBAR = "v-Verdant-GhostBook-header";
+const GHOST_TOOLBAR_ROW = "v-Verdant-GhostBook-header-row";
+const GHOST_TOOLBAR_LABEL = "v-Verdant-GhostBook-header-label";
 const GHOST_CELLAREA = "v-Verdant-GhostBook-cellArea";
 
 export class Ghost extends Widget {
@@ -14,6 +16,7 @@ export class Ghost extends Widget {
   private ver: number;
   private cellArea: HTMLElement;
   private toolbar: HTMLElement;
+  private ghostCells: GhostCell[];
 
   constructor(history: History, ver: number) {
     super();
@@ -57,24 +60,31 @@ export class Ghost extends Widget {
     return this.ver;
   }
 
+  private get selectCell() {
+    return (cell: GhostCell) => {
+      if (!cell.hasFocus()) {
+        this.ghostCells.forEach(item => item.blur());
+        cell.focus();
+      }
+    };
+  }
+
   private build() {
     this.cellArea.innerHTML = "";
     let notebook = this.history.store.getNotebook(this.ver);
     let events = this.history.checkpoints.getByNotebook(this.ver);
-
-    let selectCell = (cell: GhostCell) => {
-      if (!cell.hasFocus()) {
-        cells.forEach(item => item.blur());
-        cell.focus();
-      }
-    };
 
     let cells: GhostCell[] = [];
     events.forEach(ev => {
       ev.targetCells.forEach(cell => {
         let index = notebook.cells.indexOf(cell.node);
         if (!cells[index])
-          cells[index] = new GhostCell(this.history, cell.node, selectCell, ev);
+          cells[index] = new GhostCell(
+            this.history,
+            cell.node,
+            this.selectCell,
+            ev
+          );
         else cells[index].addEvent(ev);
       });
     });
@@ -83,6 +93,8 @@ export class Ghost extends Widget {
       cell.build();
       this.cellArea.appendChild(cell.node);
     });
+
+    this.ghostCells = cells;
   }
 
   private buildToolbar() {
@@ -95,9 +107,73 @@ export class Ghost extends Widget {
       " " +
       Checkpoint.formatTime(created.timestamp);
     let label = document.createElement("div");
+    label.classList.add(GHOST_TOOLBAR_ROW);
     label.textContent =
       "Viewing version #" + this.ver + " of notebook " + " from " + time;
-
     this.toolbar.appendChild(label);
+
+    let optionRow = document.createElement("div");
+    optionRow.classList.add(GHOST_TOOLBAR_ROW);
+
+    /* Toggle button: https://codepen.io/mallendeo/pen/eLIiG
+    <input class="tgl tgl-light" id="cb1" type="checkbox"/>
+    <label class="tgl-btn" for="cb1"></label>
+    */
+    let tglWrapper = document.createElement("div");
+    tglWrapper.classList.add(GHOST_TOOLBAR_LABEL);
+    let button = document.createElement("input");
+    button.id = "ghostTgl";
+    button.classList.add("tgl");
+    button.classList.add("tgl-light");
+    button.classList.add("checked");
+    tglWrapper.appendChild(button);
+    let buttonLabel = document.createElement("label");
+    buttonLabel.classList.add("tgl-btn");
+    buttonLabel.setAttribute("for", "ghostTgl");
+    tglWrapper.appendChild(buttonLabel);
+    optionRow.appendChild(tglWrapper);
+
+    buttonLabel.addEventListener("mouseup", () => {
+      if (button.classList.contains("checked")) {
+        button.classList.remove("checked");
+        this.showUnaffectedCells();
+      } else {
+        button.classList.add("checked");
+        this.hideUnaffectedCells();
+      }
+    });
+
+    let textLabel = document.createElement("div");
+    textLabel.classList.add(GHOST_TOOLBAR_LABEL);
+    textLabel.textContent = "show only affected cells";
+    optionRow.appendChild(textLabel);
+
+    this.toolbar.appendChild(optionRow);
+  }
+
+  private hideUnaffectedCells() {
+    this.ghostCells.forEach(item => {
+      if (item.events.length < 1) item.hide();
+    });
+  }
+
+  private showUnaffectedCells() {
+    let notebook = this.history.store.getNotebook(this.ver);
+    for (var index = 0; index < notebook.cells.length; index++) {
+      let item = this.ghostCells[index];
+      if (!item) {
+        let cell = new GhostCell(
+          this.history,
+          notebook.cells[index],
+          this.selectCell
+        );
+        cell.build();
+        this.cellArea.insertBefore(
+          cell.node,
+          this.cellArea.children[Math.max(index - 1, 0)].nextSibling
+        );
+        this.ghostCells[index] = cell;
+      } else item.show();
+    }
   }
 }

@@ -77,7 +77,13 @@ export namespace VersionSampler {
 
     let header = document.createElement("div");
     header.classList.add(VERSION_HEADER);
-    header.textContent = "#" + ver + ", NOTEBOOK #" + notebookVer;
+    header.textContent =
+      "v" +
+      ver +
+      " " +
+      nameNodey(history, nodey) +
+      ", NOTEBOOK #" +
+      notebookVer;
     return header;
   }
 

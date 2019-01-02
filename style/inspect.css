@@ -262,6 +262,7 @@
   padding-left: var(--jp-cell-padding);
   padding-top: var(--jp-cell-padding);
   color: var(--jp-content-font-color2);
+  text-transform: uppercase;
 }
 
 .v-VerdantPanel-inspect-version-header-link {

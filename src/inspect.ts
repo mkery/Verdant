@@ -510,7 +510,7 @@ export class Inspect {
     diffKind: number = Inspect.NO_DIFF,
     textFocus: string = null
   ) {
-    console.log("rendering code versions!", this.history.dump());
+    //console.log("rendering code versions!", this.history.dump());
     if (diffKind === Inspect.NO_DIFF) elem.textContent = newText;
     else if (diffKind === Inspect.CHANGE_DIFF) {
       let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
