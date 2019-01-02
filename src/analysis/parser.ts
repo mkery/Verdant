@@ -1,37 +1,7 @@
-import * as CodeMirror from "codemirror";
-
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
-
-import { Session, KernelMessage } from "@jupyterlab/services";
-
-import { PromiseDelegate } from "@phosphor/coreutils";
-
-import { Nodey, NodeyCode, NodeyCodeCell, NodeyMarkdown } from "../model/nodey";
-
-import { KernelListen } from "../jupyter-hooks/kernel-listen";
-
-import { ASTResolve } from "./ast-resolve";
-
-import { HistoryModel } from "../model/history";
-
-export class ASTGenerate {
-  //Properties
-  kernUtil: KernelListen;
-  session: Session.ISession;
-  astResolve: ASTResolve;
-  parserText: string;
-  historyModel: HistoryModel;
-
-  constructor(historyModel: HistoryModel) {
-    this.historyModel = historyModel;
-    this.astResolve = new ASTResolve(historyModel);
-    this.parserText = `
-
+export namespace Parser {
+  export const text = `
 # coding: utf-8
-
 # In[70]:
-
-
 # coding: utf-8
 import sys
 import re
@@ -43,23 +13,14 @@ import token
 from numbers import Number
 import json
 import io
-
-
 # In[71]:
-
-
 def posFromText(text, textPos):
     snippet = text[:textPos+1]
     lines = snippet.split("\\n")
     ln = len(lines)
     ch = len(lines[-1])
     return {'line': ln, 'ch': ch}
-
-
-
 # In[72]:
-
-
 def findNodeStart(node):
     if hasattr(node, 'lineno'):
         return {'line': node.lineno, 'ch': node.col_offset}
@@ -70,11 +31,7 @@ def findNodeStart(node):
         firstChild = next(children, None)
         if firstChild is None: return None
         return findNodeStart(firstChild)
-
-
 # In[73]:
-
-
 def findNextChild(children, itr):
     banned = ["Store", "Load"]
     if(itr + 1 < len(children)):
@@ -85,11 +42,7 @@ def findNextChild(children, itr):
             return findNextChild(children, itr + 1)
     else:
         return None, itr + 1
-
-
 # In[74]:
-
-
 def captureStuff(text, end, nodeItem, puncStop = "", puncNL = False):
     content = []
     end, item = visit(nodeItem, text, end, len(text), None)
@@ -98,27 +51,18 @@ def captureStuff(text, end, nodeItem, puncStop = "", puncNL = False):
     end, symbols = getPunctuationBetween(text, end, puncStop, puncNL)
     content += symbols
     return end, content
-
-
 # In[75]:
-
-
 def stmtOrExpr(node):
     myType = type(node).__name__
     myContent = []
     myStart = {'line': node.lineno, 'ch': node.col_offset}
     me = {'type': myType, 'start': myStart, 'end': None, 'content': myContent}
     return me
-
-
 # In[76]:
-
-
 '''
 mod = Module(stmt* body)
         | Interactive(stmt* body)
         | Expression(expr body)
-
         -- not really an actual node but useful in Jython's typesystem.
         | Suite(stmt* body)
 '''
@@ -131,7 +75,6 @@ def visitModule(node, text, textStart, textEnd):
     end, symbols = getCommentsAndSpace(text, end, textEnd)
     myContent += symbols
     if(debug): print("Start:", myContent)
-
     if(isinstance(node.body, list)):
         for stmt in node.body:
             end, stuff = captureStuff(text, end, stmt, "", True)
@@ -139,21 +82,15 @@ def visitModule(node, text, textStart, textEnd):
             if(debug): print(myType+" AFTER ", stmt, myContent, text[end:end+3])
     else:
         end, expr = visit(node.body, text, end, textEnd, None)
-
     # get any symbols like commas and spaces
     end, symbols = getCommentsAndSpace(text, end, textEnd)
     myContent += symbols
     if(debug): print("END:", myContent)
-
     myEnd = posFromText(text, end)
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[77]:
-
-
 '''
 FunctionDef(identifier name, arguments args,
                        stmt* body, expr* decorator_list, expr? returns)
@@ -204,8 +141,6 @@ def visitFunctionDef(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 '''
 Return(expr? value)
 '''
@@ -222,11 +157,7 @@ def visitReturn(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[78]:
-
-
 '''
 | Assign(expr* targets, expr value)
 '''
@@ -245,7 +176,6 @@ def visitAssign(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 | AugAssign(expr target, operator op, expr value)
 '''
@@ -267,15 +197,10 @@ def visitAugAssign(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[79]:
-
-
 '''
 -- use 'orelse' because else is a keyword in target languages
 '''
-
 '''
 | For(expr target, expr iter, stmt* body, stmt* orelse)
 '''
@@ -313,7 +238,6 @@ def visitFor(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 | While(expr test, stmt* body, stmt* orelse)
 '''
@@ -355,8 +279,6 @@ def visitWhile(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 '''
 | If(expr test, stmt* body, stmt* orelse)
 '''
@@ -407,8 +329,6 @@ def visitIf(node, text, textStart, textEnd, nested = False):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 '''
 | Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
 '''
@@ -417,7 +337,6 @@ def visitTry(node, text, textStart, textEnd):
     end = textStart
     me['content'].append({"syntok": "try"})
     end += len("try")
-
     end, spaces = getSpacing(text, end, textEnd)
     me['content'] += spaces
     end, symbols = getPunctuationBetween(text,end, "", True)
@@ -441,12 +360,7 @@ def visitTry(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
-
 # In[80]:
-
-
 '''
 Import(alias* names)
 '''
@@ -463,7 +377,6 @@ def visitImport(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 ImportFrom(identifier? module, alias* names, int? level)
 '''
@@ -490,8 +403,6 @@ def visitImportFrom(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 '''
 -- import name with optional 'as' alias.
     alias = (identifier name, identifier? asname)
@@ -518,11 +429,7 @@ def visitAlias(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", end, ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[81]:
-
-
 '''
 Expr(expr value)
 '''
@@ -534,11 +441,7 @@ def visitExpr(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[82]:
-
-
 '''
 | BoolOp(boolop op, expr* values)
 Consecutive operations with the same operator,
@@ -569,7 +472,6 @@ def visitBoolOp(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 | BinOp(expr left, operator op, expr right)
 '''
@@ -589,8 +491,6 @@ def visitBinOp(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 '''
 | UnaryOp(unaryop op, expr operand)
 '''
@@ -606,7 +506,6 @@ def visitUnaryOp(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 | ListComp(expr elt, comprehension* generators)
 '''
@@ -614,7 +513,6 @@ def visitListComp(node, text, textStart, textEnd):
     me = stmtOrExpr(node)
     end = textStart
     #TODO
-
 '''
 -- need sequences for compare to distinguish between
 -- x < 4 < 3 and (x < 4) < 3
@@ -651,7 +549,6 @@ def visitCompare(node, text, textStart, textEnd):
                 me['content'] += parens
                 end, spaces = getSpacing(text, end, textEnd)
                 me['content'] += spaces
-
     if(node.comparators):
         end, spaces = getSpacing(text, end, textEnd)
         me['content'] += spaces
@@ -669,12 +566,9 @@ def visitCompare(node, text, textStart, textEnd):
                 me['content'] += parens
                 end, spaces = getSpacing(text, end, textEnd)
                 me['content'] += spaces
-
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 '''
 Call(expr func, expr* args, keyword* keywords)
 '''
@@ -683,7 +577,6 @@ def visitCall(node, text, textStart, textEnd):
     end = textStart
     end, value = visit(node.func, text, end, textEnd, None)
     me['content'].append(value)
-
     # now use regex to get all punctuation then ( and space tokens before the call args begin
     end, spaces = getSpacing(text, end, textEnd)
     me['content'] += spaces
@@ -691,7 +584,6 @@ def visitCall(node, text, textStart, textEnd):
     me['content'] += parens
     end, spaces = getSpacing(text, end,textEnd)
     me['content'] += spaces
-
     for argument in node.args:
         end, stuff = captureStuff(text, end, argument, ")")
         me['content'] += stuff
@@ -703,7 +595,6 @@ def visitCall(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 | Num(object n) -- a number as a PyObject.
 we need this one while we don't need one for Str because we need special regex for decimals
@@ -717,11 +608,7 @@ def visitNum(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[83]:
-
-
 '''
 -- the following expression can appear in assignment context
 '''
@@ -743,7 +630,6 @@ def visitAttribute(node, text, textStart, textEnd):
     end += 1 + len(attr)
     if(debug): print("MADE:", end, ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
  | Subscript(expr value, slice slice, expr_context ctx)
 '''
@@ -760,7 +646,6 @@ def visitSubscript(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
  | Starred(expr value, expr_context ctx)
 '''
@@ -777,7 +662,6 @@ def visitStarred(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
  | List(expr* elts, expr_context ctx)
 '''
@@ -800,14 +684,12 @@ def visitList(node, text, textStart, textEnd):
         myContent += commas
         end, spaces = getSpacing(text, end, textEnd)
         myContent += spaces
-
     myContent.append({"syntok": "]"})
     end += 1
     myEnd = posFromText(text, end)
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
  | Tuple(expr* elts, expr_context ctx)
 '''
@@ -833,7 +715,6 @@ def visitTuple(node, text, textStart, textEnd):
         myContent += commas
         end, spaces = getSpacing(text, end, textEnd)
         myContent += spaces
-
     if text[min(end, textEnd - 1)] == ")":
         myContent.append({"syntok": ")"})
         end += 1
@@ -841,11 +722,7 @@ def visitTuple(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
 # In[84]:
-
-
 '''
 slice = Slice(expr? lower, expr? upper, expr? step)
           | ExtSlice(slice* dims)
@@ -864,25 +741,17 @@ def visitIndex(node, text, textStart, textEnd):
     myContent += spaces
     myContent.append({'syntok': ']'})
     end += 1
-
     myStart = {'line': value['start']['line'], 'ch': value['start']['ch'] - 1}
     myEnd = {'line': myStart['line'], 'ch': myStart['ch'] + 1 }
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", me,"\\n")
     return end, me
-
-
 # In[85]:
-
-
 '''
 boolop = And | Or
-
 operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift
              | RShift | BitOr | BitXor | BitAnd | FloorDiv
-
 unaryop = Invert | Not | UAdd | USub
-
 cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
 '''
 # really just need to visit the non single string tokens
@@ -902,11 +771,7 @@ def visitOp(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:",me,"\\n")
     return end, me
-
-
 # In[86]:
-
-
 '''
 Lambda(arguments args, expr body)
 '''
@@ -931,7 +796,6 @@ def visitLambda(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 IfExp(expr test, expr body, expr orelse)
 '''
@@ -975,7 +839,6 @@ def visitIfExp(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
 '''
 | Dict(expr* keys, expr* values)
  keys and values hold lists of nodes with matching order
@@ -1009,13 +872,7 @@ def visitDict(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
-
-
 # In[87]:
-
-
 '''
 excepthandler = ExceptHandler(expr? type, identifier? name, stmt* body)
                     attributes (int lineno, int col_offset)
@@ -1051,12 +908,7 @@ def visitExceptHandler(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return end, me
-
-
-
 # In[88]:
-
-
 '''
 arguments = (arg* args, arg? vararg, arg* kwonlyargs, expr* kw_defaults,
                  arg? kwarg, expr* defaults)
@@ -1075,16 +927,11 @@ def visitArguments(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", me,"\\n")
     return end, me
-
 '''
 arg = (identifier arg, expr? annotation)
            attributes (int lineno, int col_offset)
 '''
-
-
 # In[89]:
-
-
 '''
  -- keyword arguments supplied to call (NULL identifier for **kwargs)
     keyword = (identifier? arg, expr value)
@@ -1110,19 +957,12 @@ def visitKeyword(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", me,"\\n")
     return end, me
-
-
-
 # In[90]:
-
-
 def visit(node, text, textStart, textEnd, nextNode):
-
     # 1. first, figure out if we're dealing with a literal or parent
     children = list(ast.iter_child_nodes(node))
     myType = type(node).__name__
     if(debug): print("\\n",type(node).__name__, children, textStart, text[textStart:textStart+3])
-
     visitors = {"Module": visitModule,
                 "Interactive": visitModule,
                 "Expression": visitModule,
@@ -1157,23 +997,16 @@ def visit(node, text, textStart, textEnd, nextNode):
                 "arguments": visitArguments,
                 "keyword": visitKeyword,
                 "alias": visitAlias}
-
     if myType in visitors:
         return visitors[myType](node, text, textStart, textEnd)
-
-
     # necissary to filter children using findNextChild, since there's some
     # metalabels like store or load we don't care about here
     child, child_itr = findNextChild(children, -1)
-
-
     if not child: # LITERAL
         return visitLiteral(node, text, textStart)
     else:
         if(debug): print("NO VISITOR FOR "+myType, ast.dump(node, True, False))
         raise ValueError('Got no visitor for this type ' + myType)
-
-
 def visitLiteral(node, text, start):
     myType = type(node).__name__
     if myType in opTokens:
@@ -1203,11 +1036,7 @@ def visitLiteral(node, text, start):
         me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myLiteral}
     if(debug): print("MADE:", ast.dump(node, True, False), "\\n",me,"\\n")
     return (end, me)
-
-
 # In[91]:
-
-
 def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
     textEnd = len(text)
     if(textStart >= textEnd): return textEnd, []
@@ -1225,13 +1054,8 @@ def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
             content.append({"syntok": str(char)})
         i += 1
         char = str(text[i])
-
     return i, content
-
-
 # In[92]:
-
-
 def getSpacing(text, textStart, textEnd, line=False):
     end = textStart
     content = []
@@ -1243,7 +1067,6 @@ def getSpacing(text, textStart, textEnd, line=False):
         if(end <= len(text) - 1):
             char = str(text[end])
     return end, content
-
 def getCommentsAndSpace(text, textStart, textEnd):
     end = textStart
     content = []
@@ -1260,20 +1083,12 @@ def getCommentsAndSpace(text, textStart, textEnd):
         if(end < len(text)):
             char = str(text[end])
     return end, content
-
-
 # In[93]:
-
-
 def captureComment(text, textStart, textEnd):
     line = text[textStart:textEnd]
     line = line[:line.find("\\n")]
     return textStart + len(line), line
-
-
 # In[94]:
-
-
 def getParens(text, textStart, textEnd):
     end = textStart
     content = []
@@ -1286,13 +1101,8 @@ def getParens(text, textStart, textEnd):
         char = str(text[end])
         if(char == '('): opened = True
         else: opened = False
-
     return end, content, opened
-
-
 # In[95]:
-
-
 def getCommas(text, textStart, textEnd):
     end = textStart
     content = []
@@ -1303,29 +1113,20 @@ def getCommas(text, textStart, textEnd):
         end += 1
         char = str(text[end])
     return end, content
-
-
 # In[96]:
-
-
 def parse(text):
     if(text == ""): print("")
     else:
         node = ast.parse(text)
         if(debug): print(ast.dump(node, True, True))
         print( json.dumps(visit(node, text, 0, len(text), None)[1]))
-
-
 # In[98]:
-
-
 text = """
 # compare MAE with differing values of max_leaf_nodes
 for max_leaf_nodes in [5, 50, 500, 5000]:
     my_mae = get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y)
     print("Max leaf nodes: \\%d  \\\\t\\\\t Mean Absolute Error:  \\%d" %(max_leaf_nodes, my_mae))
 """
-
 debug = False
 sqParens = set(["[","]"])
 parens = set(["(",")"])
@@ -1335,287 +1136,14 @@ newline = set(["\\n"]) #todo may vary across platforms
 punctuation = set(string.punctuation)
 punctuation.add(" ")
 punctuation.add("\\t")
-
 opTokens = set(["Invert", "Not", "UAdd", "USub",
               "Add", "Sub", 'Mult', 'MatMult', 'Div', 'Mod', 'Pow', 'LShift',
               'RShift', 'BitOr', 'BitXOr', 'BitAnd', 'FloorDiv',
               'Eq', 'NotEq', 'Lt', 'LtE', 'Gt', 'GtE',
               'IsNot', 'NotIn'])
-
 # to hurry up, reduce ast at this stage?
 # match parens [] {} () otherwise those can end up in weird places
-
 if(debug): parse(text)
 #print(json.dumps(main(l, tree),  indent=2))
-
 `;
-  }
-
-  get ready(): Promise<void> {
-    return this._ready.promise;
-  }
-  private _ready = new PromiseDelegate<void>();
-
-  setKernUtil(kern: KernelListen) {
-    this.kernUtil = kern;
-    this._ready = new PromiseDelegate<void>();
-    this.init();
-  }
-
-  private async init() {
-    await this.kernUtil.kernelReady;
-    await this.loadParserFunctions();
-    console.log("loaded Parser!");
-    this._ready.resolve(undefined);
-  }
-
-  loadParserFunctions() {
-    console.log("kernel ready to go", this.kernUtil.kernel);
-    var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      console.log("R: ", msg.content);
-    };
-    var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      console.log("IO: ", msg.content);
-    };
-    return this.runKernel(this.parserText, onReply, onIOPub);
-  }
-
-  async generateCodeNodey(
-    code: string,
-    position: number,
-    options: { [key: string]: any } = {}
-  ): Promise<NodeyCode> {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
-        //console.log(code, "R: ", msg)
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        //console.log(code, "IO: ", msg)
-        let msgType = msg.header.msg_type;
-        switch (msgType) {
-          case "execute_result":
-          case "display_data":
-          case "error":
-            console.error(code, "IO: ", msg);
-            reject();
-            break;
-          case "stream":
-            var jsn = (<any>msg.content)["text"];
-            //console.log("py 2 ast execution finished!", jsn)
-            accept(this.recieve_generateAST(jsn, position, options));
-            break;
-          case "clear_output":
-          case "update_display_data":
-          default:
-            break;
-        }
-      };
-
-      this.parseCode(code, onReply, onIOPub);
-    });
-  }
-
-  public markdownToCodeNodey(
-    markdown: NodeyMarkdown,
-    code: string,
-    position: number
-  ): Promise<NodeyCode> {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
-        //console.log(code, "R: ", msg)
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        //console.log(code, "IO: ", msg)
-        let msgType = msg.header.msg_type;
-        switch (msgType) {
-          case "execute_result":
-          case "display_data":
-          case "error":
-            console.error(code, "IO: ", msg);
-            reject();
-            break;
-          case "stream":
-            var jsn = (<any>msg.content)["text"];
-            //console.log("py 2 ast execution finished!", jsn)
-            accept(
-              this.recieve_generateAST_tieMarkdown(
-                jsn,
-                position,
-                markdown.name,
-                {}
-              )
-            );
-            break;
-          case "clear_output":
-          case "update_display_data":
-          default:
-            break;
-        }
-      };
-
-      this.parseCode(code, onReply, onIOPub);
-    });
-  }
-
-  private cleanCodeString(code: string): string {
-    // annoying but important: make sure docstrings do not interrupt the string literal
-    var newCode = code.replace(/""".*"""/g, str => {
-      return "'" + str + "'";
-    });
-
-    // turn ipython magics commands into comments
-    //newCode = newCode.replace(/%/g, "#"); TODO can't do bc styled strings!
-
-    // remove any triple quotes, which will mess us up
-    newCode = newCode.replace(/"""/g, "'''");
-
-    // make sure newline inside strings doesn't cause an EOL error
-    // and make sure any special characters are escaped correctly
-    newCode = newCode.replace(/(").*?(\\.).*?(?=")/g, str => {
-      return str.replace(/\\/g, "\\\\");
-    });
-    newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, str => {
-      return str.replace(/\\/g, "\\\\");
-    });
-    //console.log("cleaned code is ", newCode);
-    return newCode;
-  }
-
-  private parseCode(
-    code: string,
-    onReply: (msg: KernelMessage.IExecuteReplyMsg) => void,
-    onIOPub: (msg: KernelMessage.IIOPubMessage) => void
-  ) {
-    code = this.cleanCodeString(code);
-    this.runKernel('parse("""' + code + '""")', onReply, onIOPub);
-  }
-
-  recieve_generateAST(
-    jsn: string,
-    position: number,
-    options: { [key: string]: any }
-  ): NodeyCode {
-    //console.log("Recieved", jsn);
-    var dict = options;
-    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
-    else console.log("Recieved empty?", dict);
-    var nodey = Nodey.dictToCodeCellNodey(dict, position, this.historyModel);
-    console.log("Recieved code!", dict, nodey);
-    return nodey;
-  }
-
-  recieve_generateAST_tieMarkdown(
-    jsn: string,
-    position: number,
-    forceTie: string,
-    options: { [key: string]: any }
-  ): NodeyCode {
-    //console.log("Recieved", jsn);
-    var dict = options;
-    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
-    else console.log("Recieved empty?", dict);
-    var nodey = Nodey.dictToCodeCellNodey(
-      dict,
-      position,
-      this.historyModel,
-      forceTie
-    );
-    console.log("Recieved code!", dict, nodey);
-    return nodey;
-  }
-
-  runKernel(
-    code: string,
-    onReply: (msg: KernelMessage.IExecuteReplyMsg) => void,
-    onIOPub: (msg: KernelMessage.IIOPubMessage) => void
-  ) {
-    var request: KernelMessage.IExecuteRequest = {
-      silent: true,
-      user_expressions: {},
-      code: code
-    };
-    let future = this.kernUtil.kernel.requestExecute(request, false);
-    future.onReply = onReply;
-    future.onIOPub = onIOPub;
-    return future.done;
-  }
-
-  async repairMarkdown(nodey: NodeyMarkdown, newText: string) {
-    this.astResolve.repairMarkdown(nodey, newText);
-  }
-
-  async matchASTOnInit(nodey: NodeyCodeCell, newCode: string) {
-    console.log("trying to match code on startup");
-    return new Promise<NodeyCode>((accept, reject) => {
-      var recieve_reply = this.astResolve.matchASTOnInit(nodey);
-
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg);
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg);
-        if (msg.header.msg_type === "stream") {
-          var jsn = (<any>msg.content)["text"];
-          //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn));
-        } else if (msg.header.msg_type === "error") {
-          console.error("Failed to parse", newCode);
-          reject();
-        }
-      };
-      this.parseCode(newCode, onReply, onIOPub);
-    });
-  }
-
-  async repairAST(
-    nodey: NodeyCodeCell,
-    change: CodeMirror.EditorChange,
-    editor: CodeMirrorEditor
-  ) {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var [recieve_reply, newCode] = this.astResolve.repairAST(
-        nodey,
-        change,
-        editor
-      );
-
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg);
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg);
-        if (msg.header.msg_type === "stream") {
-          var jsn = (<any>msg.content)["text"];
-          //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn));
-        } else if (msg.header.msg_type === "error") {
-          console.error("Failed to parse", newCode);
-          reject();
-        }
-      };
-      this.parseCode(newCode, onReply, onIOPub);
-    });
-  }
-
-  async repairFullAST(nodey: NodeyCodeCell, text: string) {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var [recieve_reply, newCode] = this.astResolve.repairFullAST(nodey, text);
-
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg);
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg);
-        if (msg.header.msg_type === "stream") {
-          var jsn = (<any>msg.content)["text"];
-          //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn));
-        } else if (msg.header.msg_type === "error") {
-          console.error("Failed to parse", newCode);
-          reject();
-        }
-      };
-      this.parseCode(newCode, onReply, onIOPub);
-    });
-  }
 }

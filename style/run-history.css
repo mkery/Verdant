@@ -315,16 +315,7 @@
   margin-right: 1px;
   height: 1em;
 }
-.v-VerdantPanel-runCellMap-cell.run {
-  width: 2px;
-  background-color: #d0c8d2;
-  margin-left: 0px;
-  height: 1.5em;
-  margin-bottom: calc(-0.25em - 2px);
-  border-top: 2px solid var(--jp-content-font-color3);
-  border-bottom: 2px solid var(--jp-content-font-color3);
-  border-radius: 5px;
-}
+
 .v-VerdantPanel-runCellMap-cell.highlight {
   border-color: white;
 }
@@ -408,32 +399,6 @@
 .v-VerdantPanel-runCellMap-button:hover {
   border-color: var(--jp-content-font-color1);
   color: var(--jp-ui-font-color1);
-}
-.v-VerdantPanel-runCellMap-cell-changed.run {
-  background-color: var(--verdant-cell-change-color2);
-}
-.v-VerdantPanel-runCellMap-cell-changed.highlight {
-  border-color: var(--verdant-cell-change-color2);
-}
-
-.v-VerdantPanel-runCellMap-cell-removed {
-  background-color: var(--verdant-cell-remove-color1);
-}
-.v-VerdantPanel-runCellMap-cell-removed.run {
-  background-color: var(--verdant-cell-remove-color1);
-}
-.v-VerdantPanel-runCellMap-cell-removed.highlight {
-  border-color: var(--verdant-cell-remove-color2);
-}
-
-.v-VerdantPanel-runCellMap-cell-added.run {
-  background-color: var(--verdant-cell-add-color1);
-}
-.v-VerdantPanel-runCellMap-cell-added {
-  background-color: var(--verdant-cell-add-color1);
-}
-.v-VerdantPanel-runCellMap-cell-added.highlight {
-  border-color: var(--verdant-cell-add-color2);
 }
 
 .v-VerdantPanel-runCellMap-runSymbol {
@@ -556,4 +521,83 @@
 .v-VerdantPanel-runItem-sampleButton:hover {
   background-color: var(--jp-brand-color2);
   background-image: var(--verdant-icon-time-highlight);
+}
+
+/*
+* START OF REFACTOR
+*
+*/
+.Verdant-events-date-header {
+  padding: var(--jp-cell-padding);
+  border-bottom: 1px solid var(--jp-border-color3);
+  text-transform: uppercase;
+  font-size: var(--jp-content-font-size0);
+  padding-top: 1.5em;
+  position: sticky;
+  top: 0px;
+  background: var(--jp-layout-color0);
+  z-index: 2;
+}
+
+.Verdant-events-row {
+  padding: var(--jp-cell-padding);
+  display: flex;
+  flex-direction: row;
+  padding-right: 0px;
+}
+.Verdant-events-row:hover {
+  background: var(--jp-rendermime-table-row-hover-background);
+}
+.Verdant-events-notebook {
+  display: inline-block;
+  flex: 1 1 auto;
+  vertical-align: baseline;
+  padding-left: var(--jp-cell-padding);
+  padding-right: var(--jp-cell-padding);
+}
+.Verdant-events-label {
+  display: inline-block;
+  flex: 1 1 auto;
+  color: var(--jp-content-font-color2);
+  padding: var(--jp-cell-padding);
+  padding-left: 0px;
+  max-width: 50%;
+}
+.Verdant-events-map {
+  padding-top: 0.25em;
+  flex: 5 0 auto;
+  text-align: right;
+}
+
+.v-VerdantPanel-runCellMap-cell.target {
+  width: 2px;
+  margin-left: 0px;
+  height: 1.5em;
+  margin-bottom: calc(-0.25em - 2px);
+  border-top: 2px solid var(--jp-content-font-color3);
+  border-bottom: 2px solid var(--jp-content-font-color3);
+  border-radius: 5px;
+}
+
+.v-VerdantPanel-runCellMap-cell-same {
+  background-color: #d0c8d2;
+}
+
+.v-VerdantPanel-runCellMap-cell-changed {
+  background-color: var(--verdant-cell-change-color2);
+  border-color: var(--verdant-cell-change-color2);
+}
+
+.v-VerdantPanel-runCellMap-cell-removed {
+  background-color: var(--verdant-cell-remove-color1);
+  border-color: var(--verdant-cell-remove-color2);
+}
+
+.v-VerdantPanel-runCellMap-cell-same {
+  background-color: #d0c8d2;
+}
+
+.v-VerdantPanel-runCellMap-cell-added {
+  background-color: var(--verdant-cell-add-color1);
+  border-color: var(--verdant-cell-add-color2);
 }

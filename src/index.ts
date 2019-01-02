@@ -4,7 +4,7 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
-import { IEditorServices } from "@jupyterlab/codeeditor";
+import { Ghost } from "./ghost-book/ghost";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
@@ -25,17 +25,13 @@ import "../style/inspect.css";
 import "../style/run-history.css";
 import "../style/verdant-panel.css";
 
-import { ASTGenerate } from "./analysis/ast-generate";
+import { AST } from "./analysis/ast";
 
-import { DocumentRegistry } from "@jupyterlab/docregistry";
+import { VerNotebook } from "./components/notebook";
 
-import { NotebookListen } from "./jupyter-hooks/notebook-listen";
-
-import { HistoryModel } from "./model/history";
+import { History } from "./model/history";
 
 import { VerdantPanel } from "./panel/verdant-panel";
-
-import { GhostBookFactory, GhostBookPanel } from "./ghost-book/ghost-model";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
@@ -49,54 +45,56 @@ const extension: JupyterLabPlugin<void> = {
     restorer: ILayoutRestorer,
     docManager: IDocumentManager,
     rendermime: IRenderMimeRegistry,
-    latexTypesetter: renderers.ILatexTypesetter,
-    contentFactory: NotebookPanel.IContentFactory,
-    editorServices: IEditorServices
+    latexTypesetter: renderers.ILatexTypesetter
   ) => {
+    /*
+    * Set up private singletons
+    */
     const { shell } = app;
-    const panel = new StackedPanel();
-    var activePanel: NotebookPanel;
     const linkHandler = {
       handleLink: (node: HTMLElement, path: string) => {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
       }
     };
-    const fileManager = new FileManager(docManager);
-    var notebook: NotebookListen;
-    const renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
-    const model = new HistoryModel(renderBaby, fileManager);
-    const astUtils = new ASTGenerate(model);
-    const ghostFactory = GhostBookFactory.registerFileType(
-      app.docRegistry as DocumentRegistry,
-      restorer,
-      rendermime,
-      contentFactory,
-      editorServices
-    );
-    console.log("created ghost factory", ghostFactory);
 
-    restorer.add(panel, "v-VerdantPanel");
-    panel.id = "v-VerdantPanel";
-    panel.title.label = "History";
-    const verdantPanel = new VerdantPanel(model);
-    panel.addWidget(verdantPanel);
+    /*
+    * Set up singletons acessed by all instances
+    */
+    fileManager = new FileManager(docManager);
+    renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
+    sidePanel = new StackedPanel();
+    openGhostBook = (history: History, notebook: number) => {
+      let widget: Ghost = new Ghost(history, notebook);
+      if (!widget.isAttached) {
+        // Attach the widget to the main work area if it's not there
+        app.shell.addToMainArea(widget);
+      }
+      // Activate the widget
+      app.shell.activateById(widget.id);
 
-    shell.addToLeftArea(panel, { rank: 600 });
+      return widget;
+    };
+
+    restorer.add(sidePanel, "v-VerdantPanel");
+    sidePanel.id = "v-VerdantPanel";
+    sidePanel.title.label = "History";
+    shell.addToLeftArea(sidePanel, { rank: 600 });
+    /*
+    * this is how we'll keep track of which notebook
+    * we're looking at
+    */
+    let activeInstance: VerdantInstance = null;
 
     app.restored.then(() => {
       const populate = () => {
-        var widg = shell.currentWidget;
+        let widg = shell.currentWidget;
         if (widg instanceof NotebookPanel) {
-          //verdantPanel.onNotebookSwitch(widg);
-          if (!activePanel || activePanel !== widg) {
-            activePanel = widg;
-            notebook = new NotebookListen(activePanel, astUtils, model);
-            notebook.ready.then(() => {
-              console.log("Notebook is ready");
-            });
+          let verInst = getInstance(widg);
+          if (!activeInstance || activeInstance !== verInst) {
+            if (activeInstance) activeInstance.ui.hide();
+            activeInstance = verInst;
+            activeInstance.ui.show();
           }
-        } else if (widg instanceof GhostBookPanel) {
-          verdantPanel.ghostBookOpened(widg);
         }
       };
 
@@ -114,10 +112,44 @@ const extension: JupyterLabPlugin<void> = {
     ILayoutRestorer,
     IDocumentManager,
     IRenderMimeRegistry,
-    renderers.ILatexTypesetter,
-    NotebookPanel.IContentFactory,
-    IEditorServices
+    renderers.ILatexTypesetter
   ]
 };
+
+const instances: VerdantInstance[] = [];
+let renderBaby: RenderBaby;
+let fileManager: FileManager;
+let sidePanel: StackedPanel;
+let openGhostBook: (history: History, ver: number) => Ghost;
+
+type VerdantInstance = {
+  history: History;
+  analysis: AST;
+  ui: VerdantPanel;
+  notebook: VerNotebook;
+  panel: NotebookPanel;
+};
+
+function getInstance(panel: NotebookPanel) {
+  let verInst = instances.find(inst => inst.panel.id === panel.id);
+  if (!verInst) {
+    /*
+    * Create instance
+    */
+    let history = new History(renderBaby, fileManager);
+    let analysis = new AST(history);
+    let ui = new VerdantPanel(history);
+    sidePanel.addWidget(ui);
+    let notebook = new VerNotebook(panel, history, analysis, ui, openGhostBook);
+    verInst = { history, analysis, ui, notebook, panel };
+    instances.push(verInst);
+    notebook.ready.then(() => {
+      console.log("Notebook is ready");
+    });
+  }
+  return verInst;
+}
+
+// TODO function shutDownInstance(panel: NotebookPanel)
 
 export default extension;

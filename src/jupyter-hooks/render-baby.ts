@@ -51,33 +51,36 @@ export class RenderBaby {
   }
 
   renderOutput(nodey: NodeyOutput) {
-    let widget: Widget;
-    let output: nbformat.IOutput = nodey.raw as nbformat.IOutput;
-    let area: OutputAreaModel = new OutputAreaModel();
-    area.fromJSON([output]);
-    let model: IOutputModel = area.get(0);
+    return nodey.raw.map((output: nbformat.IOutput) => {
+      let widget: Widget;
+      let area: OutputAreaModel = new OutputAreaModel();
+      area.fromJSON([output]);
+      let model: IOutputModel = area.get(0);
 
-    let mimeType = this.rendermime.preferredMimeType(model.data, "any");
-    if (mimeType) {
-      let output = this.rendermime.createRenderer(mimeType);
-      output.renderModel(model).catch(error => {
-        // Manually append error message to output
-        output.node.innerHTML = `<pre>Javascript Error: ${error.message}</pre>`;
-        // Remove mime-type-specific CSS classes
-        output.node.className = "p-Widget jp-RenderedText";
-        output.node.setAttribute(
-          "data-mime-type",
-          "application/vnd.jupyter.stderr"
-        );
-      });
-      widget = output;
-    } else {
-      widget = new Widget();
-      widget.node.innerHTML =
-        `No renderer could be ` +
-        "found for output. It has the following MIME types: " +
-        Object.keys(nodey.raw).join(", ");
-    }
-    return widget;
+      let mimeType = this.rendermime.preferredMimeType(model.data, "any");
+      if (mimeType) {
+        let output = this.rendermime.createRenderer(mimeType);
+        output.renderModel(model).catch(error => {
+          // Manually append error message to output
+          output.node.innerHTML = `<pre>Javascript Error: ${
+            error.message
+          }</pre>`;
+          // Remove mime-type-specific CSS classes
+          output.node.className = "p-Widget jp-RenderedText";
+          output.node.setAttribute(
+            "data-mime-type",
+            "application/vnd.jupyter.stderr"
+          );
+        });
+        widget = output;
+      } else {
+        widget = new Widget();
+        widget.node.innerHTML =
+          `No renderer could be ` +
+          "found for output. It has the following MIME types: " +
+          Object.keys(nodey.raw).join(", ");
+      }
+      return widget;
+    });
   }
 }

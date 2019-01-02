@@ -1,4 +1,4 @@
-import { HistoryModel } from "../../model/history";
+import { History } from "../../model/history";
 
 import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../../model/nodey";
 
@@ -6,21 +6,21 @@ const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 const SEARCH_RESULT = "v-VerdantPanel-sample-searchResult";
 
 export namespace CellSampler {
-  export async function sampleCell(
-    historyModel: HistoryModel,
+  export function sampleCell(
+    historyModel: History,
     cell: NodeyCell,
     textFilter: string = null
   ) {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    sample.classList.add(cell.typeName);
+    sample.classList.add(cell.typeChar);
     let index: number = 0;
     [sample.textContent, index] = historyModel.inspector.sampleNode(
       cell,
       textFilter
     );
-    if (cell.typeName === "markdown") {
-      await historyModel.inspector.renderMarkdownVersionDiv(
+    if (cell.typeChar === "m") {
+      historyModel.inspector.renderMarkdownVersionDiv(
         cell as NodeyMarkdown,
         sample.textContent,
         sample
@@ -46,7 +46,7 @@ export namespace CellSampler {
   }
 
   export function sampleOutput(
-    historyModel: HistoryModel,
+    historyModel: History,
     output: NodeyOutput
   ): HTMLElement {
     let sample = document.createElement("div");

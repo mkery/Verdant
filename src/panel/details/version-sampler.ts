@@ -1,129 +1,129 @@
-import { Widget } from "@phosphor/widgets";
 import {
   Nodey,
   NodeyMarkdown,
   NodeyCode,
-  NodeyOutput
+  NodeyOutput,
+  NodeyCodeCell
 } from "../../model/nodey";
-
-import { Run } from "../../model/run";
-
+import { History } from "../../model/history";
 import { Inspect } from "../../inspect";
 
 const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
-const INSPECT_VERSION_LABEL = "v-VerdantPanel-inspect-version-label";
-const INSPECT_ANNOTATION_BOX = "v-VerdantPanel-inspect-version-annotations";
-const INSPECT_VERSION_ACTION = "v-VerdantPanel-search-filter";
-const RUN_LINK = "v-VerdantPanel-inspect-run-link";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
+const VERSION_HEADER = "v-VerdantPanel-inspect-version-header";
+const VERSION_LINK = "v-VerdantPanel-inspect-version-header-link";
 
-export abstract class VersionSampler extends Widget {
-  protected node_id: string;
-  protected version: string;
-  readonly inspector: Inspect;
+export namespace VersionSampler {
+  export function sample(history: History, nodey: Nodey, query?: string) {
+    let inspector = history.inspector;
+    let text = inspector.renderNode(nodey).text;
 
-  constructor(inspector: Inspect, nodey: Nodey, text: string) {
-    super();
-    this.inspector = inspector;
-    this.node_id = nodey.id;
-    this.version = nodey.version;
-
-    this.node.classList.add(INSPECT_VERSION);
-    this.node.appendChild(this.buildVerHeader(nodey));
+    let sample = document.createElement("div");
+    sample.classList.add(INSPECT_VERSION);
 
     let content = document.createElement("div");
     content.classList.add(INSPECT_VERSION_CONTENT);
-    this.node.appendChild(content);
-    this.buildContent(nodey, text, content);
+    sample.appendChild(content);
+
+    if (nodey instanceof NodeyCode)
+      buildCode(inspector, nodey, text, content, query);
+    else if (nodey instanceof NodeyMarkdown)
+      buildMarkdown(inspector, nodey, text, content, query);
+    else if (nodey instanceof NodeyOutput)
+      buildOutput(inspector, nodey, content, query);
+
+    return sample;
   }
 
-  protected buildVerHeader(nodeyVer: Nodey): HTMLElement {
-    let timestamp = null;
+  export function searchHeader(
+    history: History,
+    nodey: Nodey,
+    callback: () => void
+  ) {
+    let header = document.createElement("div");
+    header.classList.add(VERSION_HEADER);
+    let spanA = document.createElement("span");
+    spanA.textContent = "versions of ";
+    let spanB = document.createElement("span");
+    spanB.textContent = nameNodey(history, nodey);
+    spanB.classList.add(VERSION_LINK);
+    spanB.addEventListener("click", callback);
+    header.appendChild(spanA);
+    header.appendChild(spanB);
+    return header;
+  }
 
-    //v2: created 5/4 8:15pm, used in 555 runs
-    let label = document.createElement("div");
-    label.classList.add(INSPECT_VERSION_LABEL);
-    let l = document.createElement("span");
-    if (timestamp) {
-      l.textContent =
-        "v" +
-        (nodeyVer.version + 1) +
-        ": created " +
-        Run.formatTime(timestamp) +
-        ", used in ";
-      let r = document.createElement("span");
-      r.classList.add(RUN_LINK);
-      r.textContent = "these runs";
-      label.appendChild(l);
-      label.appendChild(r);
-    } else {
-      l.textContent = "v" + (nodeyVer.version + 1) + ": has never been run";
-      label.appendChild(l);
+  function nameNodey(history: History, nodey: Nodey): string {
+    let nodeyName: string;
+    if (nodey instanceof NodeyMarkdown) nodeyName = "markdown " + nodey.id;
+    else if (nodey instanceof NodeyCodeCell)
+      nodeyName = "code cell " + nodey.id;
+    else if (nodey instanceof NodeyOutput) nodeyName = "output " + nodey.id;
+    else if (nodey instanceof NodeyCode) {
+      let cell = history.store.getCellParent(nodey);
+      nodeyName =
+        nodey.type + " " + nodey.id + " from " + nameNodey(history, cell);
     }
-
-    let annotator = document.createElement("div");
-    annotator.classList.add(INSPECT_ANNOTATION_BOX);
-    let star = document.createElement("div");
-    star.classList.add(INSPECT_VERSION_ACTION);
-    star.classList.add("star");
-    if (nodeyVer.star > -1) star.classList.add("active");
-
-    annotator.appendChild(star);
-    label.appendChild(annotator);
-
-    return label;
+    return nodeyName;
   }
 
-  protected abstract async buildContent(
-    nodeyVer: Nodey,
-    text: string,
-    content: HTMLElement
-  ): Promise<HTMLElement>;
-}
+  export function verHeader(history: History, nodey: Nodey) {
+    // 1 index instead of 0 index just for display
+    let ver = nodey.version + 1;
+    let created = history.checkpoints.get(nodey.created);
+    let notebookVer;
+    if (created) notebookVer = created.notebook + 1 + "";
+    else notebookVer = "???";
 
-export class CodeVersionSampler extends VersionSampler {
-  protected async buildContent(
+    let header = document.createElement("div");
+    header.classList.add(VERSION_HEADER);
+    header.textContent = "#" + ver + ", NOTEBOOK #" + notebookVer;
+    return header;
+  }
+
+  async function buildCode(
+    inspector: Inspect,
     nodeyVer: NodeyCode,
     text: string,
-    content: HTMLElement
-  ) {
+    content: HTMLElement,
+    query?: string
+  ): Promise<HTMLElement> {
     content.classList.add("code");
-    await this.inspector.renderCodeVerisonDiv(
+    await inspector.renderCodeVerisonDiv(
       nodeyVer,
       text,
       content,
       Inspect.CHANGE_DIFF,
-      null
+      query
     );
 
     return content;
   }
-}
 
-export class OutputVersionSampler extends VersionSampler {
-  protected async buildContent(
+  async function buildOutput(
+    inspector: Inspect,
     nodeyVer: NodeyOutput,
-    _: string,
-    content: HTMLElement
-  ) {
-    await this.inspector.renderOutputVerisonDiv(nodeyVer, content, null);
+    content: HTMLElement,
+    query?: string
+  ): Promise<HTMLElement> {
+    await inspector.renderOutputVerisonDiv(nodeyVer, content, query);
     return content;
   }
-}
 
-export class MarkdownVersionSampler extends VersionSampler {
-  protected async buildContent(
+  async function buildMarkdown(
+    inspector: Inspect,
     nodeyVer: NodeyMarkdown,
     text: string,
-    content: HTMLElement
-  ) {
+    content: HTMLElement,
+    query?: string
+  ): Promise<HTMLElement> {
     content.classList.add("markdown");
-    await this.inspector.renderMarkdownVersionDiv(
+    await inspector.renderMarkdownVersionDiv(
       nodeyVer,
       text,
       content,
       Inspect.CHANGE_DIFF,
-      null
+      query
     );
 
     return content;

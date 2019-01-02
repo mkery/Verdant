@@ -1,106 +1,154 @@
 import { Widget } from "@phosphor/widgets";
-
 //import { GhostBookPanel } from "../ghost-book/ghost-model";
-
-import { Wishbone } from "./wishbone";
-
-import { HistoryModel } from "../model/history";
-
-import { RunPanel } from "./run-visualization/run-panel";
-
+import { Checkpoint } from "../model/checkpoint";
+import { Nodey } from "../model/nodey";
+import { History } from "../model/history";
 import { CrumbBox } from "./crumb-box";
+import { Summary } from "./summary";
+import { EventMap } from "./event-map";
+import { Search } from "./search";
 
-const HEADER_CONTAINER = "v-VerdantPanel-headerContainer";
-const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
+const PANEL_CONTAINER = "v-VerdantPanel-content-container";
+const TAB_CONTAINER = "v-VerdantPanel-tabContainer";
+const TAB = "v-VerdantPanel-tab";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
-const FILTER_OPTS_ICON = "v-VerdantPanel-filterOptsIcon";
-const SEARCH_TEXT = "v-VerdantPanel-searchText";
-const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";
 
 /**
  * A widget which displays notebook-level history information
  */
 export class VerdantPanel extends Widget {
-  readonly historyModel: HistoryModel;
+  readonly history: History;
   readonly contentBox: HTMLElement;
-  readonly runList: RunPanel;
+  readonly summary: Summary;
   readonly crumbBox: CrumbBox;
+  readonly eventMap: EventMap;
+  readonly search: Search;
+  private artifactsTab: HTMLElement;
+  private searchTab: HTMLElement;
+  private eventsTab: HTMLElement;
 
-  constructor(historyModel: HistoryModel) {
+  constructor(history: History) {
     super();
     this.addClass("v-VerdantPanel");
-    this.historyModel = historyModel;
+    this.history = history;
 
     let header = this.buildHeaderNode();
-    this.runList = new RunPanel(this.historyModel, this);
+    this.eventMap = new EventMap(this.history, this);
     this.node.appendChild(header);
 
     this.contentBox = document.createElement("div");
-    this.contentBox.appendChild(this.runList.node);
+    this.contentBox.classList.add(PANEL_CONTAINER);
+    this.contentBox.appendChild(this.eventMap.node);
     this.node.appendChild(this.contentBox);
 
-    this.crumbBox = new CrumbBox(this.historyModel, () => this.closeCrumbBox());
+    this.crumbBox = new CrumbBox(this.history);
+    this.search = new Search(this.history, this);
   }
 
   public ghostBookOpened(widg: Widget) {
     widg.disposed.connect(this.ghostBookClosed.bind(this));
-    this.runList.onGhostBookOpened();
+    //this.runList.onGhostBookOpened();
     //let book = (widg as GhostBookPanel).content;
   }
 
   public ghostBookClosed() {
-    this.runList.onGhostBookClosed();
+    //this.runList.onGhostBookClosed();
   }
 
   private buildHeaderNode() {
-    let header = document.createElement("div");
-    header.classList.add(HEADER_CONTAINER);
+    let tabContainer = document.createElement("div");
+    tabContainer.classList.add(TAB_CONTAINER);
 
-    let searchContainer = document.createElement("div");
-    searchContainer.classList.add(SEARCH_CONTAINER);
+    this.eventsTab = document.createElement("div");
+    this.eventsTab.classList.add(TAB);
+    this.eventsTab.textContent = "Activity";
+    this.eventsTab.classList.add("active");
+    tabContainer.appendChild(this.eventsTab);
 
+    this.artifactsTab = document.createElement("div");
+    this.artifactsTab.classList.add(TAB);
+    this.artifactsTab.textContent = "Artifacts";
+    tabContainer.appendChild(this.artifactsTab);
+
+    this.searchTab = document.createElement("div");
+    this.searchTab.classList.add(TAB);
     let searchIcon = document.createElement("div");
     searchIcon.classList.add(SEARCH_ICON);
-    let filterOptsIcon = document.createElement("div");
-    filterOptsIcon.classList.add(FILTER_OPTS_ICON);
-    let searchText = document.createElement("div");
-    searchText.classList.add(SEARCH_TEXT);
-    searchText.setAttribute("contentEditable", "true");
-    searchContainer.appendChild(searchIcon);
-    searchContainer.appendChild(filterOptsIcon);
-    searchContainer.appendChild(searchText);
+    searchIcon.classList.add("header");
+    this.searchTab.appendChild(searchIcon);
+    this.searchTab.style.borderRightWidth = "0px"; // ending
+    tabContainer.appendChild(this.searchTab);
 
-    let inspectorButton = document.createElement("div");
-    inspectorButton.classList.add(INSPECTOR_BUTTON);
-    inspectorButton.addEventListener("click", this.toggleInspector.bind(this));
+    this.eventsTab.addEventListener("click", () => {
+      if (!this.eventsTab.classList.contains("active")) {
+        this.openEvents();
+      }
+    });
 
-    header.appendChild(searchContainer);
-    header.appendChild(inspectorButton);
-    return header;
+    this.artifactsTab.addEventListener("click", () => {
+      if (!this.artifactsTab.classList.contains("active")) {
+        this.openCrumbBox();
+      }
+    });
+
+    this.searchTab.addEventListener("click", () => {
+      if (!this.searchTab.classList.contains("active")) {
+        this.openSearch();
+      }
+    });
+
+    return tabContainer;
   }
 
-  toggleInspector() {
-    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
-    if (inspectorButton.classList.contains("active")) {
-      inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
-    } else {
-      inspectorButton.classList.add("active");
-      Wishbone.startWishbone(this.historyModel);
-      this.contentBox.innerHTML = "";
-      this.contentBox.appendChild(this.crumbBox.node);
-      this.crumbBox.show();
-    }
+  openGhostBook(notebook: number) {
+    this.history.notebook.showGhostBook(notebook);
   }
 
-  closeCrumbBox() {
+  openSearch() {
+    this.artifactsTab.classList.remove("active");
+    this.searchTab.classList.add("active");
+    this.eventsTab.classList.remove("active");
+    this.contentBox.innerHTML = "";
+    this.contentBox.appendChild(this.search.node);
+  }
+
+  openEvents() {
+    this.artifactsTab.classList.remove("active");
+    this.searchTab.classList.remove("active");
+    this.eventsTab.classList.add("active");
+
+    this.closeCrumbBox();
+    this.contentBox.appendChild(this.eventMap.node);
+  }
+
+  openCrumbBox(inspectTarget?: Nodey) {
+    this.artifactsTab.classList.add("active");
+    this.searchTab.classList.remove("active");
+    this.eventsTab.classList.remove("active");
+
+    this.contentBox.innerHTML = "";
+    this.contentBox.appendChild(this.crumbBox.node);
+    this.crumbBox.show();
+
+    if (inspectTarget) this.crumbBox.changeTarget([inspectTarget]);
+  }
+
+  private closeCrumbBox() {
     this.contentBox.innerHTML = "";
     this.crumbBox.hide();
-    let inspectorButton = this.node.getElementsByClassName(INSPECTOR_BUTTON)[0];
-    if (inspectorButton.classList.contains("active")) {
-      inspectorButton.classList.remove("active");
-      Wishbone.endWishbone(this.historyModel.notebook, this.historyModel);
-    }
-    this.contentBox.appendChild(this.runList.node);
+  }
+
+  updateCells(
+    runNodey: Nodey | Nodey[],
+    checkpoint: Checkpoint,
+    index?: number,
+    indexB?: number
+  ) {
+    this.eventMap.addEvent(checkpoint);
+    this.crumbBox.updateNode(runNodey, checkpoint, index, indexB);
+  }
+
+  highlightCell(index: number) {
+    this.crumbBox.summary.highlightCell(index);
   }
 }

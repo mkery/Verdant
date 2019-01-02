@@ -9,9 +9,13 @@ import * as CodeMirror from "codemirror";
 
 import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
-import { HistoryModel } from "../model/history";
+import { History } from "../model/history";
+
+import { Star } from "../model/history-stage";
 
 import { ASTUtils } from "./ast-utils";
+
+import { $NodeyCode$ } from "./ast-utils";
 
 import * as crypto from "crypto";
 import * as levenshtein from "fast-levenshtein";
@@ -19,35 +23,38 @@ import * as levenshtein from "fast-levenshtein";
 import {
   ParserNodey,
   ASTMatch,
-  NodeyOptions,
+  NodeyMatchOptions,
   ParsedNodeOptions
 } from "./ast-match";
 
 export class ASTResolve {
-  historyModel: HistoryModel;
+  history: History;
   match: ASTMatch;
 
-  constructor(historyModel: HistoryModel) {
-    this.historyModel = historyModel;
-    this.match = new ASTMatch(historyModel, this);
+  constructor(history: History) {
+    this.history = history;
+    this.match = new ASTMatch(history, this);
   }
 
-  repairMarkdown(nodey: NodeyMarkdown, newText: string) {
-    var oldText = nodey.markdown;
+  repairMarkdown(nodey: NodeyMarkdown | Star<NodeyMarkdown>, newText: string) {
+    let oldText: string;
+    if (nodey instanceof Star) oldText = nodey.value.markdown;
+    else oldText = nodey.markdown;
     var score = levenshtein.get(oldText, newText);
     if (score !== 0) {
-      let history = this.historyModel.getVersionsFor(nodey);
-      if (!history.starNodey) {
-        let nodey = history.versions[history.versions.length - 1];
-        history.starNodey = nodey.clone();
-        history.starNodey.version = "*";
-        (history.starNodey as NodeyMarkdown).markdown = newText;
-      } else (history.starNodey as NodeyMarkdown).markdown = newText;
+      let edited = this.history.stage.markAsEdited(nodey) as Star<
+        NodeyMarkdown
+      >;
+      edited.value.markdown = newText;
     }
   }
 
-  repairFullAST(nodey: NodeyCodeCell, text: string) {
-    let textOrig = this.historyModel.inspector.renderNode(nodey).text;
+  repairFullAST(nodeToFix: NodeyCodeCell | Star<NodeyCodeCell>, text: string) {
+    let nodey: NodeyCodeCell;
+    if (nodeToFix instanceof Star) nodey = nodeToFix.value;
+    else nodey = nodeToFix;
+
+    let textOrig = this.history.inspector.renderNode(nodey).text;
     console.log(
       "The exact affected nodey is",
       nodey,
@@ -60,7 +67,7 @@ export class ASTResolve {
 
     var kernel_reply = this.match.recieve_newVersion.bind(
       this.match,
-      nodey,
+      nodeToFix,
       updateID
     );
     return [kernel_reply, text];
@@ -98,21 +105,21 @@ export class ASTResolve {
       }; // first convert code mirror coordinates to our coordinates
     console.log("cursor pos is now", pos, range);
 
-    var affected = ASTUtils.findNodeAtRange(nodey, range, this.historyModel);
+    var affected = ASTUtils.findNodeAtRange(nodey, range, this.history);
 
     if (affected) {
       //some types cannot be parsed alone by Python TODO
       var unparsable = ["Str", "STRING", "keyword", "NUMBER", "Num"];
       while (unparsable.indexOf(affected.type) !== -1) {
         console.log("affected is", affected);
-        affected = this.historyModel.getNodey(affected.parent) as NodeyCode;
+        affected = this.history.store.get(affected.parent) as NodeyCode;
       }
 
       // shift all nodey positions after affected
       var newEnd = this.repairPositions(affected, change, range);
       // return the text from this node's new range
       var text = editor.doc.getRange(affected.start, newEnd);
-      let textOrig = this.historyModel.inspector.renderNode(affected).text;
+      let textOrig = this.history.inspector.renderNode(affected).text;
       console.log(
         "The exact affected nodey is",
         affected,
@@ -169,7 +176,7 @@ export class ASTResolve {
     var [nodeEnd, deltaLine, deltaCh] = this.calcShift(affected, change, range);
     console.log("SHIFT IS", nodeEnd, deltaLine, deltaCh, affected.end);
     if (affected.right) {
-      var right = this.historyModel.getNodeyHead(affected.right) as NodeyCode;
+      var right = this.history.store.getLatestOf(affected.right) as NodeyCode;
       if (right.start.line !== nodeEnd.line) deltaCh = 0;
       this.shiftAllAfter(right, deltaLine, deltaCh);
     }
@@ -233,7 +240,7 @@ export class ASTResolve {
     this.shiftAllChildren(nodey, deltaLine, deltaCh);
 
     if (nodey.right) {
-      var rightSibling = this.historyModel.getNodeyHead(
+      var rightSibling = this.history.store.getLatestOf(
         nodey.right
       ) as NodeyCode;
       if (rightSibling.start.line !== nodey.start.line) deltaCh = 0;
@@ -244,7 +251,7 @@ export class ASTResolve {
   shiftAllChildren(nodey: NodeyCode, deltaLine: number, deltaCh: number): void {
     var children = nodey.getChildren();
     for (var i in children) {
-      var child = this.historyModel.getNodeyHead(children[i]) as NodeyCode;
+      var child = this.history.store.getLatestOf(children[i]) as NodeyCode;
       child.start.line += deltaLine;
       child.end.line += deltaLine;
       child.start.ch += deltaCh;
@@ -316,14 +323,14 @@ export class ASTResolve {
   }
 
   nodeyToLeaves(
-    nodey: NodeyCode,
-    nodeyList: NodeyOptions[] = [],
+    nodey: $NodeyCode$,
+    nodeyList: NodeyMatchOptions[] = [],
     leaves: number[] = [],
     parentIndex: number = -1,
     level: number = 0,
     row: number = 0
-  ): [NodeyOptions[], number[]] {
-    var option: NodeyOptions = new NodeyOptions({
+  ): [NodeyMatchOptions[], number[]] {
+    var option: NodeyMatchOptions = new NodeyMatchOptions({
       nodey: nodey.name,
       match: null,
       possibleMatches: [],
@@ -334,14 +341,14 @@ export class ASTResolve {
     if (parentIndex > -1) option.parentIndex = parentIndex;
     var index = nodeyList.push(option) - 1;
 
-    if (nodey.literal) leaves.push(index);
-    else if (nodey.content) {
+    if ($NodeyCode$.getLiteral(nodey)) leaves.push(index);
+    else if ($NodeyCode$.getContent(nodey)) {
       var kidRow = 0;
-      nodey.content.forEach(name => {
+      $NodeyCode$.getContent(nodey).forEach(name => {
         if (name instanceof SyntaxToken) {
           if (name.tokens !== " ") {
             //ignore spaces
-            var toktok: NodeyOptions = new NodeyOptions({
+            var toktok: NodeyMatchOptions = new NodeyMatchOptions({
               nodey: name.tokens,
               syntok: true,
               match: null,
@@ -355,7 +362,7 @@ export class ASTResolve {
             leaves.push(tokIndex);
           }
         } else {
-          var child = this.historyModel.getNodey(name) as NodeyCode;
+          var child = this.history.store.get(name) as NodeyCode;
           [nodeyList, leaves] = this.nodeyToLeaves(
             child,
             nodeyList,

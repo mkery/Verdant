@@ -1,6 +1,7 @@
-import { NodeyCode } from "../model/nodey";
+import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../model/nodey";
 
-import { HistoryModel } from "../model/history";
+import { Star } from "../model/history-stage";
+import { History } from "../model/history";
 
 /*
 *
@@ -12,14 +13,14 @@ export namespace ASTUtils {
   export function findNodeAtRange(
     nodey: NodeyCode,
     change: { start: any; end: any },
-    historyModel: HistoryModel
+    history: History
   ): NodeyCode {
     return Private._findNodeAtRange(
       nodey,
       0,
       Math.max(0, nodey.getChildren().length - 1),
       change,
-      historyModel
+      history
     );
   }
 
@@ -76,17 +77,17 @@ namespace Private {
     min: number,
     max: number,
     change: { start: any; end: any },
-    historyModel: HistoryModel
+    history: History
   ): NodeyCode {
-    console.log("Looking for node at", change, node)
-    var children : string[] = node.getChildren();
+    console.log("Looking for node at", change, node);
+    var children: string[] = node.getChildren();
     if (min > max || max < min || children.length < 1) return node;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
     console.log("CHILDREN", children, mid, children[mid]);
-    var midNodey = <NodeyCode>historyModel.getNodeyHead(children[mid]);
+    var midNodey = <NodeyCode>history.store.getLatestOf(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
-    console.log("checking mid range", midNodey, direction);
+    console.log("checking mid range", midNodey, direction, change);
 
     if (direction === 0) {
       var midChildren = midNodey.getChildren();
@@ -100,21 +101,107 @@ namespace Private {
             0,
             Math.max(0, midChildren.length - 1),
             change,
-            historyModel
+            history
           ) || midNodey; // found!
     } else if (direction === 2) return null;
     // there is no match at this level
     else if (direction === -1)
       // check the left
-      match = _findNodeAtRange(node, min, mid - 1, change, historyModel);
+      match = _findNodeAtRange(node, min, mid - 1, change, history);
     else if (direction === 1)
       // check the right
-      match = _findNodeAtRange(node, mid + 1, max, change, historyModel);
+      match = _findNodeAtRange(node, mid + 1, max, change, history);
 
     if (match) {
       // if there's a match, now find it's closest parsable parent
       return match; //TODO
     }
     return null;
+  }
+}
+
+type Pos = { line: number; ch: number };
+export type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
+export type $NodeyCodeCell$ = NodeyCodeCell | Star<NodeyCodeCell>;
+
+export namespace $NodeyCode$ {
+  /*
+  * Helper functions for matching
+  */
+  export function getType(nodey: NodeyCode | Star<NodeyCode>): string {
+    if (nodey instanceof NodeyCode) return nodey.type;
+    return nodey.value.type;
+  }
+
+  export function setRight(nodey: NodeyCode | Star<NodeyCode>, right: string) {
+    if (nodey instanceof NodeyCode) nodey.right = right;
+    else nodey.value.right = right;
+  }
+
+  export function pendingUpdate(nodey: NodeyCode | Star<NodeyCode>): string {
+    if (nodey instanceof NodeyCode) return nodey.pendingUpdate;
+    return nodey.value.pendingUpdate;
+  }
+
+  export function setPendingUpdate(
+    nodey: NodeyCode | Star<NodeyCode>,
+    value: string
+  ): void {
+    if (nodey instanceof NodeyCode) nodey.pendingUpdate = value;
+    else nodey.value.pendingUpdate = value;
+  }
+
+  export function getEnd(nodey: NodeyCode | Star<NodeyCode>): Pos {
+    if (nodey instanceof NodeyCode) return nodey.end;
+    return nodey.value.end;
+  }
+
+  export function setEnd(nodey: NodeyCode | Star<NodeyCode>, end: Pos) {
+    if (nodey instanceof NodeyCode) nodey.end = end;
+    else nodey.value.end = end;
+  }
+
+  export function getStart(nodey: NodeyCode | Star<NodeyCode>): Pos {
+    if (nodey instanceof NodeyCode) return nodey.start;
+    return nodey.value.start;
+  }
+
+  export function setStart(nodey: NodeyCode | Star<NodeyCode>, start: Pos) {
+    if (nodey instanceof NodeyCode) nodey.start = start;
+    else nodey.value.start = start;
+  }
+
+  export function getParent(nodey: NodeyCode | Star<NodeyCode>): string {
+    if (nodey instanceof NodeyCode) return nodey.parent;
+    return nodey.value.parent;
+  }
+
+  export function positionRelativeTo(
+    nodey: NodeyCode | Star<NodeyCode>,
+    relativeTo: NodeyCode | Star<NodeyCode>
+  ) {
+    let target: NodeyCode;
+    if (relativeTo instanceof Star) target = relativeTo.value;
+    else target = relativeTo;
+    if (nodey instanceof NodeyCode) nodey.positionRelativeTo(target);
+    else nodey.value.positionRelativeTo(target);
+  }
+
+  export function getContent(nodey: NodeyCode | Star<NodeyCode>) {
+    if (nodey instanceof NodeyCode) return nodey.content;
+    else return nodey.value.content;
+  }
+
+  export function setContent(
+    nodey: NodeyCode | Star<NodeyCode>,
+    content: (string | SyntaxToken)[]
+  ) {
+    if (nodey instanceof NodeyCode) nodey.content = content;
+    else nodey.value.content = content;
+  }
+
+  export function getLiteral(nodey: NodeyCode | Star<NodeyCode>) {
+    if (nodey instanceof NodeyCode) return nodey.literal;
+    else return nodey.value.literal;
   }
 }

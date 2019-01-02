@@ -32,10 +32,7 @@ export class KernelListen {
     );
   }
 
-  private onKernelChanged(
-    sender: IClientSession,
-    args: Session.IKernelChangedArgs
-  ) {
+  private onKernelChanged(_: IClientSession, args: Session.IKernelChangedArgs) {
     this.kernel = args.newValue;
   }
 }

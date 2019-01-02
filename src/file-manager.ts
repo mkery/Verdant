@@ -1,6 +1,6 @@
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { NotebookListen } from "./jupyter-hooks/notebook-listen";
+import { VerNotebook } from "./components/notebook";
 
 import { nbformat } from "@jupyterlab/coreutils";
 
@@ -8,13 +8,11 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { CellRunData } from "./model/run";
+import { CellRunData } from "./model/checkpoint";
 
 import { NodeyCode } from "./model/nodey";
 
-import { GhostBook } from "./ghost-book/ghost-book";
-
-import { HistoryModel } from "./model/history";
+import { History } from "./model/history";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
@@ -25,8 +23,8 @@ export class FileManager {
   }
 
   public writeToFile(
-    notebook: NotebookListen,
-    historyModel: HistoryModel
+    historyModel: History,
+    notebook: VerNotebook
   ): Promise<void> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
@@ -66,7 +64,7 @@ export class FileManager {
 
   public async openGhost(
     data: nbformat.INotebookContent,
-    notebook: NotebookListen
+    notebook: VerNotebook
   ): Promise<boolean> {
     let wasOpen = true;
     if (!this.ghostPath) {
@@ -84,13 +82,13 @@ export class FileManager {
     let widget = this.docManager.openOrReveal(this.ghostPath);
     if (widget) {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
-      (widget.content as GhostBook).feedNewData(data);
+      //(widget.content as GhostBook).feedNewData(data);
     }
 
     return wasOpen;
   }
 
-  public writeGhostFile(notebook: NotebookListen, data: {}): Promise<string> {
+  private writeGhostFile(notebook: VerNotebook, data: {}): Promise<string> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
@@ -127,7 +125,7 @@ export class FileManager {
     });
   }
 
-  public loadFromFile(notebook: NotebookListen): Promise<any> {
+  public loadFromFile(notebook: VerNotebook): Promise<any> {
     return new Promise(accept => {
       var notebookPath = notebook.path;
       //console.log("notebook path is", notebookPath)
@@ -182,9 +180,8 @@ export class HistorySaveModel implements Contents.IModel {
 }
 
 export interface serialized_Nodey {
-  typeName: string;
   parent: string;
-  runs: number[];
+  created: number;
 }
 
 export interface serialized_NodeyOutput extends serialized_Nodey {
