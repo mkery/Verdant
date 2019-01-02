@@ -140,7 +140,7 @@
 }
 
 .v-VerdantPanel-inspect-version {
-  border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
+  /*border-bottom: var(--jp-border-width) solid var(--jp-border-color1);*/
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
   letter-spacing: var(--jp-cell-prompt-letter-spacing);

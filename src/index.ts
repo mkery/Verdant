@@ -4,7 +4,7 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
-import { IEditorServices } from "@jupyterlab/codeeditor";
+import { Ghost } from "./ghost-book/ghost";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
@@ -27,15 +27,11 @@ import "../style/verdant-panel.css";
 
 import { AST } from "./analysis/ast";
 
-import { DocumentRegistry } from "@jupyterlab/docregistry";
-
 import { VerNotebook } from "./components/notebook";
 
 import { History } from "./model/history";
 
 import { VerdantPanel } from "./panel/verdant-panel";
-
-import { GhostBookFactory, GhostBookPanel } from "./ghost-book/ghost-model";
 
 import { RenderBaby } from "./jupyter-hooks/render-baby";
 
@@ -49,9 +45,7 @@ const extension: JupyterLabPlugin<void> = {
     restorer: ILayoutRestorer,
     docManager: IDocumentManager,
     rendermime: IRenderMimeRegistry,
-    latexTypesetter: renderers.ILatexTypesetter,
-    contentFactory: NotebookPanel.IContentFactory,
-    editorServices: IEditorServices
+    latexTypesetter: renderers.ILatexTypesetter
   ) => {
     /*
     * Set up private singletons
@@ -62,14 +56,6 @@ const extension: JupyterLabPlugin<void> = {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
       }
     };
-    const ghostFactory = GhostBookFactory.registerFileType(
-      app.docRegistry as DocumentRegistry,
-      restorer,
-      rendermime,
-      contentFactory,
-      editorServices
-    );
-    console.log("created ghost factory", ghostFactory);
 
     /*
     * Set up singletons acessed by all instances
@@ -77,6 +63,17 @@ const extension: JupyterLabPlugin<void> = {
     fileManager = new FileManager(docManager);
     renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     sidePanel = new StackedPanel();
+    openGhostBook = (history: History, notebook: number) => {
+      let widget: Ghost = new Ghost(history, notebook);
+      if (!widget.isAttached) {
+        // Attach the widget to the main work area if it's not there
+        app.shell.addToMainArea(widget);
+      }
+      // Activate the widget
+      app.shell.activateById(widget.id);
+
+      return widget;
+    };
 
     restorer.add(sidePanel, "v-VerdantPanel");
     sidePanel.id = "v-VerdantPanel";
@@ -98,8 +95,6 @@ const extension: JupyterLabPlugin<void> = {
             activeInstance = verInst;
             activeInstance.ui.show();
           }
-        } else if (widg instanceof GhostBookPanel) {
-          if (activeInstance) activeInstance.ui.ghostBookOpened(widg);
         }
       };
 
@@ -117,9 +112,7 @@ const extension: JupyterLabPlugin<void> = {
     ILayoutRestorer,
     IDocumentManager,
     IRenderMimeRegistry,
-    renderers.ILatexTypesetter,
-    NotebookPanel.IContentFactory,
-    IEditorServices
+    renderers.ILatexTypesetter
   ]
 };
 
@@ -127,6 +120,7 @@ const instances: VerdantInstance[] = [];
 let renderBaby: RenderBaby;
 let fileManager: FileManager;
 let sidePanel: StackedPanel;
+let openGhostBook: (history: History, ver: number) => Ghost;
 
 type VerdantInstance = {
   history: History;
@@ -146,7 +140,7 @@ function getInstance(panel: NotebookPanel) {
     let analysis = new AST(history);
     let ui = new VerdantPanel(history);
     sidePanel.addWidget(ui);
-    let notebook = new VerNotebook(panel, history, analysis, ui);
+    let notebook = new VerNotebook(panel, history, analysis, ui, openGhostBook);
     verInst = { history, analysis, ui, notebook, panel };
     instances.push(verInst);
     notebook.ready.then(() => {

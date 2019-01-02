@@ -11,6 +11,7 @@ import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
 import { NodeyCell } from "../model/nodey";
 import { VerdantPanel } from "../panel/verdant-panel";
+import { Ghost } from "../ghost-book/ghost";
 //import { Summary } from "../panel/summary";
 
 /*
@@ -22,17 +23,21 @@ export class VerNotebook {
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
+  private ghost: Ghost;
+  private readonly openGhost: (hist: History, ver: number) => Ghost;
   cells: VerCell[];
 
   constructor(
     notebookPanel: NotebookPanel,
     history: History,
     ast: AST,
-    panel: VerdantPanel
+    panel: VerdantPanel,
+    openGhostBook: (hist: History, ver: number) => Ghost
   ) {
     this.history = history;
     this.ast = ast;
     this.panel = panel;
+    this.openGhost = openGhostBook;
     this.view = new NotebookListen(notebookPanel, this);
     this.cells = [];
     this.init();
@@ -40,6 +45,10 @@ export class VerNotebook {
 
   public get ready(): Promise<void> {
     return this._ready.promise;
+  }
+
+  public get ghostBook(): Ghost {
+    return this.ghost;
   }
 
   /* also a load event */
@@ -276,8 +285,13 @@ export class VerNotebook {
   }
 
   public showGhostBook(version: number) {
-    console.log("OPEN GHOST BOOK", version);
-    this.history.inspector.produceNotebook(version);
+    if (!this.ghost) {
+      this.ghost = this.openGhost(this.history, version);
+      this.ghost.disposed.connect(() => {
+        this.ghost = null;
+        console.log("DISPOSED");
+      });
+    } else this.ghost.showVersion(version);
   }
 
   public dump(): void {

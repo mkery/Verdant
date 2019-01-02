@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: auto;
 }
 
 .v-Verdant-GhostBook-icon {
@@ -64,8 +65,28 @@
 }
 
 .v-Verdant-GhostBook-cell {
-  background: var(--verdant-ghost-color1);
+  background: var(--jp-layout-color0);
+  padding: var(--jp-cell-padding);
   color: var(--jp-content-font-color1);
+  font-family: var(--jp-content-font-family);
+  font-size: var(--jp-content-font-size1);
+  line-height: var(--jp-content-line-height);
+  margin-bottom: 0.5em;
+}
+.v-Verdant-GhostBook-cell.c {
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  padding: var(--jp-code-padding);
+  line-height: var(--jp-code-line-height);
+  background: var(--jp-cell-editor-background);
+  white-space: pre;
+  overflow-x: auto;
+  border: var(--jp-border-width) solid var(--jp-cell-editor-border-color);
+}
+.v-Verdant-GhostBook-cell.active {
+  border: var(--jp-border-width) solid var(--jp-cell-editor-active-border-color);
+  box-shadow: var(--jp-input-box-shadow);
+  background-color: var(--jp-cell-editor-active-background);
 }
 
 .v-Verdant-GhostBook-cell-area {
@@ -262,4 +283,46 @@
   background-color: #1976d29e;
   border-top-left-radius: var(--jp-border-radius);
   border-top-right-radius: var(--jp-border-radius);
+}
+
+.v-Verdant-GhostBook-cell-header {
+  padding: var(--jp-cell-padding);
+  font-size: var(--jp-content-font-size0);
+  font-family: var(--jp-content-font-family);
+  color: var(--jp-content-font-color0);
+  font-style: italic;
+}
+
+.v-Verdant-GhostBook-cell-container {
+  margin-top: 0.5em;
+  display: flex;
+  flex-direction: row;
+}
+.v-Verdant-GhostBook-cell-content {
+  padding-left: var(--jp-cell-prompt-width);
+  flex: 1 1 100%;
+}
+.v-Verdant-GhostBook-cell-band {
+  flex: 1 1 var(--jp-cell-collapser-width);
+  padding: 0px;
+  margin: 0px;
+  border: none;
+  outline: none;
+  background: transparent;
+  border-radius: var(--jp-border-radius);
+  opacity: 1;
+}
+.v-Verdant-GhostBook-cell-band.active {
+  background: var(--jp-brand-color1);
+}
+
+.v-Verdant-GhostBook-header {
+  padding: var(--jp-cell-padding);
+  font-size: var(--jp-content-font-size0);
+  font-family: var(--jp-content-font-family);
+  color: var(--jp-content-font-color0);
+}
+
+.v-Verdant-GhostBook-cellArea {
+  padding: var(--jp-notebook-padding);
 }

@@ -446,6 +446,17 @@ export class Inspect {
     return el;
   }
 
+  public renderCell(node: Nodey, content: HTMLElement) {
+    if (node instanceof NodeyMarkdown) {
+      this.renderBaby.renderMarkdown(content, node.markdown);
+    } else if (node instanceof NodeyOutput) {
+      this.renderOutputVerisonDiv(node, content);
+    } else if (node instanceof NodeyCode) {
+      let text = this.renderCodeNode(node);
+      content.innerText = text;
+    }
+  }
+
   public renderNode(
     nodey: Nodey
   ): { version: string; runs: any; text: string } {
@@ -506,7 +517,7 @@ export class Inspect {
       if (!prior) {
         // easy, everything is added
         elem.textContent = newText;
-        elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
+        //elem.classList.add(Inspect.CHANGE_ADDED_CLASS);
       } else {
         let priorText = this.renderCodeNode(prior);
         //console.log("vers are", nodey, prior, priorText);

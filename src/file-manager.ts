@@ -12,8 +12,6 @@ import { CellRunData } from "./model/checkpoint";
 
 import { NodeyCode } from "./model/nodey";
 
-import { GhostBook } from "./ghost-book/ghost-book";
-
 import { History } from "./model/history";
 
 export class FileManager {
@@ -84,7 +82,7 @@ export class FileManager {
     let widget = this.docManager.openOrReveal(this.ghostPath);
     if (widget) {
       console.log("ATTEMPTING TO OPEN GHOST", widget);
-      (widget.content as GhostBook).feedNewData(data);
+      //(widget.content as GhostBook).feedNewData(data);
     }
 
     return wasOpen;
