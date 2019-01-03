@@ -1,7 +1,7 @@
 import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { GhostCell } from "./ghost-cell";
-import { Checkpoint } from "../model/checkpoint";
+import { Checkpoint, CheckpointType } from "../model/checkpoint";
 
 const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";
@@ -74,24 +74,34 @@ export class Ghost extends Widget {
     let notebook = this.history.store.getNotebook(this.ver);
     let events = this.history.checkpoints.getByNotebook(this.ver);
 
-    let cells: GhostCell[] = [];
+    let cells: GhostCell[] = notebook.cells.map(cell => {
+      return new GhostCell(this.history, cell, this.selectCell);
+    });
+    let deletedCells: { cell: GhostCell; index: number }[] = [];
     events.forEach(ev => {
       ev.targetCells.forEach(cell => {
         let index = notebook.cells.indexOf(cell.node);
-        if (!cells[index])
-          cells[index] = new GhostCell(
+        if (index < 0 && ev.checkpointType === CheckpointType.DELETE) {
+          let ghostCell = new GhostCell(
             this.history,
             cell.node,
             this.selectCell,
             ev
           );
-        else cells[index].addEvent(ev);
+          deletedCells.push({ cell: ghostCell, index: cell.index });
+        } else cells[index].addEvent(ev);
       });
     });
 
+    // to not mess up the other indices
+    deletedCells.forEach(item => {
+      cells.splice(item.index, 0, item.cell);
+    });
+
     cells.forEach(cell => {
-      cell.build();
       this.cellArea.appendChild(cell.node);
+      if (cell.events.length > 0) cell.build();
+      else cell.hide();
     });
 
     this.ghostCells = cells;
@@ -161,19 +171,7 @@ export class Ghost extends Widget {
     let notebook = this.history.store.getNotebook(this.ver);
     for (var index = 0; index < notebook.cells.length; index++) {
       let item = this.ghostCells[index];
-      if (!item) {
-        let cell = new GhostCell(
-          this.history,
-          notebook.cells[index],
-          this.selectCell
-        );
-        cell.build();
-        this.cellArea.insertBefore(
-          cell.node,
-          this.cellArea.children[Math.max(index - 1, 0)].nextSibling
-        );
-        this.ghostCells[index] = cell;
-      } else item.show();
+      item.show();
     }
   }
 }

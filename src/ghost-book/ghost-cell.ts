@@ -54,6 +54,11 @@ export class GhostCell extends Widget {
     return this.node.classList.contains("active");
   }
 
+  public show() {
+    super.show();
+    if (this.cell.children.length < 1) this.build();
+  }
+
   public focus() {
     this.node.classList.add("active");
     this.node

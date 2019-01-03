@@ -142,6 +142,7 @@ export class VerNotebook {
     // now repair the cell against the prior version
     let cell = this.getCell(cellModel);
     let [newNodey, same] = await cell.repairAndCommit(checkpoint);
+    console.log("SAME?", same);
 
     // commit the notebook if the cell has changed
     let notebook = this.history.stage.commit(checkpoint, this.model);

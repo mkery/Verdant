@@ -61,6 +61,9 @@ export class ASTResolve {
       "|" + text + "|",
       "|" + textOrig + "|"
     );
+    if (text === textOrig) {
+      return [() => nodeToFix, text];
+    }
 
     var updateID = crypto.randomBytes(20).toString("hex");
     nodey.pendingUpdate = updateID;

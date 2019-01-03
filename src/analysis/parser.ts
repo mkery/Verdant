@@ -1053,7 +1053,9 @@ def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
         else:
             content.append({"syntok": str(char)})
         i += 1
-        char = str(text[i])
+        if(i < textEnd - 1):
+            char = str(text[i])
+
     return i, content
 # In[92]:
 def getSpacing(text, textStart, textEnd, line=False):
@@ -1068,9 +1070,11 @@ def getSpacing(text, textStart, textEnd, line=False):
             char = str(text[end])
     return end, content
 def getCommentsAndSpace(text, textStart, textEnd):
+    if(textStart > len(text) - 1):
+        return textStart, []
     end = textStart
     content = []
-    char = text[min(end, len(text) - 1)]
+    char = text[end]
     commentTokens = set(["#","'''"])
     # warning: great regex exist for this in py3 but they fail badly in py2!
     while end < len(text) - 1 and (char in spaces or char in newline or char in commentTokens):
@@ -1082,17 +1086,24 @@ def getCommentsAndSpace(text, textStart, textEnd):
             end += 1
         if(end < len(text)):
             char = str(text[end])
+    if(end == textEnd - 1 and (char in spaces or char in newline or char in commentTokens)):
+        content.append({"syntok": str(text[textEnd - 1])})
+        end += 1
     return end, content
 # In[93]:
 def captureComment(text, textStart, textEnd):
     line = text[textStart:textEnd]
-    line = line[:line.find("\\n")]
+    index = line.find("\\n")
+    if(index > -1):
+        line = line[:index]
     return textStart + len(line), line
 # In[94]:
 def getParens(text, textStart, textEnd):
-    end = textStart
+    if(textStart > len(text) - 1):
+        return textStart, [], False
+    end =textStart
     content = []
-    char = text[min(end, len(text) - 1)]
+    char = text[end]
     opened = False
     # warning: great regex exist for this in py3 but they fail badly in py2!
     while end < textEnd - 1 and char in parens:
@@ -1101,6 +1112,10 @@ def getParens(text, textStart, textEnd):
         char = str(text[end])
         if(char == '('): opened = True
         else: opened = False
+    if(end == textEnd - 1 and char in parens):
+        content.append({"syntok": str(text[textEnd - 1])})
+        end += 1
+
     return end, content, opened
 # In[95]:
 def getCommas(text, textStart, textEnd):

@@ -58,11 +58,14 @@ export class VerCell {
 
   public commit(checkpoint: Checkpoint): [NodeyCell, boolean] {
     let nodey = this.model;
+    let history = this.notebook.history.store.getHistoryOf(nodey.name);
+    let version = history.versions.length - 1;
 
     // commit the cell if it has changed
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
 
-    let same = newNodey.name === nodey.name;
+    let same = newNodey.version === version;
+    console.log("SAME NAME?", newNodey.name, version);
 
     return [newNodey, same];
   }
