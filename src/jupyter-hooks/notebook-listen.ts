@@ -119,9 +119,11 @@ export class NotebookListen {
     });
 
     NotebookActions.executed.connect((_, args) => {
-      const cell = args.cell;
-      console.log("Executed cell:", cell);
-      this._verNotebook.run(cell.model);
+      //waaat can get execution signals from other notebooks
+      if (args.notebook.id === this._notebook.id) {
+        const cell = args.cell;
+        this._verNotebook.run(cell.model);
+      }
     });
   }
 

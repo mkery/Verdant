@@ -141,6 +141,7 @@ export class VerNotebook {
 
     // now repair the cell against the prior version
     let cell = this.getCell(cellModel);
+    console.log("LOOKING FOR CELL", cellModel, this.cells);
     let [newNodey, same] = await cell.repairAndCommit(checkpoint);
     console.log("SAME?", same);
 

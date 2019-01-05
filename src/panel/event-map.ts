@@ -6,7 +6,7 @@ import { VerdantPanel } from "./verdant-panel";
 
 const PANEL = "v-VerdantPanel-content";
 const DATE_HEADER = "Verdant-events-date-header";
-const EVENT_ROW = "Verdant-events-row";
+//const EVENT_ROW = "Verdant-events-row";
 
 export class EventMap extends Widget {
   readonly history: History;
@@ -38,7 +38,10 @@ export class EventMap extends Widget {
     let time = event.timestamp;
     if (!this.date || !Checkpoint.sameDay(time, this.date)) {
       this.date = time;
-      this.addToTop(this.buildDateHeader(this.date));
+      this.node.insertBefore(
+        this.buildDateHeader(this.date),
+        this.node.firstChild
+      );
     }
 
     let lastEvent = this.events[this.events.length - 1];
@@ -52,7 +55,10 @@ export class EventMap extends Widget {
   }
 
   addToTop(div: HTMLElement) {
-    this.node.insertBefore(div, this.node.getElementsByClassName(EVENT_ROW)[0]);
+    this.node.insertBefore(
+      div,
+      this.node.getElementsByClassName(DATE_HEADER)[0].nextSibling
+    );
   }
 
   buildDateHeader(date: number): HTMLElement {

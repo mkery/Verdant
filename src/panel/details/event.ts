@@ -111,7 +111,13 @@ export class NotebookEvent extends Widget {
           line.classList.add(CELL_REMOVED);
           break;
         case ChangeType.SAME:
-          line.classList.add("target");
+          if (
+            // don't overwrite non-same events
+            line.classList.contains("target") &&
+            !line.classList.contains(CELL_SAME)
+          )
+            break;
+          else line.classList.add("target");
           line.classList.add(CELL_SAME);
           break;
       }
