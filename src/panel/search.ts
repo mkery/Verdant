@@ -86,9 +86,15 @@ export class Search extends Widget {
     results.forEach(item => {
       totalResults += item.length;
       let container = document.createElement("div");
-      let elem = VersionSampler.sampleSearch(this.history, item, query, () => {
-        this.parentPanel.openCrumbBox(item[0]);
-      });
+      let elem = VersionSampler.sampleSearch(
+        this.history,
+        item,
+        query,
+        () => {
+          this.parentPanel.openCrumbBox(item[0]);
+        },
+        this.parentPanel.openGhostBook.bind(this.parentPanel)
+      );
       container.appendChild(elem);
       content.appendChild(container);
     });

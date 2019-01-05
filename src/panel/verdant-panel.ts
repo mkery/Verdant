@@ -41,7 +41,7 @@ export class VerdantPanel extends Widget {
     this.contentBox.appendChild(this.eventMap.node);
     this.node.appendChild(this.contentBox);
 
-    this.crumbBox = new CrumbBox(this.history);
+    this.crumbBox = new CrumbBox(this.history, this);
     this.search = new Search(this.history, this);
   }
 

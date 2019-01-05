@@ -42,7 +42,8 @@ export namespace VersionSampler {
     history: History,
     nodey: Nodey[],
     query: string,
-    callback: () => void
+    callback: () => void,
+    notebookLink: (ver: number) => void
   ): HTMLElement {
     let container = document.createElement("div");
     let versions = document.createElement("div");
@@ -55,7 +56,8 @@ export namespace VersionSampler {
       let wrapper = document.createElement("div");
       let div = sample(history, item, query);
       div.classList.add(SEARCH_SAMPLE);
-      let header = searchVerHeader(history, item);
+      let header = verHeader(history, item, notebookLink);
+      header.classList.add("searchVerLabel");
       wrapper.appendChild(header);
       wrapper.appendChild(div);
       versions.appendChild(wrapper);
@@ -102,7 +104,11 @@ export namespace VersionSampler {
     return nodeyName;
   }
 
-  export function verHeader(history: History, nodey: Nodey) {
+  export function verHeader(
+    history: History,
+    nodey: Nodey,
+    notebookLink: (ver: number) => void
+  ) {
     // 1 index instead of 0 index just for display
     let ver = nodey.version + 1;
     let created = history.checkpoints.get(nodey.created);
@@ -112,24 +118,19 @@ export namespace VersionSampler {
 
     let header = document.createElement("div");
     header.classList.add(VERSION_HEADER);
-    header.textContent =
-      "v" +
-      ver +
-      " " +
-      nameNodey(history, nodey) +
-      ", NOTEBOOK #" +
-      notebookVer;
-    return header;
-  }
 
-  function searchVerHeader(history: History, nodey: Nodey) {
-    // 1 index instead of 0 index just for display
-    let ver = nodey.version + 1;
+    let nodeLabel = document.createElement("span");
+    nodeLabel.textContent = "v" + ver + " " + nameNodey(history, nodey) + ", ";
+    let notebookLabel = document.createElement("span");
+    notebookLabel.classList.add(VERSION_LINK);
+    if (created && created.notebook)
+      notebookLabel.addEventListener("click", () =>
+        notebookLink(created.notebook)
+      );
+    notebookLabel.textContent = "NOTEBOOK #" + notebookVer;
 
-    let header = document.createElement("div");
-    header.classList.add(VERSION_HEADER);
-    header.classList.add("searchVerLabel");
-    header.textContent = "v" + ver + " " + nameNodey(history, nodey);
+    header.appendChild(nodeLabel);
+    header.appendChild(notebookLabel);
     return header;
   }
 
