@@ -2,6 +2,7 @@ import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { Checkpoint, CheckpointType, ChangeType } from "../model/checkpoint";
 import { Nodey } from "../model/nodey";
+import { Inspect } from "../inspect";
 import { VersionSampler } from "../panel/details/version-sampler";
 
 const GHOST_CELL = "v-Verdant-GhostBook-cell";
@@ -15,6 +16,7 @@ export class GhostCell extends Widget {
   private name: string;
   private cell: HTMLElement;
   private header: HTMLElement;
+  private changed: boolean = false;
   readonly events: Checkpoint[];
 
   constructor(
@@ -78,9 +80,11 @@ export class GhostCell extends Widget {
   public build() {
     this.header.textContent = this.describeEvents();
     this.cell.innerHTML = "";
+    let diff = Inspect.NO_DIFF;
+    if (this.changed) diff = Inspect.CHANGE_DIFF;
 
     let nodey = this.history.store.get(this.name);
-    let sample = VersionSampler.sample(this.history, nodey);
+    let sample = VersionSampler.sample(this.history, nodey, null, diff);
     this.cell.appendChild(sample);
   }
 
@@ -107,8 +111,10 @@ export class GhostCell extends Widget {
 
       text += " was ";
       if (run) {
-        if (changed) text += "edited then run";
-        else text += "run but not edited";
+        if (changed) {
+          text += "edited then run";
+          this.changed = true;
+        } else text += "run but not edited";
       }
       if (added) {
         text += "created";

@@ -445,7 +445,6 @@
 
 .VerdantPanel-search-results-header {
   padding: var(--jp-cell-padding);
-  text-align: center;
   border-bottom: 1px solid var(--jp-border-color1);
   position: sticky;
   top: 37px;

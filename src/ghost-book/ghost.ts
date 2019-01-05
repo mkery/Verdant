@@ -119,7 +119,7 @@ export class Ghost extends Widget {
     let label = document.createElement("div");
     label.classList.add(GHOST_TOOLBAR_ROW);
     label.textContent =
-      "Viewing version #" + this.ver + " of notebook " + " from " + time;
+      "Viewing version #" + (this.ver + 1) + " of notebook " + " from " + time;
     this.toolbar.appendChild(label);
 
     let optionRow = document.createElement("div");

@@ -17,7 +17,12 @@ const VERSION_LINK = "v-VerdantPanel-inspect-version-header-link";
 const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
-  export function sample(history: History, nodey: Nodey, query?: string) {
+  export function sample(
+    history: History,
+    nodey: Nodey,
+    query?: string,
+    diff?: number
+  ) {
     let inspector = history.inspector;
     let text = inspector.renderNode(nodey).text;
 
@@ -29,9 +34,9 @@ export namespace VersionSampler {
     sample.appendChild(content);
 
     if (nodey instanceof NodeyCode)
-      buildCode(inspector, nodey, text, content, query);
+      buildCode(inspector, nodey, text, content, query, diff);
     else if (nodey instanceof NodeyMarkdown)
-      buildMarkdown(inspector, nodey, text, content, query);
+      buildMarkdown(inspector, nodey, text, content, query, diff);
     else if (nodey instanceof NodeyOutput)
       buildOutput(inspector, nodey, content, query);
 
@@ -139,16 +144,12 @@ export namespace VersionSampler {
     nodeyVer: NodeyCode,
     text: string,
     content: HTMLElement,
-    query?: string
+    query?: string,
+    diff?: number
   ): Promise<HTMLElement> {
+    if (diff === undefined) diff = Inspect.CHANGE_DIFF;
     content.classList.add("code");
-    await inspector.renderCodeVerisonDiv(
-      nodeyVer,
-      text,
-      content,
-      Inspect.CHANGE_DIFF,
-      query
-    );
+    await inspector.renderCodeVerisonDiv(nodeyVer, text, content, diff, query);
 
     return content;
   }
@@ -168,14 +169,16 @@ export namespace VersionSampler {
     nodeyVer: NodeyMarkdown,
     text: string,
     content: HTMLElement,
-    query?: string
+    query?: string,
+    diff?: number
   ): Promise<HTMLElement> {
+    if (diff === undefined) diff = Inspect.CHANGE_DIFF;
     content.classList.add("markdown");
     await inspector.renderMarkdownVersionDiv(
       nodeyVer,
       text,
       content,
-      Inspect.CHANGE_DIFF,
+      diff,
       query
     );
 
