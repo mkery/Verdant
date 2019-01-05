@@ -3,6 +3,7 @@ import { History } from "../model/history";
 import { VersionSampler } from "./details/version-sampler";
 import { Nodey } from "../model/nodey";
 import { VerdantPanel } from "./verdant-panel";
+import { FilterBox } from "./details/filter-box";
 
 const PANEL = "v-VerdantPanel-content";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";
@@ -42,11 +43,21 @@ export class Search extends Widget {
         this.lookFor(searchText.innerText);
       }
     });
+
+    let filters = {
+      "cell deleted": () => console.log("CELL DELETED FILTER"),
+      "cell added": () => console.log("CELL ADDED FILTER"),
+      "artifacts with a note": () => {}
+    };
+    let filterBox = new FilterBox(filters);
+
     searchContainer.appendChild(searchIcon);
-    //searchContainer.appendChild(filterOptsIcon);
     searchContainer.appendChild(searchText);
+    searchContainer.appendChild(filterBox.node);
 
     this.node.appendChild(searchContainer);
+    this.node.appendChild(filterBox.filterBoxNode);
+    this.node.appendChild(filterBox.filterTagBin);
 
     this.searchContent = document.createElement("div");
     this.searchContent.classList.add(SEARCH_CONTENT);

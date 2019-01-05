@@ -242,7 +242,7 @@
 
 .v-VerdantPanel-searchText {
   display: inline-block;
-  width: calc(100% - 3em);
+  width: calc(100% - 4em);
   height: 2em;
   vertical-align: text-bottom;
   outline: transparent;
@@ -553,4 +553,53 @@
   margin-left: 1.5em;
   padding-top: 0.25em;
   color: var(--jp-content-font-color1);
+}
+
+.v-VerdantPanel-filter-box-icon {
+  width: 1.5em;
+  height: 100%;
+  display: inline-block;
+  text-align: center;
+  padding: 0.25em;
+  padding-top: 0.4em;
+  border-left: 1px solid var(--jp-border-color1);
+  padding-left: 0.5em;
+}
+
+.v-VerdantPanel-filter-box {
+  position: absolute;
+  z-index: 30;
+  top: calc(37px - 2px);
+  right: 0px;
+  background: var(--jp-layout-color0);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: var(--jp-border-radius);
+  color: var(--jp-content-font-color1);
+  font-size: var(--jp-content-font-size1);
+  display: none;
+}
+
+.v-VerdantPanel-filter-box-label {
+  padding: var(--jp-code-padding);
+}
+.v-VerdantPanel-filter-box-label:hover {
+  background-color: var(--jp-rendermime-table-row-hover-background);
+}
+
+.v-VerdantPanel-filter-box-label:not(:last-child) {
+  border-bottom: 1px solid var(--jp-border-color1);
+}
+
+.v-VerdantPanel-filter-tag-bin {
+  width: 100%;
+  display: none;
+}
+
+.v-VerdantPanel-filter-tag {
+  background-color: fuchsia;
+  padding: var(--jp-code-padding);
+  border-radius: 0.25em;
+  margin: 2px;
+  display: none;
+  color: white;
 }
