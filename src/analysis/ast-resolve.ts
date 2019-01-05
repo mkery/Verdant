@@ -40,7 +40,9 @@ export class ASTResolve {
     let oldText: string;
     if (nodey instanceof Star) oldText = nodey.value.markdown;
     else oldText = nodey.markdown;
-    var score = levenshtein.get(oldText, newText);
+    let score = -1;
+    if (oldText && newText) score = levenshtein.get(oldText, newText);
+    else if (!oldText && !newText) score = 0; //both uninitialized
     if (score !== 0) {
       let edited = this.history.stage.markAsEdited(nodey) as Star<
         NodeyMarkdown

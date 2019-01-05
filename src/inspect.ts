@@ -49,6 +49,7 @@ export class Inspect {
   public sampleNode(nodey: Nodey, textFocus: string = null): [string, number] {
     // goal get the first line of the node
     if (nodey instanceof NodeyMarkdown) {
+      if (!nodey.markdown) return ["", 0];
       let lines = nodey.markdown.split("\n");
       if (textFocus) {
         let index = -1;

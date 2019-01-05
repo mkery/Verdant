@@ -331,16 +331,16 @@
   width: 100%;
 }
 .v-VerdantPanel-Summary-column {
-  flex: 1 1 100%;
   display: inline-block;
   overflow: hidden;
   text-align: center;
-  max-width: max-content;
+  flex: 1 1 2em;
   min-width: calc(var(--jp-code-padding) * 2 + 1em);
 }
 .v-VerdantPanel-Summary-column.artifactCol {
   border-right: 1px solid var(--jp-border-color2);
   text-align: left;
+  flex: 2 2 100%;
 }
 .v-VerdantPanel-Summary-cell {
   display: block;
