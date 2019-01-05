@@ -14,14 +14,14 @@ export class EventMap extends Widget {
   readonly history: History;
   readonly parentPanel: VerdantPanel;
   private date: number;
-  private events: NotebookEvent[];
+  private events: { [date: string]: NotebookEvent[] };
 
   constructor(history: History, panel: VerdantPanel) {
     super();
     this.node.classList.add(PANEL);
     this.history = history;
     this.parentPanel = panel;
-    this.events = [];
+    this.events = {};
 
     this.history.ready.then(async () => {
       await this.history.notebook.ready;
@@ -38,20 +38,25 @@ export class EventMap extends Widget {
   addEvent(event: Checkpoint) {
     let onClick = () => this.parentPanel.openGhostBook(event.notebook);
     let time = event.timestamp;
+    let date: string;
     if (!this.date || !Checkpoint.sameDay(time, this.date)) {
       this.date = time;
       this.node.insertBefore(
         this.buildDateHeader(this.date),
         this.node.firstChild
       );
+      date = Checkpoint.formatDate(this.date);
+      this.events[date] = [];
+    } else {
+      date = Checkpoint.formatDate(this.date);
     }
 
-    let lastEvent = this.events[this.events.length - 1];
+    let lastEvent = this.events[date][this.events[date].length - 1];
     if (lastEvent && lastEvent.notebook === event.notebook) {
       lastEvent.addEvent(event);
     } else {
       let newEvent = new NotebookEvent(this.history, event, onClick);
-      this.events.push(newEvent);
+      this.events[date].push(newEvent);
       this.addToTop(newEvent.node);
     }
   }
@@ -67,11 +72,17 @@ export class EventMap extends Widget {
     content.classList.add(DATE_GROUP);
     let header = document.createElement("div");
     header.classList.add(DATE_HEADER);
-
-    VersionSampler.addCaret(header, content, true);
     let textLabel = document.createElement("div");
     textLabel.classList.add(DATE_LABEL);
-    textLabel.textContent = Checkpoint.formatDate(date);
+    let dateString = Checkpoint.formatDate(date);
+    textLabel.textContent = dateString;
+
+    let onOpen = () => (textLabel.textContent = dateString);
+    let onClose = () => {
+      textLabel.textContent =
+        dateString + " (" + this.events[dateString].length + ")";
+    };
+    VersionSampler.addCaret(header, content, true, onOpen, onClose);
     header.appendChild(textLabel);
 
     wrapper.appendChild(header);

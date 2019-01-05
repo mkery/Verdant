@@ -187,7 +187,9 @@ export namespace VersionSampler {
   export function addCaret(
     label: HTMLElement,
     content: HTMLElement,
-    opened?: boolean
+    opened?: boolean,
+    onOpen?: () => void,
+    onClose?: () => void
   ) {
     let button = document.createElement("div");
     button.classList.add(RESULT_HEADER_BUTTON);
@@ -207,12 +209,14 @@ export namespace VersionSampler {
       if (button.classList.contains("opened")) {
         button.classList.remove("opened");
         button.classList.add("closed");
+        if (onClose) onClose();
         setTimeout(() => {
           content.style.display = "none";
         }, 100);
       } else if (button.classList.contains("closed")) {
         button.classList.remove("closed");
         button.classList.add("opened");
+        if (onOpen) onOpen();
         setTimeout(() => {
           content.style.display = "block";
         }, 300);
