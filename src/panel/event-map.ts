@@ -3,10 +3,12 @@ import { History } from "../model/history";
 import { Checkpoint } from "../model/checkpoint";
 import { NotebookEvent } from "./details/event";
 import { VerdantPanel } from "./verdant-panel";
+import { VersionSampler } from "./details/version-sampler";
 
 const PANEL = "v-VerdantPanel-content";
 const DATE_HEADER = "Verdant-events-date-header";
-//const EVENT_ROW = "Verdant-events-row";
+const DATE_GROUP = "Verdant-events-date-container";
+const DATE_LABEL = "Verdant-events-date-header-label";
 
 export class EventMap extends Widget {
   readonly history: History;
@@ -55,16 +57,25 @@ export class EventMap extends Widget {
   }
 
   addToTop(div: HTMLElement) {
-    this.node.insertBefore(
-      div,
-      this.node.getElementsByClassName(DATE_HEADER)[0].nextSibling
-    );
+    let dateGroup = this.node.getElementsByClassName(DATE_GROUP)[0];
+    dateGroup.insertBefore(div, dateGroup.children[0]);
   }
 
   buildDateHeader(date: number): HTMLElement {
+    let wrapper = document.createElement("div");
+    let content = document.createElement("div");
+    content.classList.add(DATE_GROUP);
     let header = document.createElement("div");
     header.classList.add(DATE_HEADER);
-    header.textContent = Checkpoint.formatDate(date);
-    return header;
+
+    VersionSampler.addCaret(header, content, true);
+    let textLabel = document.createElement("div");
+    textLabel.classList.add(DATE_LABEL);
+    textLabel.textContent = Checkpoint.formatDate(date);
+    header.appendChild(textLabel);
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(content);
+    return wrapper;
   }
 }

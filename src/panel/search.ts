@@ -13,7 +13,6 @@ const SEARCH_TEXT = "v-VerdantPanel-searchText";
 const RESULT_CATEGORY = "VerdantPanel-search-results-category";
 const RESULT_HEADER = "VerdantPanel-search-results-header";
 const RESULT_CATEGORY_CONTENT = "VerdantPanel-search-results-category-content";
-const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export class Search extends Widget {
   readonly history: History;
@@ -94,38 +93,7 @@ export class Search extends Widget {
       content.appendChild(container);
     });
 
-    /*
-    * animated button, thus the extra divs
-    */
-    let button = document.createElement("div");
-    button.classList.add(RESULT_HEADER_BUTTON);
-    button.classList.add("closed");
-    label.appendChild(button);
-    let circle = document.createElement("div");
-    circle.classList.add("circle");
-    button.appendChild(circle);
-    let horizontal = document.createElement("div");
-    horizontal.classList.add("horizontal");
-    circle.appendChild(horizontal);
-    let vertical = document.createElement("div");
-    vertical.classList.add("vertical");
-    circle.appendChild(vertical);
-    label.addEventListener("mousedown", () => {
-      if (button.classList.contains("opened")) {
-        button.classList.remove("opened");
-        button.classList.add("closed");
-        setTimeout(() => {
-          content.style.display = "";
-        }, 300);
-      } else if (button.classList.contains("closed")) {
-        button.classList.remove("closed");
-        button.classList.add("opened");
-        setTimeout(() => {
-          content.style.display = "block";
-        }, 300);
-      }
-    });
-
+    VersionSampler.addCaret(label, content);
     let textContent = document.createElement("span");
     if (results.length > 1)
       textContent.textContent = "(" + totalResults + " matches) " + header;

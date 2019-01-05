@@ -490,28 +490,22 @@
 * Animated button
 */
 
-.closed .vertical {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(-90deg);
+.vertical {
+  transform: rotate(-45deg);
 }
-.closed .horizontal {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(-90deg);
+.horizontal {
+  transform: rotate(-45deg);
   opacity: 1;
 }
 
-.opened {
-  opacity: 1;
+.opened .circle {
+  transition: all 0.25s ease-in-out;
+  transform: rotate(90deg);
 }
 
-.opened .vertical {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(90deg);
-}
-.opened .horizontal {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(90deg);
-  opacity: 0;
+.closed .circle {
+  transition: all 0.25s ease-in-out;
+  transform: rotate(0deg);
 }
 
 .VerdantPanel-search-results-header-button {
@@ -531,18 +525,18 @@
 .VerdantPanel-search-results-header-button .circle .horizontal {
   position: absolute;
   background-color: var(--jp-content-font-color1);
-  width: 12px;
+  width: 8px;
   height: 2px;
   left: 50%;
-  margin-left: -6px;
+  margin-left: -4px;
   top: 50%;
-  margin-top: -1px;
+  margin-top: 2px;
 }
 .VerdantPanel-search-results-header-button .circle .vertical {
   position: absolute;
   background-color: var(--jp-content-font-color1);
   width: 2px;
-  height: 12px;
+  height: 8px;
   left: 50%;
   margin-left: -1px;
   top: 50%;

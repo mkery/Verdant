@@ -83,38 +83,7 @@ export namespace VersionSampler {
     textLabel.appendChild(spanA);
     textLabel.appendChild(spanB);
 
-    /*
-    * animated button, thus the extra divs
-    */
-    let button = document.createElement("div");
-    button.classList.add(RESULT_HEADER_BUTTON);
-    button.classList.add("opened");
-    label.appendChild(button);
-    let circle = document.createElement("div");
-    circle.classList.add("circle");
-    button.appendChild(circle);
-    let horizontal = document.createElement("div");
-    horizontal.classList.add("horizontal");
-    circle.appendChild(horizontal);
-    let vertical = document.createElement("div");
-    vertical.classList.add("vertical");
-    circle.appendChild(vertical);
-    label.addEventListener("mouseup", () => {
-      if (button.classList.contains("opened")) {
-        button.classList.remove("opened");
-        button.classList.add("closed");
-        setTimeout(() => {
-          content.style.display = "none";
-        }, 300);
-      } else if (button.classList.contains("closed")) {
-        button.classList.remove("closed");
-        button.classList.add("opened");
-        setTimeout(() => {
-          content.style.display = "block";
-        }, 300);
-      }
-    });
-
+    addCaret(label, content, true);
     label.appendChild(textLabel);
     return label;
   }
@@ -210,5 +179,44 @@ export namespace VersionSampler {
     );
 
     return content;
+  }
+
+  /*
+  * animated button, thus the extra divs
+  */
+  export function addCaret(
+    label: HTMLElement,
+    content: HTMLElement,
+    opened?: boolean
+  ) {
+    let button = document.createElement("div");
+    button.classList.add(RESULT_HEADER_BUTTON);
+    if (opened) button.classList.add("opened");
+    else button.classList.add("closed");
+    label.appendChild(button);
+    let circle = document.createElement("div");
+    circle.classList.add("circle");
+    button.appendChild(circle);
+    let horizontal = document.createElement("div");
+    horizontal.classList.add("horizontal");
+    circle.appendChild(horizontal);
+    let vertical = document.createElement("div");
+    vertical.classList.add("vertical");
+    circle.appendChild(vertical);
+    label.addEventListener("mousedown", () => {
+      if (button.classList.contains("opened")) {
+        button.classList.remove("opened");
+        button.classList.add("closed");
+        setTimeout(() => {
+          content.style.display = "none";
+        }, 100);
+      } else if (button.classList.contains("closed")) {
+        button.classList.remove("closed");
+        button.classList.add("opened");
+        setTimeout(() => {
+          content.style.display = "block";
+        }, 300);
+      }
+    });
   }
 }

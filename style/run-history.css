@@ -539,6 +539,11 @@
   z-index: 2;
 }
 
+.Verdant-events-date-header-label {
+  margin-left: 1.5em;
+  margin-top: 2px;
+}
+
 .Verdant-events-row {
   padding: var(--jp-cell-padding);
   display: flex;
