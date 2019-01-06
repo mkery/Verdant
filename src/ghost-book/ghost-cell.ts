@@ -1,7 +1,7 @@
 import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { Checkpoint, CheckpointType, ChangeType } from "../model/checkpoint";
-import { Nodey } from "../model/nodey";
+import { Nodey, NodeyCode, NodeyOutput } from "../model/nodey";
 import { Inspect } from "../inspect";
 import { VersionSampler } from "../panel/details/version-sampler";
 
@@ -10,11 +10,13 @@ const GHOST_CELL_CONTAINER = "v-Verdant-GhostBook-cell-container";
 const GHOST_CELL_CONTENT = "v-Verdant-GhostBook-cell-content";
 const GHOST_CELL_HEADER = "v-Verdant-GhostBook-cell-header";
 const GHOST_CELL_BAND = "v-Verdant-GhostBook-cell-band";
+//const GHOST_OUTPUT = "v-Verdant-GhostBook-cell-output";
 
 export class GhostCell extends Widget {
   readonly history: History;
   private name: string;
   private cell: HTMLElement;
+  private output: HTMLElement;
   private header: HTMLElement;
   private changed: boolean = false;
   readonly events: Checkpoint[];
@@ -45,6 +47,17 @@ export class GhostCell extends Widget {
     this.cell.classList.add(GHOST_CELL);
     this.cell.classList.add(this.name.charAt(0));
     wrapper.appendChild(this.cell);
+
+    this.output = document.createElement("div");
+    let outputLabel = document.createElement("div");
+    outputLabel.classList.add(GHOST_CELL_HEADER);
+    this.output.appendChild(outputLabel);
+    let outputContent = document.createElement("div");
+    outputContent.classList.add(GHOST_CELL);
+    this.output.appendChild(outputContent);
+    this.output.style.display = "none";
+    wrapper.appendChild(this.output);
+
     this.node.appendChild(wrapper);
   }
 
@@ -67,6 +80,7 @@ export class GhostCell extends Widget {
       .getElementsByClassName(GHOST_CELL_BAND)[0]
       .classList.add("active");
     this.cell.classList.add("active");
+    this.output.children[1].classList.add("active");
   }
 
   public blur() {
@@ -75,6 +89,7 @@ export class GhostCell extends Widget {
       .getElementsByClassName(GHOST_CELL_BAND)[0]
       .classList.remove("active");
     this.cell.classList.remove("active");
+    this.output.children[1].classList.remove("active");
   }
 
   public build() {
@@ -86,6 +101,23 @@ export class GhostCell extends Widget {
     let nodey = this.history.store.get(this.name);
     let sample = VersionSampler.sample(this.history, nodey, null, diff);
     this.cell.appendChild(sample);
+
+    if (nodey instanceof NodeyCode && nodey.output) {
+      let output = this.history.store.get(nodey.output) as NodeyOutput;
+      if (output.raw.length > 0) {
+        let outSample = VersionSampler.sample(this.history, output, null, diff);
+
+        let outputLabel = this.output.children[0];
+        outputLabel.textContent =
+          "v" + output.version + " of " + this.describeCell(output);
+
+        let outputContent = this.output.children[1];
+        outputContent.innerHTML = "";
+        outputContent.appendChild(outSample);
+
+        this.output.style.display = "block";
+      }
+    }
   }
 
   private describeEvents(): string {
@@ -94,6 +126,7 @@ export class GhostCell extends Widget {
     if (this.events.length > 0) {
       let run = false;
       let changed = false;
+      let newOutput = false;
       let added = false;
       let deleted = false;
       let moved = false;
@@ -106,6 +139,7 @@ export class GhostCell extends Widget {
           run = true;
           let cell = ev.targetCells.find(cell => cell.node === this.name);
           if (cell.changeType === ChangeType.CHANGED) changed = true;
+          if (cell.newOutput && cell.newOutput.length > 0) newOutput = true;
         }
       });
 
@@ -115,6 +149,7 @@ export class GhostCell extends Widget {
           text += "edited then run";
           this.changed = true;
         } else text += "run but not edited";
+        if (newOutput) text += " and produced new output";
       }
       if (added) {
         text += "created";

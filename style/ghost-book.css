@@ -308,6 +308,7 @@
   background: transparent;
   border-radius: var(--jp-border-radius);
   opacity: 1;
+  min-width: 8px;
 }
 .v-Verdant-GhostBook-cell-band.active {
   background: var(--jp-brand-color1);
