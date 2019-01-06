@@ -242,7 +242,7 @@
 
 .v-VerdantPanel-searchText {
   display: inline-block;
-  width: calc(100% - 4em);
+  width: calc(100% - 5em);
   height: 2em;
   vertical-align: text-bottom;
   outline: transparent;
@@ -556,7 +556,7 @@
 }
 
 .v-VerdantPanel-filter-box-icon {
-  width: 1.5em;
+  width: 3em;
   height: 100%;
   display: inline-block;
   text-align: center;
@@ -592,7 +592,7 @@
 
 .v-VerdantPanel-filter-tag-bin {
   width: 100%;
-  display: none;
+  display: block;
 }
 
 .v-VerdantPanel-filter-tag {
@@ -600,6 +600,23 @@
   padding: var(--jp-code-padding);
   border-radius: 0.25em;
   margin: 2px;
-  display: none;
   color: white;
+  display: inline-block;
+}
+
+.v-VerdantPanel-filter-tag.disabled {
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-content-font-color3);
+}
+
+.v-VerdantPanel-filterButton {
+  display: inline-block;
+  height: 100%;
+  width: 1em;
+  float: left;
+  background-size: 1em;
+  background-repeat: no-repeat;
+  background-image: var(--verdant-icon-extra-filters);
+  background-color: var(--jp-layout-color0);
+  background-position-y: center;
 }

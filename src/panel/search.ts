@@ -47,6 +47,9 @@ export class Search extends Widget {
     let filters = {
       "cell deleted": () => console.log("CELL DELETED FILTER"),
       "cell added": () => console.log("CELL ADDED FILTER"),
+      "code only": () => console.log("CELL ADDED FILTER"),
+      "output only": () => console.log("CELL ADDED FILTER"),
+      "markdown only": () => console.log("CELL ADDED FILTER"),
       "artifacts with a note": () => {}
     };
     let filterBox = new FilterBox(filters);
@@ -56,7 +59,6 @@ export class Search extends Widget {
     searchContainer.appendChild(filterBox.node);
 
     this.node.appendChild(searchContainer);
-    this.node.appendChild(filterBox.filterBoxNode);
     this.node.appendChild(filterBox.filterTagBin);
 
     this.searchContent = document.createElement("div");
