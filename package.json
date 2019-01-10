@@ -45,17 +45,18 @@
     "@phosphor/messaging": "^1.2.2",
     "@phosphor/signaling": "^1.2.2",
     "@phosphor/widgets": "^1.6.0",
+    "@types/codemirror": "0.0.71",
     "@types/diff": "^3.5.1",
     "@types/text-encoding": "^0.0.33",
+    "codemirror": "^5.42.2",
     "diff": "^3.5.0",
     "fast-levenshtein": "2.0.6"
   },
   "devDependencies": {
     "@types/fast-levenshtein": "0.0.1",
-    "@types/codemirror": "~0.0.46",
     "@types/node": "~8.0.47",
     "rimraf": "~2.6.2",
-    "typescript": "~2.9.1"
+    "typescript": "^3.1.6"
   },
   "jupyterlab": {
     "extension": true

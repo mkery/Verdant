@@ -4,3 +4,15 @@ node_modules/
 notebooks_test/
 *.egg-info/
 .ipynb_checkpoints
+
+# Mac folder layout
+.DS_Store
+
+# npm lock file
+package-lock.json
+
+# Intellij/WebStorm IDE
+/.idea
+
+# Visual Studio Code configuration
+/jsconfig.json

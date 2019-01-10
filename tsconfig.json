@@ -7,6 +7,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES6",
+    "allowSyntheticDefaultImports": true,
     "outDir": "./lib",
     "lib": ["DOM", "ES6"],
     "types": []
