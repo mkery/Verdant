@@ -1,7 +1,7 @@
 # Verdant (still cooking :cake: dev version)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-An experimental tool building local versioning into Jupyter Lab. Verdant is in active development and we're expecting the initial beta release for everyone to use in September 2018. 
+An experimental tool building local versioning into Jupyter Lab. Verdant is in active development and we're expecting the initial beta release for everyone to use in May 2019. 
 
 ## Prerequisites
 
