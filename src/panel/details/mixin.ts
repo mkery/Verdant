@@ -21,14 +21,21 @@ const CRUMB_MENU_SEPERATOR = "v-VerdantPanel-crumbMenu-seperator";
 export class Mixin extends Widget {
   readonly historyModel: History;
   readonly targetList: Nodey[];
+  private notebookLink: (ver: number) => void;
   private _headerShowing: boolean;
   private header: HTMLElement;
   private content: HTMLElement;
 
-  constructor(historyModel: History, target: Nodey[], header: boolean = true) {
+  constructor(
+    historyModel: History,
+    target: Nodey[],
+    header: boolean = true,
+    notebookLink: (ver: number) => void
+  ) {
     super();
     this.historyModel = historyModel;
     this.targetList = target || [];
+    this.notebookLink = notebookLink;
     this._headerShowing = header;
 
     this.header = document.createElement("div");
@@ -73,7 +80,11 @@ export class Mixin extends Widget {
 
     verList.map(async item => {
       let nodeyVer = this.historyModel.store.get(item.version);
-      let header = VersionSampler.verHeader(this.historyModel, nodeyVer);
+      let header = VersionSampler.verHeader(
+        this.historyModel,
+        nodeyVer,
+        this.notebookLink
+      );
       let sample = VersionSampler.sample(this.historyModel, nodeyVer);
 
       let itemDiv = document.createElement("div");

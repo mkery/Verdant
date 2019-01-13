@@ -95,7 +95,7 @@ export class NotebookEvent extends Widget {
     event.targetCells.forEach(cell => {
       let kind = cell.changeType;
       let index = notebook.cells.indexOf(cell.node);
-      //console.log("THE CELL TO UPDATE IS", cell, index);
+      console.log("THE CELL TO UPDATE IS", cell, index, notebook.cells);
       let line = this.map.getElementsByClassName(CELL)[index];
       switch (kind) {
         case ChangeType.ADDED:
@@ -111,7 +111,13 @@ export class NotebookEvent extends Widget {
           line.classList.add(CELL_REMOVED);
           break;
         case ChangeType.SAME:
-          line.classList.add("target");
+          if (
+            // don't overwrite non-same events
+            line.classList.contains("target") &&
+            !line.classList.contains(CELL_SAME)
+          )
+            break;
+          else line.classList.add("target");
           line.classList.add(CELL_SAME);
           break;
       }

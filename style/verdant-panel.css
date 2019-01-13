@@ -242,7 +242,7 @@
 
 .v-VerdantPanel-searchText {
   display: inline-block;
-  width: calc(100% - 3em);
+  width: calc(100% - 5em);
   height: 2em;
   vertical-align: text-bottom;
   outline: transparent;
@@ -331,16 +331,16 @@
   width: 100%;
 }
 .v-VerdantPanel-Summary-column {
-  flex: 1 1 100%;
   display: inline-block;
   overflow: hidden;
   text-align: center;
-  max-width: max-content;
+  flex: 1 1 2.5em;
   min-width: calc(var(--jp-code-padding) * 2 + 1em);
 }
 .v-VerdantPanel-Summary-column.artifactCol {
   border-right: 1px solid var(--jp-border-color2);
   text-align: left;
+  flex: 2 2 100%;
 }
 .v-VerdantPanel-Summary-cell {
   display: block;
@@ -445,8 +445,7 @@
 
 .VerdantPanel-search-results-header {
   padding: var(--jp-cell-padding);
-  text-align: center;
-  border-bottom: 1px solid var(--jp-border-color3);
+  border-bottom: 1px solid var(--jp-border-color1);
   position: sticky;
   top: 37px;
   background: var(--jp-layout-color0);
@@ -457,7 +456,6 @@
 
 .VerdantPanel-search-results-category-content {
   border: 4px solid var(--jp-layout-color0);
-  border-bottom: 1px solid var(--jp-border-color1);
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   display: none;
@@ -491,28 +489,22 @@
 * Animated button
 */
 
-.closed .vertical {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(-90deg);
+.vertical {
+  transform: rotate(-45deg);
 }
-.closed .horizontal {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(-90deg);
+.horizontal {
+  transform: rotate(-45deg);
   opacity: 1;
 }
 
-.opened {
-  opacity: 1;
+.opened .circle {
+  transition: all 0.25s ease-in-out;
+  transform: rotate(90deg);
 }
 
-.opened .vertical {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(90deg);
-}
-.opened .horizontal {
-  transition: all 0.5s ease-in-out;
-  transform: rotate(90deg);
-  opacity: 0;
+.closed .circle {
+  transition: all 0.25s ease-in-out;
+  transform: rotate(0deg);
 }
 
 .VerdantPanel-search-results-header-button {
@@ -532,20 +524,99 @@
 .VerdantPanel-search-results-header-button .circle .horizontal {
   position: absolute;
   background-color: var(--jp-content-font-color1);
-  width: 12px;
+  width: 8px;
   height: 2px;
   left: 50%;
-  margin-left: -6px;
+  margin-left: -4px;
   top: 50%;
-  margin-top: -1px;
+  margin-top: 2px;
 }
 .VerdantPanel-search-results-header-button .circle .vertical {
   position: absolute;
   background-color: var(--jp-content-font-color1);
   width: 2px;
-  height: 12px;
+  height: 8px;
   left: 50%;
   margin-left: -1px;
   top: 50%;
   margin-top: -6px;
+}
+
+.v-VerdantPanel-search-version {
+  border-bottom: 1px solid var(--jp-border-color1);
+  padding-left: 0px;
+  margin-left: 2em;
+  padding-bottom: 0.5em;
+}
+
+.v-VerdantPanel-search-version-header {
+  margin-left: 1.5em;
+  padding-top: 0.25em;
+  color: var(--jp-content-font-color1);
+}
+
+.v-VerdantPanel-filter-box-icon {
+  width: 3em;
+  height: 100%;
+  display: inline-block;
+  text-align: center;
+  padding: 0.25em;
+  padding-top: 0.4em;
+  border-left: 1px solid var(--jp-border-color1);
+  padding-left: 0.5em;
+}
+
+.v-VerdantPanel-filter-box {
+  position: absolute;
+  z-index: 30;
+  top: calc(37px - 2px);
+  right: 0px;
+  background: var(--jp-layout-color0);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: var(--jp-border-radius);
+  color: var(--jp-content-font-color1);
+  font-size: var(--jp-content-font-size1);
+  display: none;
+}
+
+.v-VerdantPanel-filter-box-label {
+  padding: var(--jp-code-padding);
+}
+.v-VerdantPanel-filter-box-label:hover {
+  background-color: var(--jp-rendermime-table-row-hover-background);
+}
+
+.v-VerdantPanel-filter-box-label:not(:last-child) {
+  border-bottom: 1px solid var(--jp-border-color1);
+}
+
+.v-VerdantPanel-filter-tag-bin {
+  width: 100%;
+  display: block;
+}
+
+.v-VerdantPanel-filter-tag {
+  background-color: fuchsia;
+  padding: var(--jp-code-padding);
+  border-radius: 0.25em;
+  margin: 2px;
+  color: white;
+  display: inline-block;
+}
+
+.v-VerdantPanel-filter-tag.disabled {
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-content-font-color3);
+}
+
+.v-VerdantPanel-filterButton {
+  display: inline-block;
+  height: 100%;
+  width: 1em;
+  float: left;
+  background-size: 1em;
+  background-repeat: no-repeat;
+  background-image: var(--verdant-icon-extra-filters);
+  background-color: var(--jp-layout-color0);
+  background-position-y: center;
 }

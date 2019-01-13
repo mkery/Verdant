@@ -17,15 +17,14 @@ export class NotebookListen {
 
   constructor(notebookPanel: NotebookPanel, verNotebook: VerNotebook) {
     this._notebookPanel = notebookPanel;
-    this._verNotebook = verNotebook;
+    this.verNotebook = verNotebook;
     this.init();
   }
 
   private _notebook: Notebook; //the currently active notebook Verdant is working on
   private _notebookPanel: NotebookPanel;
-  private _verNotebook: VerNotebook;
+  readonly verNotebook: VerNotebook;
   private _activeCellChanged = new Signal<this, Cell>(this);
-  private _cellStructureChanged = new Signal<this, [number, Cell]>(this);
 
   private async init() {
     await this._notebookPanel.revealed;
@@ -54,10 +53,6 @@ export class NotebookListen {
     return this._activeCellChanged;
   }
 
-  get cellStructureChanged(): Signal<this, [number, Cell]> {
-    return this._cellStructureChanged;
-  }
-
   get metadata(): IObservableJSON {
     return this._notebook.model.metadata;
   }
@@ -73,9 +68,9 @@ export class NotebookListen {
   async focusCell(cell: Cell = this._notebook.activeCell): Promise<void> {
     if (!cell.model) return; //cell was just deleted
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
-      let verCell = this._verNotebook.getCell(cell.model);
+      let verCell = this.verNotebook.getCell(cell.model);
       if (verCell) {
-        this._verNotebook.focusCell(verCell);
+        this.verNotebook.focusCell(verCell);
         this._activeCellChanged.emit(verCell.view);
         this.activeCell = cell;
       } else this.activeCell = null;
@@ -87,7 +82,7 @@ export class NotebookListen {
      * fileChanged is "A signal emitted when the model is saved or reverted.""
      */
     this._notebookPanel.context.fileChanged.connect(() => {
-      this._verNotebook.save();
+      this.verNotebook.save();
     });
     this._notebook.model.cells.changed.connect(
       (sender: any, data: IObservableList.IChangedArgs<ICellModel>) => {
@@ -106,7 +101,7 @@ export class NotebookListen {
             this._cellsMoved(oldIndex, newIndex, newValues);
             break;
           case "set":
-            this._cellTypeChanged(oldIndex, newIndex, oldValues, newValues);
+            this._cellTypeChanged(oldIndex, newIndex, oldValues);
           default:
             console.log("cell list changed!!!!", sender, data);
             break;
@@ -119,25 +114,26 @@ export class NotebookListen {
     });
 
     NotebookActions.executed.connect((_, args) => {
-      const cell = args.cell;
-      console.log("Executed cell:", cell);
-      this._verNotebook.run(cell.model);
+      //waaat can get execution signals from other notebooks
+      if (args.notebook.id === this._notebook.id) {
+        const cell = args.cell;
+        this.verNotebook.run(cell.model);
+      }
     });
   }
 
   private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
-      var verCell = await this._verNotebook.createCell(cell, newIndex, false);
+      var verCell = await this.verNotebook.createCell(cell, newIndex, false);
       console.log("adding a new cell!", cell, verCell, verCell.model);
-      this._cellStructureChanged.emit([index, verCell.view]);
     });
   }
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
     console.log("removing cells", oldIndex, oldValues);
     oldValues.forEach(() => {
-      this._verNotebook.deleteCell(oldIndex);
+      this.verNotebook.deleteCell(oldIndex);
     });
   }
 
@@ -147,31 +143,20 @@ export class NotebookListen {
     newValues: ICellModel[]
   ) {
     newValues.forEach(async item => {
-      let verCell = this._verNotebook.getCell(item);
+      let verCell = this.verNotebook.getCell(item);
       console.log("moving cell", oldIndex, newIndex, newValues);
-      //TODO  this.historyModel.moveCell(oldIndex, newIndex);
-      this._cellStructureChanged.emit([newIndex, verCell.view]);
-      this._verNotebook.moveCell(verCell, oldIndex, newIndex);
+      this.verNotebook.moveCell(verCell, oldIndex, newIndex);
     });
   }
 
   private async _cellTypeChanged(
-    oldIndex: number,
+    _: number,
     newIndex: number,
-    oldValues: ICellModel[],
-    newValues: ICellModel[]
+    oldValues: ICellModel[]
   ) {
-    newValues.forEach(async (item, index) => {
-      let cell: Cell = this._notebook.widgets[newIndex + index];
-      let newCellListen = await this._verNotebook.createCell(
-        cell,
-        newIndex,
-        true
-      );
-      //TODO
-      //this.cells.set(cell.model.id, newCellListen);
-      console.log("changed cell type!", oldIndex, newIndex, oldValues, item);
-      this._cellStructureChanged.emit([oldIndex, newCellListen.view]);
+    oldValues.forEach(async (_, index) => {
+      var cell: Cell = this._notebook.widgets[newIndex + index];
+      this.verNotebook.switchCellType(newIndex + index, cell);
     });
   }
 

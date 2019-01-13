@@ -6,8 +6,8 @@ import { Cell, CodeCell } from "@jupyterlab/cells";
 import { Star } from "../model/history-stage";
 
 export class VerCell {
-  readonly view: Cell;
-  private readonly modelName: string;
+  public view: Cell;
+  private modelName: string;
   private readonly notebook: VerNotebook;
 
   constructor(notebook: VerNotebook, cell: Cell, modelName: string) {
@@ -19,6 +19,10 @@ export class VerCell {
 
   public get model(): NodeyCell | Star<NodeyCell> {
     return this.notebook.history.store.getLatestOf(this.modelName);
+  }
+
+  public setModel(name: string) {
+    this.modelName = name;
   }
 
   public get lastSavedModel(): NodeyCell {
@@ -58,11 +62,14 @@ export class VerCell {
 
   public commit(checkpoint: Checkpoint): [NodeyCell, boolean] {
     let nodey = this.model;
+    let history = this.notebook.history.store.getHistoryOf(nodey.name);
+    let version = history.versions.length - 1;
 
     // commit the cell if it has changed
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
 
-    let same = newNodey.name === nodey.name;
+    let same = newNodey.version === version;
+    console.log("SAME NAME?", newNodey.name, version);
 
     return [newNodey, same];
   }

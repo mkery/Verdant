@@ -186,6 +186,7 @@ export class HistoryStage {
         if (cell) cell.parent = notebook.name;
         else {
           // cell may not be initialized yet if just added
+          console.log(this.history.notebook.cells);
           let waitCell = this.history.notebook.cells[index];
           waitCell.model.parent = notebook.name;
         }
@@ -308,7 +309,8 @@ export class HistoryStage {
       // now check the current value of this markdown node
       let cell = this.history.notebook.getCellByNode(nodey);
       let newText = cell.view.model.value.text;
-      return levenshtein.get(priorText, newText) > 0;
+      if (priorText && newText) return levenshtein.get(priorText, newText) > 0;
+      else return priorText !== newText;
     }
   }
 

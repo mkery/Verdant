@@ -4,6 +4,7 @@ import { Summary } from "./summary";
 import { History } from "../model/history";
 import { Checkpoint } from "../model/checkpoint";
 import { Mixin } from "./details/mixin";
+import { VerdantPanel } from "./verdant-panel";
 
 import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "../model/nodey";
 
@@ -16,16 +17,18 @@ const HEADER = "v-VerdantPanel-tab-header";
 export class CrumbBox extends Widget {
   readonly history: History;
   readonly summary: Summary;
+  readonly parentPanel: VerdantPanel;
   private _target: Nodey;
   private _active: boolean = false;
   private menu: HTMLElement;
   private content: HTMLElement;
   private showingDetail: boolean;
 
-  constructor(history: History) {
+  constructor(history: History, parentPanel: VerdantPanel) {
     super();
     this.node.classList.add(PANEL);
     this.history = history;
+    this.parentPanel = parentPanel;
     this.summary = new Summary(this.history);
 
     let header = document.createElement("div");
@@ -94,14 +97,15 @@ export class CrumbBox extends Widget {
   }
 
   buildDetails() {
+    let notebookLink = this.parentPanel.openGhostBook.bind(this);
     this.content.innerHTML = "";
-    let mixin = new Mixin(this.history, [this._target], false);
+    let mixin = new Mixin(this.history, [this._target], false, notebookLink);
     this.content.appendChild(mixin.node);
 
     if (this._target instanceof NodeyCode) {
       let output = this.history.store.get(this._target.output);
       if (output) {
-        let outMix = new Mixin(this.history, [output], true);
+        let outMix = new Mixin(this.history, [output], true, notebookLink);
         this.content.appendChild(outMix.node);
       }
     }

@@ -141,7 +141,9 @@ export class VerNotebook {
 
     // now repair the cell against the prior version
     let cell = this.getCell(cellModel);
+    console.log("LOOKING FOR CELL", cellModel, this.cells);
     let [newNodey, same] = await cell.repairAndCommit(checkpoint);
+    console.log("SAME?", same);
 
     // commit the notebook if the cell has changed
     let notebook = this.history.stage.commit(checkpoint, this.model);
@@ -158,7 +160,8 @@ export class VerNotebook {
 
   private saveToFile() {
     // save the data to file
-    this.history.store.writeToFile(this, this.history);
+    //TEMP turned off for testing
+    // this.history.store.writeToFile(this, this.history);
   }
 
   public async save() {
@@ -279,6 +282,35 @@ export class VerNotebook {
     this.panel.updateCells(cell.lastSavedModel, checkpoint, oldPos, newPos);
   }
 
+  public async switchCellType(index: number, newCell: Cell) {
+    // first start a checkpoint for this run
+    let [checkpoint, resolve] = this.history.checkpoints.cellRun();
+
+    let newNodey = await this.ast.createCellNodey(newCell, checkpoint);
+    let verCell = this.cells[index];
+    // TODO make pointer in history from old type to new type
+    //let oldNodey = verCell.model;
+    verCell.setModel(newNodey.name);
+    verCell.view = newCell;
+
+    // make sure cell is added to notebook model
+    let model = this.history.stage.markAsEdited(this.model) as Star<
+      NodeyNotebook
+    >;
+    model.value.cells.splice(index, 1, newNodey.name);
+    newNodey.parent = this.model.name;
+
+    // commit the notebook
+    let notebook = this.history.stage.commit(checkpoint, this.model);
+    console.log("notebook commited", notebook, this.model, verCell);
+
+    // finish the checkpoint with info from this run
+    resolve(newNodey, false, model.value.version);
+
+    // update display
+    this.panel.updateCells(verCell.lastSavedModel, checkpoint);
+  }
+
   public focusCell(cell: VerCell) {
     let index = this.cells.indexOf(cell);
     this.panel.highlightCell(index);
@@ -289,7 +321,6 @@ export class VerNotebook {
       this.ghost = this.openGhost(this.history, version);
       this.ghost.disposed.connect(() => {
         this.ghost = null;
-        console.log("DISPOSED");
       });
     } else this.ghost.showVersion(version);
   }
