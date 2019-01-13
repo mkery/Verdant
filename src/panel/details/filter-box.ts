@@ -1,17 +1,22 @@
 import { Widget } from "@phosphor/widgets";
 import { VersionSampler } from "./version-sampler";
+import { Nodey } from "../../model/nodey";
 
 const FILTER_BUTTON = "v-VerdantPanel-filter-box-icon";
-const FILTER_LABEL = "v-VerdantPanel-filter-box-label";
 const FILTER_TAG_BIN = "v-VerdantPanel-filter-tag-bin";
 const FILTER_TAG = "v-VerdantPanel-filter-tag";
 const FILTER_ICON = "v-VerdantPanel-filterButton";
 
 export class FilterBox extends Widget {
   readonly filterTagBin: HTMLElement;
+  readonly filters: { [name: string]: (n: Nodey) => boolean };
 
-  constructor(filters: { [name: string]: () => void }) {
+  constructor(
+    filters: { [name: string]: (n: Nodey) => boolean },
+    updateSearch: () => void
+  ) {
     super();
+    this.filters = filters;
     this.node.classList.add(FILTER_BUTTON);
     let icon = document.createElement("div");
     icon.classList.add(FILTER_ICON);
@@ -21,11 +26,6 @@ export class FilterBox extends Widget {
     this.filterTagBin.classList.add(FILTER_TAG_BIN);
 
     for (var name in filters) {
-      let filterName = document.createElement("div");
-      filterName.classList.add(FILTER_LABEL);
-      filterName.textContent = name;
-      filterName.addEventListener("click", filters[name]);
-
       let filterTag = document.createElement("div");
       filterTag.classList.add(FILTER_TAG);
       filterTag.classList.add("disabled");
@@ -34,10 +34,21 @@ export class FilterBox extends Widget {
         if (filterTag.classList.contains("disabled"))
           filterTag.classList.remove("disabled");
         else filterTag.classList.add("disabled");
+        updateSearch();
       });
       this.filterTagBin.appendChild(filterTag);
     }
 
     VersionSampler.addCaret(this.node, this.filterTagBin, true);
+  }
+
+  getActiveFilters(): ((n: Nodey) => boolean)[] {
+    let active = [];
+    let tags = this.filterTagBin.getElementsByClassName(FILTER_TAG);
+    for (var i = 0; i < tags.length; i++) {
+      if (tags[i].classList.contains("disabled")) continue;
+      else active.push(this.filters[tags[i].textContent]);
+    }
+    return active;
   }
 }

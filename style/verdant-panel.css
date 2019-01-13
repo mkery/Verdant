@@ -334,7 +334,7 @@
   display: inline-block;
   overflow: hidden;
   text-align: center;
-  flex: 1 1 2em;
+  flex: 1 1 2.5em;
   min-width: calc(var(--jp-code-padding) * 2 + 1em);
 }
 .v-VerdantPanel-Summary-column.artifactCol {
