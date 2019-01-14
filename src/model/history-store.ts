@@ -183,7 +183,7 @@ export class HistoryStore {
     let text = query.toLowerCase();
     this._codeCellStore.forEach(history => {
       let matches = history.versions.filter(cell => {
-        let sourceText = this.history.inspector.renderNode(cell).text || "";
+        let sourceText = this.history.inspector.renderNode(cell) || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
           if (filter) return filter(cell);
           return true;
@@ -207,7 +207,7 @@ export class HistoryStore {
     let text = query.toLowerCase();
     this._outputStore.forEach(history => {
       let matches = history.versions.filter(output => {
-        let sourceText = this.history.inspector.renderNode(output).text || "";
+        let sourceText = this.history.inspector.renderNode(output) || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
           if (filter) return filter(output);
           return true;

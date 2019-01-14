@@ -48,7 +48,7 @@ export class CrumbBox extends Widget {
     this.content.appendChild(this.summary.node);
     this.showingDetail = false;
 
-    this.history.inspector.targetChanged.connect((_: any, nodey: Nodey[]) => {
+    this.history.inspector.targetChanged.connect((_: any, nodey: Nodey) => {
       this.changeTarget(nodey);
     });
   }
@@ -66,9 +66,9 @@ export class CrumbBox extends Widget {
     }
   }
 
-  changeTarget(node: Nodey[]) {
-    if (this._active && this._target !== node[0]) {
-      this._target = node[0];
+  changeTarget(node: Nodey) {
+    if (this._active && this._target !== node) {
+      this._target = node;
       this.buildCrumbMenu();
       this.buildDetails();
       this.showingDetail = true;

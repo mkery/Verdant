@@ -3,7 +3,7 @@ import { History } from "../model/history";
 import { Checkpoint } from "../model/checkpoint";
 import { NotebookEvent } from "./details/event";
 import { VerdantPanel } from "./verdant-panel";
-import { VersionSampler } from "./details/version-sampler";
+import { VersionSampler } from "../sampler/version-sampler";
 
 const PANEL = "v-VerdantPanel-content";
 const DATE_HEADER = "Verdant-events-date-header";

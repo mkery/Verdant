@@ -21,7 +21,6 @@ import * as renderers from "@jupyterlab/rendermime";
 import "../style/index.css";
 import "../style/ghost.css";
 import "../style/sampler.css";
-import "../style/inspect.css";
 import "../style/activity.css";
 import "../style/verdant-panel.css";
 

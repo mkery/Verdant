@@ -1,6 +1,6 @@
 import { History } from "../../model/history";
 import { Nodey, NodeyCodeCell } from "../../model/nodey";
-import { Inspect } from "../../inspect";
+import { Sampler } from "../../sampler/sampler";
 import { VerNotebook } from "../../components/notebook";
 import { CodeCell, Cell, MarkdownCell } from "@jupyterlab/cells";
 import { OutputArea } from "@jupyterlab/outputarea";
@@ -54,13 +54,13 @@ namespace Private {
     return false;
   }
 
-  export function selectTarget(nodey: Nodey[], inspector: Inspect, _: Event) {
-    inspector.changeTarget(nodey);
+  export function selectTarget(nodey: Nodey, inspector: Sampler, _: Event) {
+    inspector.target = nodey;
   }
 
   export function selectCodeTarget(
     nodey: NodeyCodeCell,
-    inspector: Inspect,
+    inspector: Sampler,
     cell: CodeCell,
     event: MouseEvent
   ) {
@@ -69,9 +69,11 @@ namespace Private {
     let betterMatch = area.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE)[0];
     if (!betterMatch) this.selectTarget([nodey], inspector, event);
     else
-      inspector.changeTarget([
-        inspector.figureOutTarget(nodey, cell, betterMatch as HTMLElement)
-      ]);
+      inspector.target = inspector.figureOutTarget(
+        nodey,
+        cell,
+        betterMatch as HTMLElement
+      );
   }
 
   function selectCode(lineMask: HTMLElement, ev: MouseEvent) {
@@ -81,7 +83,7 @@ namespace Private {
   export function addCellEvents(
     area: Cell | OutputArea,
     nodey: Nodey[],
-    inspector: Inspect
+    inspector: Sampler
   ) {
     // first create a mask
     let mask = makeMask();
@@ -133,7 +135,7 @@ namespace Private {
   function addElemEvents(
     mask: HTMLElement,
     nodey: Nodey[],
-    inspector: Inspect
+    inspector: Sampler
   ) {
     mask.addEventListener("mouseenter", () => {
       // signal known cell node of selection

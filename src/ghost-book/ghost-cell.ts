@@ -2,8 +2,8 @@ import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
 import { Checkpoint, CheckpointType, ChangeType } from "../model/checkpoint";
 import { Nodey, NodeyCode, NodeyOutput } from "../model/nodey";
-import { Inspect } from "../inspect";
-import { VersionSampler } from "../panel/details/version-sampler";
+import { Sampler } from "../sampler/sampler";
+import { VersionSampler } from "../sampler/version-sampler";
 
 const GHOST_CELL = "v-Verdant-GhostBook-cell";
 const GHOST_CELL_CONTAINER = "v-Verdant-GhostBook-cell-container";
@@ -95,8 +95,8 @@ export class GhostCell extends Widget {
   public build() {
     this.header.textContent = this.describeEvents();
     this.cell.innerHTML = "";
-    let diff = Inspect.NO_DIFF;
-    if (this.changed) diff = Inspect.CHANGE_DIFF;
+    let diff = Sampler.NO_DIFF;
+    if (this.changed) diff = Sampler.CHANGE_DIFF;
 
     let nodey = this.history.store.get(this.name);
     let sample = VersionSampler.sample(this.history, nodey, null, diff);

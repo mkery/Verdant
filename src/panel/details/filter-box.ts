@@ -1,5 +1,5 @@
 import { Widget } from "@phosphor/widgets";
-import { VersionSampler } from "./version-sampler";
+import { VersionSampler } from "../../sampler/version-sampler";
 import { Nodey } from "../../model/nodey";
 
 const FILTER_BUTTON = "v-VerdantPanel-filter-box-icon";

@@ -2,7 +2,7 @@ import { VerNotebook } from "../components/notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { PromiseDelegate } from "@phosphor/coreutils";
-import { Inspect } from "../inspect";
+import { Sampler } from "../sampler/sampler";
 
 import { FileManager } from "../file-manager";
 
@@ -18,13 +18,13 @@ export class History {
   public notebook: VerNotebook;
 
   constructor(renderBaby: RenderBaby, fileManager: FileManager) {
-    this._inspector = new Inspect(this, renderBaby);
+    this._inspector = new Sampler(this, renderBaby);
     this.store = new HistoryStore(this, fileManager);
     this.stage = new HistoryStage(this);
     this.checkpoints = new HistoryCheckpoints(this);
   }
 
-  private readonly _inspector: Inspect;
+  private readonly _inspector: Sampler;
   readonly store: HistoryStore;
   readonly stage: HistoryStage;
   readonly checkpoints: HistoryCheckpoints;
@@ -48,7 +48,7 @@ export class History {
     return this._ready.promise;
   }
 
-  get inspector(): Inspect {
+  get inspector(): Sampler {
     return this._inspector;
   }
 

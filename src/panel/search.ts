@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 import { History } from "../model/history";
-import { VersionSampler } from "./details/version-sampler";
+import { VersionSampler } from "../sampler/version-sampler";
 import { Nodey } from "../model/nodey";
 import { VerdantPanel } from "./verdant-panel";
 import { FilterBox } from "./details/filter-box";

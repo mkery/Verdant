@@ -4,16 +4,16 @@ import {
   NodeyCode,
   NodeyOutput,
   NodeyCodeCell
-} from "../../model/nodey";
-import { History } from "../../model/history";
-import { Inspect } from "../../inspect";
+} from "../model/nodey";
+import { History } from "../model/history";
+import { Sampler } from "./sampler";
 
-const INSPECT_VERSION = "v-VerdantPanel-inspect-version";
+const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const SEARCH_SAMPLE = "v-VerdantPanel-search-version";
-const INSPECT_VERSION_CONTENT = "v-VerdantPanel-inspect-version-content";
-const VERSION_HEADER = "v-VerdantPanel-inspect-version-header";
+const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
+const VERSION_HEADER = "v-VerdantPanel-sampler-version-header";
 const SEARCH_VERSION_LABEL = "v-VerdantPanel-search-version-header";
-const VERSION_LINK = "v-VerdantPanel-inspect-version-header-link";
+const VERSION_LINK = "v-VerdantPanel-sampler-version-header-link";
 const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
@@ -24,7 +24,7 @@ export namespace VersionSampler {
     diff?: number
   ) {
     let inspector = history.inspector;
-    let text = inspector.renderNode(nodey).text;
+    let text = inspector.renderNode(nodey);
 
     let sample = document.createElement("div");
     sample.classList.add(INSPECT_VERSION);
@@ -140,47 +140,49 @@ export namespace VersionSampler {
   }
 
   async function buildCode(
-    inspector: Inspect,
+    inspector: Sampler,
     nodeyVer: NodeyCode,
     text: string,
     content: HTMLElement,
     query?: string,
     diff?: number
   ): Promise<HTMLElement> {
-    if (diff === undefined) diff = Inspect.CHANGE_DIFF;
+    if (diff === undefined) diff = Sampler.CHANGE_DIFF;
     content.classList.add("code");
-    await inspector.renderCodeVerisonDiv(nodeyVer, text, content, diff, query);
+    await inspector.renderDiff(nodeyVer, content, {
+      newText: text,
+      diffKind: diff,
+      textFocus: query
+    });
 
     return content;
   }
 
   async function buildOutput(
-    inspector: Inspect,
+    inspector: Sampler,
     nodeyVer: NodeyOutput,
     content: HTMLElement,
     query?: string
   ): Promise<HTMLElement> {
-    await inspector.renderOutputVerisonDiv(nodeyVer, content, query);
+    await inspector.renderDiff(nodeyVer, content, { textFocus: query });
     return content;
   }
 
   async function buildMarkdown(
-    inspector: Inspect,
+    inspector: Sampler,
     nodeyVer: NodeyMarkdown,
     text: string,
     content: HTMLElement,
     query?: string,
     diff?: number
   ): Promise<HTMLElement> {
-    if (diff === undefined) diff = Inspect.CHANGE_DIFF;
+    if (diff === undefined) diff = Sampler.CHANGE_DIFF;
     content.classList.add("markdown");
-    await inspector.renderMarkdownVersionDiv(
-      nodeyVer,
-      text,
-      content,
-      diff,
-      query
-    );
+    await inspector.renderDiff(nodeyVer, content, {
+      newText: text,
+      diffKind: diff,
+      textFocus: query
+    });
 
     return content;
   }
