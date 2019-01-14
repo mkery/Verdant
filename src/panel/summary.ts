@@ -1,5 +1,5 @@
 import { Widget } from "@phosphor/widgets";
-import { CellSampler } from "./details/cell-sampler";
+import { CellSampler } from "../sampler/cell-sampler";
 import { History } from "../model/history";
 import { VerNotebook } from "../components/notebook";
 import { VerCell } from "../components/cell";
@@ -213,11 +213,11 @@ export class Summary extends Widget {
 
     if (model) {
       cellA.addEventListener("click", () => {
-        this.history.inspector.changeTarget([model]);
+        this.history.inspector.target = model;
         cellV.classList.remove("selected");
       });
       cellV.addEventListener("click", () => {
-        this.history.inspector.changeTarget([model]);
+        this.history.inspector.target = model;
         cellA.classList.remove("selected");
       });
     }

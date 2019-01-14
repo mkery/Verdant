@@ -304,7 +304,7 @@ export class HistoryStage {
 
       if (lastSave instanceof NodeyMarkdown) priorText = lastSave.markdown;
       else if (lastSave instanceof NodeyCode)
-        priorText = this.history.inspector.renderNode(lastSave).text;
+        priorText = this.history.inspector.renderNode(lastSave);
 
       // now check the current value of this markdown node
       let cell = this.history.notebook.getCellByNode(nodey);

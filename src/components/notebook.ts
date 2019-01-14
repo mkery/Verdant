@@ -12,7 +12,6 @@ import { VerCell } from "./cell";
 import { NodeyCell } from "../model/nodey";
 import { VerdantPanel } from "../panel/verdant-panel";
 import { Ghost } from "../ghost-book/ghost";
-//import { Summary } from "../panel/summary";
 
 /*
 * Notebook holds a list of cells

@@ -56,7 +56,7 @@ export class ASTResolve {
     if (nodeToFix instanceof Star) nodey = nodeToFix.value;
     else nodey = nodeToFix;
 
-    let textOrig = this.history.inspector.renderNode(nodey).text;
+    let textOrig = this.history.inspector.renderNode(nodey);
     console.log(
       "The exact affected nodey is",
       nodey,
@@ -124,7 +124,7 @@ export class ASTResolve {
       var newEnd = this.repairPositions(affected, change, range);
       // return the text from this node's new range
       var text = editor.doc.getRange(affected.start, newEnd);
-      let textOrig = this.history.inspector.renderNode(affected).text;
+      let textOrig = this.history.inspector.renderNode(affected);
       console.log(
         "The exact affected nodey is",
         affected,

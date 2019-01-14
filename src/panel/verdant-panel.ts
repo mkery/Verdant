@@ -130,7 +130,7 @@ export class VerdantPanel extends Widget {
     this.contentBox.appendChild(this.crumbBox.node);
     this.crumbBox.show();
 
-    if (inspectTarget) this.crumbBox.changeTarget([inspectTarget]);
+    if (inspectTarget) this.crumbBox.changeTarget(inspectTarget);
   }
 
   private closeCrumbBox() {
