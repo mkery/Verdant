@@ -1,47 +1,3 @@
-.v-VerdantPanel-cellPanel {
-  font-size: var(--jp-ui-font-size1);
-  color: var(--jp-ui-font-color1);
-  display: flex;
-  flex: 1 1 auto;
-  position: relative;
-  flex-direction: column;
-}
-
-.v-VerdantPanel-cellPanel-section {
-  display: flex;
-  flex: 1 1 auto;
-  position: relative;
-  flex-direction: column;
-  max-height: 70%;
-  order: 2;
-}
-
-.v-VerdantPanel-cellPanel-partition {
-  cursor: ns-resize;
-  z-index: 1;
-  position: absolute;
-  top: -2px;
-  left: 0px;
-  width: 100%;
-  height: 4px;
-}
-
-.v-VerdantPanel-runList-header.cells {
-  background: var(--jp-layout-color2);
-}
-
-.v-VerdantPanel-cellList-li {
-  display: inline-flex;
-  width: 100%;
-}
-
-.v-VerdantPanel-cellList-labels {
-  display: inline-block;
-  flex: 1 1 6em;
-  text-align: right;
-  max-width: 6em;
-}
-
 .v-VerdantPanel-cellList-sample {
   white-space: nowrap;
   padding: var(--jp-code-padding);
@@ -74,35 +30,4 @@
 .v-VerdantPanel-cellList-sample p {
   padding: 0px;
   margin: 0px;
-}
-
-.v-VerdantPanel-cellList-container {
-  width: 100%;
-  display: inline-block;
-  box-shadow: var(--jp-toolbar-box-shadow);
-  flex: 1 1 auto;
-  overflow: auto;
-  padding-left: 0.5em;
-  border-bottom: 1px solid var(--jp-border-color1);
-}
-
-.v-VerdantPanel-cellList-versionNumber {
-  font-size: var(--jp-ui-font-size1);
-  font-weight: 400;
-  letter-spacing: 1px;
-  display: inline-block;
-  margin-right: 0.25em;
-  padding-top: calc(4px + 0.25em);
-  white-space: nowrap;
-  color: var(--jp-brand-color0);
-}
-
-.v-VerdantPanel-cellList-cellType {
-  font-size: var(--jp-ui-font-size0);
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--jp-ui-font-color2);
-  padding-top: calc(4px + var(--jp-ui-font-size1) / 2);
-  display: inline-block;
 }

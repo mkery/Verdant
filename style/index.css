@@ -3,29 +3,11 @@
 |----------------------------------------------------------------------------*/
 
 :root {
-  --jp-private-verdant-manager-active-top-border: 2px;
   --jp-private-verdant-manager-tab-height: 24px;
-  --jp-private-verdant-manager-tab-padding-top: 8px;
-  --verdant-icon-caretdown: url("img/chevron-more.svg");
-  --verdant-icon-caretdown-highlight: url("img/chevron-more-highlight.svg");
-  --verdant-icon-caretup: url("img/chevron-less.svg");
-  --verdant-icon-caretup-highlight: url("img/chevron-less-highlight.svg");
 
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
-  --verdant-icon-edit: url("img/pen.svg");
-  --verdant-icon-clipboard: url("img/clippy.svg");
-  --verdant-icon-clipboard-highlight: url("img/clippy-highlight.svg");
-
   --verdant-icon-search: url("img/search.svg");
 
-  --verdant-icon-star: url("img/star.svg");
-  --verdant-icon-star-highlight: url("img/star-highlight.svg");
-  --verdant-icon-star-header-highlight: url("img/star-header-highlight.svg");
-  --verdant-icon-comment: url("img/comment.svg");
-  --verdant-icon-comment-highlight: url("img/comment-highlight.svg");
-  --verdant-icon-mod-filter: url("img/mod-filter.svg");
-  --verdant-icon-add-filter: url("img/add-filter.svg");
-  --verdant-icon-remove-filter: url("img/remove-filter.svg");
   --verdant-icon-extra-filters: url("img/filter.svg");
   --verdant-icon-extra-filters-highlight: url("img/filter-highlight.svg");
 
@@ -34,21 +16,8 @@
 
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
-  --verdant-icon-time: url("img/clock.svg");
-  --verdant-icon-time-highlight: url("img/clock-highlight.svg");
 
-  --verdant-icon-cell-changed: url("img/cell-changed.svg");
-  --verdant-icon-cell-added: url("img/cell-added.svg");
-  --verdant-icon-cell-removed: url("img/cell-removed.svg");
-  --verdant-icon-cell-same: url("img/cell-same.svg");
-  --verdant-icon-cell-changed-highlight: url("img/cell-changed-highlight.svg");
-  --verdant-icon-cell-added-highlight: url("img/cell-added-highlight.svg");
-  --verdant-icon-cell-removed-highlight: url("img/cell-removed-highlight.svg");
-  --verdant-icon-cell-same-highlight: url("img/cell-same-highlight.svg");
-
-  --verdant-highlight-color1: #c5e5fc;
   --verdant-ghost-color1: #eff4f7;
-  --verdant-ghost-color2: #e1f5ff;
   --verdant-cell-change-color1: #92cbef;
   --verdant-cell-change-color2: #2199f1;
   --verdant-cell-remove-color1: #ff7d7d;
