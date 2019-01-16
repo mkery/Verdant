@@ -6,7 +6,7 @@ import { PromiseDelegate } from "@phosphor/coreutils";
 import { Star } from "../model/history-stage";
 import { CodeCell, MarkdownCell, Cell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../model/checkpoint";
-import { Parser } from "./Parser";
+
 import {
   NodeyCell,
   NodeyCode,
@@ -19,6 +19,8 @@ import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { ASTResolve } from "./ast-resolve";
 import { NodeyFactory } from "../model/nodey-factory";
 import { History } from "../model/history";
+import { ServerConnection } from "@jupyterlab/services";
+import { URLExt } from "@jupyterlab/coreutils";
 
 export class AST {
   //Properties
@@ -27,6 +29,7 @@ export class AST {
   astResolve: ASTResolve;
   parserText: string;
   history: History;
+  serverSettings: ServerConnection.ISettings;
 
   constructor(history: History) {
     this.history = history;
@@ -46,20 +49,31 @@ export class AST {
 
   private async init() {
     await this.kernUtil.kernelReady;
-    await this.loadParserFunctions();
-    console.log("loaded Parser!");
+    // Settings for the notebook server.
+    this.serverSettings = ServerConnection.makeSettings();
     this._ready.resolve(undefined);
   }
 
-  loadParserFunctions() {
-    console.log("kernel ready to go", this.kernUtil.kernel);
-    var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      console.log("R: ", msg.content);
+  parseRequest(text: string = "") {
+    let fullRequest = {
+      method: "POST",
+      body: JSON.stringify({ code: text })
     };
-    var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      console.log("IO: ", msg.content);
-    };
-    return this.runKernel(Parser.text, onReply, onIOPub);
+
+    let fullUrl = URLExt.join(this.serverSettings.baseUrl, "/lilgit/parse");
+
+    return ServerConnection.makeRequest(
+      fullUrl,
+      fullRequest,
+      this.serverSettings
+    ).then(response => {
+      if (response.status !== 200) {
+        return response.text().then(data => {
+          throw new ServerConnection.ResponseError(response, data);
+        });
+      }
+      return response.text();
+    });
   }
 
   async generateCodeNodey(
@@ -162,7 +176,9 @@ export class AST {
     onIOPub: (msg: KernelMessage.IIOPubMessage) => void
   ) {
     code = this.cleanCodeString(code);
-    this.runKernel('parse("""' + code + '""")', onReply, onIOPub);
+    console.log(this.parseRequest(code));
+    console.log(onReply, onIOPub);
+    //this.runKernel('parse("""' + code + '""")', onReply, onIOPub);
   }
 
   recieve_generateAST(jsn: string, options: { [key: string]: any }): NodeyCode {

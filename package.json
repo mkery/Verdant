@@ -51,9 +51,10 @@
     "fast-levenshtein": "2.0.6"
   },
   "devDependencies": {
-    "@types/fast-levenshtein": "0.0.1",
     "@types/codemirror": "~0.0.46",
+    "@types/fast-levenshtein": "0.0.1",
     "@types/node": "~8.0.47",
+    "jest": "^23.6.0",
     "rimraf": "~2.6.2",
     "typescript": "~2.9.1"
   },
