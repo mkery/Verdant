@@ -4,9 +4,9 @@ import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { PromiseDelegate } from "@phosphor/coreutils";
 import { Sampler } from "../sampler/sampler";
 
-import { FileManager } from "../file-manager";
+import { FileManager } from "../jupyter-hooks/file-manager";
 
-import { serialized_NodeyHistory } from "../file-manager";
+import { serialized_NodeyHistory } from "../jupyter-hooks/file-manager";
 
 import { HistoryStore } from "./history-store";
 

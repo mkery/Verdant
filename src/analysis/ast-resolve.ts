@@ -51,7 +51,7 @@ export class ASTResolve {
     }
   }
 
-  repairFullAST(nodeToFix: NodeyCodeCell | Star<NodeyCodeCell>, text: string) {
+  repairCellAST(nodeToFix: NodeyCodeCell | Star<NodeyCodeCell>, text: string) {
     let nodey: NodeyCodeCell;
     if (nodeToFix instanceof Star) nodey = nodeToFix.value;
     else nodey = nodeToFix;

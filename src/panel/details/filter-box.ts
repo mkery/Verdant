@@ -39,7 +39,19 @@ export class FilterBox extends Widget {
       this.filterTagBin.appendChild(filterTag);
     }
 
-    VersionSampler.addCaret(this.node, this.filterTagBin, true);
+    let onOpen = () => {
+      let tags = this.filterTagBin.getElementsByClassName("disabled");
+      for (var i = 0; i < tags.length; i++) {
+        (tags[i] as HTMLElement).style.display = "";
+      }
+    };
+    let onClose = () => {
+      let tags = this.filterTagBin.getElementsByClassName("disabled");
+      for (var i = 0; i < tags.length; i++) {
+        (tags[i] as HTMLElement).style.display = "none";
+      }
+    };
+    VersionSampler.addCaret(this.node, null, true, onOpen, onClose);
   }
 
   getActiveFilters(): ((n: Nodey) => boolean)[] {

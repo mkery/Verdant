@@ -1,12 +1,8 @@
-import * as CodeMirror from "codemirror";
 import { Notebook } from "@jupyterlab/notebook";
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
-import { Session, KernelMessage } from "@jupyterlab/services";
-import { PromiseDelegate } from "@phosphor/coreutils";
 import { Star } from "../model/history-stage";
 import { CodeCell, MarkdownCell, Cell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../model/checkpoint";
-import { Parser } from "./Parser";
+
 import {
   NodeyCell,
   NodeyCode,
@@ -15,231 +11,30 @@ import {
   NodeyNotebook,
   NodeyOutput
 } from "../model/nodey";
-import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { ASTResolve } from "./ast-resolve";
-import { NodeyFactory } from "../model/nodey-factory";
+import { ASTUtils } from "./ast-utils";
 import { History } from "../model/history";
+import { ServerConnection } from "@jupyterlab/services";
+import { URLExt } from "@jupyterlab/coreutils";
+
+type jsn = { [key: string]: any };
 
 export class AST {
+  readonly history: History;
+
   //Properties
-  kernUtil: KernelListen;
-  session: Session.ISession;
-  astResolve: ASTResolve;
-  parserText: string;
-  history: History;
+  private readonly astResolve: ASTResolve;
+
+  // Settings for the notebook server.
+  private readonly serverSettings: ServerConnection.ISettings;
 
   constructor(history: History) {
     this.history = history;
     this.astResolve = new ASTResolve(history);
+    this.serverSettings = ServerConnection.makeSettings();
   }
 
-  get ready(): Promise<void> {
-    return this._ready.promise;
-  }
-  private _ready = new PromiseDelegate<void>();
-
-  setKernUtil(kern: KernelListen) {
-    this.kernUtil = kern;
-    this._ready = new PromiseDelegate<void>();
-    this.init();
-  }
-
-  private async init() {
-    await this.kernUtil.kernelReady;
-    await this.loadParserFunctions();
-    console.log("loaded Parser!");
-    this._ready.resolve(undefined);
-  }
-
-  loadParserFunctions() {
-    console.log("kernel ready to go", this.kernUtil.kernel);
-    var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-      console.log("R: ", msg.content);
-    };
-    var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-      console.log("IO: ", msg.content);
-    };
-    return this.runKernel(Parser.text, onReply, onIOPub);
-  }
-
-  async generateCodeNodey(
-    code: string,
-    options: { [key: string]: any } = {}
-  ): Promise<NodeyCode> {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
-        //console.log(code, "R: ", msg)
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        //console.log(code, "IO: ", msg)
-        let msgType = msg.header.msg_type;
-        switch (msgType) {
-          case "execute_result":
-          case "display_data":
-          case "error":
-            console.error(code, "IO: ", msg);
-            reject();
-            break;
-          case "stream":
-            var jsn = (<any>msg.content)["text"];
-            //console.log("py 2 ast execution finished!", jsn)
-            accept(this.recieve_generateAST(jsn, options));
-            break;
-          case "clear_output":
-          case "update_display_data":
-          default:
-            break;
-        }
-      };
-
-      this.parseCode(code, onReply, onIOPub);
-    });
-  }
-
-  public markdownToCodeNodey(
-    markdown: NodeyMarkdown,
-    code: string
-  ): Promise<NodeyCode> {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var onReply = (_: KernelMessage.IExecuteReplyMsg): void => {
-        //console.log(code, "R: ", msg)
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        //console.log(code, "IO: ", msg)
-        let msgType = msg.header.msg_type;
-        switch (msgType) {
-          case "execute_result":
-          case "display_data":
-          case "error":
-            console.error(code, "IO: ", msg);
-            reject();
-            break;
-          case "stream":
-            var jsn = (<any>msg.content)["text"];
-            //console.log("py 2 ast execution finished!", jsn)
-            accept(
-              this.recieve_generateAST_tieMarkdown(jsn, markdown.name, {})
-            );
-            break;
-          case "clear_output":
-          case "update_display_data":
-          default:
-            break;
-        }
-      };
-
-      this.parseCode(code, onReply, onIOPub);
-    });
-  }
-
-  private cleanCodeString(code: string): string {
-    // annoying but important: make sure docstrings do not interrupt the string literal
-    var newCode = code.replace(/""".*"""/g, str => {
-      return "'" + str + "'";
-    });
-
-    // turn ipython magics commands into comments
-    //newCode = newCode.replace(/%/g, "#"); TODO can't do bc styled strings!
-
-    // remove any triple quotes, which will mess us up
-    newCode = newCode.replace(/"""/g, "'''");
-
-    // make sure newline inside strings doesn't cause an EOL error
-    // and make sure any special characters are escaped correctly
-    newCode = newCode.replace(/(").*?(\\.).*?(?=")/g, str => {
-      return str.replace(/\\/g, "\\\\");
-    });
-    newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, str => {
-      return str.replace(/\\/g, "\\\\");
-    });
-    //console.log("cleaned code is ", newCode);
-    return newCode;
-  }
-
-  private parseCode(
-    code: string,
-    onReply: (msg: KernelMessage.IExecuteReplyMsg) => void,
-    onIOPub: (msg: KernelMessage.IIOPubMessage) => void
-  ) {
-    code = this.cleanCodeString(code);
-    this.runKernel('parse("""' + code + '""")', onReply, onIOPub);
-  }
-
-  recieve_generateAST(jsn: string, options: { [key: string]: any }): NodeyCode {
-    //console.log("Recieved", jsn);
-    var dict = options;
-    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
-    else console.log("Recieved empty?", dict);
-    var nodey = NodeyFactory.dictToCodeCellNodey(dict, this.history.store);
-    console.log("Recieved code!", dict, nodey);
-    return nodey;
-  }
-
-  recieve_generateAST_tieMarkdown(
-    jsn: string,
-    forceTie: string,
-    options: { [key: string]: any }
-  ): NodeyCode {
-    //console.log("Recieved", jsn);
-    var dict = options;
-    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
-    else console.log("Recieved empty?", dict);
-    var nodey = NodeyFactory.dictToCodeCellNodey(
-      dict,
-      this.history.store,
-      forceTie
-    );
-    console.log("Recieved code!", dict, nodey);
-    return nodey;
-  }
-
-  runKernel(
-    code: string,
-    onReply: (msg: KernelMessage.IExecuteReplyMsg) => void,
-    onIOPub: (msg: KernelMessage.IIOPubMessage) => void
-  ) {
-    var request: KernelMessage.IExecuteRequest = {
-      silent: true,
-      user_expressions: {},
-      code: code
-    };
-    let future = this.kernUtil.kernel.requestExecute(request, false);
-    future.onReply = onReply;
-    future.onIOPub = onIOPub;
-    return future.done;
-  }
-
-  async repairMarkdown(
-    nodey: NodeyMarkdown | Star<NodeyMarkdown>,
-    newText: string
-  ) {
-    this.astResolve.repairMarkdown(nodey, newText);
-  }
-
-  async matchASTOnInit(nodey: NodeyCodeCell, newCode: string) {
-    console.log("trying to match code on startup");
-    return new Promise<NodeyCode>((accept, reject) => {
-      var recieve_reply = this.astResolve.matchASTOnInit(nodey);
-
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg);
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg);
-        if (msg.header.msg_type === "stream") {
-          var jsn = (<any>msg.content)["text"];
-          //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn));
-        } else if (msg.header.msg_type === "error") {
-          console.error("Failed to parse", newCode);
-          reject();
-        }
-      };
-      this.parseCode(newCode, onReply, onIOPub);
-    });
-  }
-
-  async repairNotebook(
+  public async repairNotebook(
     matchTo: NodeyNotebook | Star<NodeyNotebook>,
     notebook: Notebook,
     checkpoint: Checkpoint
@@ -299,6 +94,21 @@ export class AST {
     return [model, changedCells];
   }
 
+  public async repairCell(nodey: NodeyCell | Star<NodeyCell>, text: string) {
+    if (nodey instanceof Star) {
+      if (nodey.value instanceof NodeyCode)
+        return this.repairCodeCell(nodey as Star<NodeyCodeCell>, text);
+      else if (nodey.value instanceof NodeyMarkdown)
+        return this.astResolve.repairMarkdown(
+          nodey as Star<NodeyMarkdown>,
+          text
+        );
+    }
+    if (nodey instanceof NodeyCode) return this.repairCodeCell(nodey, text);
+    else if (nodey instanceof NodeyMarkdown)
+      return this.astResolve.repairMarkdown(nodey as NodeyMarkdown, text);
+  }
+
   public async createCellNodey(cell: Cell, checkpoint: Checkpoint) {
     let nodey: NodeyCell;
     if (cell instanceof CodeCell) {
@@ -333,49 +143,74 @@ export class AST {
     return nodey;
   }
 
-  async repairAST(
-    nodey: NodeyCodeCell,
-    change: CodeMirror.EditorChange,
-    editor: CodeMirrorEditor
-  ) {
-    return new Promise<NodeyCode>((accept, reject) => {
-      var [recieve_reply, newCode] = this.astResolve.repairAST(
-        nodey,
-        change,
-        editor
-      );
+  private async parseRequest(text: string = ""): Promise<string> {
+    text = this.cleanCodeString(text);
+    let fullRequest = {
+      method: "POST",
+      body: JSON.stringify({ code: text })
+    };
 
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg);
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg);
-        if (msg.header.msg_type === "stream") {
-          var jsn = (<any>msg.content)["text"];
-          //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn));
-        } else if (msg.header.msg_type === "error") {
-          console.error("Failed to parse", newCode);
-          reject();
-        }
-      };
-      this.parseCode(newCode, onReply, onIOPub);
+    let fullUrl = URLExt.join(this.serverSettings.baseUrl, "/lilgit/parse");
+
+    return new Promise<string>((accept, reject) => {
+      ServerConnection.makeRequest(
+        fullUrl,
+        fullRequest,
+        this.serverSettings
+      ).then(response => {
+        if (response.status !== 200) {
+          response.text().then(data => {
+            reject("");
+            throw new ServerConnection.ResponseError(response, data);
+          });
+        } else response.text().then(data => accept(data));
+      });
     });
   }
 
-  async repairFullAST(nodey: NodeyCell | Star<NodeyCell>, text: string) {
-    if (nodey instanceof Star) {
-      if (nodey.value instanceof NodeyCode)
-        return this.repairCodeCell(nodey as Star<NodeyCodeCell>, text);
-      else if (nodey.value instanceof NodeyMarkdown)
-        return this.astResolve.repairMarkdown(
-          nodey as Star<NodeyMarkdown>,
-          text
-        );
-    }
-    if (nodey instanceof NodeyCode) return this.repairCodeCell(nodey, text);
-    else if (nodey instanceof NodeyMarkdown)
-      return this.astResolve.repairMarkdown(nodey as NodeyMarkdown, text);
+  private cleanCodeString(code: string): string {
+    // annoying but important: make sure docstrings do not interrupt the string literal
+    var newCode = code.replace(/""".*"""/g, str => {
+      return "'" + str + "'";
+    });
+
+    // turn ipython magics commands into comments
+    //newCode = newCode.replace(/%/g, "#"); TODO can't do bc styled strings!
+
+    // remove any triple quotes, which will mess us up
+    newCode = newCode.replace(/"""/g, "'''");
+
+    // make sure newline inside strings doesn't cause an EOL error
+    // and make sure any special characters are escaped correctly
+    newCode = newCode.replace(/(").*?(\\.).*?(?=")/g, str => {
+      return str.replace(/\\/g, "\\\\");
+    });
+    newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, str => {
+      return str.replace(/\\/g, "\\\\");
+    });
+    //console.log("cleaned code is ", newCode);
+    return newCode;
+  }
+
+  private async matchASTOnInit(nodey: NodeyCodeCell, newCode: string) {
+    console.log("trying to match code on startup");
+    let recieve_reply = this.astResolve.matchASTOnInit(nodey);
+    let response = await this.parseRequest(newCode);
+    return recieve_reply(response);
+  }
+
+  private async generateCodeNodey(
+    code: string,
+    options: jsn = {}
+  ): Promise<NodeyCode> {
+    let jsn = await this.parseRequest(code);
+    console.log("RECIEVED ", jsn);
+    var dict = options;
+    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
+    else console.log("Recieved empty?", dict);
+    var nodey = ASTUtils.dictToCodeCellNodey(dict, this.history.store);
+    console.log("Recieved code!", dict, nodey);
+    return nodey;
   }
 
   private async repairCodeCell(
@@ -383,23 +218,13 @@ export class AST {
     text: string
   ) {
     return new Promise<NodeyCode>((accept, reject) => {
-      var [recieve_reply, newCode] = this.astResolve.repairFullAST(nodey, text);
+      var [recieve_reply, newCode] = this.astResolve.repairCellAST(nodey, text);
 
-      var onReply = (msg: KernelMessage.IExecuteReplyMsg): void => {
-        console.log("R: ", msg);
-      };
-      var onIOPub = (msg: KernelMessage.IIOPubMessage): void => {
-        console.log("IO: ", msg);
-        if (msg.header.msg_type === "stream") {
-          var jsn = (<any>msg.content)["text"];
-          //console.log("py 2 ast execution finished!", jsn)
-          accept(recieve_reply(jsn));
-        } else if (msg.header.msg_type === "error") {
-          console.error("Failed to parse", newCode);
-          reject();
-        }
-      };
-      this.parseCode(newCode, onReply, onIOPub);
+      this.parseRequest(newCode).then(response => {
+        console.log("RECIEVED ", response);
+        if (!response) reject();
+        accept(recieve_reply(response));
+      });
     });
   }
 }

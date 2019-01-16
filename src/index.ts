@@ -12,7 +12,7 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { NotebookPanel } from "@jupyterlab/notebook";
 
-import { FileManager } from "./file-manager";
+import { FileManager } from "./jupyter-hooks/file-manager";
 
 import { StackedPanel } from "@phosphor/widgets";
 
