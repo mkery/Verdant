@@ -10,9 +10,11 @@ python setup.py bdist_wheel
 pip install -U -I dist/lilgit_parser-0.2-py3-none-any.whl
 '''
 
+import json
+import tornado
 from notebook.utils import url_path_join
 from notebook.base.handlers import APIHandler
-import parser
+from lilgit_parser.parser import parse
 
 
 class ParseHandler(APIHandler):
@@ -20,8 +22,8 @@ class ParseHandler(APIHandler):
     A handler that runs a custom parser for lilGit on the server.
     """
     def post(self):
-        data = self.request.body
-        self.finish(parser.parse(text))
+        data = tornado.escape.json_decode(self.request.body)
+        self.finish(parse(data['code']))
 
     def get(self):
         self.finish('Hello!')

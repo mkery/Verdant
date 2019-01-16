@@ -93,7 +93,7 @@ export class VerCell {
     if (this.view.inputArea) {
       text = this.view.editor.model.value.text;
     }
-    await this.notebook.ast.repairFullAST(this.model, text);
+    await this.notebook.ast.repairCell(this.model, text);
   }
 
   /**

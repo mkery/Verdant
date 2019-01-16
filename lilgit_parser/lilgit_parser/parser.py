@@ -26,7 +26,7 @@ def posFromText(text, textPos):
     ln = len(lines)
     ch = len(lines[-1])
     return {'line': ln, 'ch': ch}
-    
+
 
 
 # In[4]:
@@ -103,7 +103,7 @@ def visitModule(node, text, textStart, textEnd):
     end, symbols = getCommentsAndSpace(text, end, textEnd)
     myContent += symbols
     if(debug): print("Start:", myContent)
-    
+
     if(isinstance(node.body, list)):
         for stmt in node.body:
             end, stuff = captureStuff(text, end, stmt, "", True)
@@ -111,12 +111,12 @@ def visitModule(node, text, textStart, textEnd):
             if(debug): print(myType+" AFTER ", stmt, myContent, text[end:end+3])
     else:
         end, expr = visit(node.body, text, end, textEnd, None)
-        
+
     # get any symbols like commas and spaces
     end, symbols = getCommentsAndSpace(text, end, textEnd)
     myContent += symbols
     if(debug): print("END:", myContent)
-    
+
     myEnd = posFromText(text, end)
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
@@ -176,8 +176,8 @@ def visitFunctionDef(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
-    
+
+
 '''
 Return(expr? value)
 '''
@@ -389,7 +389,7 @@ def visitTry(node, text, textStart, textEnd):
     end = textStart
     me['content'].append({"syntok": "try"})
     end += len("try")
-    
+
     end, spaces = getSpacing(text, end, textEnd)
     me['content'] += spaces
     end, symbols = getPunctuationBetween(text,end, "", True)
@@ -413,7 +413,7 @@ def visitTry(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
+
 
 
 # In[12]:
@@ -462,8 +462,8 @@ def visitImportFrom(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
-    
+
+
 '''
 -- import name with optional 'as' alias.
     alias = (identifier name, identifier? asname)
@@ -513,7 +513,7 @@ def visitExpr(node, text, textStart, textEnd):
 
 '''
 | BoolOp(boolop op, expr* values)
-Consecutive operations with the same operator, 
+Consecutive operations with the same operator,
 such as a or b or c, are collapsed into one node with several values.
 BoolOp() can use left & right?
 '''
@@ -561,7 +561,7 @@ def visitBinOp(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
+
 
 '''
 | UnaryOp(unaryop op, expr operand)
@@ -641,7 +641,7 @@ def visitCompare(node, text, textStart, textEnd):
                 me['content'] += parens
                 end, spaces = getSpacing(text, end, textEnd)
                 me['content'] += spaces
-            
+
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
@@ -675,7 +675,7 @@ def visitCall(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-  
+
 '''
 | Num(object n) -- a number as a PyObject.
 we need this one while we don't need one for Str because we need special regex for decimals
@@ -749,7 +749,7 @@ def visitStarred(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
+
 '''
  | List(expr* elts, expr_context ctx)
 '''
@@ -772,7 +772,7 @@ def visitList(node, text, textStart, textEnd):
         myContent += commas
         end, spaces = getSpacing(text, end, textEnd)
         myContent += spaces
-        
+
     myContent.append({"syntok": "]"})
     end += 1
     myEnd = posFromText(text, end)
@@ -805,7 +805,7 @@ def visitTuple(node, text, textStart, textEnd):
         myContent += commas
         end, spaces = getSpacing(text, end, textEnd)
         myContent += spaces
-    
+
     if text[min(end, textEnd - 1)] == ")":
         myContent.append({"syntok": ")"})
         end += 1
@@ -836,7 +836,7 @@ def visitIndex(node, text, textStart, textEnd):
     myContent += spaces
     myContent.append({'syntok': ']'})
     end += 1
-    
+
     myStart = {'line': value['start']['line'], 'ch': value['start']['ch'] - 1}
     myEnd = {'line': myStart['line'], 'ch': myStart['ch'] + 1 }
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
@@ -947,7 +947,7 @@ def visitIfExp(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
+
 '''
 | Dict(expr* keys, expr* values)
  keys and values hold lists of nodes with matching order
@@ -977,12 +977,12 @@ def visitDict(node, text, textStart, textEnd):
         end, spaces = getSpacing(text, end, textEnd)
         me['content'] += spaces
     me["content"].append({"syntok": "}"})
-    end += 1        
+    end += 1
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
-    
+
+
 
 
 # In[19]:
@@ -1023,7 +1023,7 @@ def visitExceptHandler(node, text, textStart, textEnd):
     me['end'] = posFromText(text, end)
     if(debug): print("MADE:", ast.dump(node, True, False), "\n",me,"\n")
     return end, me
-    
+
 
 
 # In[20]:
@@ -1066,7 +1066,7 @@ def visitKeyword(node, text, textStart, textEnd):
     myContent = []
     myStart = posFromText(text, textStart)
     end = textStart
-    if(node.arg): 
+    if(node.arg):
         ar = str(node.arg)
         myContent.append({'syntok':ar})
         end += len(ar)
@@ -1082,19 +1082,19 @@ def visitKeyword(node, text, textStart, textEnd):
     me = {'type': myType, 'start': myStart, 'end': myEnd, 'content': myContent}
     if(debug): print("MADE:", me,"\n")
     return end, me
-    
+
 
 
 # In[22]:
 
 
 def visit(node, text, textStart, textEnd, nextNode):
-    
+
     # 1. first, figure out if we're dealing with a literal or parent
     children = list(ast.iter_child_nodes(node))
     myType = type(node).__name__
     if(debug): print("\n",type(node).__name__, children, textStart, text[textStart:textStart+3])
-    
+
     visitors = {"Module": visitModule,
                 "Interactive": visitModule,
                 "Expression": visitModule,
@@ -1129,23 +1129,23 @@ def visit(node, text, textStart, textEnd, nextNode):
                 "arguments": visitArguments,
                 "keyword": visitKeyword,
                 "alias": visitAlias}
-    
+
     if myType in visitors:
         return visitors[myType](node, text, textStart, textEnd)
-    
-    
+
+
     # necissary to filter children using findNextChild, since there's some
     # metalabels like store or load we don't care about here
     child, child_itr = findNextChild(children, -1)
 
-    
+
     if not child: # LITERAL
         return visitLiteral(node, text, textStart)
     else:
         if(debug): print("NO VISITOR FOR "+myType, ast.dump(node, True, False))
         raise ValueError('Got no visitor for this type ' + myType)
-    
-    
+
+
 def visitLiteral(node, text, start):
     myType = type(node).__name__
     if myType in opTokens:
@@ -1198,7 +1198,7 @@ def getPunctuationBetween(text, textStart, stopChar = "", allowNewline = False):
         i += 1
         if(i < textEnd - 1):
             char = str(text[i])
-        
+
     return i, content
 
 
@@ -1216,7 +1216,7 @@ def getSpacing(text, textStart, textEnd, line=False):
         if(end <= len(text) - 1):
             char = str(text[end])
     return end, content
-    
+
 def getCommentsAndSpace(text, textStart, textEnd):
     if(textStart > len(text) - 1):
         return textStart, []
@@ -1271,7 +1271,7 @@ def getParens(text, textStart, textEnd):
     if(end == textEnd - 1 and char in parens):
         content.append({"syntok": str(text[textEnd - 1])})
         end += 1
-            
+
     return end, content, opened
 
 
@@ -1298,7 +1298,7 @@ def parse(text):
     else:
         node = ast.parse(text)
         if(debug): print(ast.dump(node, True, True))
-        print( json.dumps(visit(node, text, 0, len(text), None)[1]))
+        return json.dumps(visit(node, text, 0, len(text), None)[1])
 
 
 # In[2]:
@@ -1327,4 +1327,3 @@ opTokens = set(["Invert", "Not", "UAdd", "USub",
 
 if(debug): parse(text)
 #print(json.dumps(main(l, tree),  indent=2))
-

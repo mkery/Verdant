@@ -7,7 +7,6 @@ import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
 import { Star } from "../model/history-stage";
 import { AST } from "../analysis/ast";
-import { KernelListen } from "../jupyter-hooks/kernel-listen";
 import { VerCell } from "./cell";
 import { NodeyCell } from "../model/nodey";
 import { VerdantPanel } from "../panel/verdant-panel";
@@ -17,7 +16,6 @@ import { Ghost } from "../ghost-book/ghost";
 * Notebook holds a list of cells
 */
 export class VerNotebook {
-  private kernUtil: KernelListen;
   private panel: VerdantPanel;
   readonly view: NotebookListen;
   readonly history: History;
@@ -54,13 +52,8 @@ export class VerNotebook {
   private async init() {
     await this.view.ready;
 
-    // set up how we will run python code
-    this.kernUtil = new KernelListen(this.view.panel.session);
-    this.ast.setKernUtil(this.kernUtil);
-
     //load in prior data if exists
     var prior = await this.history.init(this);
-    await this.ast.ready;
 
     // load in the notebook model from data
     await this.load(prior);
@@ -123,7 +116,7 @@ export class VerNotebook {
   }
 
   get path(): string {
-    return this.kernUtil.path;
+    return this.view.panel.session.path;
   }
 
   get name(): string {
@@ -159,8 +152,7 @@ export class VerNotebook {
 
   private saveToFile() {
     // save the data to file
-    //TEMP turned off for testing
-    // this.history.store.writeToFile(this, this.history);
+    this.history.store.writeToFile(this, this.history);
   }
 
   public async save() {

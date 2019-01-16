@@ -12,7 +12,7 @@ import { VerNotebook } from "../components/notebook";
 
 import { History } from "./history";
 
-import { FileManager } from "../file-manager";
+import { FileManager } from "../jupyter-hooks/file-manager";
 
 import { Star, UnsavedStar } from "./history-stage";
 
