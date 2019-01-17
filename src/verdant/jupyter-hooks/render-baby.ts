@@ -12,7 +12,7 @@ import {
   IOutputModel
 } from "@jupyterlab/rendermime";
 
-import { NodeyOutput } from "../model/nodey";
+import { NodeyOutput } from "../../lilgit/model/nodey";
 
 /*
 *  Render baby exposes some basic markdown and code rendermine capability from JupyterLab.

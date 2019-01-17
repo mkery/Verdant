@@ -1,10 +1,10 @@
 import { Widget } from "@phosphor/widgets";
-import { History } from "../model/history";
+import { History } from "../../lilgit/model/history";
 import { VersionSampler } from "../sampler/version-sampler";
-import { Nodey } from "../model/nodey";
+import { Nodey } from "../../lilgit/model/nodey";
 import { VerdantPanel } from "./verdant-panel";
 import { FilterBox } from "./details/filter-box";
-import { CheckpointType } from "../model/checkpoint";
+import { CheckpointType } from "../../lilgit/model/checkpoint";
 
 const PANEL = "v-VerdantPanel-content";
 const SEARCH_CONTAINER = "v-VerdantPanel-searchContainer";

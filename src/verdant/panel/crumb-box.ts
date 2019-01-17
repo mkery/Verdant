@@ -1,12 +1,17 @@
 import { Widget } from "@phosphor/widgets";
 import { Wishbone } from "./details/wishbone";
 import { Summary } from "./summary";
-import { History } from "../model/history";
-import { Checkpoint } from "../model/checkpoint";
+import { History } from "../../lilgit/model/history";
+import { Checkpoint } from "../../lilgit/model/checkpoint";
 import { Mixin } from "./details/mixin";
 import { VerdantPanel } from "./verdant-panel";
 
-import { Nodey, NodeyCode, NodeyMarkdown, NodeyOutput } from "../model/nodey";
+import {
+  Nodey,
+  NodeyCode,
+  NodeyMarkdown,
+  NodeyOutput
+} from "../../lilgit/model/nodey";
 
 const PANEL = "v-VerdantPanel-content";
 const INSPECTOR_BUTTON = "v-VerdantPanel-inspectorButton";

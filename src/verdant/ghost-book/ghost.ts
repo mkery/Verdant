@@ -1,7 +1,7 @@
 import { Widget } from "@phosphor/widgets";
-import { History } from "../model/history";
+import { History } from "../../lilgit/model/history";
 import { GhostCell } from "./ghost-cell";
-import { Checkpoint, CheckpointType } from "../model/checkpoint";
+import { Checkpoint, CheckpointType } from "../../lilgit/model/checkpoint";
 
 const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";

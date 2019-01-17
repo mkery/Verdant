@@ -1,7 +1,11 @@
 import { Widget } from "@phosphor/widgets";
-import { History } from "../model/history";
-import { Checkpoint, CheckpointType, ChangeType } from "../model/checkpoint";
-import { Nodey, NodeyCode, NodeyOutput } from "../model/nodey";
+import { History } from "../../lilgit/model/history";
+import {
+  Checkpoint,
+  CheckpointType,
+  ChangeType
+} from "../../lilgit/model/checkpoint";
+import { Nodey, NodeyCode, NodeyOutput } from "../../lilgit/model/nodey";
 import { Sampler } from "../sampler/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 

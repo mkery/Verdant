@@ -1,8 +1,8 @@
 import { Widget } from "@phosphor/widgets";
 //import { GhostBookPanel } from "../ghost-book/ghost-model";
-import { Checkpoint } from "../model/checkpoint";
-import { Nodey } from "../model/nodey";
-import { History } from "../model/history";
+import { Checkpoint } from "../../lilgit/model/checkpoint";
+import { Nodey } from "../../lilgit/model/nodey";
+import { History } from "../../lilgit/model/history";
 import { CrumbBox } from "./crumb-box";
 import { Summary } from "./summary";
 import { EventMap } from "./event-map";
