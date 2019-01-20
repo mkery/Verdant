@@ -6,7 +6,7 @@ import {
   ChangeType
 } from "../../lilgit/model/checkpoint";
 import { Nodey, NodeyCode, NodeyOutput } from "../../lilgit/model/nodey";
-import { Sampler } from "../sampler/sampler";
+import { Sampler } from "../../lilgit/model/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 
 const GHOST_CELL = "v-Verdant-GhostBook-cell";

@@ -204,12 +204,10 @@ export class AST {
     options: jsn = {}
   ): Promise<NodeyCode> {
     let jsn = await this.parseRequest(code);
-    console.log("RECIEVED ", jsn);
     var dict = options;
     if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
     else console.log("Recieved empty?", dict);
     var nodey = ASTUtils.dictToCodeCellNodey(dict, this.history.store);
-    console.log("Recieved code!", dict, nodey);
     return nodey;
   }
 

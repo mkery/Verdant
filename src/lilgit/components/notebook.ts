@@ -141,7 +141,7 @@ export class VerNotebook {
   }
 
   public async save(): Promise<[NodeyCell[], Checkpoint]> {
-    return new Promise((accept, reject) => {
+    return new Promise<[NodeyCell[], Checkpoint]>((accept, reject) => {
       //  start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
       // now see if there are any unsaved changes

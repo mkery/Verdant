@@ -1,6 +1,6 @@
 import { History } from "../../../lilgit/model/history";
 import { Nodey, NodeyCodeCell } from "../../../lilgit/model/nodey";
-import { Sampler } from "../../sampler/sampler";
+import { Sampler } from "../../../lilgit/model/sampler";
 import { VerNotebook } from "../../../lilgit/components/notebook";
 import { CodeCell, Cell, MarkdownCell } from "@jupyterlab/cells";
 import { OutputArea } from "@jupyterlab/outputarea";

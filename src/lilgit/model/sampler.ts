@@ -9,13 +9,13 @@ import {
   NodeyOutput,
   SyntaxToken,
   NodeyCodeCell
-} from "../../lilgit/model/nodey";
+} from "./nodey";
 
 import { CodeCell } from "@jupyterlab/cells";
 
-import { History } from "../../lilgit/model/history";
+import { History } from "./history";
 
-import { ASTUtils } from "../../lilgit/analysis/ast-utils";
+import { ASTUtils } from "../analysis/ast-utils";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 

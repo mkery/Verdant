@@ -7,6 +7,7 @@ import { CrumbBox } from "./crumb-box";
 import { Summary } from "./summary";
 import { EventMap } from "./event-map";
 import { Search } from "./search";
+import { VerdantNotebook } from "../verdant-notebook";
 
 const PANEL_CONTAINER = "v-VerdantPanel-content-container";
 const TAB_CONTAINER = "v-VerdantPanel-tabContainer";
@@ -55,6 +56,10 @@ export class VerdantPanel extends Widget {
     //this.runList.onGhostBookClosed();
   }
 
+  protected get notebook(): VerdantNotebook {
+    return this.history.notebook as VerdantNotebook;
+  }
+
   private buildHeaderNode() {
     let tabContainer = document.createElement("div");
     tabContainer.classList.add(TAB_CONTAINER);
@@ -101,7 +106,7 @@ export class VerdantPanel extends Widget {
   }
 
   openGhostBook(notebook: number) {
-    this.history.notebook.showGhostBook(notebook);
+    this.notebook.showGhostBook(notebook);
   }
 
   openSearch() {

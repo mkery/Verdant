@@ -26,13 +26,13 @@ import "../style/verdant-panel.css";
 
 import { AST } from "./lilgit/analysis/ast";
 
-import { VerNotebook } from "./lilgit/components/notebook";
+import { VerdantNotebook } from "./verdant/verdant-notebook";
 
 import { History } from "./lilgit/model/history";
 
 import { VerdantPanel } from "./verdant/panel/verdant-panel";
 
-import { RenderBaby } from "./verdant/jupyter-hooks/render-baby";
+import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
 
 /**
  * Initialization data for the Verdant extension.
@@ -125,7 +125,7 @@ type VerdantInstance = {
   history: History;
   analysis: AST;
   ui: VerdantPanel;
-  notebook: VerNotebook;
+  notebook: VerdantNotebook;
   panel: NotebookPanel;
 };
 
@@ -139,7 +139,13 @@ function getInstance(panel: NotebookPanel) {
     let analysis = new AST(history);
     let ui = new VerdantPanel(history);
     sidePanel.addWidget(ui);
-    let notebook = new VerNotebook(panel, history, analysis, ui, openGhostBook);
+    let notebook = new VerdantNotebook(
+      panel,
+      history,
+      analysis,
+      ui,
+      openGhostBook
+    );
     verInst = { history, analysis, ui, notebook, panel };
     instances.push(verInst);
     notebook.ready.then(() => {
