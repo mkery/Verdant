@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
-import { History } from "../../model/history";
-import { Checkpoint, ChangeType } from "../../model/checkpoint";
+import { History } from "../../../lilgit/model/history";
+import { Checkpoint, ChangeType } from "../../../lilgit/model/checkpoint";
 import { NotebookEventLabel } from "./event-label";
 
 const EVENT_ROW = "Verdant-events-row";

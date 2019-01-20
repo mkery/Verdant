@@ -2,7 +2,7 @@ import { VerNotebook } from "../components/notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { PromiseDelegate } from "@phosphor/coreutils";
-import { Sampler } from "../sampler/sampler";
+import { Sampler } from "./sampler";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 

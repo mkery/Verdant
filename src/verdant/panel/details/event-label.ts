@@ -1,5 +1,5 @@
 import { Widget } from "@phosphor/widgets";
-import { Checkpoint, CheckpointType } from "../../model/checkpoint";
+import { Checkpoint, CheckpointType } from "../../../lilgit/model/checkpoint";
 
 const EVENT_LABEL = "Verdant-events-label";
 

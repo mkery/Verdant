@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
 import { VersionSampler } from "../../sampler/version-sampler";
-import { Nodey } from "../../model/nodey";
+import { Nodey } from "../../../lilgit/model/nodey";
 
 const FILTER_BUTTON = "v-VerdantPanel-filter-box-icon";
 const FILTER_TAG_BIN = "v-VerdantPanel-filter-tag-bin";

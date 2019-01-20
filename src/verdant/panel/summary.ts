@@ -1,10 +1,10 @@
 import { Widget } from "@phosphor/widgets";
 import { CellSampler } from "../sampler/cell-sampler";
-import { History } from "../model/history";
-import { VerNotebook } from "../components/notebook";
-import { VerCell } from "../components/cell";
-import { Nodey } from "../model/nodey";
-import { Checkpoint, CheckpointType } from "../model/checkpoint";
+import { History } from "../../lilgit/model/history";
+import { VerNotebook } from "../../lilgit/components/notebook";
+import { VerCell } from "../../lilgit/components/cell";
+import { Nodey } from "../../lilgit/model/nodey";
+import { Checkpoint, CheckpointType } from "../../lilgit/model/checkpoint";
 
 const PANEL = "v-VerdantPanel-content";
 const SUMMARY = "v-VerdantPanel-Summary";

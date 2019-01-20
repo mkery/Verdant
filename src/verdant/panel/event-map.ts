@@ -1,6 +1,6 @@
 import { Widget } from "@phosphor/widgets";
-import { History } from "../model/history";
-import { Checkpoint } from "../model/checkpoint";
+import { History } from "../../lilgit/model/history";
+import { Checkpoint } from "../../lilgit/model/checkpoint";
 import { NotebookEvent } from "./details/event";
 import { VerdantPanel } from "./verdant-panel";
 import { VersionSampler } from "../sampler/version-sampler";

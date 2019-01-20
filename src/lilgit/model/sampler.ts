@@ -9,11 +9,11 @@ import {
   NodeyOutput,
   SyntaxToken,
   NodeyCodeCell
-} from "../model/nodey";
+} from "./nodey";
 
 import { CodeCell } from "@jupyterlab/cells";
 
-import { History } from "../model/history";
+import { History } from "./history";
 
 import { ASTUtils } from "../analysis/ast-utils";
 

@@ -125,8 +125,18 @@ export class NotebookListen {
   private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
-      var verCell = await this.verNotebook.createCell(cell, newIndex, false);
-      console.log("adding a new cell!", cell, verCell, verCell.model);
+      var [verCell, checkpoint] = await this.verNotebook.createCell(
+        cell,
+        newIndex,
+        false
+      );
+      console.log(
+        "adding a new cell!",
+        cell,
+        verCell,
+        verCell.model,
+        checkpoint
+      );
     });
   }
 

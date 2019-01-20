@@ -4,9 +4,9 @@ import {
   NodeyCode,
   NodeyOutput,
   NodeyCodeCell
-} from "../model/nodey";
-import { History } from "../model/history";
-import { Sampler } from "./sampler";
+} from "../../lilgit/model/nodey";
+import { History } from "../../lilgit/model/history";
+import { Sampler } from "../../lilgit/model/sampler";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const SEARCH_SAMPLE = "v-VerdantPanel-search-version";

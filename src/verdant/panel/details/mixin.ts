@@ -6,9 +6,9 @@ import {
   NodeyCode,
   NodeyMarkdown,
   NodeyOutput
-} from "../../model/nodey";
+} from "../../../lilgit/model/nodey";
 
-import { History } from "../../model/history";
+import { History } from "../../../lilgit/model/history";
 
 import { VersionSampler } from "../../sampler/version-sampler";
 

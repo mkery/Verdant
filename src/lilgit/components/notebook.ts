@@ -3,38 +3,26 @@ import { PathExt } from "@jupyterlab/coreutils";
 import { PromiseDelegate } from "@phosphor/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
+import { Checkpoint } from "../model/checkpoint";
 import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
 import { Star } from "../model/history-stage";
 import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyCell } from "../model/nodey";
-import { VerdantPanel } from "../panel/verdant-panel";
-import { Ghost } from "../ghost-book/ghost";
 
 /*
 * Notebook holds a list of cells
 */
 export class VerNotebook {
-  private panel: VerdantPanel;
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
-  private ghost: Ghost;
-  private readonly openGhost: (hist: History, ver: number) => Ghost;
   cells: VerCell[];
 
-  constructor(
-    notebookPanel: NotebookPanel,
-    history: History,
-    ast: AST,
-    panel: VerdantPanel,
-    openGhostBook: (hist: History, ver: number) => Ghost
-  ) {
+  constructor(history: History, ast: AST, notebookPanel: NotebookPanel) {
     this.history = history;
     this.ast = ast;
-    this.panel = panel;
-    this.openGhost = openGhostBook;
     this.view = new NotebookListen(notebookPanel, this);
     this.cells = [];
     this.init();
@@ -42,10 +30,6 @@ export class VerNotebook {
 
   public get ready(): Promise<void> {
     return this._ready.promise;
-  }
-
-  public get ghostBook(): Ghost {
-    return this.ghost;
   }
 
   /* also a load event */
@@ -127,7 +111,7 @@ export class VerNotebook {
     return this.view.metadata;
   }
 
-  public async run(cellModel: ICellModel) {
+  public async run(cellModel: ICellModel): Promise<[NodeyCell, Checkpoint]> {
     // first start a checkpoint for this run
     let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
@@ -145,9 +129,10 @@ export class VerNotebook {
     resolve(newNodey, same, notebook.version);
 
     console.log("commited cell", newNodey);
-    // update display
-    this.panel.updateCells(newNodey, checkpoint);
+
     this.saveToFile();
+
+    return [newNodey, checkpoint];
   }
 
   private saveToFile() {
@@ -155,43 +140,44 @@ export class VerNotebook {
     this.history.store.writeToFile(this, this.history);
   }
 
-  public async save() {
-    //  start a checkpoint for this run
-    let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
-    // now see if there are any unsaved changes
-    let nodey = this.model;
-    if (nodey instanceof Star) {
-      // look through cells for unsaved changes
-      let cellCommits: Promise<[NodeyCell, boolean]>[] = [];
-      this.cells.forEach(cell => {
-        let cellNode = cell.model;
-        if (cellNode instanceof Star) {
-          cellCommits.push(cell.repairAndCommit(checkpoint));
-        }
-      });
-
-      Promise.all(cellCommits).then(cellsDone => {
-        // check which cells are verified to have changed
-        let changedCells: NodeyCell[] = [];
-        cellsDone.forEach(item => {
-          let [newNodey, same] = item;
-          if (!same) changedCells.push(newNodey);
+  public async save(): Promise<[NodeyCell[], Checkpoint]> {
+    return new Promise<[NodeyCell[], Checkpoint]>((accept, reject) => {
+      //  start a checkpoint for this run
+      let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
+      // now see if there are any unsaved changes
+      let nodey = this.model;
+      if (nodey instanceof Star) {
+        // look through cells for unsaved changes
+        let cellCommits: Promise<[NodeyCell, boolean]>[] = [];
+        this.cells.forEach(cell => {
+          let cellNode = cell.model;
+          if (cellNode instanceof Star) {
+            cellCommits.push(cell.repairAndCommit(checkpoint));
+          }
         });
 
-        // commit the notebook if the cell has changed
-        let notebook = this.history.stage.commit(checkpoint, this.model);
-        console.log("notebook commited", notebook, this.model);
+        Promise.all(cellCommits).then(cellsDone => {
+          // check which cells are verified to have changed
+          let changedCells: NodeyCell[] = [];
+          cellsDone.forEach(item => {
+            let [newNodey, same] = item;
+            if (!same) changedCells.push(newNodey);
+          });
 
-        // finish the checkpoint with info from this run
-        resolve(changedCells, notebook.version);
+          // commit the notebook if the cell has changed
+          let notebook = this.history.stage.commit(checkpoint, this.model);
+          console.log("notebook commited", notebook, this.model);
 
-        this.panel.updateCells(changedCells, checkpoint);
-      });
-    } else {
-      resolve([], nodey.version);
-      this.panel.updateCells([], checkpoint);
-    }
-    this.saveToFile();
+          // finish the checkpoint with info from this run
+          resolve(changedCells, notebook.version);
+          accept([changedCells, checkpoint]);
+        });
+      } else {
+        resolve([], nodey.version);
+        accept([[], checkpoint]);
+      }
+      this.saveToFile();
+    });
   }
 
   public getCell(cell: ICellModel): VerCell {
@@ -206,7 +192,7 @@ export class VerNotebook {
     cell: Cell,
     index: number,
     match: boolean
-  ): Promise<VerCell> {
+  ): Promise<[VerCell, Checkpoint]> {
     console.log("CELL ADDED");
     let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
     let nodey = await this.ast.createCellNodey(cell, checkpoint);
@@ -227,8 +213,7 @@ export class VerNotebook {
 
     // finish up
     resolve(newCell.model, notebook.version);
-    this.panel.updateCells(newCell.lastSavedModel, checkpoint, index);
-    return newCell;
+    return [newCell, checkpoint];
   }
 
   public deleteCell(index: number) {
@@ -247,7 +232,7 @@ export class VerNotebook {
 
     // finish up
     resolve(oldCell[0].model, notebook.version, index);
-    this.panel.updateCells(oldCell[0].lastSavedModel, checkpoint, index);
+    return [oldCell[0], checkpoint];
   }
 
   public moveCell(cell: VerCell, oldPos: number, newPos: number) {
@@ -270,10 +255,13 @@ export class VerNotebook {
 
     // finish up
     resolve(cell.model, notebook.version);
-    this.panel.updateCells(cell.lastSavedModel, checkpoint, oldPos, newPos);
+    return checkpoint;
   }
 
-  public async switchCellType(index: number, newCell: Cell) {
+  public async switchCellType(
+    index: number,
+    newCell: Cell
+  ): Promise<[VerCell, Checkpoint]> {
     // first start a checkpoint for this run
     let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
@@ -298,23 +286,10 @@ export class VerNotebook {
     // finish the checkpoint with info from this run
     resolve(newNodey, false, model.value.version);
 
-    // update display
-    this.panel.updateCells(verCell.lastSavedModel, checkpoint);
+    return [verCell, checkpoint];
   }
 
-  public focusCell(cell: VerCell) {
-    let index = this.cells.indexOf(cell);
-    this.panel.highlightCell(index);
-  }
-
-  public showGhostBook(version: number) {
-    if (!this.ghost) {
-      this.ghost = this.openGhost(this.history, version);
-      this.ghost.disposed.connect(() => {
-        this.ghost = null;
-      });
-    } else this.ghost.showVersion(version);
-  }
+  public focusCell(cell: VerCell) {}
 
   public dump(): void {
     return this.history.dump();

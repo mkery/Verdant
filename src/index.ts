@@ -4,7 +4,7 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
-import { Ghost } from "./ghost-book/ghost";
+import { Ghost } from "./verdant/ghost-book/ghost";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
@@ -12,7 +12,7 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { NotebookPanel } from "@jupyterlab/notebook";
 
-import { FileManager } from "./jupyter-hooks/file-manager";
+import { FileManager } from "./lilgit/jupyter-hooks/file-manager";
 
 import { StackedPanel } from "@phosphor/widgets";
 
@@ -24,15 +24,15 @@ import "../style/sampler.css";
 import "../style/activity.css";
 import "../style/verdant-panel.css";
 
-import { AST } from "./analysis/ast";
+import { AST } from "./lilgit/analysis/ast";
 
-import { VerNotebook } from "./components/notebook";
+import { VerdantNotebook } from "./verdant/verdant-notebook";
 
-import { History } from "./model/history";
+import { History } from "./lilgit/model/history";
 
-import { VerdantPanel } from "./panel/verdant-panel";
+import { VerdantPanel } from "./verdant/panel/verdant-panel";
 
-import { RenderBaby } from "./jupyter-hooks/render-baby";
+import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
 
 /**
  * Initialization data for the Verdant extension.
@@ -125,7 +125,7 @@ type VerdantInstance = {
   history: History;
   analysis: AST;
   ui: VerdantPanel;
-  notebook: VerNotebook;
+  notebook: VerdantNotebook;
   panel: NotebookPanel;
 };
 
@@ -139,7 +139,13 @@ function getInstance(panel: NotebookPanel) {
     let analysis = new AST(history);
     let ui = new VerdantPanel(history);
     sidePanel.addWidget(ui);
-    let notebook = new VerNotebook(panel, history, analysis, ui, openGhostBook);
+    let notebook = new VerdantNotebook(
+      panel,
+      history,
+      analysis,
+      ui,
+      openGhostBook
+    );
     verInst = { history, analysis, ui, notebook, panel };
     instances.push(verInst);
     notebook.ready.then(() => {
