@@ -1,7 +1,7 @@
 # Verdant (still cooking :cake:, for release in May 2019)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-🌱🌿🌱 Verdant is a JupyterLab extension that automatically records history of all exteriments you run in a Jupyter notebook, and stores them in a tidy .ipyhistory JSON file designed to be work alongside and compliment any other version control you use, like SVN or Git. Verdant also visualizes history of individual cells, code snippets, markdown, and outputs for you, for quick checks and references as you work.
+🌱🌿🌱 Verdant is a JupyterLab extension that automatically records history of all experiments you run in a Jupyter notebook, and stores them in a tidy .ipyhistory JSON file designed to be work alongside and compliment any other version control you use, like SVN or Git. Verdant also visualizes history of individual cells, code snippets, markdown, and outputs for you, for quick checks and references as you work.
 
 [[Demo preview video]](https://www.youtube.com/watch?v=4v_mHIJdZq0&t=4s) [![Verdant demo](https://github.com/mkery/Verdant/blob/master/design/verdant_run.jpg?raw=true)](https://www.youtube.com/watch?v=4v_mHIJdZq0&t=4s)
 Figure description: 
