@@ -82,7 +82,7 @@ export class HistoryStore {
       case "TEMP": // an unsaved star node
         return undefined;
       default:
-        throw new Error("nodey type not found" + name);
+        throw new Error("nodey type not found" + name + " " + typeof name);
     }
   }
 

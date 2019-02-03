@@ -76,6 +76,7 @@ export class Mixin extends Widget {
     contentDiv.innerHTML = "";
 
     let target = this.targetList[0];
+    console.log("TARGETS", this.targetList);
     let history = this.history.store.getHistoryOf(target);
 
     history.versions.forEach(async nodeyVer => {

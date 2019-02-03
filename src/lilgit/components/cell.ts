@@ -55,7 +55,8 @@ export class VerCell {
    * returns a Star, which is a still unsaved version of this cell
    */
   public get lastSavedModel(): NodeyCell {
-    return this.notebook.history.store.getHistoryOf(this.modelName).lastSaved;
+    let history = this.notebook.history.store.getHistoryOf(this.modelName);
+    return history.lastSaved;
   }
 
   /**

@@ -151,6 +151,7 @@
   height: calc(2em + var(--jp-code-padding) * 2);
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
 }
 .v-VerdantPanel-Summary-cell.selected,
 .v-VerdantPanel-Summary-cell:hover {
@@ -202,6 +203,26 @@
 .v-VerdantPanel-Summary-header-vLabel {
   display: inline-block;
   float: right;
+}
+
+.v-VerdantPanel-Summary-code-vLabel {
+  font-size: var(--jp-content-font-size0);
+  margin-left: -1em;
+}
+
+.v-VerdantPanel-Summary-out-vLabel {
+  font-size: var(--jp-content-font-size0);
+  margin-left: 1em;
+}
+
+.v-VerdantPanel-Summary-code-vLabel-border {
+  border-top: 1px solid var(--jp-border-color3);
+  transform-origin: center;
+  transform: rotate(-45deg);
+  width: calc(100% + 2 * var(--jp-code-padding));
+  position: absolute;
+  top: 50%;
+  right: calc(var(--jp-code-padding) * -1);
 }
 
 .VerdantPanel-search-results-message {

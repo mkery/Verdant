@@ -54,7 +54,7 @@ export class Sampler {
   }
 
   public set target(nodey: Nodey) {
-    //console.log("new target!", nodey);
+    console.log("new target!", nodey);
     this._target = nodey;
     this._targetChanged.emit(this._target);
   }
@@ -72,7 +72,7 @@ export class Sampler {
     cell: CodeCell,
     elem: HTMLElement
   ) {
-    //console.log("figuring out target");
+    console.log("figuring out target");
     let codeBlock = this.findAncestor(elem, "CodeMirror-code");
     let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     let lineDiv = this.findAncestor(elem, "CodeMirror-line");
@@ -170,9 +170,8 @@ export class Sampler {
           line += name.tokens;
         } else {
           var child = this.history.store.get(name) as NodeyCode;
-          if (child.start) {
-            if (child.start.line === lineNum)
-              line = this.getLineContent(lineNum, line, child);
+          if (child.start && child.start.line === lineNum) {
+            line = this.getLineContent(lineNum, line, child);
           } else {
             line = this.getLineContent(lineNum, line, child);
             let ls = line.split("\n");

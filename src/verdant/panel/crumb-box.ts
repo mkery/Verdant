@@ -72,6 +72,7 @@ export class CrumbBox extends Widget {
   }
 
   changeTarget(node: Nodey) {
+    console.log("changeTarget", node);
     if (this._active && this._target !== node) {
       this._target = node;
       this.buildCrumbMenu();

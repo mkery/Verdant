@@ -73,18 +73,9 @@ export namespace ASTUtils {
     historyStore: HistoryStore,
     forceTie: string = null
   ) {
-    if ("start" in dict === false) {
-      dict.start = { line: 1, ch: 0 };
-      dict.end = { line: 1, ch: 0 };
-    }
     if ("type" in dict === false) {
       dict.type = "Module";
     }
-
-    dict.start.line -= 1; // convert the coordinates of the range to code mirror style
-    dict.end.line -= 1;
-    dict.start.ch -= 1;
-    dict.end.ch -= 1;
 
     var n = new NodeyCodeCell(dict);
     if (forceTie) {
@@ -103,11 +94,6 @@ export namespace ASTUtils {
     historyStore: HistoryStore,
     prior: NodeyCode = null
   ): NodeyCode {
-    dict.start.line -= 1; // convert the coordinates of the range to code mirror style
-    dict.end.line -= 1;
-    dict.start.ch -= 1;
-    dict.end.ch -= 1;
-
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict);
     historyStore.store(n);

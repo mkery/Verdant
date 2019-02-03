@@ -152,7 +152,7 @@ export class AST {
 
     let fullUrl = URLExt.join(this.serverSettings.baseUrl, "/lilgit/parse");
 
-    return new Promise<string>((accept, reject) => {
+    return new Promise<string>(accept => {
       ServerConnection.makeRequest(
         fullUrl,
         fullRequest,
@@ -160,12 +160,25 @@ export class AST {
       ).then(response => {
         if (response.status !== 200) {
           response.text().then(data => {
-            reject("");
-            throw new ServerConnection.ResponseError(response, data);
+            console.error("A parser error occured on:\n " + text + "\n" + data);
+            accept(JSON.stringify(this.failSafeParse(text)));
           });
         } else response.text().then(data => accept(data));
       });
     });
+  }
+
+  private failSafeParse(code: string) {
+    let failsafe = {
+      type: "Module",
+      start: { line: 0, ch: 0 },
+      end: { line: 0, ch: 0 },
+      literal: code
+    };
+    let lines = code.split("\n");
+    let lastCh = lines[lines.length - 1].length;
+    failsafe["end"] = { line: lines.length - 1, ch: lastCh - 1 };
+    return failsafe;
   }
 
   private cleanCodeString(code: string): string {

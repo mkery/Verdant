@@ -18,6 +18,7 @@ export class VerNotebook {
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
+  private eventQueue: Promise<any>[] = [];
   cells: VerCell[];
 
   constructor(history: History, ast: AST, notebookPanel: NotebookPanel) {
@@ -52,47 +53,52 @@ export class VerNotebook {
   }
 
   private async load(matchPrior: boolean) {
-    // first start a checkpoint for this load event
-    let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
+    let ev = new Promise(async (accept, reject) => {
+      // first start a checkpoint for this load event
+      let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
 
-    let model;
-    if (matchPrior) {
-      model = this.model;
-    }
-    let [newNotebook, changedCells] = await this.ast.repairNotebook(
-      model,
-      this.view.notebook,
-      checkpoint
-    );
-    let notebook: NodeyNotebook;
+      let model;
+      if (matchPrior) {
+        model = this.model;
+      }
+      let [newNotebook, changedCells] = await this.ast.repairNotebook(
+        model,
+        this.view.notebook,
+        checkpoint
+      );
+      let notebook: NodeyNotebook;
 
-    if (newNotebook instanceof Star) {
-      this.cells.forEach(cell => {
-        let cellNode = cell.model;
-        if (cellNode instanceof Star) {
-          cell.commit(checkpoint);
+      if (newNotebook instanceof Star) {
+        this.cells.forEach(cell => {
+          let cellNode = cell.model;
+          if (cellNode instanceof Star) {
+            cell.commit(checkpoint);
+          }
+        });
+
+        // commit the notebook if the cell has changed
+        notebook = this.history.stage.commit(
+          checkpoint,
+          this.model
+        ) as NodeyNotebook;
+      } else notebook = newNotebook;
+
+      // commit the cell if it has changed
+      this.view.notebook.widgets.forEach((item, index) => {
+        if (item instanceof Cell) {
+          let name = notebook.cells[index];
+          let cell: VerCell = new VerCell(this, item, name);
+          this.cells.push(cell);
         }
       });
+      console.log("cell names", this.cells);
 
-      // commit the notebook if the cell has changed
-      notebook = this.history.stage.commit(
-        checkpoint,
-        this.model
-      ) as NodeyNotebook;
-    } else notebook = newNotebook;
-
-    // commit the cell if it has changed
-    this.view.notebook.widgets.forEach((item, index) => {
-      if (item instanceof Cell) {
-        let name = notebook.cells[index];
-        let cell: VerCell = new VerCell(this, item, name);
-        this.cells.push(cell);
-      }
+      // finish the checkpoint with info from this run
+      resolve(changedCells, notebook.version);
+      accept();
     });
-    console.log("cell names", this.cells);
-
-    // finish the checkpoint with info from this run
-    resolve(changedCells, notebook.version);
+    this.eventQueue.push(ev);
+    return ev;
   }
 
   get model(): NodeyNotebook | Star<NodeyNotebook> {
@@ -112,27 +118,32 @@ export class VerNotebook {
   }
 
   public async run(cellModel: ICellModel): Promise<[NodeyCell, Checkpoint]> {
-    // first start a checkpoint for this run
-    let [checkpoint, resolve] = this.history.checkpoints.cellRun();
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<[NodeyCell, Checkpoint]>(async (accept, reject) => {
+      // first start a checkpoint for this run
+      let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
-    // now repair the cell against the prior version
-    let cell = this.getCell(cellModel);
-    console.log("LOOKING FOR CELL", cellModel, this.cells);
-    let [newNodey, same] = await cell.repairAndCommit(checkpoint);
-    console.log("SAME?", same);
+      // now repair the cell against the prior version
+      let cell = this.getCell(cellModel);
+      console.log("LOOKING FOR CELL", cellModel, this.cells);
+      let [newNodey, same] = await cell.repairAndCommit(checkpoint);
+      console.log("SAME?", same);
 
-    // commit the notebook if the cell has changed
-    let notebook = this.history.stage.commit(checkpoint, this.model);
-    console.log("notebook commited", notebook, this.model);
+      // commit the notebook if the cell has changed
+      let notebook = this.history.stage.commit(checkpoint, this.model);
+      console.log("notebook commited", notebook, this.model);
 
-    // finish the checkpoint with info from this run
-    resolve(newNodey, same, notebook.version);
+      // finish the checkpoint with info from this run
+      resolve(newNodey, same, notebook.version);
 
-    console.log("commited cell", newNodey);
+      console.log("commited cell", newNodey);
 
-    this.saveToFile();
+      this.saveToFile();
 
-    return [newNodey, checkpoint];
+      accept([newNodey, checkpoint]);
+    });
+    this.eventQueue.push(ev);
+    return ev;
   }
 
   private saveToFile() {
@@ -141,7 +152,8 @@ export class VerNotebook {
   }
 
   public async save(): Promise<[NodeyCell[], Checkpoint]> {
-    return new Promise<[NodeyCell[], Checkpoint]>((accept, reject) => {
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<[NodeyCell[], Checkpoint]>(async (accept, reject) => {
       //  start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
       // now see if there are any unsaved changes
@@ -178,10 +190,15 @@ export class VerNotebook {
       }
       this.saveToFile();
     });
+    this.eventQueue.push(ev);
+    return ev;
   }
 
   public getCell(cell: ICellModel): VerCell {
-    return this.cells.find(item => item.view.model.id === cell.id);
+    console.log("CELLS ARE:", this.cells);
+    return this.cells.find(item => {
+      if (item.view && item.view.model) return item.view.model.id === cell.id;
+    });
   }
 
   public getCellByNode(cell: NodeyCell | Star<NodeyCell>): VerCell {
@@ -193,103 +210,139 @@ export class VerNotebook {
     index: number,
     match: boolean
   ): Promise<[VerCell, Checkpoint]> {
-    console.log("CELL ADDED");
-    let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
-    let nodey = await this.ast.createCellNodey(cell, checkpoint);
-    let newCell = new VerCell(this, cell, nodey.name);
-    this.cells.splice(index, 0, newCell);
+    if (!this.ready) return;
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
+      console.log("CELL ADDED");
+      let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
+      let nodey = await this.ast.createCellNodey(cell, checkpoint);
+      let newCell = new VerCell(this, cell, nodey.name);
+      this.cells.splice(index, 0, newCell);
 
-    // make sure cell is added to model
-    let model = this.history.stage.markAsEdited(this.model) as Star<
-      NodeyNotebook
-    >;
-    model.value.cells.splice(index, 0, newCell.model.name);
-    newCell.model.parent = this.model.name;
-    console.log("CELL CREATED", newCell, this.cells);
+      // make sure cell is added to model
+      let model = this.history.stage.markAsEdited(this.model) as Star<
+        NodeyNotebook
+      >;
+      model.value.cells.splice(index, 0, newCell.model.name);
+      newCell.model.parent = this.model.name;
+      console.log("CELL CREATED", model, newCell, this.cells);
 
-    // commit the notebook
-    let notebook = this.history.stage.commit(checkpoint, model);
-    console.log("notebook commited", notebook, this.model);
+      // commit the notebook
+      let notebook = this.history.stage.commit(checkpoint, model);
+      console.log("notebook commited", notebook, this.model);
 
-    // finish up
-    resolve(newCell.model, notebook.version);
-    return [newCell, checkpoint];
+      // finish up
+      resolve(newCell.model, notebook.version);
+      accept([newCell, checkpoint]);
+    });
+    this.eventQueue.push(ev);
+    return ev;
   }
 
-  public deleteCell(index: number) {
-    let oldCell = this.cells.splice(index, 1);
-    let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
+  public async deleteCell(index: number): Promise<[VerCell, Checkpoint]> {
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
+      let oldCell = this.cells.splice(index, 1);
+      let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
 
-    // make sure cell is removed from model
-    let model = this.history.stage.markAsEdited(this.model) as Star<
-      NodeyNotebook
-    >;
-    model.value.cells.splice(index, 1);
+      // make sure cell is removed from model
+      let model = this.history.stage.markAsEdited(this.model) as Star<
+        NodeyNotebook
+      >;
+      model.value.cells.splice(index, 1);
 
-    // commit the notebook if the cell has changed
-    let notebook = this.history.stage.commit(checkpoint, this.model);
-    console.log("notebook commited", notebook, this.model);
+      // commit the notebook if the cell has changed
+      let notebook = this.history.stage.commit(checkpoint, this.model);
+      console.log("notebook commited", notebook, this.model);
 
-    // finish up
-    resolve(oldCell[0].model, notebook.version, index);
-    return [oldCell[0], checkpoint];
+      // finish up
+      resolve(oldCell[0].model, notebook.version, index);
+      accept([oldCell[0], checkpoint]);
+    });
+    this.eventQueue.push(ev);
+    return ev;
   }
 
-  public moveCell(cell: VerCell, oldPos: number, newPos: number) {
-    this.cells.splice(oldPos, 1);
-    this.cells.splice(newPos, 0, cell);
+  public async moveCell(
+    cell: VerCell,
+    oldPos: number,
+    newPos: number
+  ): Promise<Checkpoint> {
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<Checkpoint>(async (accept, reject) => {
+      this.cells.splice(oldPos, 1);
+      this.cells.splice(newPos, 0, cell);
 
-    //get checkpoint
-    let [checkpoint, resolve] = this.history.checkpoints.cellMoved();
+      //get checkpoint
+      let [checkpoint, resolve] = this.history.checkpoints.cellMoved();
 
-    // make sure cell is moved in the model
-    let model = this.history.stage.markAsEdited(this.model) as Star<
-      NodeyNotebook
-    >;
-    model.value.cells.splice(oldPos, 1);
-    model.value.cells.splice(newPos, 0, cell.model.name);
+      // make sure cell is moved in the model
+      let model = this.history.stage.markAsEdited(this.model) as Star<
+        NodeyNotebook
+      >;
+      model.value.cells.splice(oldPos, 1);
+      model.value.cells.splice(newPos, 0, cell.model.name);
 
-    // commit the notebook
-    let notebook = this.history.stage.commit(checkpoint, this.model);
-    console.log("notebook commited", notebook, this.model);
+      // commit the notebook
+      let notebook = this.history.stage.commit(checkpoint, this.model);
+      console.log("notebook commited", notebook, this.model);
 
-    // finish up
-    resolve(cell.model, notebook.version);
-    return checkpoint;
+      // finish up
+      resolve(cell.model, notebook.version);
+      accept(checkpoint);
+    });
+    this.eventQueue.push(ev);
+    return ev;
   }
 
   public async switchCellType(
     index: number,
     newCell: Cell
   ): Promise<[VerCell, Checkpoint]> {
-    // first start a checkpoint for this run
-    let [checkpoint, resolve] = this.history.checkpoints.cellRun();
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
+      // first start a checkpoint for this run
+      let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
-    let newNodey = await this.ast.createCellNodey(newCell, checkpoint);
-    let verCell = this.cells[index];
-    // TODO make pointer in history from old type to new type
-    //let oldNodey = verCell.model;
-    verCell.setModel(newNodey.name);
-    verCell.view = newCell;
+      let newNodey = await this.ast.createCellNodey(newCell, checkpoint);
+      let verCell = this.cells[index];
+      // TODO make pointer in history from old type to new type
+      //let oldNodey = verCell.model;
+      verCell.setModel(newNodey.name);
+      verCell.view = newCell;
 
-    // make sure cell is added to notebook model
-    let model = this.history.stage.markAsEdited(this.model) as Star<
-      NodeyNotebook
-    >;
-    model.value.cells.splice(index, 1, newNodey.name);
-    newNodey.parent = this.model.name;
+      // make sure cell is added to notebook model
+      let model = this.history.stage.markAsEdited(this.model) as Star<
+        NodeyNotebook
+      >;
+      model.value.cells.splice(index, 1, newNodey.name);
+      newNodey.parent = this.model.name;
 
-    // commit the notebook
-    let notebook = this.history.stage.commit(checkpoint, this.model);
-    console.log("notebook commited", notebook, this.model, verCell);
+      // commit the notebook
+      let notebook = this.history.stage.commit(checkpoint, this.model);
+      console.log("notebook commited", notebook, this.model, verCell);
 
-    // finish the checkpoint with info from this run
-    resolve(newNodey, false, model.value.version);
+      // finish the checkpoint with info from this run
+      resolve(newNodey, false, model.value.version);
 
-    return [verCell, checkpoint];
+      accept([verCell, checkpoint]);
+    });
+    this.eventQueue.push(ev);
+    return ev;
   }
 
-  public focusCell(cell: VerCell) {}
+  public async focusCell(cell: Cell): Promise<VerCell> {
+    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+    let ev = new Promise<VerCell>((accept, reject) => {
+      let verCell = this.getCell(cell.model);
+      if (verCell) {
+        this.view.activeCell = cell;
+      } else this.view.activeCell = null;
+      accept(verCell);
+    });
+    this.eventQueue.push(ev);
+    return ev;
+  }
 
   public dump(): void {
     return this.history.dump();

@@ -280,7 +280,7 @@ export class ASTResolve {
       row: row
     };
 
-    if ("literal" in dict || SyntaxToken.KEY in dict) {
+    if (dict["literal"] || SyntaxToken.KEY in dict) {
       //gotta check non-space Syntax tokens like brakets
       var index = nodeyList.push(option) - 1;
       leaves.push(index);

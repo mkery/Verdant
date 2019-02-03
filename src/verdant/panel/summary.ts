@@ -3,7 +3,7 @@ import { CellSampler } from "../sampler/cell-sampler";
 import { History } from "../../lilgit/model/history";
 import { VerNotebook } from "../../lilgit/components/notebook";
 import { VerCell } from "../../lilgit/components/cell";
-import { Nodey } from "../../lilgit/model/nodey";
+import { Nodey, NodeyCodeCell } from "../../lilgit/model/nodey";
 import { Checkpoint, CheckpointType } from "../../lilgit/model/checkpoint";
 
 const PANEL = "v-VerdantPanel-content";
@@ -13,6 +13,9 @@ const CELL = "v-VerdantPanel-Summary-cell";
 const NOTEBOOK_ICON = "v-VerdantPanel-Summary-notebook-icon";
 const NOTEBOOK_LABEL = "v-VerdantPanel-Summary-notebook-label";
 const NOTEBOOK_TITLE = "v-VerdantPanel-Summary-notebook-title";
+const CODE_VLABEL = "v-VerdantPanel-Summary-code-vLabel";
+const OUT_VLABEL = "v-VerdantPanel-Summary-out-vLabel";
+const CODE_VLABEL_BORDER = "v-VerdantPanel-Summary-code-vLabel-border";
 const HEADER = "v-VerdantPanel-Summary-header";
 const HEADER_ALABEL = "v-VerdantPanel-Summary-header-aLabel";
 const HEADER_VLABEL = "v-VerdantPanel-Summary-header-vLabel";
@@ -116,14 +119,8 @@ export class Summary extends Widget {
     this.verCol.appendChild(cellV);
     this.addCellEvents(cellA, cellV);
 
-    notebook.cells.forEach(cell => {
-      let model = cell.lastSavedModel;
-      sample = CellSampler.sampleCell(history, model);
-      vers = history.store.getHistoryOf(model.name);
-      [cellA, cellV] = this.buildCell(sample, vers.length);
-      this.artifactCol.appendChild(cellA);
-      this.verCol.appendChild(cellV);
-      this.addCellEvents(cellA, cellV, model);
+    notebook.cells.forEach((cell, index) => {
+      this.addCell(cell, index);
     });
   }
 
@@ -142,7 +139,11 @@ export class Summary extends Widget {
     let model = cell.lastSavedModel;
     let sample = CellSampler.sampleCell(this.history, model);
     let vers = this.history.store.getHistoryOf(model.name);
-    let [cellA, cellV] = this.buildCell(sample, vers.length);
+    let outVers;
+    if (model instanceof NodeyCodeCell) {
+      outVers = this.history.store.getHistoryOf(model.output).length;
+    }
+    let [cellA, cellV] = this.buildCell(sample, vers.length, outVers);
     this.replaceCell(cellA, cellV, index);
     this.addCellEvents(cellA, cellV, model);
   }
@@ -161,7 +162,11 @@ export class Summary extends Widget {
     let model = cell.lastSavedModel;
     let sample = CellSampler.sampleCell(this.history, model);
     let vers = this.history.store.getHistoryOf(model.name);
-    let [cellA, cellV] = this.buildCell(sample, vers.length);
+    let outVers;
+    if (model instanceof NodeyCodeCell) {
+      outVers = this.history.store.getHistoryOf(model.output).length;
+    }
+    let [cellA, cellV] = this.buildCell(sample, vers.length, outVers);
     this.artifactCol.insertBefore(cellA, this.artifactCol.children[index]);
     this.verCol.insertBefore(cellV, this.verCol.children[index + 1]);
     this.addCellEvents(cellA, cellV, model);
@@ -184,7 +189,11 @@ export class Summary extends Widget {
     this.verCol.insertBefore(ver, this.verCol.children[newPos]);
   }
 
-  private buildCell(title: HTMLElement, vers: number) {
+  private buildCell(
+    title: HTMLElement,
+    vers: number,
+    outVers: number = undefined
+  ) {
     let cellA = document.createElement("div");
     cellA.classList.add(CELL);
     cellA.appendChild(title);
@@ -192,7 +201,20 @@ export class Summary extends Widget {
     let cellV = document.createElement("div");
     cellV.classList.add(CELL);
     cellV.classList.add("ver");
-    cellV.textContent = vers + "";
+
+    if (outVers) {
+      let codeV = document.createElement("div");
+      codeV.textContent = vers + "";
+      codeV.classList.add(CODE_VLABEL);
+      cellV.appendChild(codeV);
+      let border = document.createElement("div");
+      border.classList.add(CODE_VLABEL_BORDER);
+      cellV.appendChild(border);
+      let outV = document.createElement("div");
+      outV.textContent = outVers + "";
+      outV.classList.add(OUT_VLABEL);
+      cellV.appendChild(outV);
+    } else cellV.textContent = vers + "";
 
     return [cellA, cellV];
   }

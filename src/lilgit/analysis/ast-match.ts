@@ -10,6 +10,8 @@ import * as levenshtein from "fast-levenshtein";
 
 import { ASTResolve } from "./ast-resolve";
 
+const DEBUG = false;
+
 export class ASTMatch {
   history: History;
   resolver: ASTResolve;
@@ -28,7 +30,7 @@ export class ASTMatch {
       $NodeyCode$.pendingUpdate(nodey) &&
       $NodeyCode$.pendingUpdate(nodey) === updateID
     ) {
-      console.log("Time to resolve", jsn, "with", nodey);
+      if (DEBUG) console.log("Time to resolve", jsn, "with", nodey);
 
       var dict: ParserNodey;
       if (jsn.length < 2) {
@@ -68,9 +70,9 @@ export class ASTMatch {
         else val = nodey;
         if (val instanceof NodeyCodeCell === false) {
           dict = ASTUtils.reduceASTDict(dict) as ParserNodey;
-          console.log("Reduced AST", dict, nodey);
+          if (DEBUG) console.log("Reduced AST", dict, nodey);
         }
-        console.log("COMPARING AST", dict, nodey);
+        if (DEBUG) console.log("COMPARING AST", dict, nodey);
         this.history.dump();
 
         /*
@@ -82,7 +84,14 @@ export class ASTMatch {
       */
         var [parsedList, newLeaves] = this.resolver.dictToNodeyList(dict);
         var [nodeyList, oldLeaves] = this.resolver.nodeyToLeaves(nodey);
-        console.log("Listified nodey", parsedList, nodeyList);
+        if (DEBUG)
+          console.log(
+            "Listified nodey",
+            parsedList,
+            nodeyList,
+            newLeaves,
+            oldLeaves
+          );
 
         /*
       * Next, match leaves
@@ -95,19 +104,20 @@ export class ASTMatch {
           parsedList,
           nodeyList
         );
-        console.log(
-          "Matched Leaves!",
-          parsedList,
-          nodeyList,
-          newParents,
-          newLeaves
-        );
+        if (DEBUG)
+          console.log(
+            "Matched Leaves!",
+            parsedList,
+            nodeyList,
+            newParents,
+            newLeaves
+          );
         while (newParents.length > 0) {
           var parents = newParents.pop();
           //just in case there is no parent on some levels
           while ((!parents || parents.length === 0) && newParents.length > 0)
             parents = newParents.pop();
-          console.log("need to match", parents, newParents);
+          if (DEBUG) console.log("need to match", parents, newParents);
           this.matchParentNodes(parents, parsedList, nodeyList);
           newParents = this.grabUnmatchedParents(
             parents,
@@ -130,12 +140,13 @@ export class ASTMatch {
         $NodeyCode$.setPendingUpdate(nodey, null);
       return newNodey;
     } else {
-      console.log(
-        "RECIEVED OLD UPDATE",
-        updateID,
-        jsn,
-        $NodeyCode$.pendingUpdate(nodey)
-      );
+      if (DEBUG)
+        console.log(
+          "RECIEVED OLD UPDATE",
+          updateID,
+          jsn,
+          $NodeyCode$.pendingUpdate(nodey)
+        );
       return nodey;
     }
   }
@@ -154,7 +165,7 @@ export class ASTMatch {
       var nodey = this.history.store.getLatestOf(
         nodeyMatch.nodey
       ) as $NodeyCode$;
-      //console.log("PARSED NODE", parsedNode, nodey);
+      //if(DEBUG) console.log("PARSED NODE", parsedNode, nodey);
       if (match.score !== 0) {
         // there was some change
         nodeyEdited = this.history.stage.markAsEdited(nodey) as Star<NodeyCode>;
@@ -182,33 +193,21 @@ export class ASTMatch {
           return child.name;
         });
         $NodeyCode$.setContent(nodeyEdited, content);
-        //console.log("edited node is ", nodeyEdited);
+        //if(DEBUG) console.log("edited node is ", nodeyEdited);
       }
+
       //fix position
-      if (!$NodeyCode$.getEnd(nodeyEdited)) {
-        $NodeyCode$.setStart(nodeyEdited, {
-          line: parsedNode.start.line - 1,
-          ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
-        });
-        $NodeyCode$.setEnd(nodeyEdited, {
-          line: parsedNode.end.line - 1,
-          ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
-        });
-      } else {
-        // fix position but be sure it's relative to this node snippet
-        // because may not be the whole cell, so does not start at 0
-        $NodeyCode$.setStart(nodeyEdited, {
-          line: parsedNode.start.line - 1,
-          ch: Math.max(parsedNode.start.ch - 1, 0) //TODO bug!
-        });
-        $NodeyCode$.setEnd(nodeyEdited, {
-          line: parsedNode.end.line - 1,
-          ch: Math.max(parsedNode.end.ch - 1, 0) //TODO bug!
-        });
-        $NodeyCode$.positionRelativeTo(nodeyEdited, parent);
-      }
+      $NodeyCode$.setStart(nodeyEdited, {
+        line: parsedNode.start.line,
+        ch: parsedNode.start.ch
+      });
+      $NodeyCode$.setEnd(nodeyEdited, {
+        line: parsedNode.end.line,
+        ch: parsedNode.end.ch
+      });
+      $NodeyCode$.positionRelativeTo(nodeyEdited, parent);
     } else {
-      console.log("New Node!", parsedNode, parent);
+      if (DEBUG) console.log("New Node!", parsedNode, parent);
       if ("syntok" in parsedNode) {
         /*
           Crud. This is a dead end for matching because if we've reached here,
@@ -216,7 +215,7 @@ export class ASTMatch {
           of code is commented out. Probably needs some special matching case
           to make smooth matching between code being commented and not //TODO
         */
-        console.log("Attempt force match!", parent);
+        if (DEBUG) console.log("Attempt force match!", parent);
         nodeyEdited = this.forceReplace(parent, parsedNode);
       } else {
         nodeyEdited = this.buildStarNode(parsedNode, parent, parsedList);
@@ -231,7 +230,7 @@ export class ASTMatch {
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyMatchOptions[]
   ): number[][] {
-    //console.log("GRAB grabUnmatchedParents ", matchedLeaves);
+    //if(DEBUG) console.log("GRAB grabUnmatchedParents ", matchedLeaves);
     if (matchedLeaves.length < 1) {
       // make sure we don't miss any nodes that need to be matched
       parsedList.map((item, index) => {
@@ -354,6 +353,7 @@ export class ASTMatch {
     parsedList: ParsedNodeOptions[],
     nodeyList: NodeyMatchOptions[]
   ): number {
+    if (DEBUG) console.log("SCORING Pair", parsedProfile, nodeyProfile);
     /*
     * Start with a perfect score
     */
@@ -380,7 +380,7 @@ export class ASTMatch {
     var nodeyNode = this.history.store.getLatestOf(
       nodeyProfile.nodey
     ) as $NodeyCode$;
-    console.log("Looking for nodey", nodeyProfile.nodey, nodeyNode);
+    if (DEBUG) console.log("Looking for nodey", nodeyProfile.nodey, nodeyNode);
     /*
     * Literal match score
     * Literal nodes do not score for type or children
@@ -389,14 +389,15 @@ export class ASTMatch {
     if ("literal" in parsedNode || nodeyLiteral) {
       if (!("literal" in parsedNode) || !nodeyLiteral) score = NO_MATCH_SCORE;
       else score += this.matchLiterals(parsedNode.literal, nodeyLiteral);
-      console.log(
-        "Matching two literals!",
-        score,
-        parsedNode.literal,
-        nodeyLiteral,
-        "literal" in parsedNode,
-        !nodeyLiteral
-      );
+      if (DEBUG)
+        console.log(
+          "Matching two literals!",
+          score,
+          parsedNode.literal,
+          nodeyLiteral,
+          "literal" in parsedNode,
+          !nodeyLiteral
+        );
       return score;
     }
 
@@ -405,7 +406,13 @@ export class ASTMatch {
     */
     let nodeyType = $NodeyCode$.getType(nodeyNode);
     let parsedType = parsedNode.type;
-    console.log("TYPE MATCH?", nodeyType, parsedType, nodeyType === parsedType);
+    if (DEBUG)
+      console.log(
+        "TYPE MATCH?",
+        nodeyType,
+        parsedType,
+        nodeyType === parsedType
+      );
     if (
       parsedType != "_" &&
       parsedType != "Module" &&
@@ -428,7 +435,7 @@ export class ASTMatch {
           var leaf = parsedList[index];
           if (leaf.match && leaf.match.index > -1) {
             childScore += leaf.match.score;
-            /*console.log(
+            /*if(DEBUG) console.log(
               "child matches " +
                 leaf.match.score +
                 " " +
@@ -446,7 +453,7 @@ export class ASTMatch {
             } else childScore += 1; //nodey child did not belong with nodeyNode
           } else {
             childScore += 1; //new child
-            console.log("leaf has no match, ", leaf, index); //DEBUG only
+            if (DEBUG) console.log("leaf has no match, ", leaf, index); //DEBUG only
           }
         } //handle syntax token matches for spaces
         else {
@@ -454,7 +461,7 @@ export class ASTMatch {
         }
       });
     }
-    //console.log("child score is ", childScore, score);
+    if (DEBUG) console.log("score is ", childScore, score);
     score += childScore;
     return score;
   }
@@ -472,7 +479,8 @@ export class ASTMatch {
       let nodey = this.history.store.get(nodeyOp.nodey);
       rendered = this.history.inspector.renderNode(nodey).text;
     }*/
-    console.log("Best match for ", parsedOp, "is " + score + " = ", nodeyOp);
+    if (DEBUG)
+      console.log("Best match for ", parsedOp, "is " + score + " = ", nodeyOp);
   }
 
   matchLeaves(
@@ -520,6 +528,8 @@ export class ASTMatch {
   ) {
     var parsedProfile = parsedList[parsedIndex];
     var i = 0;
+    if (DEBUG)
+      console.log("FINDING MATCH OPTIONS", parsedProfile, nodeyCandidates);
     while (parsedProfile.match === null && i < nodeyCandidates.length) {
       var candidate = nodeyCandidates[i];
       var nodeyProfile = nodeyList[candidate];
@@ -560,15 +570,10 @@ export class ASTMatch {
     * First create a new Nodey Code
     */
     let nodey = new NodeyCode(newNodeDat);
+    if (DEBUG) console.log("BUILD STAR", nodey, newNodeDat, parentNode);
     nodey.parent = parentNode.name;
     if (prior) $NodeyCode$.setRight(prior, nodey.name);
     prior = null;
-
-    /* convert the coordinates of the range to code mirror style */
-    nodey.start.line -= 1;
-    nodey.end.line -= 1;
-    nodey.start.ch -= 1;
-    nodey.end.ch -= 1;
 
     /*
     * Adjust the coordinates of the new node to be relative
@@ -609,14 +614,15 @@ export class ASTMatch {
         return child;
       });
 
-    console.log("Building star node for ", newNodeDat, star, parentNode);
+    if (DEBUG)
+      console.log("Building star node for ", newNodeDat, star, parentNode);
     return star;
   }
 
   private matchLiterals(a: string, b: string) {
     let score = levenshtein.get(a, b); // / Math.max(a.length, b.length);
     //if (score / Math.max(a.length, b.length) > 0.8) score = NO_MATCH_SCORE;
-    //console.log("maybe change literal", a, b, score);
+    //if(DEBUG) console.log("maybe change literal", a, b, score);
     return score;
   }
 
@@ -631,7 +637,7 @@ export class ASTMatch {
       nodeyEdited = this.history.stage.markAsEdited(nodey) as Star<NodeyCode>;
     if (nodeyEdited.value.literal) nodeyEdited.value.literal = null;
     nodeyEdited.value.content = [new SyntaxToken(parsedSyntok.syntok)];
-    console.log("FORCE REPLACE", nodeyEdited);
+    if (DEBUG) console.log("FORCE REPLACE", nodeyEdited);
     return nodeyEdited;
   }
 }

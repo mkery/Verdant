@@ -1,13 +1,12 @@
 """ LilGit Parser """
 '''
 python setup.py install
+python setup.py bdist_wheel
+pip install -U -I dist/lilgit_parser-0.2-py3-none-any.whl
 jupyter serverextension enable --py lilgit_parser
 jupyter serverextension enable --py lilgit_parser --sys-prefix --debug
 
 jupyter serverextension list
-
-python setup.py bdist_wheel
-pip install -U -I dist/lilgit_parser-0.2-py3-none-any.whl
 '''
 
 import json
