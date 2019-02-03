@@ -229,13 +229,18 @@ export class AST {
     text: string
   ) {
     return new Promise<NodeyCode>((accept, reject) => {
-      var [recieve_reply, newCode] = this.astResolve.repairCellAST(nodey, text);
-
-      this.parseRequest(newCode).then(response => {
-        console.log("RECIEVED ", response);
-        if (!response) reject();
-        accept(recieve_reply(response));
-      });
+      var [proceed, recieve_reply, newCode] = this.astResolve.repairCellAST(
+        nodey,
+        text
+      );
+      // only go ahead and parse if necissary
+      if (proceed)
+        this.parseRequest(newCode).then(response => {
+          console.log("RECIEVED ", response);
+          if (!response) reject();
+          accept(recieve_reply(response));
+        });
+      else accept(recieve_reply());
     });
   }
 }

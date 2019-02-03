@@ -213,6 +213,7 @@
 .v-VerdantPanel-Summary-out-vLabel {
   font-size: var(--jp-content-font-size0);
   margin-left: 1em;
+  color: var(--jp-content-font-color2);
 }
 
 .v-VerdantPanel-Summary-code-vLabel-border {

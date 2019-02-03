@@ -166,6 +166,7 @@ export class HistoryStage {
   * should return if there is any changes to commit true/false
   */
   public commit(checkpoint: Checkpoint, starCell?: Star<Nodey> | Nodey): Nodey {
+    console.log("Trying to commit!", starCell);
     if (starCell) {
       if (starCell instanceof Star) {
         if (starCell.value instanceof NodeyNotebook)
@@ -174,7 +175,9 @@ export class HistoryStage {
           return this.commitCodeCell(starCell, checkpoint.id);
         else if (starCell.value instanceof NodeyMarkdown)
           return this.commitMarkdown(starCell, checkpoint.id);
-      } else return starCell;
+      } else {
+        return starCell;
+      }
     }
   }
 
@@ -213,6 +216,9 @@ export class HistoryStage {
     } else {
       // if nothing was changed, nothing was changed
       cell = this.discardStar(starCell) as NodeyCodeCell;
+
+      // check if output should be committed even if code is the same
+      this.commitOutput(cell, eventId);
     }
 
     // update pointer in parent notebook
@@ -359,12 +365,12 @@ export class HistoryStage {
         newOutput = oldOutput;
       }
     }
-    /*console.log(
+    console.log(
       "OUTPUT HISTORY FOR",
       nodey,
       newOutput,
       this.history.store.getHistoryOf(newOutput)
-    );*/
+    );
     return newOutput;
   }
 

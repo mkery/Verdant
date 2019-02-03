@@ -122,7 +122,13 @@ export class VerCell {
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
 
     let same = newNodey.version === version;
-    console.log("SAME NAME?", newNodey.name, version);
+
+    // output count can increment without the code ver incrementing
+    if (newNodey instanceof NodeyCodeCell) {
+      let verOut = this.notebook.history.store.getHistoryOf(newNodey.output)
+        .versions.length;
+      same = same && newNodey.outputVer === verOut;
+    }
 
     return [newNodey, same];
   }

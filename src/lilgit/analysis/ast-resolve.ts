@@ -64,7 +64,7 @@ export class ASTResolve {
       "|" + textOrig + "|"
     );
     if (text === textOrig) {
-      return [() => nodeToFix, text];
+      return [false, () => nodeToFix, text];
     }
 
     var updateID = crypto.randomBytes(20).toString("hex");
@@ -75,7 +75,7 @@ export class ASTResolve {
       nodeToFix,
       updateID
     );
-    return [kernel_reply, text];
+    return [true, kernel_reply, text];
   }
 
   repairAST(
