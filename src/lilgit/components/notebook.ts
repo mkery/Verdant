@@ -3,7 +3,7 @@ import { PathExt } from "@jupyterlab/coreutils";
 import { PromiseDelegate } from "@phosphor/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
-import { Checkpoint } from "../model/checkpoint";
+import { Checkpoint, CellRunData } from "../model/checkpoint";
 import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "../model/history";
 import { Star } from "../model/history-stage";
@@ -57,15 +57,19 @@ export class VerNotebook {
       // first start a checkpoint for this load event
       let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
 
-      let model;
+      let newNotebook: NodeyNotebook | Star<NodeyNotebook>;
+      let changedCells: CellRunData[];
       if (matchPrior) {
-        model = this.model;
-      }
-      let [newNotebook, changedCells] = await this.ast.repairNotebook(
-        model,
-        this.view.notebook,
-        checkpoint
-      );
+        [newNotebook, changedCells] = await this.ast.hotStartNotebook(
+          this.view.notebook,
+          checkpoint
+        );
+      } else
+        [newNotebook, changedCells] = await this.ast.coldStartNotebook(
+          this.view.notebook,
+          checkpoint
+        );
+
       let notebook: NodeyNotebook;
 
       if (newNotebook instanceof Star) {
@@ -210,7 +214,7 @@ export class VerNotebook {
     index: number,
     match: boolean
   ): Promise<[VerCell, Checkpoint]> {
-    if (!this.ready) return;
+    if (!this.ready || !this.model) return;
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
     let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
       console.log("CELL ADDED");

@@ -192,8 +192,11 @@ export class HistoryStage {
         else {
           // cell may not be initialized yet if just added
           console.log(this.history.notebook.cells);
-          let waitCell = this.history.notebook.cells[index];
-          waitCell.model.parent = notebook.name;
+          // don't worry if cell hasn't been added yet.
+          if (this.history.notebook.cells.length > index) {
+            let waitCell = this.history.notebook.cells[index];
+            waitCell.model.parent = notebook.name;
+          }
         }
       });
       return notebook;
@@ -346,6 +349,7 @@ export class HistoryStage {
       if (history) {
         oldOutput = history.lastSaved as NodeyOutput;
         same = NodeyOutput.equals(output, oldOutput.raw);
+        console.log("SAME OUTPUT?", same, output, oldOutput.raw);
       }
       if (!same) {
         // make a new output

@@ -17,8 +17,6 @@ import { History } from "../model/history";
 import { ServerConnection } from "@jupyterlab/services";
 import { URLExt } from "@jupyterlab/coreutils";
 
-type jsn = { [key: string]: any };
-
 export class AST {
   readonly history: History;
 
@@ -34,64 +32,82 @@ export class AST {
     this.serverSettings = ServerConnection.makeSettings();
   }
 
-  public async repairNotebook(
-    matchTo: NodeyNotebook | Star<NodeyNotebook>,
+  public async coldStartNotebook(
+    notebook: Notebook,
+    checkpoint: Checkpoint
+  ): Promise<[NodeyNotebook, CellRunData[]]> {
+    let changedCells: CellRunData[] = [];
+    let model = new NodeyNotebook();
+    model.created = checkpoint.id;
+    this.history.store.store(model);
+    let cellsReady: Promise<void>[] = [];
+    notebook.widgets.forEach((item, index) => {
+      if (item instanceof Cell) {
+        cellsReady.push(
+          this.freshNodey(item, index, changedCells, checkpoint, model)
+        );
+      }
+    });
+    await Promise.all(cellsReady);
+
+    return [model, changedCells];
+  }
+
+  public async hotStartNotebook(
     notebook: Notebook,
     checkpoint: Checkpoint
   ): Promise<[NodeyNotebook | Star<NodeyNotebook>, CellRunData[]]> {
-    let model: NodeyNotebook | Star<NodeyNotebook>;
     let changedCells: CellRunData[] = [];
-    if (!matchTo) {
-      model = new NodeyNotebook();
-      this.history.store.store(model);
-      let cellsReady: Promise<void>[] = [];
-      notebook.widgets.forEach((item, index) => {
-        if (item instanceof Cell) {
-          cellsReady.push(
-            this.createCellNodey(item, checkpoint).then(nodey => {
-              (model as NodeyNotebook).cells[index] = nodey.name;
-              nodey.parent = model.name;
-              changedCells.push({
-                node: nodey.name,
-                changeType: ChangeType.ADDED
-              });
-            })
-          );
-        }
-      });
+    let prior = this.history.store.currentNotebook;
+    let newNotebook = this.history.stage.markAsEdited(prior) as Star<
+      NodeyNotebook
+    >;
+    let cellsReady: Promise<void>[] = [];
+    notebook.widgets.forEach((item, index) => {
+      if (item instanceof Cell) {
+        let name = newNotebook.value.cells[index];
 
-      await Promise.all(cellsReady);
-    } else {
-      let priorNotebook = this.history.store.currentNotebook;
-      let newNotebook = this.history.stage.markAsEdited(priorNotebook) as Star<
-        NodeyNotebook
-      >;
-      let cellsReady: Promise<void>[] = [];
-      notebook.widgets.forEach((item, index) => {
-        if (item instanceof Cell) {
-          let name = newNotebook.value.cells[index];
-          if (name && Cell instanceof CodeCell) {
-            let oldCell = this.history.store.get(name) as NodeyCodeCell;
-            let text: string = item.editor.model.value.text;
-            cellsReady.push(
-              this.matchASTOnInit(oldCell, text).then(newCell => {
+        if (name) {
+          // this cell has been seen before //TODO false assumption
+          let oldCell = this.history.store.get(name);
+          let text: string;
+          if (item instanceof CodeCell) text = item.editor.model.value.text;
+          else text = item.model.value.text;
+          cellsReady.push(
+            this.repairCell(oldCell, text).then(newCell => {
+              if (newCell instanceof Star) {
                 newNotebook.value.cells[index] = newCell.name;
                 newCell.parent = newNotebook.name;
-              })
-            );
-          } else if (name && Cell instanceof MarkdownCell) {
-            let oldCell = this.history.store.get(name) as NodeyMarkdown;
-            let newCell = this.history.stage.markAsEdited(oldCell);
-            let text = item.model.value.text;
-            (newCell.value as NodeyMarkdown).markdown = text;
-            newCell.value.parent = newNotebook.name;
-          }
+              }
+            })
+          );
+        } else {
+          cellsReady.push(
+            this.freshNodey(item, index, changedCells, checkpoint, newNotebook)
+          );
         }
-        model = newNotebook;
+      }
+    });
+    await Promise.all(cellsReady);
+    return [newNotebook, changedCells];
+  }
+
+  private async freshNodey(
+    cell: Cell,
+    index: number,
+    changedCells: CellRunData[],
+    checkpoint: Checkpoint,
+    notebook: NodeyNotebook | Star<NodeyNotebook>
+  ) {
+    return this.createCellNodey(cell, checkpoint).then(nodey => {
+      if (notebook instanceof Star) notebook.value.cells[index] = nodey.name;
+      else notebook.cells[index] = nodey.name;
+      nodey.parent = notebook.name;
+      changedCells.push({
+        node: nodey.name,
+        changeType: ChangeType.ADDED
       });
-      await Promise.all(cellsReady);
-    }
-    return [model, changedCells];
+    });
   }
 
   public async repairCell(nodey: NodeyCell | Star<NodeyCell>, text: string) {
@@ -115,7 +131,7 @@ export class AST {
       // First, create code cell from text
       let text: string = cell.editor.model.value.text;
       if (text.length > 0)
-        nodey = await this.generateCodeNodey(text, { created: checkpoint.id });
+        nodey = await this.generateCodeNodey(text, checkpoint.id);
       else {
         nodey = new NodeyCodeCell({
           start: { line: 1, ch: 0 },
@@ -138,6 +154,7 @@ export class AST {
       // create markdown cell from text
       let text = cell.model.value.text;
       nodey = new NodeyMarkdown({ markdown: text });
+      nodey.created = checkpoint.id;
       this.history.store.store(nodey);
     }
     return nodey;
@@ -205,22 +222,19 @@ export class AST {
     return newCode;
   }
 
-  private async matchASTOnInit(nodey: NodeyCodeCell, newCode: string) {
-    console.log("trying to match code on startup");
-    let recieve_reply = this.astResolve.matchASTOnInit(nodey);
-    let response = await this.parseRequest(newCode);
-    return recieve_reply(response);
-  }
-
   private async generateCodeNodey(
     code: string,
-    options: jsn = {}
+    checkpoint: number
   ): Promise<NodeyCode> {
     let jsn = await this.parseRequest(code);
-    var dict = options;
-    if (jsn.length > 2) dict = Object.assign({}, dict, JSON.parse(jsn));
+    var dict = {};
+    if (jsn.length > 2) dict = JSON.parse(jsn);
     else console.log("Recieved empty?", dict);
-    var nodey = ASTUtils.dictToCodeCellNodey(dict, this.history.store);
+    var nodey = ASTUtils.dictToCodeCellNodey(
+      dict,
+      checkpoint,
+      this.history.store
+    );
     return nodey;
   }
 

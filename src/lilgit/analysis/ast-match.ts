@@ -571,7 +571,6 @@ export class ASTMatch {
     */
     let nodey = new NodeyCode(newNodeDat);
     if (DEBUG) console.log("BUILD STAR", nodey, newNodeDat, parentNode);
-    nodey.parent = parentNode.name;
     if (prior) $NodeyCode$.setRight(prior, nodey.name);
     prior = null;
 
@@ -579,6 +578,7 @@ export class ASTMatch {
     * Adjust the coordinates of the new node to be relative
     * to established nodes
     */
+    nodey.parent = parentNode.name;
     if ($NodeyCode$.getStart(parentNode))
       $NodeyCode$.positionRelativeTo(nodey, parentNode); //TODO if from the past, target may not have a position
 

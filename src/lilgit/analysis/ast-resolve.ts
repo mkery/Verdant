@@ -48,7 +48,9 @@ export class ASTResolve {
         NodeyMarkdown
       >;
       edited.value.markdown = newText;
+      return edited;
     }
+    return nodey;
   }
 
   repairCellAST(nodeToFix: NodeyCodeCell | Star<NodeyCodeCell>, text: string) {
@@ -155,18 +157,6 @@ export class ASTResolve {
       updateID
     );
     return [kernel_reply, text];
-  }
-
-  matchASTOnInit(nodey: NodeyCodeCell) {
-    var updateID = crypto.randomBytes(20).toString("hex");
-    nodey.pendingUpdate = updateID;
-
-    var kernel_reply = this.match.recieve_newVersion.bind(
-      this.match,
-      nodey,
-      updateID
-    );
-    return kernel_reply;
   }
 
   repairPositions(

@@ -70,6 +70,7 @@ export namespace ASTUtils {
 
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
+    checkpoint: number,
     historyStore: HistoryStore,
     forceTie: string = null
   ) {
@@ -78,6 +79,7 @@ export namespace ASTUtils {
     }
 
     var n = new NodeyCodeCell(dict);
+    n.created = checkpoint;
     if (forceTie) {
       // only occurs when cells change type from code/markdown
       historyStore.registerTiedNodey(n, forceTie);
@@ -85,27 +87,30 @@ export namespace ASTUtils {
 
     //TODO fix cell position
 
-    dictToCodeChildren(dict, historyStore, n);
+    dictToCodeChildren(dict, checkpoint, historyStore, n);
     return n;
   }
 
   export function dictToCodeNodeys(
     dict: { [id: string]: any },
+    checkpoint: number,
     historyStore: HistoryStore,
     prior: NodeyCode = null
   ): NodeyCode {
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict);
+    n.created = checkpoint;
     historyStore.store(n);
 
     if (prior) prior.right = n.name;
 
-    dictToCodeChildren(dict, historyStore, n);
+    dictToCodeChildren(dict, checkpoint, historyStore, n);
     return n;
   }
 
   function dictToCodeChildren(
     dict: { [id: string]: any },
+    checkpoint: number,
     historyStore: HistoryStore,
     n: NodeyCode
   ) {
@@ -115,7 +120,12 @@ export namespace ASTUtils {
       if (SyntaxToken.KEY in dict.content[item]) {
         n.content.push(new SyntaxToken(dict.content[item][SyntaxToken.KEY]));
       } else {
-        var child = dictToCodeNodeys(dict.content[item], historyStore, prior);
+        var child = dictToCodeNodeys(
+          dict.content[item],
+          checkpoint,
+          historyStore,
+          prior
+        );
         child.parent = n.name;
         if (prior) prior.right = child.name;
         n.content.push(child.name);

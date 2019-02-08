@@ -162,6 +162,7 @@ export class HistoryStore {
     let text = query.toLowerCase();
     this._markdownStore.forEach(history => {
       let match = history.versions.filter(item => {
+        if (!item.markdown) return false;
         let matchesText = item.markdown.toLowerCase().indexOf(text) > -1;
         if (filter) return matchesText && filter(item);
         else return matchesText;

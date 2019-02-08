@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[ ]:
+# In[6]:
 
 
 import ast
@@ -10,7 +10,7 @@ import sys
 import json
 
 
-# In[ ]:
+# In[7]:
 
 
 def getPos(text, textPos):
@@ -21,7 +21,7 @@ def getPos(text, textPos):
         return {'line': ln - 1, 'ch': ch - 1} # codemirror is 0 indexed ln/col
 
 
-# In[ ]:
+# In[8]:
 
 
 class Visitor:
@@ -97,7 +97,7 @@ class Visitor:
         return {'type': self.type, 'content': self.content, 'literal': self.literal, 'start': self.start, 'end': self.end}
 
 
-# In[ ]:
+# In[9]:
 
 
 class NotNodeVisitor(Visitor):
@@ -107,7 +107,7 @@ class NotNodeVisitor(Visitor):
         self.endVisit(text)
 
 
-# In[ ]:
+# In[23]:
 
 
 class StmtExprVisitor(Visitor):
@@ -115,10 +115,10 @@ class StmtExprVisitor(Visitor):
         self.type = type(node).__name__
         self.itr = textStart
         self.textEnd = textEnd
-        self.start = {'line': node.lineno, 'ch': node.col_offset}
+        self.start = {'line': node.lineno - 1, 'ch': node.col_offset} # codemirror is 0 indexed ln
 
 
-# In[ ]:
+# In[24]:
 
 
 '''
@@ -161,7 +161,7 @@ class SuiteVisitor(ModuleVisitor):
         self.endVisit(text)
 
 
-# In[ ]:
+# In[25]:
 
 
 '''
@@ -505,7 +505,7 @@ class AsyncWithVisitor(WithVisitor):
         self.visitWith(node, text, textStart, textEnd)
 
 
-# In[ ]:
+# In[26]:
 
 
 '''
@@ -878,7 +878,7 @@ class YieldFromVisitor(Visitor):
         self.endVisit(text) 
 
 
-# In[ ]:
+# In[27]:
 
 
 class OpVisitor(Visitor):
@@ -996,7 +996,7 @@ class NotInVisitor(OpVisitor):
         return "not in"
 
 
-# In[ ]:
+# In[28]:
 
 
 '''
@@ -1157,7 +1157,7 @@ class withitemVisitor(Visitor):
         
 
 
-# In[ ]:
+# In[29]:
 
 
 '''
@@ -1170,7 +1170,7 @@ class ExprVisitor(StmtExprVisitor):
         self.endVisit(text)
 
 
-# In[ ]:
+# In[30]:
 
 
 '''
@@ -1462,7 +1462,7 @@ class IndexVisitor(Visitor):
         self.endVisit(text)  
 
 
-# In[ ]:
+# In[31]:
 
 
 space = {"\t", " "}
@@ -1472,33 +1472,29 @@ commas = {","}
 quotes = {"'", '"'}
 
 
-# In[52]:
+# In[33]:
 
 
 debug = False
-test = """n = name or bob or jo
-#asd
-'''
-asd
-'''"""
+test = """ollie = 'OK!'"""
 if(debug):
     visitor = parse(test)
-    visitor
+    print(visitor)
 
 
-# In[53]:
+# In[34]:
 
 
 def parse(code):
-    if(code == ""): return {}
-    else:
-        node = ast.parse(code)
-        visitor = ModuleVisitor()
-        visitor.visit(node, code, 0, len(code))
-        return visitor.toJSON()
+    if(code == ""):
+        return {'type': 'Module', 'content': [], 'literal': None, 'start': {'line': 0, 'ch': 0}, 'end': {'line': 0, 'ch': 0}}
+    node = ast.parse(code)
+    visitor = ModuleVisitor()
+    visitor.visit(node, code, 0, len(code))
+    return visitor.toJSON()
 
 
-# In[54]:
+# In[35]:
 
 
 # TESTS
