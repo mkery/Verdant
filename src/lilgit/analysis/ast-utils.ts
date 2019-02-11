@@ -4,6 +4,8 @@ import { HistoryStore } from "../model/history-store";
 import { Star } from "../model/history-stage";
 import { History } from "../model/history";
 
+type Range = { start: Pos; end: Pos };
+type Pos = { line: number; ch: number };
 /*
 *
 */
@@ -12,8 +14,8 @@ export namespace ASTUtils {
   *
   */
   export function findNodeAtRange(
-    nodey: NodeyCode,
-    change: { start: any; end: any },
+    nodey: NodeyCodeCell,
+    change: Range,
     history: History
   ): NodeyCode {
     return Private._findNodeAtRange(
@@ -29,10 +31,7 @@ export namespace ASTUtils {
   *
   */
   //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
-  export function inRange(
-    nodey: NodeyCode,
-    change: { start: any; end: any }
-  ): number {
+  export function inRange(nodey: NodeyCode, change: Range): number {
     var val = 0;
     if (change.start.line < nodey.start.line) val = -1;
     else if (
@@ -145,7 +144,7 @@ namespace Private {
     node: NodeyCode,
     min: number,
     max: number,
-    change: { start: any; end: any },
+    change: Range,
     history: History
   ): NodeyCode {
     console.log("Looking for node at", change, node);
@@ -189,7 +188,6 @@ namespace Private {
   }
 }
 
-type Pos = { line: number; ch: number };
 export type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
 export type $NodeyCodeCell$ = NodeyCodeCell | Star<NodeyCodeCell>;
 

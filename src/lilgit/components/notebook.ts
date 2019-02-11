@@ -246,8 +246,14 @@ export class VerNotebook {
   public async deleteCell(index: number): Promise<[VerCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
     let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
-      let oldCell = this.cells.splice(index, 1);
+      let oldCell = this.cells.splice(index, 1)[0];
       let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
+
+      // commit the final version of this cell
+      await oldCell.repair();
+      let nodeyCellEdit = this.history.stage.markAsEdited(oldCell.model);
+      console.log("MARKED", oldCell, nodeyCellEdit);
+      this.history.stage.commitDeletedCell(checkpoint, nodeyCellEdit);
 
       // make sure cell is removed from model
       let model = this.history.stage.markAsEdited(this.model) as Star<
@@ -260,8 +266,8 @@ export class VerNotebook {
       console.log("notebook commited", notebook, this.model);
 
       // finish up
-      resolve(oldCell[0].model, notebook.version, index);
-      accept([oldCell[0], checkpoint]);
+      resolve(oldCell.model, notebook.version, index);
+      accept([oldCell, checkpoint]);
     });
     this.eventQueue.push(ev);
     return ev;

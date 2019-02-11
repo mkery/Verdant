@@ -181,6 +181,21 @@ export class HistoryStage {
     }
   }
 
+  public commitDeletedCell(checkpoint: Checkpoint, starCell: Star<NodeyCell>) {
+    // destar this cell
+    let cell: NodeyCell = this.deStar(starCell, checkpoint.id) as NodeyCodeCell;
+
+    console.log("Cell to commit is " + cell.name, cell, checkpoint.id);
+
+    // update code nodes and output
+    if (cell instanceof NodeyCodeCell) {
+      this.commitCode(cell, checkpoint.id, cell.output);
+      this.store.cleanOutStars(cell);
+    }
+
+    return cell;
+  }
+
   private commitNotebook(star: Star<Nodey>, eventId: number) {
     let diff = this.verifyDifferent(star);
     console.log("is different?", diff);

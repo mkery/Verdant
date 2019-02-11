@@ -26,12 +26,18 @@ export class VerCell {
   private readonly notebook: VerNotebook;
 
   /**
+   * last seen text for when the cell is deleted
+   */
+  private lastSeenText: string;
+
+  /**
    * Constructs a cell
    */
   constructor(notebook: VerNotebook, cell: Cell, modelName: string) {
     this.notebook = notebook;
     this.view = cell;
     this.modelName = modelName;
+    this.lastSeenText = "";
     this.listen();
   }
 
@@ -89,11 +95,13 @@ export class VerCell {
    * of this cell to this current text.
    */
   public async repair() {
-    let text: string = "";
+    let text: string = this.lastSeenText;
+
     // check cell wasn't just deleted
     if (this.view.inputArea) {
       text = this.view.editor.model.value.text;
     }
+
     await this.notebook.ast.repairCell(this.model, text);
   }
 
@@ -143,6 +151,9 @@ export class VerCell {
        * don't know for sure yet, because of possible undo,
        * if anything has truly changed yet
        */
+      if (this.view.inputArea) {
+        this.lastSeenText = this.view.editor.model.value.text;
+      }
       this.notebook.history.stage.markAsEdited(this.model);
     });
   }
