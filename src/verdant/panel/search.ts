@@ -49,6 +49,7 @@ export class Search extends Widget {
     let filters = {
       "cell deleted": (nodey: Nodey) => {
         let ev = this.history.checkpoints.get(nodey.created);
+
         if (ev) return ev.checkpointType === CheckpointType.DELETE;
       },
       "cell added": (nodey: Nodey) => {

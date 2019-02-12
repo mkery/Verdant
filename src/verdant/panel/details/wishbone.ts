@@ -15,7 +15,7 @@ export namespace Wishbone {
   export function startWishbone(history: History) {
     history.notebook.cells.forEach((verCell: VerCell) => {
       var cell = verCell.view;
-      Private.addCellEvents(cell, [verCell.lastSavedModel], history.inspector);
+      Private.addCellEvents(cell, verCell.lastSavedModel, history.inspector);
 
       if (cell instanceof CodeCell) {
         Private.addLineEvents(cell as CodeCell);
@@ -67,7 +67,7 @@ namespace Private {
     event.stopPropagation();
     let area = cell.inputArea.editorWidget.node;
     let betterMatch = area.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE)[0];
-    if (!betterMatch) this.selectTarget([nodey], inspector, event);
+    if (!betterMatch) this.selectTarget(nodey, inspector, event);
     else
       inspector.target = inspector.figureOutTarget(
         nodey,
@@ -82,7 +82,7 @@ namespace Private {
 
   export function addCellEvents(
     area: Cell | OutputArea,
-    nodey: Nodey[],
+    nodey: Nodey,
     inspector: Sampler
   ) {
     // first create a mask
@@ -104,7 +104,7 @@ namespace Private {
       let select = selectCode.bind(this, lineMask);
       area.editorWidget.node.appendChild(lineMask);
       lineMask.addEventListener("click", (ev: MouseEvent) => {
-        this.selectCodeTarget(nodey[0], inspector, area, ev);
+        this.selectCodeTarget(nodey, inspector, area, ev);
       });
       lineMask.addEventListener("mouseenter", () => {
         document.addEventListener("mousemove", select);
@@ -132,11 +132,7 @@ namespace Private {
     return mask;
   }
 
-  function addElemEvents(
-    mask: HTMLElement,
-    nodey: Nodey[],
-    inspector: Sampler
-  ) {
+  function addElemEvents(mask: HTMLElement, nodey: Nodey, inspector: Sampler) {
     mask.addEventListener("mouseenter", () => {
       // signal known cell node of selection
       mask.classList.add("highlight");
@@ -184,7 +180,7 @@ namespace Private {
   export function addOutputEvents(verCell: VerCell, history: History) {
     var outputNodey = verCell.output;
     if (outputNodey)
-      addCellEvents(verCell.outputArea, [outputNodey], history.inspector);
+      addCellEvents(verCell.outputArea, outputNodey, history.inspector);
   }
 
   function codeSelection(mask: Element, ev: MouseEvent) {

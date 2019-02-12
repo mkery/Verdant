@@ -72,6 +72,7 @@ export class CrumbBox extends Widget {
   }
 
   changeTarget(node: Nodey) {
+    console.log("changeTarget", node);
     if (this._active && this._target !== node) {
       this._target = node;
       this.buildCrumbMenu();
@@ -152,10 +153,15 @@ export class CrumbBox extends Widget {
       //TODO update detail view
       if (this.showingDetail) {
         let targetCell = this.history.store.getCellParent(this._target);
-        if (targetCell.id == item.id && targetCell.typeChar === item.typeChar) {
-          // then these two nodey are related, assuming the node is cells only
-          this.buildDetails(); // TODO OPTIMIZE
-        }
+        // check not just deleted
+        if (targetCell && item)
+          if (
+            targetCell.id == item.id &&
+            targetCell.typeChar === item.typeChar
+          ) {
+            // then these two nodey are related, assuming the node is cells only
+            this.buildDetails(); // TODO OPTIMIZE
+          }
       }
     });
   }

@@ -128,7 +128,7 @@ export namespace VersionSampler {
     nodeLabel.textContent = "v" + ver + " " + nameNodey(history, nodey) + ", ";
     let notebookLabel = document.createElement("span");
     notebookLabel.classList.add(VERSION_LINK);
-    if (created && created.notebook)
+    if (created && created.notebook !== undefined)
       notebookLabel.addEventListener("click", () =>
         notebookLink(created.notebook)
       );

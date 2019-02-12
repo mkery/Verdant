@@ -145,6 +145,8 @@ export class NodeyCode extends Nodey {
     jsn.outputVer = this.outputVer;
     if (this.content) jsn.content = this.content;
     if (this.literal) jsn.literal = this.literal;
+    jsn.start = this.start;
+    jsn.end = this.end;
     return jsn;
   }
 
@@ -313,7 +315,9 @@ export namespace NodeyCodeCell {
       content: dat.content,
       outputId: dat.outputId,
       outputVer: dat.outputVer,
-      literal: dat.literal
+      literal: dat.literal,
+      start: dat.start,
+      end: dat.end
     });
   }
 }
@@ -327,7 +331,9 @@ export namespace NodeyCode {
       content: dat.content,
       outputId: dat.outputId,
       outputVer: dat.outputVer,
-      literal: dat.literal
+      literal: dat.literal,
+      start: dat.start,
+      end: dat.end
     });
   }
 }

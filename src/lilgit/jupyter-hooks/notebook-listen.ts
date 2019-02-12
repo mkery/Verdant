@@ -6,8 +6,6 @@ import { Cell, CodeCell, MarkdownCell, ICellModel } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
-import { Signal } from "@phosphor/signaling";
-
 import { IObservableList } from "@jupyterlab/observables";
 
 import { VerNotebook } from "../components/notebook";
@@ -24,11 +22,12 @@ export class NotebookListen {
   private _notebook: Notebook; //the currently active notebook Verdant is working on
   private _notebookPanel: NotebookPanel;
   readonly verNotebook: VerNotebook;
-  private _activeCellChanged = new Signal<this, Cell>(this);
 
   private async init() {
     await this._notebookPanel.revealed;
     this._notebook = this._notebookPanel.content;
+    console.log("Notebook panel", this._notebookPanel);
+    console.log("Notebook", this._notebook);
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -49,10 +48,6 @@ export class NotebookListen {
     return this._ready.promise;
   }
 
-  get activeCellChanged(): Signal<this, Cell> {
-    return this._activeCellChanged;
-  }
-
   get metadata(): IObservableJSON {
     return this._notebook.model.metadata;
   }
@@ -65,15 +60,11 @@ export class NotebookListen {
     return this._notebook.model.nbformat;
   }
 
-  async focusCell(cell: Cell = this._notebook.activeCell): Promise<void> {
+  focusCell(cell: Cell = this._notebook.activeCell) {
+    if (!cell) return; //cell was just deleted
     if (!cell.model) return; //cell was just deleted
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
-      let verCell = this.verNotebook.getCell(cell.model);
-      if (verCell) {
-        this.verNotebook.focusCell(verCell);
-        this._activeCellChanged.emit(verCell.view);
-        this.activeCell = cell;
-      } else this.activeCell = null;
+      this.verNotebook.focusCell(cell);
     }
   }
 
@@ -86,6 +77,9 @@ export class NotebookListen {
     });
     this._notebook.model.cells.changed.connect(
       (sender: any, data: IObservableList.IChangedArgs<ICellModel>) => {
+        // to avoid duplicates during load wait til load is complete
+        if (!this.verNotebook.ready) return;
+
         var newIndex = data.newIndex;
         var newValues = data.newValues;
         var oldIndex = data.oldIndex;
@@ -119,6 +113,26 @@ export class NotebookListen {
         const cell = args.cell;
         this.verNotebook.run(cell.model);
       }
+    });
+
+    document.addEventListener("copy", (ev: ClipboardEvent) => {
+      var text = "";
+      if (window.getSelection) {
+        text = window.getSelection().toString();
+      }
+      console.log("COPY EVENT DETECTED", ev, "string: " + text);
+    });
+
+    document.addEventListener("cut", (ev: ClipboardEvent) => {
+      console.log(
+        "CUT EVENT DETECTED",
+        ev,
+        ev.clipboardData.getData("text/plain")
+      );
+    });
+
+    document.addEventListener("paste", ev => {
+      console.log("PASTE EVENT DETECTED", ev);
     });
   }
 

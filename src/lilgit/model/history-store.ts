@@ -82,7 +82,7 @@ export class HistoryStore {
       case "TEMP": // an unsaved star node
         return undefined;
       default:
-        throw new Error("nodey type not found" + name);
+        throw new Error("nodey type not found" + name + " " + typeof name);
     }
   }
 
@@ -134,6 +134,16 @@ export class HistoryStore {
     }
   }
 
+  /**
+   * newNodey and oldNodey are nodeys with two seperate histories.
+   * This function creates a back pointer between the first version
+   * of newNodey back to the history, version v of oldNodey.
+   **/
+  public linkBackHistories(newNodey: Nodey, oldNodey: Nodey): void {
+    let history = this.getHistoryOf(newNodey);
+    history.addOriginPointer(oldNodey);
+  }
+
   public storeUnsavedStar(
     star: UnsavedStar,
     parent: NodeyCode | Star<NodeyCode>
@@ -162,6 +172,7 @@ export class HistoryStore {
     let text = query.toLowerCase();
     this._markdownStore.forEach(history => {
       let match = history.versions.filter(item => {
+        if (!item.markdown) return false;
         let matchesText = item.markdown.toLowerCase().indexOf(text) > -1;
         if (filter) return matchesText && filter(item);
         else return matchesText;
@@ -304,10 +315,22 @@ export class HistoryStore {
 }
 
 /*
+* an Origin Pointer
+*/
+export class OriginPointer {
+  public readonly origin: string;
+  constructor(originNode: Nodey | string) {
+    if (originNode instanceof Nodey) this.origin = originNode.name;
+    else this.origin = originNode;
+  }
+}
+
+/*
 * Just a container for a list of nodey versions
 */
 export class NodeHistory<T extends Nodey> {
   versions: T[] = [];
+  originPointer: OriginPointer = null;
   private unsavedEdits: Star<T> = null;
 
   get latest() {
@@ -345,13 +368,22 @@ export class NodeHistory<T extends Nodey> {
     return newNodey;
   }
 
+  addOriginPointer(origin: Nodey) {
+    this.originPointer = new OriginPointer(origin);
+  }
+
   toJSON() {
-    return this.versions.map(node => node.toJSON());
+    let data: jsn = {};
+    data.vers = this.versions.map(node => node.toJSON());
+    if (this.originPointer) data.origin = this.originPointer.origin;
+    return data;
   }
 
   fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
     //console.log("FROM DATA", data);
-    this.versions = data.map((nodeDat: jsn, version: number) => {
+    if (data.origin) this.originPointer = new OriginPointer(data.origin);
+
+    this.versions = data.vers.map((nodeDat: jsn, version: number) => {
       let nodey = factory(nodeDat);
       nodey.id = id;
       nodey.version = version;

@@ -166,6 +166,7 @@ export class HistoryStage {
   * should return if there is any changes to commit true/false
   */
   public commit(checkpoint: Checkpoint, starCell?: Star<Nodey> | Nodey): Nodey {
+    console.log("Trying to commit!", starCell);
     if (starCell) {
       if (starCell instanceof Star) {
         if (starCell.value instanceof NodeyNotebook)
@@ -174,12 +175,31 @@ export class HistoryStage {
           return this.commitCodeCell(starCell, checkpoint.id);
         else if (starCell.value instanceof NodeyMarkdown)
           return this.commitMarkdown(starCell, checkpoint.id);
-      } else return starCell;
+      } else {
+        return starCell;
+      }
     }
   }
 
+  public commitDeletedCell(checkpoint: Checkpoint, starCell: Star<NodeyCell>) {
+    // destar this cell
+    let cell: NodeyCell = this.deStar(starCell, checkpoint.id) as NodeyCodeCell;
+
+    console.log("Cell to commit is " + cell.name, cell, checkpoint.id);
+
+    // update code nodes and output
+    if (cell instanceof NodeyCodeCell) {
+      this.commitCode(cell, checkpoint.id, cell.output);
+      this.store.cleanOutStars(cell);
+    }
+
+    return cell;
+  }
+
   private commitNotebook(star: Star<Nodey>, eventId: number) {
-    if (this.verifyDifferent(star)) {
+    let diff = this.verifyDifferent(star);
+    console.log("is different?", diff);
+    if (diff) {
       let notebook = this.deStar(star, eventId) as NodeyNotebook;
       notebook.cells.forEach((name, index) => {
         let cell = this.store.get(name);
@@ -187,8 +207,11 @@ export class HistoryStage {
         else {
           // cell may not be initialized yet if just added
           console.log(this.history.notebook.cells);
-          let waitCell = this.history.notebook.cells[index];
-          waitCell.model.parent = notebook.name;
+          // don't worry if cell hasn't been added yet.
+          if (this.history.notebook.cells.length > index) {
+            let waitCell = this.history.notebook.cells[index];
+            waitCell.model.parent = notebook.name;
+          }
         }
       });
       return notebook;
@@ -211,6 +234,9 @@ export class HistoryStage {
     } else {
       // if nothing was changed, nothing was changed
       cell = this.discardStar(starCell) as NodeyCodeCell;
+
+      // check if output should be committed even if code is the same
+      this.commitOutput(cell, eventId);
     }
 
     // update pointer in parent notebook
@@ -280,6 +306,7 @@ export class HistoryStage {
     } else if (parent instanceof NodeyNotebook) {
       let index = parent.cells.indexOf(star.name);
       parent.cells[index] = updatedNodey.name;
+      updatedNodey.parent = parent.name;
     }
 
     //console.log("UPDATED PARENT", index, parent.value.cells, star.name);
@@ -293,8 +320,14 @@ export class HistoryStage {
       /* for a notebook just check if any of the cells have
       * actually changed
       */
-      return !(lastSave as NodeyNotebook).cells.every(
-        (name, index) => name === (nodey.value as NodeyNotebook).cells[index]
+      let cellCount =
+        (lastSave as NodeyNotebook).cells.length !==
+        (nodey.value as NodeyNotebook).cells.length;
+      return (
+        cellCount ||
+        !(lastSave as NodeyNotebook).cells.every(
+          (name, index) => name === (nodey.value as NodeyNotebook).cells[index]
+        )
       );
     } else {
       /*
@@ -331,6 +364,7 @@ export class HistoryStage {
       if (history) {
         oldOutput = history.lastSaved as NodeyOutput;
         same = NodeyOutput.equals(output, oldOutput.raw);
+        console.log("SAME OUTPUT?", same, output, oldOutput.raw);
       }
       if (!same) {
         // make a new output
@@ -350,12 +384,12 @@ export class HistoryStage {
         newOutput = oldOutput;
       }
     }
-    /*console.log(
+    console.log(
       "OUTPUT HISTORY FOR",
       nodey,
       newOutput,
       this.history.store.getHistoryOf(newOutput)
-    );*/
+    );
     return newOutput;
   }
 

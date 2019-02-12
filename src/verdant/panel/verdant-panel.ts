@@ -56,10 +56,6 @@ export class VerdantPanel extends Widget {
     //this.runList.onGhostBookClosed();
   }
 
-  protected get notebook(): VerdantNotebook {
-    return this.history.notebook as VerdantNotebook;
-  }
-
   private buildHeaderNode() {
     let tabContainer = document.createElement("div");
     tabContainer.classList.add(TAB_CONTAINER);
@@ -106,7 +102,7 @@ export class VerdantPanel extends Widget {
   }
 
   openGhostBook(notebook: number) {
-    this.notebook.showGhostBook(notebook);
+    (this.history.notebook as VerdantNotebook).showGhostBook(notebook);
   }
 
   openSearch() {

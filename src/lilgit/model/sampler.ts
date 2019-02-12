@@ -54,7 +54,7 @@ export class Sampler {
   }
 
   public set target(nodey: Nodey) {
-    //console.log("new target!", nodey);
+    console.log("new target!", nodey);
     this._target = nodey;
     this._targetChanged.emit(this._target);
   }
@@ -72,7 +72,7 @@ export class Sampler {
     cell: CodeCell,
     elem: HTMLElement
   ) {
-    //console.log("figuring out target");
+    console.log("figuring out target");
     let codeBlock = this.findAncestor(elem, "CodeMirror-code");
     let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     let lineDiv = this.findAncestor(elem, "CodeMirror-line");
@@ -82,7 +82,7 @@ export class Sampler {
     let lineText = (cell.editor as CodeMirrorEditor).doc.getLine(lineNum);
     let res;
     let startCh = 0;
-    let endCh = lineText.length - 2;
+    let endCh = lineText.length - 1;
 
     if (!elem.hasAttribute("role")) {
       // not a full line in Code Mirror
@@ -94,6 +94,7 @@ export class Sampler {
         ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
           lineText.length
       );
+      endCh = Math.min(endCh, lineText.length - 1);
     }
 
     res = ASTUtils.findNodeAtRange(
@@ -170,9 +171,8 @@ export class Sampler {
           line += name.tokens;
         } else {
           var child = this.history.store.get(name) as NodeyCode;
-          if (child.start) {
-            if (child.start.line === lineNum)
-              line = this.getLineContent(lineNum, line, child);
+          if (child.start && child.start.line === lineNum) {
+            line = this.getLineContent(lineNum, line, child);
           } else {
             line = this.getLineContent(lineNum, line, child);
             let ls = line.split("\n");
@@ -292,11 +292,11 @@ export class Sampler {
     let diffKind = opts.diffKind;
     if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
 
-    if (diffKind === Sampler.NO_DIFF)
+    if (diffKind === Sampler.NO_DIFF || !nodey.markdown)
       await this.renderBaby.renderMarkdown(elem, opts.newText);
     else if (diffKind === Sampler.CHANGE_DIFF) {
       let prior = this.history.store.getPriorVersion(nodey) as NodeyMarkdown;
-      if (!prior) {
+      if (!prior || !prior.markdown) {
         // easy, everything is added
         await this.renderBaby.renderMarkdown(elem, opts.newText);
         elem.classList.add(CHANGE_ADDED_CLASS);

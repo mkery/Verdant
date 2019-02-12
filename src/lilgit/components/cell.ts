@@ -26,12 +26,18 @@ export class VerCell {
   private readonly notebook: VerNotebook;
 
   /**
+   * last seen text for when the cell is deleted
+   */
+  private lastSeenText: string;
+
+  /**
    * Constructs a cell
    */
   constructor(notebook: VerNotebook, cell: Cell, modelName: string) {
     this.notebook = notebook;
     this.view = cell;
     this.modelName = modelName;
+    this.lastSeenText = "";
     this.listen();
   }
 
@@ -55,7 +61,8 @@ export class VerCell {
    * returns a Star, which is a still unsaved version of this cell
    */
   public get lastSavedModel(): NodeyCell {
-    return this.notebook.history.store.getHistoryOf(this.modelName).lastSaved;
+    let history = this.notebook.history.store.getHistoryOf(this.modelName);
+    return history.lastSaved;
   }
 
   /**
@@ -88,11 +95,13 @@ export class VerCell {
    * of this cell to this current text.
    */
   public async repair() {
-    let text: string = "";
+    let text: string = this.lastSeenText;
+
     // check cell wasn't just deleted
     if (this.view.inputArea) {
       text = this.view.editor.model.value.text;
     }
+
     await this.notebook.ast.repairCell(this.model, text);
   }
 
@@ -121,7 +130,13 @@ export class VerCell {
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
 
     let same = newNodey.version === version;
-    console.log("SAME NAME?", newNodey.name, version);
+
+    // output count can increment without the code ver incrementing
+    if (newNodey instanceof NodeyCodeCell) {
+      let verOut = this.notebook.history.store.getHistoryOf(newNodey.output)
+        .versions.length;
+      same = same && newNodey.outputVer === verOut;
+    }
 
     return [newNodey, same];
   }
@@ -136,6 +151,9 @@ export class VerCell {
        * don't know for sure yet, because of possible undo,
        * if anything has truly changed yet
        */
+      if (this.view.inputArea) {
+        this.lastSeenText = this.view.editor.model.value.text;
+      }
       this.notebook.history.stage.markAsEdited(this.model);
     });
   }

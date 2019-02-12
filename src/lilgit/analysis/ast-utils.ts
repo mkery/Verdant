@@ -4,6 +4,8 @@ import { HistoryStore } from "../model/history-store";
 import { Star } from "../model/history-stage";
 import { History } from "../model/history";
 
+type Range = { start: Pos; end: Pos };
+type Pos = { line: number; ch: number };
 /*
 *
 */
@@ -12,8 +14,8 @@ export namespace ASTUtils {
   *
   */
   export function findNodeAtRange(
-    nodey: NodeyCode,
-    change: { start: any; end: any },
+    nodey: NodeyCodeCell,
+    change: Range,
     history: History
   ): NodeyCode {
     return Private._findNodeAtRange(
@@ -29,10 +31,7 @@ export namespace ASTUtils {
   *
   */
   //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
-  export function inRange(
-    nodey: NodeyCode,
-    change: { start: any; end: any }
-  ): number {
+  export function inRange(nodey: NodeyCode, change: Range): number {
     var val = 0;
     if (change.start.line < nodey.start.line) val = -1;
     else if (
@@ -70,23 +69,16 @@ export namespace ASTUtils {
 
   export function dictToCodeCellNodey(
     dict: { [id: string]: any },
+    checkpoint: number,
     historyStore: HistoryStore,
     forceTie: string = null
   ) {
-    if ("start" in dict === false) {
-      dict.start = { line: 1, ch: 0 };
-      dict.end = { line: 1, ch: 0 };
-    }
     if ("type" in dict === false) {
       dict.type = "Module";
     }
 
-    dict.start.line -= 1; // convert the coordinates of the range to code mirror style
-    dict.end.line -= 1;
-    dict.start.ch -= 1;
-    dict.end.ch -= 1;
-
     var n = new NodeyCodeCell(dict);
+    n.created = checkpoint;
     if (forceTie) {
       // only occurs when cells change type from code/markdown
       historyStore.registerTiedNodey(n, forceTie);
@@ -94,32 +86,30 @@ export namespace ASTUtils {
 
     //TODO fix cell position
 
-    dictToCodeChildren(dict, historyStore, n);
+    dictToCodeChildren(dict, checkpoint, historyStore, n);
     return n;
   }
 
   export function dictToCodeNodeys(
     dict: { [id: string]: any },
+    checkpoint: number,
     historyStore: HistoryStore,
     prior: NodeyCode = null
   ): NodeyCode {
-    dict.start.line -= 1; // convert the coordinates of the range to code mirror style
-    dict.end.line -= 1;
-    dict.start.ch -= 1;
-    dict.end.ch -= 1;
-
     // give every node a nextNode so that we can shift/walk for repairs
     var n = new NodeyCode(dict);
+    n.created = checkpoint;
     historyStore.store(n);
 
     if (prior) prior.right = n.name;
 
-    dictToCodeChildren(dict, historyStore, n);
+    dictToCodeChildren(dict, checkpoint, historyStore, n);
     return n;
   }
 
   function dictToCodeChildren(
     dict: { [id: string]: any },
+    checkpoint: number,
     historyStore: HistoryStore,
     n: NodeyCode
   ) {
@@ -129,7 +119,12 @@ export namespace ASTUtils {
       if (SyntaxToken.KEY in dict.content[item]) {
         n.content.push(new SyntaxToken(dict.content[item][SyntaxToken.KEY]));
       } else {
-        var child = dictToCodeNodeys(dict.content[item], historyStore, prior);
+        var child = dictToCodeNodeys(
+          dict.content[item],
+          checkpoint,
+          historyStore,
+          prior
+        );
         child.parent = n.name;
         if (prior) prior.right = child.name;
         n.content.push(child.name);
@@ -149,7 +144,7 @@ namespace Private {
     node: NodeyCode,
     min: number,
     max: number,
-    change: { start: any; end: any },
+    change: Range,
     history: History
   ): NodeyCode {
     console.log("Looking for node at", change, node);
@@ -193,7 +188,6 @@ namespace Private {
   }
 }
 
-type Pos = { line: number; ch: number };
 export type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
 export type $NodeyCodeCell$ = NodeyCodeCell | Star<NodeyCodeCell>;
 

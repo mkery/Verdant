@@ -48,7 +48,9 @@ export class ASTResolve {
         NodeyMarkdown
       >;
       edited.value.markdown = newText;
+      return edited;
     }
+    return nodey;
   }
 
   repairCellAST(nodeToFix: NodeyCodeCell | Star<NodeyCodeCell>, text: string) {
@@ -64,7 +66,7 @@ export class ASTResolve {
       "|" + textOrig + "|"
     );
     if (text === textOrig) {
-      return [() => nodeToFix, text];
+      return [false, () => nodeToFix, text];
     }
 
     var updateID = crypto.randomBytes(20).toString("hex");
@@ -75,7 +77,7 @@ export class ASTResolve {
       nodeToFix,
       updateID
     );
-    return [kernel_reply, text];
+    return [true, kernel_reply, text];
   }
 
   repairAST(
@@ -155,18 +157,6 @@ export class ASTResolve {
       updateID
     );
     return [kernel_reply, text];
-  }
-
-  matchASTOnInit(nodey: NodeyCodeCell) {
-    var updateID = crypto.randomBytes(20).toString("hex");
-    nodey.pendingUpdate = updateID;
-
-    var kernel_reply = this.match.recieve_newVersion.bind(
-      this.match,
-      nodey,
-      updateID
-    );
-    return kernel_reply;
   }
 
   repairPositions(
@@ -280,7 +270,7 @@ export class ASTResolve {
       row: row
     };
 
-    if ("literal" in dict || SyntaxToken.KEY in dict) {
+    if (dict["literal"] || SyntaxToken.KEY in dict) {
       //gotta check non-space Syntax tokens like brakets
       var index = nodeyList.push(option) - 1;
       leaves.push(index);

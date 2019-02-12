@@ -112,6 +112,12 @@ export class Ghost extends Widget {
 
     let notebook = this.history.store.getNotebook(this.ver);
     let created = this.history.checkpoints.get(notebook.created);
+    console.log(
+      "CHECKPOINT FOUND",
+      notebook.created,
+      created,
+      this.history.checkpoints.all()
+    );
     let time =
       Checkpoint.formatDate(created.timestamp) +
       " " +

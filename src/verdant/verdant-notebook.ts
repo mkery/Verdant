@@ -53,18 +53,24 @@ export class VerdantNotebook extends VerNotebook {
     match: boolean
   ): Promise<[VerCell, Checkpoint]> {
     let [newCell, checkpoint] = await super.createCell(cell, index, match);
-    this.panel.updateCells(newCell.lastSavedModel, checkpoint, index);
-    return [newCell, checkpoint];
+    if (newCell) {
+      this.panel.updateCells(newCell.lastSavedModel, checkpoint, index);
+      return [newCell, checkpoint];
+    }
   }
 
-  public deleteCell(index: number) {
-    let [oldCell, checkpoint] = super.deleteCell(index);
+  public async deleteCell(index: number): Promise<[VerCell, Checkpoint]> {
+    let [oldCell, checkpoint] = await super.deleteCell(index);
     this.panel.updateCells(oldCell.lastSavedModel, checkpoint, index);
     return [oldCell, checkpoint];
   }
 
-  public moveCell(cell: VerCell, oldPos: number, newPos: number) {
-    let checkpoint = super.moveCell(cell, oldPos, newPos);
+  public async moveCell(
+    cell: VerCell,
+    oldPos: number,
+    newPos: number
+  ): Promise<Checkpoint> {
+    let checkpoint = await super.moveCell(cell, oldPos, newPos);
     this.panel.updateCells(cell.lastSavedModel, checkpoint, oldPos, newPos);
     return checkpoint;
   }
@@ -79,9 +85,13 @@ export class VerdantNotebook extends VerNotebook {
     return [verCell, checkpoint];
   }
 
-  public focusCell(cell: VerCell) {
-    let index = this.cells.indexOf(cell);
-    this.panel.highlightCell(index);
+  public async focusCell(cell: Cell): Promise<VerCell> {
+    let verCell = await super.focusCell(cell);
+    if (verCell) {
+      let index = this.cells.indexOf(verCell);
+      this.panel.highlightCell(index);
+    }
+    return verCell;
   }
 
   public async save(): Promise<[NodeyCell[], Checkpoint]> {
