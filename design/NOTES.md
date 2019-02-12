@@ -6,4 +6,9 @@ DESIGN NOTES
 
 * re-address output relationship
 
-* fix ast generate so it's a server extension and not the hacky kernel thing it is now
+- address nodes moving between different cells
+  - copy : a node is duplicated meaning it has a common history with another node, meaning we need some way of forming pointers between separate histories
+  - paste : same needs as copy
+  - split cells : need to detect, and then split histories
+  - undo : need to detect when a cell event is undid, such as a deleted cell coming back or a cell rewinding to a prior state
+  - copy cell: need to account for entire cells being copy/pasted with Jupyter's build in commands

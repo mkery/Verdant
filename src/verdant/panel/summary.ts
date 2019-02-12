@@ -113,8 +113,8 @@ export class Summary extends Widget {
     let notebook = history.notebook;
     let title = notebook.name;
     let sample = this.buildNotebookTitle(title);
-    let vers = history.store.getHistoryOf(notebook.model.name);
-    let [cellA, cellV] = this.buildCell(sample, vers.length);
+    let vers = this.getHistorySize(notebook.model.name);
+    let [cellA, cellV] = this.buildCell(sample, vers);
     this.artifactCol.appendChild(cellA);
     this.verCol.appendChild(cellV);
     this.addCellEvents(cellA, cellV);
@@ -126,11 +126,20 @@ export class Summary extends Widget {
 
   private updateNotebook(notebook: VerNotebook) {
     let title = notebook.name;
-    let vers = this.history.store.getHistoryOf(notebook.model.name);
+    let vers = this.getHistorySize(notebook.model.name);
     let sample = this.buildNotebookTitle(title);
-    let [cellA, cellV] = this.buildCell(sample, vers.length);
+    let [cellA, cellV] = this.buildCell(sample, vers);
     this.replaceCell(cellA, cellV, 0);
     this.addCellEvents(cellA, cellV);
+  }
+
+  private getHistorySize(name: string): number {
+    let count = 0;
+    let hist = this.history.store.getHistoryOf(name);
+    count += hist.length;
+    if (hist.originPointer)
+      count += this.getHistorySize(hist.originPointer.origin);
+    return count;
   }
 
   private updateCell(cell: VerCell) {
@@ -138,12 +147,12 @@ export class Summary extends Widget {
     index++; //skip the notebook
     let model = cell.lastSavedModel;
     let sample = CellSampler.sampleCell(this.history, model);
-    let vers = this.history.store.getHistoryOf(model.name);
+    let vers = this.getHistorySize(model.name);
     let outVers;
     if (model instanceof NodeyCodeCell) {
-      outVers = this.history.store.getHistoryOf(model.output).length;
+      outVers = this.getHistorySize(model.output);
     }
-    let [cellA, cellV] = this.buildCell(sample, vers.length, outVers);
+    let [cellA, cellV] = this.buildCell(sample, vers, outVers);
     this.replaceCell(cellA, cellV, index);
     this.addCellEvents(cellA, cellV, model);
   }
@@ -161,12 +170,12 @@ export class Summary extends Widget {
     index++; //skip the notebook
     let model = cell.lastSavedModel;
     let sample = CellSampler.sampleCell(this.history, model);
-    let vers = this.history.store.getHistoryOf(model.name);
+    let vers = this.getHistorySize(model.name);
     let outVers;
     if (model instanceof NodeyCodeCell) {
-      outVers = this.history.store.getHistoryOf(model.output).length;
+      outVers = this.getHistorySize(model.output);
     }
-    let [cellA, cellV] = this.buildCell(sample, vers.length, outVers);
+    let [cellA, cellV] = this.buildCell(sample, vers, outVers);
     this.artifactCol.insertBefore(cellA, this.artifactCol.children[index]);
     this.verCol.insertBefore(cellV, this.verCol.children[index + 1]);
     this.addCellEvents(cellA, cellV, model);

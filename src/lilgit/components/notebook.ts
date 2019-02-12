@@ -314,10 +314,13 @@ export class VerNotebook {
       // first start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
+      // this is going to create and store the new nodey
       let newNodey = await this.ast.createCellNodey(newCell, checkpoint);
       let verCell = this.cells[index];
-      // TODO make pointer in history from old type to new type
-      //let oldNodey = verCell.model;
+
+      // make pointer in history from old type to new type
+      let oldNodey = verCell.lastSavedModel;
+      this.history.store.linkBackHistories(newNodey, oldNodey);
       verCell.setModel(newNodey.name);
       verCell.view = newCell;
 

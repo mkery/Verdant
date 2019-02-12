@@ -114,6 +114,26 @@ export class NotebookListen {
         this.verNotebook.run(cell.model);
       }
     });
+
+    document.addEventListener("copy", (ev: ClipboardEvent) => {
+      var text = "";
+      if (window.getSelection) {
+        text = window.getSelection().toString();
+      }
+      console.log("COPY EVENT DETECTED", ev, "string: " + text);
+    });
+
+    document.addEventListener("cut", (ev: ClipboardEvent) => {
+      console.log(
+        "CUT EVENT DETECTED",
+        ev,
+        ev.clipboardData.getData("text/plain")
+      );
+    });
+
+    document.addEventListener("paste", ev => {
+      console.log("PASTE EVENT DETECTED", ev);
+    });
   }
 
   private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
