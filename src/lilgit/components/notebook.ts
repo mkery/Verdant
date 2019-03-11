@@ -1,15 +1,14 @@
-import { NodeyNotebook } from "../model/nodey";
 import { PathExt } from "@jupyterlab/coreutils";
 import { PromiseDelegate } from "@phosphor/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Checkpoint, CellRunData } from "../model/checkpoint";
-import { Cell, ICellModel } from "@jupyterlab/cells";
+import { Cell, ICellModel, CodeCell } from "@jupyterlab/cells";
 import { History } from "../model/history";
 import { Star } from "../model/history-stage";
 import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
-import { NodeyCell } from "../model/nodey";
+import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
 
 /*
 * Notebook holds a list of cells
@@ -18,6 +17,7 @@ export class VerNotebook {
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
+  private clipboard: { target: string; text: string };
   private eventQueue: Promise<any>[] = [];
   cells: VerCell[];
 
@@ -60,7 +60,7 @@ export class VerNotebook {
       let newNotebook: NodeyNotebook | Star<NodeyNotebook>;
       let changedCells: CellRunData[];
       if (matchPrior) {
-        [newNotebook, changedCells] = await this.ast.hotStartNotebook(
+        [newNotebook, changedCells] = await this.ast.coldStartNotebook(
           this.view.notebook,
           checkpoint
         );
@@ -199,7 +199,6 @@ export class VerNotebook {
   }
 
   public getCell(cell: ICellModel): VerCell {
-    console.log("CELLS ARE:", this.cells);
     return this.cells.find(item => {
       if (item.view && item.view.model) return item.view.model.id === cell.id;
     });
@@ -355,6 +354,46 @@ export class VerNotebook {
     });
     this.eventQueue.push(ev);
     return ev;
+  }
+
+  public async copyNode(target: HTMLElement, cell: Cell, text: string) {
+    // verify that target came from current active cell (otherwise not a nodey)
+    if (this.isDescendant(cell.node, target)) {
+      let verCell = this.getCell(cell.model);
+
+      // figure out which nodey this is by the text(?)
+      if (verCell) {
+        let node = verCell.lastSavedModel;
+        let copied;
+
+        // check to see if it's output
+        if (
+          cell instanceof CodeCell &&
+          this.isDescendant(cell.outputArea.node, target)
+        ) {
+          copied = this.history.store.get((node as NodeyCode).output);
+        } // otherwise main cell
+        else copied = this.history.inspector.figureOutTarget(node, cell, text);
+
+        if (copied) {
+          // add nodey to clip board in notebook
+          this.clipboard = { target: copied.name, text: text };
+          console.log("COPIED NODE IS", this.clipboard);
+        } else this.clipboard = null;
+      }
+    } // otherwise reset clipboard
+    else this.clipboard = null;
+  }
+
+  private isDescendant(parent: HTMLElement, child: HTMLElement) {
+    var node = child.parentNode;
+    while (node != null) {
+      if (node == parent) {
+        return true;
+      }
+      node = node.parentNode;
+    }
+    return false;
   }
 
   public dump(): void {

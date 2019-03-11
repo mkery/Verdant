@@ -5,15 +5,11 @@ import {
   SyntaxToken
 } from "../model/nodey";
 
-import * as CodeMirror from "codemirror";
-
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
-
 import { History } from "../model/history";
 
 import { Star } from "../model/history-stage";
 
-import { ASTUtils } from "./ast-utils";
+//import { ASTUtils } from "./ast-utils";
 
 import { $NodeyCode$ } from "./ast-utils";
 
@@ -80,7 +76,7 @@ export class ASTResolve {
     return [true, kernel_reply, text];
   }
 
-  repairAST(
+  /*repairAST(
     nodey: NodeyCodeCell,
     change: CodeMirror.EditorChange,
     editor: CodeMirrorEditor
@@ -157,9 +153,9 @@ export class ASTResolve {
       updateID
     );
     return [kernel_reply, text];
-  }
+  }*/
 
-  repairPositions(
+  /*repairPositions(
     affected: NodeyCode,
     change: CodeMirror.EditorChange,
     range: {
@@ -176,9 +172,9 @@ export class ASTResolve {
       this.shiftAllAfter(right, deltaLine, deltaCh);
     }
     return nodeEnd;
-  }
+  }*/
 
-  calcShift(
+  /*calcShift(
     affected: NodeyCode,
     change: CodeMirror.EditorChange,
     range: {
@@ -211,7 +207,7 @@ export class ASTResolve {
     else nodeEnd.line = nodeEnd.line + deltaLine;
 
     return [nodeEnd, deltaLine, deltaCh];
-  }
+  }*/
 
   shiftAllAfter(nodey: NodeyCode, deltaLine: number, deltaCh: number): void {
     if (deltaLine === 0 && deltaCh === 0)

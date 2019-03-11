@@ -96,6 +96,7 @@ export class NotebookListen {
             break;
           case "set":
             this._cellTypeChanged(oldIndex, newIndex, oldValues);
+            break;
           default:
             console.log("cell list changed!!!!", sender, data);
             break;
@@ -121,14 +122,16 @@ export class NotebookListen {
         text = window.getSelection().toString();
       }
       console.log("COPY EVENT DETECTED", ev, "string: " + text);
+      this.verNotebook.copyNode(
+        ev.target as HTMLElement,
+        this.activeCell,
+        text
+      );
     });
 
     document.addEventListener("cut", (ev: ClipboardEvent) => {
-      console.log(
-        "CUT EVENT DETECTED",
-        ev,
-        ev.clipboardData.getData("text/plain")
-      );
+      console.log("CUT EVENT DETECTED", ev);
+      //TODO
     });
 
     document.addEventListener("paste", ev => {
