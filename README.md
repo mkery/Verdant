@@ -47,12 +47,25 @@ The last line builds JupyterLab and may take a minute. Now, run JupyterLab app t
 jupyter lab .
 ```
 
-To rebuild the package and the JupyterLab app:
+If you make modifications to the Verdant source code, you'll need to rebuild the package and the JupyterLab app:
 
 ```bash
 npm run build
 jupyter lab build
 ```
+
+If you plan on making lots of edits to Verdant, extension building is easier if you use:
+
+```bash
+jupyter lab --watch
+```
+
+and then each time you make a change, you'll only have to re-run:
+
+```bash
+npm run build
+```
+
 
 ## Acknowledgements
 This research has been funded by Bloomberg L.P. and has been conducted at the Bloomberg L.P. and at the [Natural Programming Group](https://www.cs.cmu.edu/~NatProg/) at the [Human-Computer Interaction Institute](https://hcii.cmu.edu/) at Carnegie Mellon University. Thank you to the [JupyterLab project](https://github.com/jupyterlab/jupyterlab) and also to all our awesome study participants for volunteering early design feedback!
