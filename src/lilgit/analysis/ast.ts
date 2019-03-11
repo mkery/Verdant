@@ -205,7 +205,9 @@ export class AST {
     });
 
     // turn ipython magics commands into comments
-    //newCode = newCode.replace(/%/g, "#"); TODO can't do bc styled strings!
+    let magics = /(%)(\w)+(\s)*(\w)*(\n|$)/g; // regex to avoid styled strings that use %
+    let matches = magics.exec(newCode);
+    if (matches) newCode = newCode.replace(matches[0][0], "#");
 
     // remove any triple quotes, which will mess us up
     newCode = newCode.replace(/"""/g, "'''");

@@ -55,10 +55,7 @@ export class Mixin extends Widget {
         let target = this.targetList[0];
         if (target instanceof NodeyCode)
           Mixin.labelNodeyCode(menu, target, this.history);
-        else if (target instanceof NodeyMarkdown)
-          Mixin.addItem(menu, "markdown " + target.id);
-        else if (target instanceof NodeyOutput)
-          Mixin.addItem(menu, "output " + target.id);
+        else Mixin.addItem(menu, Mixin.nameNodey(target));
 
         /*let wiskButton = document.createElement("div");
         wiskButton.classList.add(HEADER_WISK);
@@ -101,8 +98,9 @@ export namespace Mixin {
     target: NodeyCode,
     history: History
   ): void {
+    let name = Mixin.nameNodey(target);
     if (target instanceof NodeyCodeCell) {
-      Mixin.addItem(menu, "cell " + target.id);
+      Mixin.addItem(menu, name);
     } else {
       let cell = history.store.getCellParent(target);
       let cellItem = Mixin.addItem(menu, "cell " + cell.id);
@@ -112,8 +110,7 @@ export namespace Mixin {
       );
 
       Mixin.addSeperator(menu);
-
-      Mixin.addItem(menu, target.type + " " + target.id);
+      Mixin.addItem(menu, name);
     }
   }
 
@@ -130,5 +127,25 @@ export namespace Mixin {
     item.textContent = label;
     menu.appendChild(item);
     return item;
+  }
+
+  export function nameNodey(target: Nodey) {
+    let name = "";
+    if (target instanceof NodeyCode) {
+      if (target instanceof NodeyCodeCell) name = "cell " + target.id;
+      else name = target.type + " " + target.id;
+    } else if (target instanceof NodeyMarkdown) name = "markdown " + target.id;
+    else if (target instanceof NodeyOutput) name = "output " + target.id;
+    return name;
+  }
+
+  export function labelOrigin(target: Nodey, content: HTMLElement) {
+    let header = document.createElement("div");
+    header.classList.add(HEADER);
+    let item = document.createElement("div");
+    item.classList.add(HEADER_TARGET);
+    item.textContent = Mixin.nameNodey(target) + " was created from:";
+    header.appendChild(item);
+    content.appendChild(header);
   }
 }

@@ -13,8 +13,8 @@ export namespace CellSampler {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     sample.classList.add(cell.typeChar);
-    let index: number = 0;
-    [sample.textContent, index] = historyModel.inspector.sampleNode(cell);
+    let res = historyModel.inspector.sampleNode(cell);
+    sample.textContent = res[0];
     if (cell.typeChar === "m") {
       historyModel.inspector.renderDiff(cell, sample, {
         newText: (cell as NodeyMarkdown).markdown

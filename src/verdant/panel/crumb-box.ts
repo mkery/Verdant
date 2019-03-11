@@ -103,17 +103,32 @@ export class CrumbBox extends Widget {
   }
 
   buildDetails() {
-    let notebookLink = this.parentPanel.openGhostBook.bind(this);
     this.content.innerHTML = "";
-    let mixin = new Mixin(this.history, [this._target], false, notebookLink);
+    this.buildMixins(this._target);
+  }
+
+  buildMixins(target: Nodey) {
+    let notebookLink = this.parentPanel.openGhostBook.bind(this);
+    let mixin = new Mixin(this.history, [target], false, notebookLink);
     this.content.appendChild(mixin.node);
 
-    if (this._target instanceof NodeyCode) {
-      let output = this.history.store.get(this._target.output);
+    if (target instanceof NodeyCode) {
+      let output = this.history.store.get(target.output);
       if (output) {
         let outMix = new Mixin(this.history, [output], true, notebookLink);
         this.content.appendChild(outMix.node);
       }
+    }
+
+    this.buildOrigins(target);
+  }
+
+  buildOrigins(nodey: Nodey) {
+    let hist = this.history.store.getHistoryOf(nodey);
+    if (hist.originPointer) {
+      Mixin.labelOrigin(nodey, this.content);
+      let origin = this.history.store.get(hist.originPointer.origin);
+      this.buildMixins(origin);
     }
   }
 

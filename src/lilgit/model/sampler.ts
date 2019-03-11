@@ -8,10 +8,11 @@ import {
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
+  NodeyCell,
   NodeyCodeCell
 } from "./nodey";
 
-import { CodeCell } from "@jupyterlab/cells";
+import { CodeCell, Cell } from "@jupyterlab/cells";
 
 import { History } from "./history";
 
@@ -20,7 +21,6 @@ import { ASTUtils } from "../analysis/ast-utils";
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 
 import { Signal } from "@phosphor/signaling";
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -68,6 +68,45 @@ export class Sampler {
   }
 
   public figureOutTarget(
+    parent: NodeyCell,
+    cell: Cell,
+    elem: HTMLElement | string
+  ) {
+    if (parent instanceof NodeyCodeCell) {
+      if (elem instanceof HTMLElement)
+        return this.figureOut_byElem(parent, cell as CodeCell, elem);
+      else {
+        let res = this.figureOut_byText(parent, elem);
+        if (res instanceof NodeyCode) return res;
+        else return undefined;
+      }
+    } else return parent;
+  }
+
+  private figureOut_byText(
+    parent: NodeyCode,
+    text: string
+  ): string | NodeyCode {
+    let rend = "";
+    if (parent.literal) {
+      rend = parent.literal;
+    } else if (parent.content.length > 0) {
+      for (var i = 0; i < parent.content.length; i++) {
+        let name = parent.content[i];
+        if (name instanceof SyntaxToken) rend += name.tokens;
+        else {
+          let nodey = this.history.store.get(name) as NodeyCode;
+          let res: string | NodeyCode = this.figureOut_byText(nodey, text);
+          if (res instanceof Nodey) return res;
+          else rend += res + "";
+        }
+      }
+    }
+    if (rend === text || rend.indexOf(text) > -1) return parent;
+    else return rend;
+  }
+
+  private figureOut_byElem(
     parent: NodeyCodeCell,
     cell: CodeCell,
     elem: HTMLElement
@@ -79,7 +118,7 @@ export class Sampler {
     let lineNum = Math.round(
       (lineDiv.offsetTop / codeBlock.offsetHeight) * lineCount
     );
-    let lineText = (cell.editor as CodeMirrorEditor).doc.getLine(lineNum);
+    let lineText = cell.editor.getLine(lineNum);
     let res;
     let startCh = 0;
     let endCh = lineText.length - 1;

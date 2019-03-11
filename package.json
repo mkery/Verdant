@@ -32,7 +32,6 @@
     "@jupyterlab/application": "^0.19.1",
     "@jupyterlab/apputils": "^0.19.1",
     "@jupyterlab/cells": "^0.19.1",
-    "@jupyterlab/codemirror": "^0.19.1",
     "@jupyterlab/coreutils": "^2.2.1",
     "@jupyterlab/docmanager": "^0.19.1",
     "@jupyterlab/docregistry": "^0.19.1",
@@ -45,18 +44,17 @@
     "@phosphor/messaging": "^1.2.2",
     "@phosphor/signaling": "^1.2.2",
     "@phosphor/widgets": "^1.6.0",
-    "@types/diff": "^3.5.1",
-    "@types/text-encoding": "^0.0.33",
-    "diff": "^3.5.0",
+    "diff": "^4.0.1",
     "fast-levenshtein": "2.0.6"
   },
   "devDependencies": {
-    "@types/codemirror": "~0.0.46",
+    "@types/diff": "^4.0.1",
+    "@types/node": "~7.10.5",
+    "@types/text-encoding": "^0.0.35",
     "@types/fast-levenshtein": "0.0.1",
-    "@types/node": "~8.0.47",
-    "jest": "^23.6.0",
-    "rimraf": "~2.6.2",
-    "typescript": "~2.9.1"
+    "jest": "^24.4.0",
+    "rimraf": "~2.6.3",
+    "typescript": "~3.3.3333"
   },
   "jupyterlab": {
     "extension": true
