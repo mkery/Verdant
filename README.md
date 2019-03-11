@@ -26,12 +26,25 @@ For design discussion and the research behind this check out our [paper](https:/
 
 ## Development Install
 
-For a development install (requires npm version 4 or later), do the following in the repository directory:
+For a development install, do the following in the repository directory:
+
+```bash
+pip install lilgit-parser
+jupyter serverextension enable --py lilgit_parser
+jupyter serverextension list
+```
+This should ensure that the server-extension parser part of Verdant is installed. Next:
 
 ```bash
 npm install
 npm run build
 jupyter labextension link .
+```
+
+The last line builds JupyterLab and may take a minute. Now, run JupyterLab app to check if Verdant is working:
+
+```
+jupyter lab .
 ```
 
 To rebuild the package and the JupyterLab app:
