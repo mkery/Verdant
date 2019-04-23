@@ -84,6 +84,12 @@ export class HistoryStage {
       starNode = this.createStar(notebook) as Star<NodeyNotebook>;
       history.setLatestToStar(starNode);
     }
+    console.log(
+      "***edited notebook",
+      notebook,
+      starNode.value.cells.slice(0),
+      starNode
+    );
     return starNode;
   }
 
@@ -114,6 +120,8 @@ export class HistoryStage {
       let childIndex = starParent.value.cells.indexOf(nodey.name);
       starParent.value.cells[childIndex] = starNode.name;
     }
+
+    console.log("***LOOKING FOR CELL", nodey.name, parent);
   }
 
   public markPendingNewNode(
@@ -130,6 +138,7 @@ export class HistoryStage {
     let starNode;
     if (nodey instanceof NodeyNotebook) {
       let nodeyCopy = new NodeyNotebook(nodey as NodeyNotebook);
+      console.log("***cells now are", nodeyCopy.cells.slice(0));
       starNode = new Star<NodeyNotebook>(nodeyCopy);
     } else if (nodey instanceof NodeyMarkdown) {
       let nodeyCopy = new NodeyMarkdown(nodey as NodeyMarkdown);

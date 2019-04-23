@@ -1,4 +1,4 @@
-type jsn = { [i: string]: any };
+import { jsn } from "../components/notebook";
 
 type NodeyOptions = {
   id?: number; //id for this node
@@ -34,6 +34,8 @@ export abstract class Nodey {
     return this.typeChar + "." + this.id + "." + this.version;
   }
 
+  public updateState(_: NodeyOptions) {}
+
   public toJSON(): { [i: string]: any } {
     return { created: this.created, parent: this.parent };
   }
@@ -47,10 +49,17 @@ export abstract class Nodey {
 export class NodeyNotebook extends Nodey {
   cells: string[] = [];
 
-  constructor(options: NodeyOptions = {}) {
+  constructor(options: NodeyOptions) {
     super(options);
-    if (options.cells && options.cells.length > 0)
+    this.updateState(options);
+  }
+
+  public updateState(options: NodeyOptions) {
+    super.updateState(options);
+    if (options.cells && options.cells.length > 0) {
       this.cells = options.cells.slice(0);
+      console.log("***cells are now", options, this, this.cells.slice(0));
+    }
   }
 
   public toJSON() {
@@ -86,6 +95,11 @@ export class NodeyOutput extends Nodey {
 
   constructor(options: NodeyOptions) {
     super(options);
+    this.updateState(options);
+  }
+
+  public updateState(options: NodeyOptions) {
+    super.updateState(options);
     if (options.raw) this.raw = options.raw;
   }
 
@@ -121,6 +135,11 @@ export class NodeyCode extends Nodey {
 
   constructor(options: NodeyOptions) {
     super(options);
+    this.updateState(options);
+  }
+
+  public updateState(options: NodeyOptions) {
+    super.updateState(options);
     this.type = options.type;
     if (options.content && options.content.length > 0) {
       this.content = options.content.slice(0);
@@ -209,10 +228,6 @@ export interface NodeyCell extends Nodey {}
 * Code Cell-level nodey
 */
 export class NodeyCodeCell extends NodeyCode implements NodeyCell {
-  constructor(options: NodeyOptions) {
-    super(options);
-  }
-
   get typeChar() {
     return "c";
   }
@@ -235,6 +250,11 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 
   constructor(options: NodeyOptions) {
     super(options);
+    this.updateState(options);
+  }
+
+  public updateState(options: NodeyOptions) {
+    super.updateState(options);
     if (options.markdown) this.markdown = options.markdown;
   }
 

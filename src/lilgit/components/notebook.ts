@@ -10,6 +10,8 @@ import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
 
+export type jsn = { [i: string]: any };
+
 /*
 * Notebook holds a list of cells
 */
@@ -53,7 +55,7 @@ export class VerNotebook {
   }
 
   private async load(matchPrior: boolean) {
-    let ev = new Promise(async (accept, reject) => {
+    let ev = new Promise(async accept => {
       // first start a checkpoint for this load event
       let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
 
@@ -123,7 +125,7 @@ export class VerNotebook {
 
   public async run(cellModel: ICellModel): Promise<[NodeyCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[NodeyCell, Checkpoint]>(async (accept, reject) => {
+    let ev = new Promise<[NodeyCell, Checkpoint]>(async accept => {
       // first start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
@@ -157,7 +159,7 @@ export class VerNotebook {
 
   public async save(): Promise<[NodeyCell[], Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[NodeyCell[], Checkpoint]>(async (accept, reject) => {
+    let ev = new Promise<[NodeyCell[], Checkpoint]>(async accept => {
       //  start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
       // now see if there are any unsaved changes
@@ -213,12 +215,13 @@ export class VerNotebook {
     index: number,
     match: boolean
   ): Promise<[VerCell, Checkpoint]> {
+    if (match) console.log("TODO Create new cell with match!");
     if (!this.ready || !this.model) return;
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
+    let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
       console.log("CELL ADDED");
       let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
-      let nodey = await this.ast.createCellNodey(cell, checkpoint);
+      let nodey = await this.ast.create.fromCell(cell, checkpoint);
       let newCell = new VerCell(this, cell, nodey.name);
       this.cells.splice(index, 0, newCell);
 
@@ -244,7 +247,7 @@ export class VerNotebook {
 
   public async deleteCell(index: number): Promise<[VerCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
+    let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
       let oldCell = this.cells.splice(index, 1)[0];
       let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
 
@@ -278,7 +281,7 @@ export class VerNotebook {
     newPos: number
   ): Promise<Checkpoint> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<Checkpoint>(async (accept, reject) => {
+    let ev = new Promise<Checkpoint>(async accept => {
       this.cells.splice(oldPos, 1);
       this.cells.splice(newPos, 0, cell);
 
@@ -309,12 +312,12 @@ export class VerNotebook {
     newCell: Cell
   ): Promise<[VerCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[VerCell, Checkpoint]>(async (accept, reject) => {
+    let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
       // first start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
       // this is going to create and store the new nodey
-      let newNodey = await this.ast.createCellNodey(newCell, checkpoint);
+      let newNodey = await this.ast.create.fromCell(newCell, checkpoint);
       let verCell = this.cells[index];
 
       // make pointer in history from old type to new type
@@ -345,7 +348,7 @@ export class VerNotebook {
 
   public async focusCell(cell: Cell): Promise<VerCell> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<VerCell>((accept, reject) => {
+    let ev = new Promise<VerCell>(accept => {
       let verCell = this.getCell(cell.model);
       if (verCell) {
         this.view.activeCell = cell;

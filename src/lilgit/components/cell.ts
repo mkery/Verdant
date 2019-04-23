@@ -102,7 +102,7 @@ export class VerCell {
       text = this.view.editor.model.value.text;
     }
 
-    await this.notebook.ast.repairCell(this.model, text);
+    await this.notebook.ast.repair.repair(this.model, text);
   }
 
   /**
