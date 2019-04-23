@@ -138,7 +138,6 @@ export class HistoryStage {
     let starNode;
     if (nodey instanceof NodeyNotebook) {
       let nodeyCopy = new NodeyNotebook(nodey as NodeyNotebook);
-      console.log("***cells now are", nodeyCopy.cells.slice(0));
       starNode = new Star<NodeyNotebook>(nodeyCopy);
     } else if (nodey instanceof NodeyMarkdown) {
       let nodeyCopy = new NodeyMarkdown(nodey as NodeyMarkdown);
@@ -416,7 +415,6 @@ export class HistoryStage {
         (child: string | SyntaxToken, index: number) => {
           if (typeof child === "string") {
             let nodeChild = this.store.getLatestOf(child);
-            //console.log("child is", child, nodeChild);
             if (nodeChild instanceof Star) {
               let newChild = this.deStar(nodeChild, eventId) as NodeyCode;
               newChild.output = newOutput;

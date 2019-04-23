@@ -56,10 +56,8 @@ export class NodeyNotebook extends Nodey {
 
   public updateState(options: NodeyOptions) {
     super.updateState(options);
-    if (options.cells && options.cells.length > 0) {
+    if (options.cells && options.cells.length > 0)
       this.cells = options.cells.slice(0);
-      console.log("***cells are now", options, this, this.cells.slice(0));
-    }
   }
 
   public toJSON() {

@@ -285,38 +285,43 @@ export class Sampler {
     let diffKind = opts.diffKind;
     if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
 
-    if (diffKind === Sampler.NO_DIFF) elem.textContent = opts.newText;
-    else if (diffKind === Sampler.CHANGE_DIFF) {
-      let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
-      if (!prior) {
-        // easy, everything is added
-        elem.textContent = opts.newText;
-        //elem.classList.add(Sampler.CHANGE_ADDED_CLASS);
-      } else {
-        let priorText = this.renderCodeNode(prior);
-        //console.log("vers are", nodey, prior, priorText);
-        let diff = JSDiff.diffWords(priorText, opts.newText);
-        let innerHTML = "";
-        diff.forEach(part => {
-          let partDiv = document.createElement("span");
-          //console.log("DIFF", part);
-          partDiv.textContent = part.value;
-          if (part.added) {
-            partDiv.classList.add(CHANGE_ADDED_CLASS);
-            innerHTML += partDiv.outerHTML;
-          } else if (part.removed) {
-            partDiv.classList.add(CHANGE_REMOVED_CLASS);
-            innerHTML += partDiv.outerHTML;
-          } else {
-            innerHTML += part.value;
-          }
-        });
-        //console.log(innerHTML);
-        elem.innerHTML = innerHTML;
-      }
-    }
+    // now split text into lines so that it displays correctly
+    let lines = opts.newText.split("\n");
+    let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
+    let oldLines: string[] = [];
+    if (prior) oldLines = this.renderCodeNode(prior).split("\n");
+
+    lines.forEach((ln: string, index: number) => {
+      let oldln = oldLines[index] || "";
+      elem.appendChild(this.diffLine(diffKind, oldln, ln));
+    });
 
     return elem;
+  }
+
+  private diffLine(diffKind: number, oldText: string, newText: string) {
+    let line = document.createElement("div");
+    let innerHTML = "";
+    if (diffKind === Sampler.CHANGE_DIFF) {
+      let diff = JSDiff.diffWords(oldText, newText);
+      diff.forEach(part => {
+        let partDiv = document.createElement("span");
+        //console.log("DIFF", part);
+        partDiv.textContent = part.value;
+        if (part.added) {
+          partDiv.classList.add(CHANGE_ADDED_CLASS);
+          innerHTML += partDiv.outerHTML;
+        } else if (part.removed) {
+          partDiv.classList.add(CHANGE_REMOVED_CLASS);
+          innerHTML += partDiv.outerHTML;
+        } else {
+          innerHTML += part.value;
+        }
+      });
+    } else innerHTML = newText;
+    //console.log(innerHTML);
+    line.innerHTML = innerHTML;
+    return line;
   }
 
   private async diffMarkdown(
