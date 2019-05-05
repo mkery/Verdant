@@ -11,7 +11,11 @@ import { VerCell } from "../lilgit/components/cell";
 
 export class VerdantNotebook extends VerNotebook {
   private panel: VerdantPanel;
-  private readonly openGhost: (hist: History, ver: number) => Ghost;
+  private readonly openGhost: (
+    hist: History,
+    panel: VerdantPanel,
+    ver: number
+  ) => Ghost;
   private ghost: Ghost;
 
   constructor(
@@ -19,7 +23,7 @@ export class VerdantNotebook extends VerNotebook {
     history: History,
     ast: AST,
     panel: VerdantPanel,
-    openGhostBook: (hist: History, ver: number) => Ghost
+    openGhostBook: (hist: History, panel: VerdantPanel, ver: number) => Ghost
   ) {
     super(history, ast, notebookPanel);
     this.panel = panel;
@@ -32,7 +36,7 @@ export class VerdantNotebook extends VerNotebook {
 
   public showGhostBook(version: number) {
     if (!this.ghost) {
-      this.ghost = this.openGhost(this.history, version);
+      this.ghost = this.openGhost(this.history, this.panel, version);
       this.ghost.disposed.connect(() => {
         this.ghost = null;
       });

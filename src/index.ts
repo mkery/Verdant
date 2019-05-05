@@ -64,8 +64,12 @@ const extension: JupyterLabPlugin<void> = {
     fileManager = new FileManager(docManager);
     renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     sidePanel = new StackedPanel();
-    openGhostBook = (history: History, notebook: number) => {
-      let widget: Ghost = new Ghost(history, notebook);
+    openGhostBook = (
+      history: History,
+      panel: VerdantPanel,
+      notebook: number
+    ) => {
+      let widget: Ghost = new Ghost(history, panel, notebook);
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
         app.shell.addToMainArea(widget);
@@ -121,7 +125,11 @@ const instances: VerdantInstance[] = [];
 let renderBaby: RenderBaby;
 let fileManager: FileManager;
 let sidePanel: StackedPanel;
-let openGhostBook: (history: History, ver: number) => Ghost;
+let openGhostBook: (
+  history: History,
+  panel: VerdantPanel,
+  ver: number
+) => Ghost;
 
 type VerdantInstance = {
   history: History;

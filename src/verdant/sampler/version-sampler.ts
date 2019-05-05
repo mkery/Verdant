@@ -178,6 +178,7 @@ export namespace VersionSampler {
   ): Promise<HTMLElement> {
     if (diff === undefined) diff = Sampler.CHANGE_DIFF;
     content.classList.add("markdown");
+    content.classList.add("jp-RenderedHTMLCommon");
     await inspector.renderDiff(nodeyVer, content, {
       newText: text,
       diffKind: diff,

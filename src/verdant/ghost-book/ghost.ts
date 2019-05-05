@@ -1,6 +1,7 @@
 import { Widget } from "@phosphor/widgets";
 import { History } from "../../lilgit/model/history";
 import { GhostCell } from "./ghost-cell";
+import { VerdantPanel } from "../panel/verdant-panel";
 import { Checkpoint, CheckpointType } from "../../lilgit/model/checkpoint";
 import { log } from "../../lilgit/components/notebook";
 
@@ -14,12 +15,13 @@ const GHOST_CELLAREA = "v-Verdant-GhostBook-cellArea";
 
 export class Ghost extends Widget {
   readonly history: History;
+  readonly panel: VerdantPanel;
   private ver: number;
   private cellArea: HTMLElement;
   private toolbar: HTMLElement;
   private ghostCells: GhostCell[];
 
-  constructor(history: History, ver: number) {
+  constructor(history: History, panel: VerdantPanel, ver: number) {
     super();
     let file = history.notebook.name;
     this.id = "ghostbook-verdant";
@@ -27,6 +29,7 @@ export class Ghost extends Widget {
     this.title.iconClass = GHOST_BOOK_ICON;
     this.title.closable = true;
     this.history = history;
+    this.panel = panel;
     this.ver = ver;
 
     /* Start building the view */
@@ -76,7 +79,12 @@ export class Ghost extends Widget {
     let events = this.history.checkpoints.getByNotebook(this.ver);
 
     let cells: GhostCell[] = notebook.cells.map(cell => {
-      return new GhostCell(this.history, cell, this.selectCell);
+      return new GhostCell(
+        this.history,
+        cell,
+        this.selectCell,
+        this.panel.openCrumbBox.bind(this.panel)
+      );
     });
     let deletedCells: { cell: GhostCell; index: number }[] = [];
     events.forEach(ev => {
@@ -87,6 +95,7 @@ export class Ghost extends Widget {
             this.history,
             cell.node,
             this.selectCell,
+            this.panel.openCrumbBox.bind(this.panel),
             ev
           );
           deletedCells.push({ cell: ghostCell, index: cell.index });
