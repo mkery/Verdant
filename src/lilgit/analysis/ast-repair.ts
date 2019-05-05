@@ -5,6 +5,8 @@ import {
   NodeyNotebook
 } from "../model/nodey";
 
+import { log } from "../components/notebook";
+
 import * as levenshtein from "fast-levenshtein";
 
 import { History } from "../model/history";
@@ -45,7 +47,7 @@ export class ASTRepair {
 
   private repairNotebook(nodey: NodeyNotebook, newContent: jsn) {
     // TODO
-    console.log("TODO", nodey, newContent);
+    log("TODO", nodey, newContent);
   }
 
   private repairMarkdown(nodey: NodeyMarkdown, newText: string) {
@@ -74,7 +76,7 @@ export class ASTRepair {
     else nodey = nodeToFix;
 
     let textOrig = this.history.inspector.renderNode(nodey);
-    console.log(
+    log(
       "The exact affected nodey is",
       nodey,
       "|" + text + "|",
@@ -90,7 +92,7 @@ export class ASTRepair {
       nodey.pendingUpdate = updateID;
 
       let newNodey = await ASTUtils.parseRequest(text);
-      console.log("RECIEVED ", newNodey);
+      log("RECIEVED ", newNodey);
 
       if (updateID === nodey.pendingUpdate) nodey.updateState(newNodey);
     }

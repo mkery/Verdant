@@ -12,6 +12,8 @@ import { VerCell } from "../components/cell";
 import { History } from "./history";
 import { Checkpoint } from "./checkpoint";
 
+import { log } from "../components/notebook";
+
 import * as levenshtein from "fast-levenshtein";
 
 /*
@@ -84,7 +86,7 @@ export class HistoryStage {
       starNode = this.createStar(notebook) as Star<NodeyNotebook>;
       history.setLatestToStar(starNode);
     }
-    console.log(
+    log(
       "***edited notebook",
       notebook,
       starNode.value.cells.slice(0),
@@ -121,7 +123,7 @@ export class HistoryStage {
       starParent.value.cells[childIndex] = starNode.name;
     }
 
-    console.log("***LOOKING FOR CELL", nodey.name, parent);
+    log("***LOOKING FOR CELL", nodey.name, parent);
   }
 
   public markPendingNewNode(
@@ -174,7 +176,7 @@ export class HistoryStage {
   * should return if there is any changes to commit true/false
   */
   public commit(checkpoint: Checkpoint, starCell?: Star<Nodey> | Nodey): Nodey {
-    console.log("Trying to commit!", starCell);
+    log("Trying to commit!", starCell);
     if (starCell) {
       if (starCell instanceof Star) {
         if (starCell.value instanceof NodeyNotebook)
@@ -193,7 +195,7 @@ export class HistoryStage {
     // destar this cell
     let cell: NodeyCell = this.deStar(starCell, checkpoint.id) as NodeyCodeCell;
 
-    console.log("Cell to commit is " + cell.name, cell, checkpoint.id);
+    log("Cell to commit is " + cell.name, cell, checkpoint.id);
 
     // update code nodes and output
     if (cell instanceof NodeyCodeCell) {
@@ -206,7 +208,7 @@ export class HistoryStage {
 
   private commitNotebook(star: Star<Nodey>, eventId: number) {
     let diff = this.verifyDifferent(star);
-    console.log("is different?", diff);
+    log("is different?", diff);
     if (diff) {
       let notebook = this.deStar(star, eventId) as NodeyNotebook;
       notebook.cells.forEach((name, index) => {
@@ -214,7 +216,7 @@ export class HistoryStage {
         if (cell) cell.parent = notebook.name;
         else {
           // cell may not be initialized yet if just added
-          console.log(this.history.notebook.cells);
+          log(this.history.notebook.cells);
           // don't worry if cell hasn't been added yet.
           if (this.history.notebook.cells.length > index) {
             let waitCell = this.history.notebook.cells[index];
@@ -233,10 +235,10 @@ export class HistoryStage {
       cell = this.deStar(starCell, eventId) as NodeyCodeCell;
 
       // update code nodes and output
-      console.log("Cell to commit is " + cell.name, cell, eventId);
+      log("Cell to commit is " + cell.name, cell, eventId);
       let output = this.commitOutput(cell, eventId);
       cell.outputVer = output.version;
-      console.log("Output committed", output);
+      log("Output committed", output);
       this.commitCode(cell, eventId, output.name);
       this.store.cleanOutStars(cell);
     } else {
@@ -255,7 +257,7 @@ export class HistoryStage {
   private deStar(star: Star<Nodey>, eventId: number) {
     let newNode: Nodey;
     if (star instanceof UnsavedStar) {
-      console.log("MUST SAVE UNSAVED STAR", star);
+      log("MUST SAVE UNSAVED STAR", star);
       newNode = star.value;
       this.store.store(newNode);
     } else {
@@ -263,7 +265,7 @@ export class HistoryStage {
       newNode = history.deStar();
     }
     newNode.created = eventId;
-    console.log("DESTARRED", star, newNode);
+    log("DESTARRED", star, newNode);
     return newNode;
   }
 
@@ -306,7 +308,7 @@ export class HistoryStage {
   private postCommit_updateParent(updatedNodey: NodeyCell, star: Star<Nodey>) {
     // update pointer in parent notebook
     let parent = this.store.getLatestOf(updatedNodey.parent);
-    console.log("update parent notebook for ", updatedNodey, parent);
+    log("update parent notebook for ", updatedNodey, parent);
 
     if (parent instanceof Star && parent.value instanceof NodeyNotebook) {
       let index = parent.value.cells.indexOf(star.name);
@@ -317,7 +319,7 @@ export class HistoryStage {
       updatedNodey.parent = parent.name;
     }
 
-    //console.log("UPDATED PARENT", index, parent.value.cells, star.name);
+    //log("UPDATED PARENT", index, parent.value.cells, star.name);
   }
 
   private verifyDifferent(nodey: Star<Nodey>): boolean {
@@ -372,7 +374,7 @@ export class HistoryStage {
       if (history) {
         oldOutput = history.lastSaved as NodeyOutput;
         same = NodeyOutput.equals(output, oldOutput.raw);
-        console.log("SAME OUTPUT?", same, output, oldOutput.raw);
+        log("SAME OUTPUT?", same, output, oldOutput.raw);
       }
       if (!same) {
         // make a new output
@@ -392,7 +394,7 @@ export class HistoryStage {
         newOutput = oldOutput;
       }
     }
-    console.log(
+    log(
       "OUTPUT HISTORY FOR",
       nodey,
       newOutput,

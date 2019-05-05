@@ -1,4 +1,5 @@
 import { jsn } from "../components/notebook";
+import { log } from "../components/notebook";
 
 type NodeyOptions = {
   id?: number; //id for this node
@@ -272,7 +273,7 @@ export namespace NodeyOutput {
 
   // ref: https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order
   export function equals(a: any, b: any): boolean {
-    console.log("COMPARING", a, b);
+    log("COMPARING", a, b);
     if (a === null || a === undefined || b === null || b === undefined) {
       return a === b;
     }
@@ -280,7 +281,7 @@ export namespace NodeyOutput {
       return true;
     }
 
-    /*console.log("TYPE OF A", typeof a, typeof b);
+    /*log("TYPE OF A", typeof a, typeof b);
     if (
       typeof a === "object" &&
       typeof b === "object" &&

@@ -4,6 +4,8 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
+import { log } from "./lilgit/components/notebook";
+
 import { Ghost } from "./verdant/ghost-book/ghost";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
@@ -149,7 +151,7 @@ function getInstance(panel: NotebookPanel) {
     verInst = { history, analysis, ui, notebook, panel };
     instances.push(verInst);
     notebook.ready.then(() => {
-      console.log("Notebook is ready");
+      log("Notebook is ready");
     });
   }
   return verInst;

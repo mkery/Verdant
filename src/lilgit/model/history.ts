@@ -14,6 +14,8 @@ import { HistoryStage } from "./history-stage";
 
 import { HistoryCheckpoints } from "./checkpoint";
 
+import { log } from "../components/notebook";
+
 export class History {
   public notebook: VerNotebook;
 
@@ -35,7 +37,7 @@ export class History {
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
       var history = JSON.parse(data) as serialized_NodeyHistory;
-      console.log("FOUND HISTORY", history);
+      log("FOUND HISTORY", history);
       this.fromJSON(history);
       this._ready.resolve(undefined);
       return true;
@@ -64,7 +66,7 @@ export class History {
   }
 
   public dump(): void {
-    console.log(this.store.toJSON());
+    log(this.store.toJSON());
   }
 
   private _ready = new PromiseDelegate<void>();

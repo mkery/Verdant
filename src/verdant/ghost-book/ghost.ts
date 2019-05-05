@@ -2,6 +2,7 @@ import { Widget } from "@phosphor/widgets";
 import { History } from "../../lilgit/model/history";
 import { GhostCell } from "./ghost-cell";
 import { Checkpoint, CheckpointType } from "../../lilgit/model/checkpoint";
+import { log } from "../../lilgit/components/notebook";
 
 const GHOST_BOOK = "v-Verdant-GhostBook";
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";
@@ -112,7 +113,7 @@ export class Ghost extends Widget {
 
     let notebook = this.history.store.getNotebook(this.ver);
     let created = this.history.checkpoints.get(notebook.created);
-    console.log(
+    log(
       "CHECKPOINT FOUND",
       notebook.created,
       created,

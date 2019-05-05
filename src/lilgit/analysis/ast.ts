@@ -1,11 +1,12 @@
 import { Notebook } from "@jupyterlab/notebook";
 import { Star } from "../model/history-stage";
-import { Cell } from "@jupyterlab/cells";
+import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../model/checkpoint";
 import { NodeyNotebook } from "../model/nodey";
 import { ASTRepair } from "./ast-repair";
 import { ASTCreate } from "./ast-create";
 import { History } from "../model/history";
+import { log } from "../components/notebook";
 
 export class AST {
   readonly history: History;
@@ -51,9 +52,24 @@ export class AST {
     return [notebook, changedCells];
   }
 
-  /*public async hotStartNotebook(
-    notebook: Notebook,
+  public async hotStartNotebook(
+    notebook: NodeyNotebook | Star<NodeyNotebook>,
+    notebook_view: Notebook,
     checkpoint: Checkpoint
-  ): Promise<[NodeyNotebook | Star<NodeyNotebook>, CellRunData[]]> {}
-*/
+  ): Promise<[NodeyNotebook | Star<NodeyNotebook>, CellRunData[]]> {
+    // check cells
+    let newCells = notebook_view.widgets.map(item => {
+      if (item instanceof Cell) {
+        let kind = "raw";
+        let text = item.model.value.text;
+        if (item instanceof CodeCell) kind = "code";
+        else if (item instanceof MarkdownCell) kind = "markdown";
+        return { kind, text };
+      }
+    });
+
+    log("cells are", newCells, checkpoint);
+
+    return [notebook, []];
+  }
 }

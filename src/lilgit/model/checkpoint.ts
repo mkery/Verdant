@@ -1,5 +1,6 @@
 import { NodeyCell, NodeyCode, NodeyNotebook } from "./nodey";
 import { History } from "./history";
+import { log } from "../components/notebook";
 
 export enum ChangeType {
   CHANGED = 2,
@@ -96,15 +97,17 @@ export class HistoryCheckpoints {
     let targets = checkpoint.targetCells;
     let cellMap: CellRunData[] = [];
     if (notebook) {
-      notebook.cells.forEach((name, index) => {
+      notebook.cells.forEach(name => {
         let match = targets.find(item => item.node === name);
-        let indexMatch = targets.find(item => item.index === index);
-        // for deleted cells
-        if (indexMatch) cellMap.push(indexMatch);
 
         // all other cells
         if (match) cellMap.push(match);
         else cellMap.push({ node: name, changeType: ChangeType.NONE });
+      });
+
+      // for deleted cells
+      targets.forEach(t => {
+        if (t.changeType === ChangeType.REMOVED) cellMap.splice(t.index, 0, t);
       });
     }
     return cellMap;
@@ -154,7 +157,7 @@ export class HistoryCheckpoints {
     this.checkpointList = data.map((item: jsn, index: number) => {
       return Checkpoint.fromJSON(item, index);
     });
-    console.log("RUNS FROM JSON", this.checkpointList);
+    log("RUNS FROM JSON", this.checkpointList);
   }
 
   public toJSON(): jsn[] {

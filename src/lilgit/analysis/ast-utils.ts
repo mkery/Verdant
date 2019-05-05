@@ -4,6 +4,7 @@ import { URLExt } from "@jupyterlab/coreutils";
 import { jsn } from "../components/notebook";
 import { Star } from "../model/history-stage";
 import { History } from "../model/history";
+import { log } from "../components/notebook";
 
 type Range = { start: Pos; end: Pos };
 type Pos = { line: number; ch: number };
@@ -21,7 +22,7 @@ export namespace ASTUtils {
 
     let fullUrl = URLExt.join(serverSettings.baseUrl, "/lilgit/parse");
 
-    console.log("To parse:", fullUrl, fullRequest);
+    log("To parse:", fullUrl, fullRequest);
     /*return new Promise<jsn>(accept => {
       ServerConnection.makeRequest(fullUrl, fullRequest, serverSettings).then(
         response => {
@@ -133,7 +134,7 @@ namespace Private {
     newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, str => {
       return str.replace(/\\/g, "\\\\");
     });
-    //console.log("cleaned code is ", newCode);
+    //log("cleaned code is ", newCode);
     return newCode;
   }
   /*
@@ -146,15 +147,15 @@ namespace Private {
     change: Range,
     history: History
   ): NodeyCode {
-    console.log("Looking for node at", change, node);
+    log("Looking for node at", change, node);
     var children: string[] = node.getChildren();
     if (min > max || max < min || children.length < 1) return node;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
-    console.log("CHILDREN", children, mid, children[mid]);
+    log("CHILDREN", children, mid, children[mid]);
     var midNodey = <NodeyCode>history.store.getLatestOf(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
-    console.log("checking mid range", midNodey, direction, change);
+    log("checking mid range", midNodey, direction, change);
 
     if (direction === 0) {
       var midChildren = midNodey.getChildren();

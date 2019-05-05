@@ -5,6 +5,7 @@ import { History } from "../../lilgit/model/history";
 import { Checkpoint } from "../../lilgit/model/checkpoint";
 import { Mixin } from "./details/mixin";
 import { VerdantPanel } from "./verdant-panel";
+import { log } from "../../lilgit/components/notebook";
 
 import {
   Nodey,
@@ -72,7 +73,7 @@ export class CrumbBox extends Widget {
   }
 
   changeTarget(node: Nodey) {
-    console.log("changeTarget", node);
+    log("changeTarget", node);
     if (this._active && this._target !== node) {
       this._target = node;
       this.buildCrumbMenu();

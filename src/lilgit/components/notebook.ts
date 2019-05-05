@@ -10,7 +10,7 @@ import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
 
-export type jsn = { [i: string]: any };
+const DEBUG = true;
 
 /*
 * Notebook holds a list of cells
@@ -46,7 +46,7 @@ export class VerNotebook {
     await this.load(prior);
 
     // finish initialization
-    console.log("Loaded Notebook", this.view.notebook, this.model);
+    log("Loaded Notebook", this.view.notebook, this.model);
     this.dump();
     this._ready.resolve(undefined);
 
@@ -62,7 +62,8 @@ export class VerNotebook {
       let newNotebook: NodeyNotebook | Star<NodeyNotebook>;
       let changedCells: CellRunData[];
       if (matchPrior) {
-        [newNotebook, changedCells] = await this.ast.coldStartNotebook(
+        [newNotebook, changedCells] = await this.ast.hotStartNotebook(
+          this.model,
           this.view.notebook,
           checkpoint
         );
@@ -97,7 +98,7 @@ export class VerNotebook {
           this.cells.push(cell);
         }
       });
-      console.log("cell names", this.cells);
+      log("cell names", this.cells);
 
       // finish the checkpoint with info from this run
       resolve(changedCells, notebook.version);
@@ -131,18 +132,18 @@ export class VerNotebook {
 
       // now repair the cell against the prior version
       let cell = this.getCell(cellModel);
-      console.log("LOOKING FOR CELL", cellModel, this.cells);
+      log("LOOKING FOR CELL", cellModel, this.cells);
       let [newNodey, same] = await cell.repairAndCommit(checkpoint);
-      console.log("SAME?", same);
+      log("SAME?", same);
 
       // commit the notebook if the cell has changed
       let notebook = this.history.stage.commit(checkpoint, this.model);
-      console.log("notebook commited", notebook, this.model);
+      log("notebook commited", notebook, this.model);
 
       // finish the checkpoint with info from this run
       resolve(newNodey, same, notebook.version);
 
-      console.log("commited cell", newNodey);
+      log("commited cell", newNodey);
 
       this.saveToFile();
 
@@ -184,7 +185,7 @@ export class VerNotebook {
 
           // commit the notebook if the cell has changed
           let notebook = this.history.stage.commit(checkpoint, this.model);
-          console.log("notebook commited", notebook, this.model);
+          log("notebook commited", notebook, this.model);
 
           // finish the checkpoint with info from this run
           resolve(changedCells, notebook.version);
@@ -215,11 +216,11 @@ export class VerNotebook {
     index: number,
     match: boolean
   ): Promise<[VerCell, Checkpoint]> {
-    if (match) console.log("TODO Create new cell with match!");
+    if (match) log("TODO Create new cell with match!");
     if (!this.ready || !this.model) return;
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
     let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
-      console.log("CELL ADDED");
+      log("CELL ADDED");
       let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
       let nodey = await this.ast.create.fromCell(cell, checkpoint);
       let newCell = new VerCell(this, cell, nodey.name);
@@ -231,11 +232,11 @@ export class VerNotebook {
       >;
       model.value.cells.splice(index, 0, newCell.model.name);
       newCell.model.parent = this.model.name;
-      console.log("CELL CREATED", model, newCell, this.cells);
+      log("CELL CREATED", model, newCell, this.cells);
 
       // commit the notebook
       let notebook = this.history.stage.commit(checkpoint, model);
-      console.log("notebook commited", notebook, this.model);
+      log("notebook commited", notebook, this.model);
 
       // finish up
       resolve(newCell.model, notebook.version);
@@ -254,7 +255,7 @@ export class VerNotebook {
       // commit the final version of this cell
       await oldCell.repair();
       let nodeyCellEdit = this.history.stage.markAsEdited(oldCell.model);
-      console.log("MARKED", oldCell, nodeyCellEdit);
+      log("MARKED", oldCell, nodeyCellEdit);
       this.history.stage.commitDeletedCell(checkpoint, nodeyCellEdit);
 
       // make sure cell is removed from model
@@ -265,7 +266,7 @@ export class VerNotebook {
 
       // commit the notebook if the cell has changed
       let notebook = this.history.stage.commit(checkpoint, this.model);
-      console.log("notebook commited", notebook, this.model);
+      log("notebook commited", notebook, this.model);
 
       // finish up
       resolve(oldCell.model, notebook.version, index);
@@ -297,7 +298,7 @@ export class VerNotebook {
 
       // commit the notebook
       let notebook = this.history.stage.commit(checkpoint, this.model);
-      console.log("notebook commited", notebook, this.model);
+      log("notebook commited", notebook, this.model);
 
       // finish up
       resolve(cell.model, notebook.version);
@@ -335,7 +336,7 @@ export class VerNotebook {
 
       // commit the notebook
       let notebook = this.history.stage.commit(checkpoint, this.model);
-      console.log("notebook commited", notebook, this.model, verCell);
+      log("notebook commited", notebook, this.model, verCell);
 
       // finish the checkpoint with info from this run
       resolve(newNodey, false, model.value.version);
@@ -381,7 +382,7 @@ export class VerNotebook {
         if (copied) {
           // add nodey to clip board in notebook
           this.clipboard = { target: copied.name, text: text };
-          console.log("COPIED NODE IS", this.clipboard);
+          log("COPIED NODE IS", this.clipboard);
         } else this.clipboard = null;
       }
     } // otherwise reset clipboard
@@ -404,4 +405,14 @@ export class VerNotebook {
   }
 
   private _ready = new PromiseDelegate<void>();
+}
+
+export type jsn = { [i: string]: any };
+
+export function log(...msg: any[]) {
+  if (DEBUG) console.log("VERDANT: ", ...msg);
+}
+
+export function error(...msg: any[]) {
+  if (DEBUG) console.error("VERDANT: ", ...msg);
 }

@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[6]:
+# In[2]:
 
 
 import ast
@@ -10,7 +10,7 @@ import sys
 import json
 
 
-# In[7]:
+# In[3]:
 
 
 def getPos(text, textPos):
@@ -18,14 +18,16 @@ def getPos(text, textPos):
         lines = snippet.split("\n")
         ln = len(lines)
         ch = len(lines[-1])
-        return {'line': ln - 1, 'ch': ch - 1} # codemirror is 0 indexed ln/col
+        return {'line': ln - 1, 'ch': ch - 1, 'pos': textPos} # codemirror is 0 indexed ln/col
 
 
-# In[8]:
+
+
+# In[4]:
 
 
 class Visitor:
-    
+
     def __init__(self):
         self.type = None
         self.content = []
@@ -34,27 +36,27 @@ class Visitor:
         self.end = None
         self.itr = None
         self.textEnd = None
-        
+
     def visit(self, node, text, textStart, textEnd):
         self.startVisit(node, text, textStart, textEnd)
-        
+
     def startVisit(self, node, text, textStart, textEnd):
         self.type = type(node).__name__
         self.itr = textStart
         self.textEnd = textEnd
         self.start = getPos(text, self.itr)
-            
+
     def endVisit(self, text):
         self.end = getPos(text, self.itr)
         if(debug): print("MADE:",self.__dict__,"\n")
-        
+
     def visitChild(self, childNode, text, forceKind = None):
         if(childNode is None): return
-        
+
         childKind = ""
         if isinstance(childNode, AST):
             childKind = type(childNode).__name__
-        else: 
+        else:
             childKind = 'NotNode'
         if forceKind:
             childKind = forceKind
@@ -62,8 +64,8 @@ class Visitor:
         child.visit(childNode, text, self.itr, self.textEnd)
         self.content.append(child.toJSON())
         self.itr = child.itr
-            
-        
+
+
     def readTokens(self, text, symbols, comments = False, limit = sys.maxsize):
         char = text[min(self.itr, len(text) - 1)]
         count = 0
@@ -78,7 +80,7 @@ class Visitor:
             if(wasComment):
                 self.readTokens(text, symbols, comments)
         return count
-            
+
     def captureComment(self, text):
         line = text[self.itr:self.textEnd]
         index = line.find("\n")
@@ -88,16 +90,16 @@ class Visitor:
             self.content.append({'syntok': line})
             return True
         return False
-        
+
     def write(self, text):
         self.content.append({"syntok": text})
         self.itr += len(text)
-    
+
     def toJSON(self):
         return {'type': self.type, 'content': self.content, 'literal': self.literal, 'start': self.start, 'end': self.end}
 
 
-# In[9]:
+# In[5]:
 
 
 class NotNodeVisitor(Visitor):
@@ -107,7 +109,7 @@ class NotNodeVisitor(Visitor):
         self.endVisit(text)
 
 
-# In[23]:
+# In[6]:
 
 
 class StmtExprVisitor(Visitor):
@@ -115,10 +117,10 @@ class StmtExprVisitor(Visitor):
         self.type = type(node).__name__
         self.itr = textStart
         self.textEnd = textEnd
-        self.start = {'line': node.lineno - 1, 'ch': node.col_offset} # codemirror is 0 indexed ln
+        self.start = {'pos': textStart, 'line': node.lineno - 1, 'ch': node.col_offset} # codemirror is 0 indexed ln
 
 
-# In[24]:
+# In[7]:
 
 
 '''
@@ -133,7 +135,7 @@ class ModuleVisitor(Visitor):
     def visit(self, node, text, textStart, textEnd):
         super().visit(node, text, textStart, textEnd)
         self.readTokens(text, space|newLine, comments = True)
-        
+
         # body
         if(isinstance(node.body, list)):
             for stmt in node.body:
@@ -141,7 +143,7 @@ class ModuleVisitor(Visitor):
                 self.readTokens(text, space|newLine, comments = True)
         else:
             self.visitChild(stmt, text)
-    
+
         self.readTokens(text, space|newLine, comments = True)
         self.endVisit(text)
 
@@ -161,7 +163,7 @@ class SuiteVisitor(ModuleVisitor):
         self.endVisit(text)
 
 
-# In[25]:
+# In[8]:
 
 
 '''
@@ -175,9 +177,9 @@ class FunctionDefVisitor(StmtExprVisitor):
         for dec in node.decorator_list:
             self.visitChild(dec, text)
             self.readTokens(text, space|newLine, comments = True)
-        self.visitFunction(node, text)   
-        
-    
+        self.visitFunction(node, text)
+
+
     def visitFunction(self, node, text):
         #def and name
         self.write("def")
@@ -192,17 +194,17 @@ class FunctionDefVisitor(StmtExprVisitor):
         self.readTokens(text, space)
         self.readTokens(text, {")"}, limit = openCount)
         self.readTokens(text, space)
-  
+
         # end function header
         self.write(":")
         self.readTokens(text, space)
-        
+
         # check for return annotation
         if(node.returns):
             self.write("->")
             self.readTokens(text, space)
             end, ret = visitChild(node.returns, text, end, textEnd)
-            
+
         # finally, body of the function
         for stmt in node.body:
             self.readTokens(text, space|newLine, comments = True)
@@ -224,7 +226,7 @@ class AsyncFunctionDefVisitor(FunctionDefVisitor):
         # add the async token
         self.write("async")
         self.readTokens(text, space)
-        self.visitFunction(node, text)   
+        self.visitFunction(node, text)
 
 '''
 ClassDef(identifier name, expr* bases, keyword* keywords, stmt* body, expr* decorator_list)
@@ -236,7 +238,7 @@ class ClassDefVisitor(StmtExprVisitor):
         for dec in node.decorator_list:
             self.visitChild(dec, text)
             self.readTokens(text, space|newLine, comments = True)
-            
+
         #class and name
         self.write("class")
         self.readTokens(text, space)
@@ -244,7 +246,7 @@ class ClassDefVisitor(StmtExprVisitor):
         self.readTokens(text, space)
         openCount = self.readTokens(text, {"("})
         self.readTokens(text, space)
-        
+
         # bases
         for base in node.bases:
             self.visitChild(base, text)
@@ -261,15 +263,15 @@ class ClassDefVisitor(StmtExprVisitor):
         self.readTokens(text, {")"}, limit = openCount)
         self.readTokens(text, space)
         self.write(":")
-        
+
         # finally, body of the class
         for stmt in node.body:
             self.readTokens(text, space|newLine, comments = True)
             self.visitChild(stmt, text)
             self.readTokens(text, space, comments = True)
         self.endVisit(text)
-    
-    
+
+
 '''
 Return(expr? value)
 '''
@@ -282,7 +284,7 @@ class ReturnVisitor(StmtExprVisitor):
             self.visitChild(node.value, text)
             self.readTokens(text, space, comments = True)
         self.endVisit(text)
-        
+
 '''
 | Delete(expr* targets)
 '''
@@ -300,8 +302,8 @@ class DeleteVisitor(StmtExprVisitor):
             if(openCount > 0):
                 self.readTokens(text, space)
                 self.readTokens(text, {")"}, limit = openCount)
-        self.endVisit(text)  
-        
+        self.endVisit(text)
+
 '''
 | Assign(expr* targets, expr value)
 '''
@@ -311,10 +313,10 @@ class AssignVisitor(StmtExprVisitor):
         for target in node.targets:
             self.visitChild(target, text)
             self.readTokens(text, space|commas)
-        self.write("=")   
+        self.write("=")
         self.readTokens(text, space)
         self.visitChild(node.value, text)
-        self.endVisit(text)  
+        self.endVisit(text)
 
 
 '''
@@ -326,10 +328,10 @@ class AugAssignVisitor(StmtExprVisitor):
         self.visitChild(node.target, text)
         self.readTokens(text, space|commas)
         self.visitChild(node.op, text)
-        self.write("=")   
+        self.write("=")
         self.readTokens(text, space)
         self.visitChild(node.value, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 -- 'simple' indicates that we annotate simple name without parens
@@ -339,7 +341,7 @@ class AnnAssignVisitor(StmtExprVisitor):
     def visit(self, node, text, textStart, textEnd):
         super().visit(node, text, textStart, textEnd)
         openCount = 0
-        
+
         # target
         targetType = type(node.target).__name__
         if(node.simple == 0 and targetType == "Name"):
@@ -348,11 +350,11 @@ class AnnAssignVisitor(StmtExprVisitor):
 
         self.visitChild(node.target, text)
         self.readTokens(text, space)
-        
+
         if(node.simple == 0 and targetType == "Name"):
             self.readTokens(text, {")"}, limit = openCount)
             self.readTokens(text, space)
-            
+
         # annotation
         self.write(":")
         self.readTokens(text, space)
@@ -361,17 +363,17 @@ class AnnAssignVisitor(StmtExprVisitor):
         self.visitChild(node.annotation, text)
         self.readTokens(text, space)
         self.readTokens(text, {")"}, limit = openCount)
-        
+
         # value
         if(node.value):
             self.readTokens(text, space)
-            self.write("=")  
+            self.write("=")
             self.readTokens(text, space)
             self.visitChild(node.value, text)
 
-        self.endVisit(text) 
+        self.endVisit(text)
 
-        
+
 '''
 | For(expr target, expr iter, stmt* body, stmt* orelse)
 '''
@@ -379,7 +381,7 @@ class ForVisitor(StmtExprVisitor):
     def visit(self, node, text, textStart, textEnd):
         super().visit(node, text, textStart, textEnd)
         self.visitFor(node, text, textStart, textEnd)
-    
+
     def visitFor(self, node, text, textStart, textEnd):
         self.write("for")
         self.readTokens(text, space)
@@ -400,7 +402,7 @@ class ForVisitor(StmtExprVisitor):
             # get spaces, : and any new line
             self.readTokens(text, space|newLine|{':'}, comments = True)
             self.visitChild(stmt, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 '''
 | AsyncFor(expr target, expr iter, stmt* body, stmt* orelse)
 '''
@@ -435,7 +437,7 @@ class WhileVisitor(StmtExprVisitor):
             self.readTokens(text, space)
             self.readTokens(text, space|newLine|{':'})
             self.visitChild(stmt, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | If(expr test, stmt* body, stmt* orelse)
@@ -445,7 +447,7 @@ class IfVisitor(StmtExprVisitor):
         self.startVisit(node, text, textStart, textEnd)
         self.write("if")
         self.visitIf(node, text, textStart, textEnd)
-        
+
     def visitIf(self, node, text, textStart, textEnd, nested = False):
         self.readTokens(text, space)
         openCount = self.readTokens(text, {"("})
@@ -465,14 +467,14 @@ class IfVisitor(StmtExprVisitor):
                 self.write("else")
                 self.readTokens(text, space|newLine|{':'}, comments = True)
                 self.visitChild(stmt, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 class NestedIfVisitor(IfVisitor):
     def visit(self, node, text, textStart, textEnd):
         self.startVisit(node, text, textStart, textEnd)
         self.write("elif")
         self.visitIf(node, text, textStart, textEnd)
-        
+
 '''
 | With(withitem* items, stmt* body)
 '''
@@ -505,7 +507,7 @@ class AsyncWithVisitor(WithVisitor):
         self.visitWith(node, text, textStart, textEnd)
 
 
-# In[26]:
+# In[9]:
 
 
 '''
@@ -529,7 +531,7 @@ class RaiseVisitor(StmtExprVisitor):
             self.readTokens(text, space)
             self.visitChild(node.cause, text)
         self.endVisit(text)
-        
+
 '''
 | Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
 '''
@@ -579,8 +581,8 @@ class AssertVisitor(StmtExprVisitor):
             if(openCount):
                 self.readTokens(text, space)
                 self.readTokens(text, {")"}, limit = openCount)
-        self.endVisit(text) 
-        
+        self.endVisit(text)
+
 '''
 Import(alias* names)
 '''
@@ -588,7 +590,7 @@ class ImportVisitor(StmtExprVisitor):
     def visit(self, node, text, textStart, textEnd):
         self.startVisit(node, text, textStart, textEnd)
         self.visitImport(node, text, textStart, textEnd)
-    
+
     def visitImport(self, node, text, textStart, textEnd):
         self.write("import")
         self.readTokens(text, space)
@@ -599,7 +601,7 @@ class ImportVisitor(StmtExprVisitor):
         if(openCount):
             self.readTokens(text, space)
             self.readTokens(text, {")"}, limit = openCount)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 ImportFrom(identifier? module, alias* names, int? level)
@@ -612,7 +614,7 @@ class ImportFromVisitor(ImportVisitor):
         self.write(str(node.module))
         self.readTokens(text, space)
         self.visitImport(node, text, textStart, textEnd)
-        
+
 '''
 | Global(identifier* names)
 '''
@@ -623,7 +625,7 @@ class GlobalVisitor(StmtExprVisitor):
         for name in node.names:
             self.readTokens(text, space|commas)
             self.write(str(name))
-        self.endVisit(text)  
+        self.endVisit(text)
 
 '''
 | Nonlocal(identifier* names)
@@ -635,8 +637,8 @@ class NonlocalVisitor(StmtExprVisitor):
         for name in node.names:
             self.readTokens(text, space|commas)
             self.write(str(name))
-        self.endVisit(text) 
-        
+        self.endVisit(text)
+
 '''
 | Pass
 '''
@@ -644,7 +646,7 @@ class PassVisitor(StmtExprVisitor):
     def visit(self, node, text, textStart, textEnd):
         self.startVisit(node, text, textStart, textEnd)
         self.write("pass")
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | Continue
@@ -653,7 +655,7 @@ class ContinueVisitor(StmtExprVisitor):
     def visit(self, node, text, textStart, textEnd):
         self.startVisit(node, text, textStart, textEnd)
         self.write("continue")
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | Break
@@ -662,8 +664,8 @@ class BreakVisitor(StmtExprVisitor):
     def visit(self, node, text, textStart, textEnd):
         self.startVisit(node, text, textStart, textEnd)
         self.write("break")
-        self.endVisit(text) 
-  
+        self.endVisit(text)
+
 '''
 BoolOp(boolop op, expr* values)
 '''
@@ -690,7 +692,7 @@ class BinOpVisitor(StmtExprVisitor):
         self.visitChild(node.op, text)
         self.readTokens(text, space)
         self.visitChild(node.right, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | UnaryOp(unaryop op, expr operand)
@@ -701,7 +703,7 @@ class UnaryOpVisitor(StmtExprVisitor):
         self.visitChild(node.op, text)
         self.readTokens(text, space)
         self.visitChild(node.operand, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | Lambda(arguments args, expr body)
@@ -720,8 +722,8 @@ class LambdaVisitor(StmtExprVisitor):
         if(openCount):
             self.readTokens(text, space)
             self.readTokens(text, {")"}, limit = openCount)
-        self.endVisit(text) 
-        
+        self.endVisit(text)
+
 
 '''
 | IfExp(expr test, expr body, expr orelse)
@@ -744,7 +746,7 @@ class IfExpVisitor(StmtExprVisitor):
         if(openCount):
             self.readTokens(text, space)
             self.readTokens(text, {")"}, limit = openCount)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | Dict(expr* keys, expr* values)
@@ -761,9 +763,9 @@ class DictVisitor(StmtExprVisitor):
             self.readTokens(text, space|{"("})
             self.visitChild(node.values[i], text)
             self.readTokens(text, space|{")"})
-        self.write("}")    
-        self.endVisit(text) 
-        
+        self.write("}")
+        self.endVisit(text)
+
 '''
 | Set(expr* elts)
 '''
@@ -775,9 +777,9 @@ class SetVisitor(StmtExprVisitor):
             self.readTokens(text, space|{"("}|commas)
             self.visitChild(key, text)
             self.readTokens(text, space|{")"})
-        self.write("}")    
-        self.endVisit(text) 
-        
+        self.write("}")
+        self.endVisit(text)
+
 '''
 | ListComp(expr elt, comprehension* generators)
 '''
@@ -788,12 +790,12 @@ class ListCompVisitor(Visitor):
         self.readTokens(text, space)
         self.visitChild(node.elt, text)
         self.readTokens(text, space)
-        self.endVisit(text) 
+        self.endVisit(text)
         for gen in node.generators :
             self.readTokens(text, space)
             self.visitChild(gen, text)
-        self.write("]")    
-        self.endVisit(text) 
+        self.write("]")
+        self.endVisit(text)
 
 
 '''
@@ -806,12 +808,12 @@ class SetCompVisitor(Visitor):
         self.readTokens(text, space)
         self.visitChild(node.elt, text)
         self.readTokens(text, space)
-        self.endVisit(text) 
+        self.endVisit(text)
         for gen in node.generators :
             self.readTokens(text, space)
             self.visitChild(gen, text)
-        self.write("}")    
-        self.endVisit(text) 
+        self.write("}")
+        self.endVisit(text)
 
 
 '''
@@ -827,12 +829,12 @@ class DictCompVisitor(Visitor):
         self.readTokens(text, space)
         self.visitChild(node.value, text)
         self.readTokens(text, space)
-        self.endVisit(text) 
+        self.endVisit(text)
         for gen in node.generators :
             self.readTokens(text, space)
             self.visitChild(gen, text)
-        self.write("}")    
-        self.endVisit(text) 
+        self.write("}")
+        self.endVisit(text)
 
 '''
 | GeneratorExp(expr elt, comprehension* generators)
@@ -844,13 +846,13 @@ class GeneratorExpVisitor(Visitor):
         self.readTokens(text, space)
         self.visitChild(node.elt, text)
         self.readTokens(text, space)
-        self.endVisit(text) 
+        self.endVisit(text)
         for gen in node.generators :
             self.readTokens(text, space)
             self.visitChild(gen, text)
-        self.write(")")    
-        self.endVisit(text) 
-        
+        self.write(")")
+        self.endVisit(text)
+
 
 '''
 | Yield(expr? value)
@@ -862,7 +864,7 @@ class YieldVisitor(Visitor):
         if(node.value):
             self.readTokens(text, space)
             self.visitChild(node.value, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 '''
 | YieldFrom(expr value)
@@ -875,10 +877,10 @@ class YieldFromVisitor(Visitor):
         self.write("from")
         self.readTokens(text, space)
         self.visitChild(node.value, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 
-# In[27]:
+# In[10]:
 
 
 class OpVisitor(Visitor):
@@ -886,17 +888,17 @@ class OpVisitor(Visitor):
         super().visit(node, text, textStart, textEnd)
         self.write(self.getOp())
         self.endVisit(text)
-        
+
     def getOp(self):
         return None
-    
+
 '''
 boolop = And | Or
 '''
 class AndVisitor(OpVisitor):
     def getOp(self):
         return "and"
-    
+
 class OrVisitor(OpVisitor):
     def getOp(self):
         return "or"
@@ -944,7 +946,7 @@ class BitAndVisitor(OpVisitor):
 class FloorDiv(OpVisitor):
     def getOp(self):
         return "//"
-    
+
 '''
 unaryop = Invert | Not | UAdd | USub
 '''
@@ -960,7 +962,7 @@ class UAddVisitor(OpVisitor):
 class USubVisitor(OpVisitor):
     def getOp(self):
         return "-"
-    
+
 '''
 cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
 '''
@@ -996,7 +998,7 @@ class NotInVisitor(OpVisitor):
         return "not in"
 
 
-# In[28]:
+# In[11]:
 
 
 '''
@@ -1020,7 +1022,7 @@ class comprehensionVisitor(Visitor):
             self.write("if")
             self.readTokens(text, space)
             self.visitChild(iff, text)
-        self.endVisit(text) 
+        self.endVisit(text)
 
 
 '''
@@ -1068,7 +1070,7 @@ class argumentsVisitor(Visitor):
                     self.write("=")
                     self.readTokens(text, space)
                     self.visitChild(node.defaults[dind], text)
-        # vararg   
+        # vararg
         if(node.vararg):
             self.readTokens(text, space|commas)
             self.write("*")
@@ -1104,7 +1106,7 @@ class argVisitor(StmtExprVisitor):
             self.readTokens(text, space)
             self.visitChild(node.annotation, text)
         self.endVisit(text)
-        
+
 
 '''
 -- import name with optional 'as' alias.
@@ -1121,7 +1123,7 @@ class aliasVisitor(Visitor):
             self.readTokens(text, space)
             self.write(str(node.asname))
         self.endVisit(text)
-        
+
 
 '''
 keyword = (identifier? arg, expr value)
@@ -1133,7 +1135,7 @@ class keywordVisitor(Visitor):
         self.readTokens(text, space|{'='})
         self.visitChild(node.value, text)
         self.endVisit(text)
-        
+
 '''
 withitem = (expr context_expr, expr? optional_vars)
 '''
@@ -1154,10 +1156,10 @@ class withitemVisitor(Visitor):
                 self.readTokens(text, space)
                 self.readTokens(text, {")"}, limit = openCount)
         self.endVisit(text)
-        
 
 
-# In[29]:
+
+# In[12]:
 
 
 '''
@@ -1170,7 +1172,7 @@ class ExprVisitor(StmtExprVisitor):
         self.endVisit(text)
 
 
-# In[30]:
+# In[13]:
 
 
 '''
@@ -1188,7 +1190,7 @@ class AwaitVisitor(StmtExprVisitor):
             self.readTokens(text, space)
             self.readTokens(text, {")"}, limit = openCount)
         self.endVisit(text)
-        
+
 
 
 '''
@@ -1222,11 +1224,11 @@ class CompareVisitor(StmtExprVisitor):
                 self.visitChild(expr, text)
                 self.readTokens(text, space)
                 self.readTokens(text, {")"}, limit = openCount3)
-                
+
         self.readTokens(text, {")"}, limit = openCount)
         self.endVisit(text)
-    
-        
+
+
 '''
 Call(expr func, expr* args, keyword* keywords)
 '''
@@ -1235,7 +1237,7 @@ class CallVisitor(StmtExprVisitor):
         super().visit(node, text, textStart, textEnd)
         self.visitChild(node.func, text)
         openCount = self.readTokens(text, {"("})
-        
+
         self.readTokens(text, space)
         for argument in node.args:
             self.readTokens(text, space|commas)
@@ -1243,7 +1245,7 @@ class CallVisitor(StmtExprVisitor):
         for keyword in node.keywords:
             self.readTokens(text, space|commas)
             self.visitChild(keyword, text)
-            
+
         self.readTokens(text, space|commas)
         self.readTokens(text, {")"}, limit = openCount)
         self.endVisit(text)
@@ -1272,7 +1274,7 @@ class StrVisitor(StmtExprVisitor):
         self.write(str(node.s))
         self.readTokens(text, quotes, limit = openQuotes)
         self.endVisit(text)
-        
+
 
 '''
  | Name(identifier id, expr_context ctx)
@@ -1287,7 +1289,7 @@ class NameVisitor(Visitor):
             self.readTokens(text, space)
             self.readTokens(text, {")"}, limit = openCount)
         self.endVisit(text)
-    
+
 
 '''
 | FormattedValue(expr value, int? conversion, expr? format_spec)
@@ -1305,7 +1307,7 @@ class FormattedValueVisitor(Visitor):
             self.readTokens(text, space)
         self.readTokens(text, {"}"}, limit = openCount)
         self.endVisit(text)
-    
+
 '''
 | JoinedStr(expr* values)
 '''
@@ -1396,8 +1398,8 @@ class StarredVisitor(Visitor):
         self.write("*")
         self.visitChild(node.value, text)
         self.endVisit(text)
-    
-    
+
+
 '''
 | List(expr* elts, expr_context ctx)
 '''
@@ -1409,8 +1411,8 @@ class ListVisitor(StmtExprVisitor):
             self.readTokens(text, space|{"("}|commas)
             self.visitChild(key, text)
             self.readTokens(text, space|{")"})
-        self.write("]")    
-        self.endVisit(text) 
+        self.write("]")
+        self.endVisit(text)
 
 '''
 | List(expr* elts, expr_context ctx)
@@ -1423,9 +1425,9 @@ class TupleVisitor(StmtExprVisitor):
             self.readTokens(text, space|commas)
             self.visitChild(key, text)
             self.readTokens(text, space)
-        self.write(")")    
-        self.endVisit(text) 
-        
+        self.write(")")
+        self.endVisit(text)
+
 '''
 Slice(expr? lower, expr? upper, expr? step)
 '''
@@ -1438,7 +1440,7 @@ class SliceVisitor(Visitor):
         if(node.step):
             self.readTokens(text, space|{":"})
             self.visitChild(node.step, text)
-        self.endVisit(text)  
+        self.endVisit(text)
 
 '''
 | ExtSlice(slice* dims)
@@ -1449,8 +1451,8 @@ class ExtSliceVisitor(Visitor):
         for dim in node.dims:
             self.readTokens(text, space|{","})
             self.visitChild(dim, text)
-        self.endVisit(text)  
-        
+        self.endVisit(text)
+
 
 '''
 | Index(expr value)
@@ -1459,10 +1461,10 @@ class IndexVisitor(Visitor):
     def visit(self, node, text, textStart, textEnd):
         super().visit(node, text, textStart, textEnd)
         self.visitChild(node.value, text)
-        self.endVisit(text)  
+        self.endVisit(text)
 
 
-# In[31]:
+# In[14]:
 
 
 space = {"\t", " "}
@@ -1472,7 +1474,7 @@ commas = {","}
 quotes = {"'", '"'}
 
 
-# In[33]:
+# In[15]:
 
 
 debug = False
@@ -1482,7 +1484,7 @@ if(debug):
     print(visitor)
 
 
-# In[34]:
+# In[16]:
 
 
 def parse(code):
@@ -1494,7 +1496,7 @@ def parse(code):
     return visitor.toJSON()
 
 
-# In[35]:
+# In[17]:
 
 
 # TESTS
@@ -1516,4 +1518,3 @@ def translateBack(nodey):
     return "".join(code)
 
 if(debug): print(translateBack(visitor))
-

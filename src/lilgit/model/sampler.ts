@@ -1,5 +1,7 @@
 import { Widget } from "@phosphor/widgets";
 
+import { log } from "../components/notebook";
+
 import * as JSDiff from "diff";
 
 import {
@@ -54,7 +56,7 @@ export class Sampler {
   }
 
   public set target(nodey: Nodey) {
-    console.log("new target!", nodey);
+    log("new target!", nodey);
     this._target = nodey;
     this._targetChanged.emit(this._target);
   }
@@ -111,7 +113,7 @@ export class Sampler {
     cell: CodeCell,
     elem: HTMLElement
   ) {
-    console.log("figuring out target");
+    log("figuring out target");
     let codeBlock = this.findAncestor(elem, "CodeMirror-code");
     let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     let lineDiv = this.findAncestor(elem, "CodeMirror-line");
@@ -306,7 +308,7 @@ export class Sampler {
       let diff = JSDiff.diffWords(oldText, newText);
       diff.forEach(part => {
         let partDiv = document.createElement("span");
-        //console.log("DIFF", part);
+        //log("DIFF", part);
         partDiv.textContent = part.value;
         if (part.added) {
           partDiv.classList.add(CHANGE_ADDED_CLASS);
@@ -319,7 +321,7 @@ export class Sampler {
         }
       });
     } else innerHTML = newText;
-    //console.log(innerHTML);
+    //log(innerHTML);
     line.innerHTML = innerHTML;
     return line;
   }
@@ -382,7 +384,7 @@ export class Sampler {
     let lower = elem.innerHTML.toLowerCase();
     let index = lower.indexOf(keys[0], i);
     let html = "";
-    //console.log("Index is ", index, lower, keys[0]);
+    //log("Index is ", index, lower, keys[0]);
     while (index > -1) {
       html +=
         elem.innerHTML.slice(i, index) +

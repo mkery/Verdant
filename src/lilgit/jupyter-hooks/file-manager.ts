@@ -6,6 +6,8 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
+import { log } from "../components/notebook";
+
 import { CellRunData } from "../model/checkpoint";
 
 import { History } from "../model/history";
@@ -23,15 +25,15 @@ export class FileManager {
   ): Promise<void> {
     return new Promise((accept, reject) => {
       var notebookPath = notebook.path;
-      //console.log("notebook path is", notebookPath)
+      //log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
       name = name.substring(0, name.indexOf(".")) + ".ipyhistory";
-      //console.log("name is", name)
+      //log("name is", name)
       var path =
         "/" +
         notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
         name;
-      //console.log("goal path is ", path)
+      //log("goal path is ", path)
 
       var saveModel = new HistorySaveModel(
         name,
@@ -40,13 +42,13 @@ export class FileManager {
         "today",
         JSON.stringify(historyModel.toJSON())
       );
-      //console.log("Model to save is", saveModel)
+      //log("Model to save is", saveModel)
 
       let contents = new ContentsManager();
       contents
         .save(path, saveModel)
         .then(() => {
-          console.log("Model written to file", saveModel);
+          log("Model written to file", saveModel);
           accept();
         })
         .catch(rej => {
@@ -60,10 +62,10 @@ export class FileManager {
   public loadFromFile(notebook: VerNotebook): Promise<any> {
     return new Promise(accept => {
       var notebookPath = notebook.path;
-      //console.log("notebook path is", notebookPath)
+      //log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
       name = name.substring(0, name.indexOf(".")) + ".ipyhistory";
-      //console.log("name is", name)
+      //log("name is", name)
       var path =
         "/" +
         notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
@@ -72,7 +74,7 @@ export class FileManager {
       contents
         .get(path)
         .then(res => {
-          console.log("Found a model ", res);
+          log("Found a model ", res);
           accept(res.content);
         })
         .catch(() => {
