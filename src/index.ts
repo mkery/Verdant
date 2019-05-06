@@ -4,6 +4,8 @@ import {
   JupyterLabPlugin
 } from "@jupyterlab/application";
 
+import { log } from "./lilgit/components/notebook";
+
 import { Ghost } from "./verdant/ghost-book/ghost";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
@@ -62,8 +64,12 @@ const extension: JupyterLabPlugin<void> = {
     fileManager = new FileManager(docManager);
     renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     sidePanel = new StackedPanel();
-    openGhostBook = (history: History, notebook: number) => {
-      let widget: Ghost = new Ghost(history, notebook);
+    openGhostBook = (
+      history: History,
+      panel: VerdantPanel,
+      notebook: number
+    ) => {
+      let widget: Ghost = new Ghost(history, panel, notebook);
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
         app.shell.addToMainArea(widget);
@@ -119,7 +125,11 @@ const instances: VerdantInstance[] = [];
 let renderBaby: RenderBaby;
 let fileManager: FileManager;
 let sidePanel: StackedPanel;
-let openGhostBook: (history: History, ver: number) => Ghost;
+let openGhostBook: (
+  history: History,
+  panel: VerdantPanel,
+  ver: number
+) => Ghost;
 
 type VerdantInstance = {
   history: History;
@@ -149,7 +159,7 @@ function getInstance(panel: NotebookPanel) {
     verInst = { history, analysis, ui, notebook, panel };
     instances.push(verInst);
     notebook.ready.then(() => {
-      console.log("Notebook is ready");
+      log("Notebook is ready");
     });
   }
   return verInst;

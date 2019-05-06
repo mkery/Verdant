@@ -6,6 +6,8 @@ import { Cell, CodeCell, MarkdownCell, ICellModel } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@phosphor/coreutils";
 
+import { log } from "../components/notebook";
+
 import { IObservableList } from "@jupyterlab/observables";
 
 import { VerNotebook } from "../components/notebook";
@@ -26,8 +28,8 @@ export class NotebookListen {
   private async init() {
     await this._notebookPanel.revealed;
     this._notebook = this._notebookPanel.content;
-    console.log("Notebook panel", this._notebookPanel);
-    console.log("Notebook", this._notebook);
+    log("Notebook panel", this._notebookPanel);
+    log("Notebook", this._notebook);
     this.listen();
     this._ready.resolve(undefined);
   }
@@ -98,7 +100,7 @@ export class NotebookListen {
             this._cellTypeChanged(oldIndex, newIndex, oldValues);
             break;
           default:
-            console.log("cell list changed!!!!", sender, data);
+            log("cell list changed!!!!", sender, data);
             break;
         }
       }
@@ -121,7 +123,7 @@ export class NotebookListen {
       if (window.getSelection) {
         text = window.getSelection().toString();
       }
-      console.log("COPY EVENT DETECTED", ev, "string: " + text);
+      log("COPY EVENT DETECTED", ev, "string: " + text);
       this.verNotebook.copyNode(
         ev.target as HTMLElement,
         this.activeCell,
@@ -130,12 +132,12 @@ export class NotebookListen {
     });
 
     document.addEventListener("cut", (ev: ClipboardEvent) => {
-      console.log("CUT EVENT DETECTED", ev);
+      log("CUT EVENT DETECTED", ev);
       //TODO
     });
 
     document.addEventListener("paste", ev => {
-      console.log("PASTE EVENT DETECTED", ev);
+      log("PASTE EVENT DETECTED", ev);
     });
   }
 
@@ -147,18 +149,12 @@ export class NotebookListen {
         newIndex,
         false
       );
-      console.log(
-        "adding a new cell!",
-        cell,
-        verCell,
-        verCell.model,
-        checkpoint
-      );
+      log("adding a new cell!", cell, verCell, verCell.model, checkpoint);
     });
   }
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
-    console.log("removing cells", oldIndex, oldValues);
+    log("removing cells", oldIndex, oldValues);
     oldValues.forEach(() => {
       this.verNotebook.deleteCell(oldIndex);
     });
@@ -171,7 +167,7 @@ export class NotebookListen {
   ) {
     newValues.forEach(async item => {
       let verCell = this.verNotebook.getCell(item);
-      console.log("moving cell", oldIndex, newIndex, newValues);
+      log("moving cell", oldIndex, newIndex, newValues);
       this.verNotebook.moveCell(verCell, oldIndex, newIndex);
     });
   }

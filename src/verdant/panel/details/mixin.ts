@@ -10,6 +10,8 @@ import {
 
 import { History } from "../../../lilgit/model/history";
 
+import { log } from "../../../lilgit/components/notebook";
+
 import { VersionSampler } from "../../sampler/version-sampler";
 
 const HEADER = "v-VerdantPanel-crumbMenu";
@@ -73,7 +75,7 @@ export class Mixin extends Widget {
     contentDiv.innerHTML = "";
 
     let target = this.targetList[0];
-    console.log("TARGETS", this.targetList);
+    log("TARGETS", this.targetList);
     let history = this.history.store.getHistoryOf(target);
 
     history.versions.forEach(async nodeyVer => {

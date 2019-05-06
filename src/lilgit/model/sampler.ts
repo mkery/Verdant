@@ -1,5 +1,7 @@
 import { Widget } from "@phosphor/widgets";
 
+import { log } from "../components/notebook";
+
 import * as JSDiff from "diff";
 
 import {
@@ -54,7 +56,7 @@ export class Sampler {
   }
 
   public set target(nodey: Nodey) {
-    console.log("new target!", nodey);
+    log("new target!", nodey);
     this._target = nodey;
     this._targetChanged.emit(this._target);
   }
@@ -111,7 +113,7 @@ export class Sampler {
     cell: CodeCell,
     elem: HTMLElement
   ) {
-    console.log("figuring out target");
+    log("figuring out target");
     let codeBlock = this.findAncestor(elem, "CodeMirror-code");
     let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
     let lineDiv = this.findAncestor(elem, "CodeMirror-line");
@@ -285,38 +287,43 @@ export class Sampler {
     let diffKind = opts.diffKind;
     if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
 
-    if (diffKind === Sampler.NO_DIFF) elem.textContent = opts.newText;
-    else if (diffKind === Sampler.CHANGE_DIFF) {
-      let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
-      if (!prior) {
-        // easy, everything is added
-        elem.textContent = opts.newText;
-        //elem.classList.add(Sampler.CHANGE_ADDED_CLASS);
-      } else {
-        let priorText = this.renderCodeNode(prior);
-        //console.log("vers are", nodey, prior, priorText);
-        let diff = JSDiff.diffWords(priorText, opts.newText);
-        let innerHTML = "";
-        diff.forEach(part => {
-          let partDiv = document.createElement("span");
-          //console.log("DIFF", part);
-          partDiv.textContent = part.value;
-          if (part.added) {
-            partDiv.classList.add(CHANGE_ADDED_CLASS);
-            innerHTML += partDiv.outerHTML;
-          } else if (part.removed) {
-            partDiv.classList.add(CHANGE_REMOVED_CLASS);
-            innerHTML += partDiv.outerHTML;
-          } else {
-            innerHTML += part.value;
-          }
-        });
-        //console.log(innerHTML);
-        elem.innerHTML = innerHTML;
-      }
-    }
+    // now split text into lines so that it displays correctly
+    let lines = opts.newText.split("\n");
+    let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
+    let oldLines: string[] = [];
+    if (prior) oldLines = this.renderCodeNode(prior).split("\n");
+
+    lines.forEach((ln: string, index: number) => {
+      let oldln = oldLines[index] || "";
+      elem.appendChild(this.diffLine(diffKind, oldln, ln));
+    });
 
     return elem;
+  }
+
+  private diffLine(diffKind: number, oldText: string, newText: string) {
+    let line = document.createElement("div");
+    let innerHTML = "";
+    if (diffKind === Sampler.CHANGE_DIFF) {
+      let diff = JSDiff.diffWords(oldText, newText);
+      diff.forEach(part => {
+        let partDiv = document.createElement("span");
+        //log("DIFF", part);
+        partDiv.textContent = part.value;
+        if (part.added) {
+          partDiv.classList.add(CHANGE_ADDED_CLASS);
+          innerHTML += partDiv.outerHTML;
+        } else if (part.removed) {
+          partDiv.classList.add(CHANGE_REMOVED_CLASS);
+          innerHTML += partDiv.outerHTML;
+        } else {
+          innerHTML += part.value;
+        }
+      });
+    } else innerHTML = newText;
+    //log(innerHTML);
+    line.innerHTML = innerHTML;
+    return line;
   }
 
   private async diffMarkdown(
@@ -377,7 +384,7 @@ export class Sampler {
     let lower = elem.innerHTML.toLowerCase();
     let index = lower.indexOf(keys[0], i);
     let html = "";
-    //console.log("Index is ", index, lower, keys[0]);
+    //log("Index is ", index, lower, keys[0]);
     while (index > -1) {
       html +=
         elem.innerHTML.slice(i, index) +

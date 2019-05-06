@@ -12,6 +12,8 @@ import { VerNotebook } from "../components/notebook";
 
 import { History } from "./history";
 
+import { log } from "../components/notebook";
+
 import { FileManager } from "../jupyter-hooks/file-manager";
 
 import { Star, UnsavedStar } from "./history-stage";
@@ -111,7 +113,7 @@ export class HistoryStore {
 
   get(name: string): Nodey {
     if (!name) return null;
-    //console.log("attempting to find", name);
+    //log("attempting to find", name);
     let [, , verVal] = name.split(".");
     let ver = parseInt(verVal);
     let nodeHist = this.getHistoryOf(name);
@@ -255,7 +257,7 @@ export class HistoryStore {
   }
 
   public getCellParent(relativeTo: Nodey | Star<Nodey>): NodeyCodeCell {
-    console.log("get cell parent of ", relativeTo);
+    log("get cell parent of ", relativeTo);
     if (relativeTo instanceof Star) {
       let val = relativeTo.value;
       if (val instanceof NodeyCodeCell) return val;
@@ -272,7 +274,7 @@ export class HistoryStore {
 
   public dump() {
     //TODO only for debug
-    console.log(this._codeCellStore);
+    log(this._codeCellStore);
   }
 
   public toJSON(): jsn {
@@ -364,7 +366,7 @@ export class NodeHistory<T extends Nodey> {
     this.unsavedEdits = null;
     this.versions.push(newNodey as T);
     newNodey.version = this.versions.length - 1;
-    console.log("de-staring", newNodey, this);
+    log("de-staring", newNodey, this);
     return newNodey;
   }
 
@@ -380,14 +382,14 @@ export class NodeHistory<T extends Nodey> {
   }
 
   fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
-    //console.log("FROM DATA", data);
+    //log("FROM DATA", data);
     if (data.origin) this.originPointer = new OriginPointer(data.origin);
 
     this.versions = data.vers.map((nodeDat: jsn, version: number) => {
       let nodey = factory(nodeDat);
       nodey.id = id;
       nodey.version = version;
-      //console.log("MADE NODEY FROM DATA", nodey, nodeDat);
+      //log("MADE NODEY FROM DATA", nodey, nodeDat);
       return nodey;
     });
   }

@@ -18,6 +18,7 @@ const GHOST_CELL_BAND = "v-Verdant-GhostBook-cell-band";
 
 export class GhostCell extends Widget {
   readonly history: History;
+  private readonly linkVer: (nodey: Nodey) => void;
   private name: string;
   private cell: HTMLElement;
   private output: HTMLElement;
@@ -29,12 +30,14 @@ export class GhostCell extends Widget {
     history: History,
     ver: string,
     clickEv: (cell: GhostCell) => void,
+    linkVer: (nodey: Nodey) => void,
     ev?: Checkpoint
   ) {
     super();
     this.history = history;
     this.name = ver;
     this.events = [];
+    this.linkVer = linkVer;
     if (ev) this.events.push(ev);
 
     this.node.classList.add(GHOST_CELL_CONTAINER);
@@ -103,6 +106,7 @@ export class GhostCell extends Widget {
     if (this.changed) diff = Sampler.CHANGE_DIFF;
 
     let nodey = this.history.store.get(this.name);
+    this.header.addEventListener("click", () => this.linkVer(nodey));
     let sample = VersionSampler.sample(this.history, nodey, null, diff);
     this.cell.appendChild(sample);
 
@@ -114,6 +118,7 @@ export class GhostCell extends Widget {
         let outputLabel = this.output.children[0];
         outputLabel.textContent =
           "v" + output.version + " of " + this.describeCell(output);
+        outputLabel.addEventListener("click", () => this.linkVer(output));
 
         let outputContent = this.output.children[1];
         outputContent.innerHTML = "";
@@ -144,6 +149,9 @@ export class GhostCell extends Widget {
           let cell = ev.targetCells.find(cell => cell.node === this.name);
           if (cell.changeType === ChangeType.CHANGED) changed = true;
           if (cell.newOutput && cell.newOutput.length > 0) newOutput = true;
+        } else if (ev.checkpointType === CheckpointType.SAVE) {
+          let cell = ev.targetCells.find(cell => cell.node === this.name);
+          if (cell.changeType === ChangeType.CHANGED) changed = true;
         }
       });
 
@@ -154,6 +162,10 @@ export class GhostCell extends Widget {
           this.changed = true;
         } else text += "run but not edited";
         if (newOutput) text += " and produced new output";
+      } else if (changed) {
+        // changed not run
+        text += "edited";
+        this.changed = true;
       }
       if (added) {
         text += "created";

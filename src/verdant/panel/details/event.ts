@@ -95,7 +95,6 @@ export class NotebookEvent extends Widget {
     event.targetCells.forEach(cell => {
       let kind = cell.changeType;
       let index = notebook.cells.indexOf(cell.node);
-      //console.log("THE CELL TO UPDATE IS", cell, index, notebook.cells);
       let line = this.map.getElementsByClassName(CELL)[index];
       switch (kind) {
         case ChangeType.ADDED:

@@ -1,8 +1,10 @@
 import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../model/nodey";
-import { HistoryStore } from "../model/history-store";
-
+import { ServerConnection } from "@jupyterlab/services";
+import { URLExt } from "@jupyterlab/coreutils";
+import { jsn } from "../components/notebook";
 import { Star } from "../model/history-stage";
 import { History } from "../model/history";
+import { log } from "../components/notebook";
 
 type Range = { start: Pos; end: Pos };
 type Pos = { line: number; ch: number };
@@ -10,6 +12,47 @@ type Pos = { line: number; ch: number };
 *
 */
 export namespace ASTUtils {
+  export async function parseRequest(rawText: string = ""): Promise<jsn> {
+    let text = Private.cleanCodeString(rawText);
+    let fullRequest = {
+      method: "POST",
+      body: JSON.stringify({ code: text })
+    };
+    let serverSettings = ServerConnection.makeSettings();
+
+    let fullUrl = URLExt.join(serverSettings.baseUrl, "/lilgit/parse");
+
+    log("To parse:", fullUrl, fullRequest);
+    /*return new Promise<jsn>(accept => {
+      ServerConnection.makeRequest(fullUrl, fullRequest, serverSettings).then(
+        response => {
+          if (response.status !== 200) {
+            response.text().then(data => {
+              console.error(
+                "A parser error occured on:\n " + text + "\n" + data
+              );
+              accept(failSafeParse(rawText));
+            });
+          } else response.text().then(data => accept(JSON.parse(data)));
+        }
+      );
+    });*/
+    return failSafeParse(rawText);
+  }
+
+  function failSafeParse(code: string): jsn {
+    let failsafe = {
+      type: "Module",
+      start: { line: 0, ch: 0 },
+      end: { line: 0, ch: 0 },
+      literal: code
+    };
+    let lines = code.split("\n");
+    let lastCh = lines[lines.length - 1].length;
+    failsafe["end"] = { line: lines.length - 1, ch: lastCh - 1 };
+    return failsafe;
+  }
+
   /*
   *
   */
@@ -66,77 +109,34 @@ export namespace ASTUtils {
     } else if (ast.type === "Module") ast.type = "_"; // wildcard
     return ast;
   }
-
-  export function dictToCodeCellNodey(
-    dict: { [id: string]: any },
-    checkpoint: number,
-    historyStore: HistoryStore,
-    forceTie: string = null
-  ) {
-    if ("type" in dict === false) {
-      dict.type = "Module";
-    }
-
-    var n = new NodeyCodeCell(dict);
-    n.created = checkpoint;
-    if (forceTie) {
-      // only occurs when cells change type from code/markdown
-      historyStore.registerTiedNodey(n, forceTie);
-    } else historyStore.store(n);
-
-    //TODO fix cell position
-
-    dictToCodeChildren(dict, checkpoint, historyStore, n);
-    return n;
-  }
-
-  export function dictToCodeNodeys(
-    dict: { [id: string]: any },
-    checkpoint: number,
-    historyStore: HistoryStore,
-    prior: NodeyCode = null
-  ): NodeyCode {
-    // give every node a nextNode so that we can shift/walk for repairs
-    var n = new NodeyCode(dict);
-    n.created = checkpoint;
-    historyStore.store(n);
-
-    if (prior) prior.right = n.name;
-
-    dictToCodeChildren(dict, checkpoint, historyStore, n);
-    return n;
-  }
-
-  function dictToCodeChildren(
-    dict: { [id: string]: any },
-    checkpoint: number,
-    historyStore: HistoryStore,
-    n: NodeyCode
-  ) {
-    var prior = null;
-    n.content = [];
-    for (var item in dict.content) {
-      if (SyntaxToken.KEY in dict.content[item]) {
-        n.content.push(new SyntaxToken(dict.content[item][SyntaxToken.KEY]));
-      } else {
-        var child = dictToCodeNodeys(
-          dict.content[item],
-          checkpoint,
-          historyStore,
-          prior
-        );
-        child.parent = n.name;
-        if (prior) prior.right = child.name;
-        n.content.push(child.name);
-        prior = child;
-      }
-    }
-
-    return n;
-  }
 }
 
 namespace Private {
+  export function cleanCodeString(code: string): string {
+    // annoying but important: make sure docstrings do not interrupt the string literal
+    var newCode = code.replace(/""".*"""/g, str => {
+      return "'" + str + "'";
+    });
+
+    // turn ipython magics commands into comments
+    let magics = /(%)(\w)+(\s)*(\w)*(\n|$)/g; // regex to avoid styled strings that use %
+    let matches = magics.exec(newCode);
+    if (matches) newCode = newCode.replace(matches[0][0], "#");
+
+    // remove any triple quotes, which will mess us up
+    newCode = newCode.replace(/"""/g, "'''");
+
+    // make sure newline inside strings doesn't cause an EOL error
+    // and make sure any special characters are escaped correctly
+    newCode = newCode.replace(/(").*?(\\.).*?(?=")/g, str => {
+      return str.replace(/\\/g, "\\\\");
+    });
+    newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, str => {
+      return str.replace(/\\/g, "\\\\");
+    });
+    //log("cleaned code is ", newCode);
+    return newCode;
+  }
   /*
   *
   */
@@ -147,15 +147,15 @@ namespace Private {
     change: Range,
     history: History
   ): NodeyCode {
-    console.log("Looking for node at", change, node);
+    log("Looking for node at", change, node);
     var children: string[] = node.getChildren();
     if (min > max || max < min || children.length < 1) return node;
     var match = null;
     var mid = Math.floor((max - min) / 2) + min;
-    console.log("CHILDREN", children, mid, children[mid]);
+    log("CHILDREN", children, mid, children[mid]);
     var midNodey = <NodeyCode>history.store.getLatestOf(children[mid]);
     var direction = ASTUtils.inRange(midNodey, change);
-    console.log("checking mid range", midNodey, direction, change);
+    log("checking mid range", midNodey, direction, change);
 
     if (direction === 0) {
       var midChildren = midNodey.getChildren();
