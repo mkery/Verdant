@@ -1,7 +1,8 @@
 import {
   ILayoutRestorer,
-  JupyterLab,
-  JupyterLabPlugin
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin,
+  LabShell
 } from "@jupyterlab/application";
 
 import { log } from "./lilgit/components/notebook";
@@ -39,19 +40,18 @@ import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
 /**
  * Initialization data for the Verdant extension.
  */
-const extension: JupyterLabPlugin<void> = {
+const extension: JupyterFrontEndPlugin<void> = {
   id: "Verdant",
   activate: (
-    app: JupyterLab,
+    app: JupyterFrontEnd,
     restorer: ILayoutRestorer,
     docManager: IDocumentManager,
     rendermime: IRenderMimeRegistry,
     latexTypesetter: renderers.ILatexTypesetter
   ) => {
     /*
-    * Set up private singletons
-    */
-    const { shell } = app;
+     * Set up private singletons
+     */
     const linkHandler = {
       handleLink: (node: HTMLElement, path: string) => {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
@@ -59,8 +59,8 @@ const extension: JupyterLabPlugin<void> = {
     };
 
     /*
-    * Set up singletons acessed by all instances
-    */
+     * Set up singletons acessed by all instances
+     */
     fileManager = new FileManager(docManager);
     renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     sidePanel = new StackedPanel();
@@ -72,7 +72,7 @@ const extension: JupyterLabPlugin<void> = {
       let widget: Ghost = new Ghost(history, panel, notebook);
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
-        app.shell.addToMainArea(widget);
+        app.shell.add(widget, "main");
       }
       // Activate the widget
       app.shell.activateById(widget.id);
@@ -82,35 +82,33 @@ const extension: JupyterLabPlugin<void> = {
 
     restorer.add(sidePanel, "v-VerdantPanel");
     sidePanel.id = "v-VerdantPanel";
-    sidePanel.title.label = "History";
-    shell.addToLeftArea(sidePanel, { rank: 600 });
+    sidePanel.title.label = "Verdant";
+    app.shell.add(sidePanel, "left", { rank: 600 });
+
     /*
-    * this is how we'll keep track of which notebook
-    * we're looking at
-    */
+     * this is how we'll keep track of which notebook
+     * we're looking at
+     */
     let activeInstance: VerdantInstance = null;
-
-    app.restored.then(() => {
-      const populate = () => {
-        let widg = shell.currentWidget;
-        if (widg instanceof NotebookPanel) {
-          let verInst = getInstance(widg);
-          if (!activeInstance || activeInstance !== verInst) {
-            if (activeInstance) activeInstance.ui.hide();
-            activeInstance = verInst;
-            activeInstance.ui.show();
-          }
+    const populate = () => {
+      let widg = app.shell.currentWidget;
+      if (widg instanceof NotebookPanel) {
+        let verInst = getInstance(widg);
+        if (!activeInstance || activeInstance !== verInst) {
+          if (activeInstance) activeInstance.ui.hide();
+          activeInstance = verInst;
+          activeInstance.ui.show();
         }
-      };
+      }
+    };
 
-      // Connect signal handlers.
-      shell.layoutModified.connect(() => {
-        populate();
-      });
-
-      // Populate the tab manager.
+    // Connect signal handlers.
+    (app.shell as LabShell).layoutModified.connect(() => {
       populate();
     });
+
+    // Populate the tab manager.
+    populate();
   },
   autoStart: true,
   requires: [
@@ -143,8 +141,8 @@ function getInstance(panel: NotebookPanel) {
   let verInst = instances.find(inst => inst.panel.id === panel.id);
   if (!verInst) {
     /*
-    * Create instance
-    */
+     * Create instance
+     */
     let history = new History(renderBaby, fileManager);
     let analysis = new AST(history);
     let ui = new VerdantPanel(history);
