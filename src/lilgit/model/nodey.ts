@@ -1,5 +1,7 @@
-import { jsn } from "../components/notebook";
 import { log } from "../components/notebook";
+import { SERIALIZE } from "./serialize-schema";
+
+export type Pos = { line: number; ch: number };
 
 type NodeyOptions = {
   id?: number; //id for this node
@@ -12,8 +14,8 @@ type NodeyOptions = {
   outputId?: number;
   outputVer?: any;
   content?: (SyntaxToken | string)[];
-  start?: { line: number; ch: number };
-  end?: { line: number; ch: number };
+  start?: Pos;
+  end?: Pos;
   literal?: any;
   right?: string;
   markdown?: string;
@@ -37,16 +39,16 @@ export abstract class Nodey {
 
   public updateState(_: NodeyOptions) {}
 
-  public toJSON(): { [i: string]: any } {
-    return { created: this.created, parent: this.parent };
+  public toJSON(): SERIALIZE.Nodey {
+    return { start_checkpoint: this.created, parent: this.parent };
   }
 
   abstract get typeChar(): string;
 }
 
 /*
-* Notebook holds a list of cells
-*/
+ * Notebook holds a list of cells
+ */
 export class NodeyNotebook extends Nodey {
   cells: string[] = [];
 
@@ -61,8 +63,8 @@ export class NodeyNotebook extends Nodey {
       this.cells = options.cells.slice(0);
   }
 
-  public toJSON() {
-    return { created: this.created, cells: this.cells };
+  public toJSON(): SERIALIZE.NodeyNotebook {
+    return { start_checkpoint: this.created, cells: this.cells };
   }
 
   get typeChar() {
@@ -71,8 +73,8 @@ export class NodeyNotebook extends Nodey {
 }
 
 /*
-*  does not do anything. For syntax punctuation and new lines only
-*/
+ *  does not do anything. For syntax punctuation and new lines only
+ */
 export class SyntaxToken {
   tokens: string;
 
@@ -87,8 +89,8 @@ export namespace SyntaxToken {
 }
 
 /*
-* Output holds raw output
-*/
+ * Output holds raw output
+ */
 export class NodeyOutput extends Nodey {
   raw: { [i: string]: any };
 
@@ -102,8 +104,8 @@ export class NodeyOutput extends Nodey {
     if (options.raw) this.raw = options.raw;
   }
 
-  public toJSON() {
-    let jsn = super.toJSON();
+  public toJSON(): SERIALIZE.NodeyOutput {
+    let jsn = super.toJSON() as SERIALIZE.NodeyOutput;
     jsn.raw = this.raw;
     return jsn;
   }
@@ -118,13 +120,13 @@ export class NodeyOutput extends Nodey {
 }
 
 /*
-* Code holds AST details
-*/
+ * Code holds AST details
+ */
 export class NodeyCode extends Nodey {
   type: string;
   content: (SyntaxToken | string)[] = [];
-  start: { line: number; ch: number };
-  end: { line: number; ch: number };
+  start: Pos;
+  end: Pos;
   literal: any;
   right: string; // lookup id for the next Nodey to the right of this one
   pendingUpdate: string;
@@ -156,12 +158,11 @@ export class NodeyCode extends Nodey {
     this.right = options.right;
   }
 
-  public toJSON() {
-    let jsn = super.toJSON();
-    jsn.type = this.type;
-    jsn.outputId = this.outputId;
-    jsn.outputVer = this.outputVer;
-    if (this.content) jsn.content = this.content;
+  public toJSON(): SERIALIZE.NodeyCode {
+    let jsn = super.toJSON() as SERIALIZE.NodeyCode;
+    // jsn.type = this.type;
+    jsn.output = "o." + this.outputId + "." + this.outputVer;
+    // if (this.content) jsn.content = this.content;
     if (this.literal) jsn.literal = this.literal;
     jsn.start = this.start;
     jsn.end = this.end;
@@ -219,31 +220,41 @@ export class NodeyCode extends Nodey {
 }
 
 /*
-* Cell-level nodey interface
-*/
+ * Cell-level nodey interface
+ */
 export interface NodeyCell extends Nodey {}
 
 /*
-* Code Cell-level nodey
-*/
+ * Code Cell-level nodey
+ */
 export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   get typeChar() {
     return "c";
   }
+
+  // Note this is simplified from Nodey Code
+  public toJSON(): SERIALIZE.NodeyCode {
+    let jsn = super.toJSON() as SERIALIZE.NodeyCode;
+    jsn.output = "o." + this.outputId + "." + this.outputVer;
+    if (this.literal) jsn.literal = this.literal;
+    jsn.start = this.start;
+    jsn.end = this.end;
+    return jsn;
+  }
 }
 
 export namespace NodeyNotebook {
-  export function fromJSON(dat: jsn): NodeyNotebook {
+  export function fromJSON(dat: SERIALIZE.NodeyNotebook): NodeyNotebook {
     return new NodeyNotebook({
-      created: dat.created,
+      created: dat.start_checkpoint,
       cells: dat.cells
     });
   }
 }
 
 /*
-* Markdown nodey
-*/
+ * Markdown nodey
+ */
 export class NodeyMarkdown extends Nodey implements NodeyCell {
   markdown: string;
 
@@ -257,8 +268,8 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
     if (options.markdown) this.markdown = options.markdown;
   }
 
-  public toJSON() {
-    let jsn = super.toJSON();
+  public toJSON(): SERIALIZE.NodeyMarkdown {
+    let jsn = super.toJSON() as SERIALIZE.NodeyMarkdown;
     jsn.markdown = this.markdown;
     return jsn;
   }
@@ -316,24 +327,25 @@ export namespace NodeyOutput {
       : false;
   }
 
-  export function fromJSON(dat: jsn): NodeyOutput {
+  export function fromJSON(dat: SERIALIZE.NodeyOutput): NodeyOutput {
     return new NodeyOutput({
       raw: dat.raw,
       parent: dat.parent,
-      created: dat.created
+      created: dat.start_checkpoint
     });
   }
 }
 
 export namespace NodeyCodeCell {
-  export function fromJSON(dat: jsn): NodeyCodeCell {
+  export function fromJSON(dat: SERIALIZE.NodeyCode): NodeyCodeCell {
+    let output = dat.output.split(".");
     return new NodeyCodeCell({
       parent: dat.parent,
-      created: dat.created,
-      type: dat.type,
-      content: dat.content,
-      outputId: dat.outputId,
-      outputVer: dat.outputVer,
+      created: dat.start_checkpoint,
+      type: dat.type || "Module",
+      content: dat.content || [],
+      outputId: parseInt(output[1]),
+      outputVer: output[2],
       literal: dat.literal,
       start: dat.start,
       end: dat.end
@@ -342,14 +354,15 @@ export namespace NodeyCodeCell {
 }
 
 export namespace NodeyCode {
-  export function fromJSON(dat: jsn): NodeyCode {
+  export function fromJSON(dat: SERIALIZE.NodeyCode): NodeyCode {
+    let output = dat.output.split(".");
     return new NodeyCode({
       parent: dat.parent,
-      created: dat.created,
+      created: dat.start_checkpoint,
       type: dat.type,
       content: dat.content,
-      outputId: dat.outputId,
-      outputVer: dat.outputVer,
+      outputId: parseInt(output[1]),
+      outputVer: output[2],
       literal: dat.literal,
       start: dat.start,
       end: dat.end
@@ -358,10 +371,10 @@ export namespace NodeyCode {
 }
 
 export namespace NodeyMarkdown {
-  export function fromJSON(dat: jsn): NodeyMarkdown {
+  export function fromJSON(dat: SERIALIZE.NodeyMarkdown): NodeyMarkdown {
     return new NodeyMarkdown({
       parent: dat.parent,
-      created: dat.created,
+      created: dat.start_checkpoint,
       markdown: dat.markdown
     });
   }

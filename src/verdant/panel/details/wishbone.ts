@@ -33,8 +33,8 @@ export namespace Wishbone {
 }
 
 /*
-* a place for Wishbone's internal functionality
-*/
+ * a place for Wishbone's internal functionality
+ */
 namespace Private {
   export function highlightCode(event: MouseEvent, code: Element) {
     event.stopPropagation();
@@ -111,11 +111,13 @@ namespace Private {
       });
       lineMask.addEventListener("mouseleave", () => {
         lineMask.classList.remove("highlight");
-        let highlighted = lineMask.parentElement.getElementsByClassName(
-          WISHBONE_HIGHLIGHT_CODE
-        );
-        for (var i = 0; i < highlighted.length; i++) {
-          highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
+        if (lineMask.parentElement) {
+          let highlighted = lineMask.parentElement.getElementsByClassName(
+            WISHBONE_HIGHLIGHT_CODE
+          );
+          for (var i = 0; i < highlighted.length; i++) {
+            highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
+          }
         }
         document.removeEventListener("mousemove", select);
       });
@@ -184,25 +186,28 @@ namespace Private {
   }
 
   function codeSelection(mask: Element, ev: MouseEvent) {
-    var highlighted = mask.parentElement.getElementsByClassName(
-      WISHBONE_HIGHLIGHT_CODE
-    );
-    for (var i = 0; i < highlighted.length; i++) {
-      highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
-    }
-    mask.classList.remove("highlight");
-
-    var code = mask.parentElement.getElementsByClassName("CodeMirror-line");
-    let betterMatch = null;
-    for (var i = 0; i < code.length; i++) {
-      if (highlightCode(ev, code[i])) {
-        betterMatch = code[i];
-        break;
+    if (mask.parentElement) {
+      var highlighted = mask.parentElement.getElementsByClassName(
+        WISHBONE_HIGHLIGHT_CODE
+      );
+      for (var i = 0; i < highlighted.length; i++) {
+        highlighted[i].classList.remove(WISHBONE_HIGHLIGHT_CODE);
       }
-    }
 
-    if (!betterMatch) {
-      mask.classList.add("highlight");
+      mask.classList.remove("highlight");
+
+      var code = mask.parentElement.getElementsByClassName("CodeMirror-line");
+      let betterMatch = null;
+      for (var i = 0; i < code.length; i++) {
+        if (highlightCode(ev, code[i])) {
+          betterMatch = code[i];
+          break;
+        }
+      }
+
+      if (!betterMatch) {
+        mask.classList.add("highlight");
+      }
     }
   }
 

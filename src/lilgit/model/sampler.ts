@@ -1,4 +1,4 @@
-import { Widget } from "@phosphor/widgets";
+import { Widget } from "@lumino/widgets";
 
 import { log } from "../components/notebook";
 
@@ -11,7 +11,7 @@ import {
   NodeyOutput,
   SyntaxToken,
   NodeyCell,
-  NodeyCodeCell
+  NodeyCodeCell,
 } from "./nodey";
 
 import { CodeCell, Cell } from "@jupyterlab/cells";
@@ -22,7 +22,7 @@ import { ASTUtils } from "../analysis/ast-utils";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 
-import { Signal } from "@phosphor/signaling";
+import { Signal } from "@lumino/signaling";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -142,7 +142,7 @@ export class Sampler {
       parent,
       {
         start: { line: lineNum, ch: startCh },
-        end: { line: lineNum, ch: endCh }
+        end: { line: lineNum, ch: endCh },
       },
       this.history
     );
@@ -168,7 +168,7 @@ export class Sampler {
       let lines = nodey.markdown.split("\n");
       if (textFocus) {
         let index = -1;
-        let focusLine = lines.find(ln => {
+        let focusLine = lines.find((ln) => {
           let i = ln
             .toLowerCase()
             .indexOf(textFocus.toLowerCase().split(" ")[0]);
@@ -181,10 +181,8 @@ export class Sampler {
       let nodeyCode = nodey as NodeyCode;
       if (textFocus) {
         let index = -1;
-        let lines = this.renderNode(nodeyCode)
-          .toLowerCase()
-          .split("\n");
-        let focusLine = lines.find(ln => {
+        let lines = this.renderNode(nodeyCode).toLowerCase().split("\n");
+        let focusLine = lines.find((ln) => {
           let i = ln.toLowerCase().indexOf(textFocus.split(" ")[0]);
           if (i > -1) index = i;
           return i > -1;
@@ -207,7 +205,7 @@ export class Sampler {
     if (nodeyCode.literal) {
       line += nodeyCode.literal.split("\n")[0];
     } else if (nodeyCode.content) {
-      nodeyCode.content.forEach(name => {
+      nodeyCode.content.forEach((name) => {
         if (name instanceof SyntaxToken) {
           line += name.tokens;
         } else {
@@ -235,7 +233,7 @@ export class Sampler {
   private renderCodeNode(nodey: NodeyCode): string {
     var literal = nodey.literal || "";
     if (nodey.content) {
-      nodey.content.forEach(name => {
+      nodey.content.forEach((name) => {
         if (name instanceof SyntaxToken) {
           literal += name.tokens;
         } else {
@@ -266,8 +264,8 @@ export class Sampler {
   ) {
     if (nodey instanceof NodeyCode) this.diffCode(nodey, elem, options);
     else if (nodey instanceof NodeyMarkdown)
-      this.diffMarkdown(nodey, elem, options);
-    else if (nodey instanceof NodeyOutput) this.diffOutput(nodey, elem);
+      await this.diffMarkdown(nodey, elem, options);
+    else if (nodey instanceof NodeyOutput) await this.diffOutput(nodey, elem);
 
     if (options.textFocus) {
       elem = this.highlightText(options.textFocus, elem);
@@ -306,7 +304,7 @@ export class Sampler {
     let innerHTML = "";
     if (diffKind === Sampler.CHANGE_DIFF) {
       let diff = JSDiff.diffWords(oldText, newText);
-      diff.forEach(part => {
+      diff.forEach((part) => {
         let partDiv = document.createElement("span");
         //log("DIFF", part);
         partDiv.textContent = part.value;
@@ -349,7 +347,7 @@ export class Sampler {
       } else {
         let priorText = prior.markdown;
         let diff = JSDiff.diffWords(priorText, opts.newText);
-        await diff.forEach(async part => {
+        await diff.forEach(async (part) => {
           let partDiv = document.createElement("div");
           await this.renderBaby.renderMarkdown(partDiv, part.value);
           partDiv.classList.add(CHANGE_NONE_CLASS);
@@ -373,33 +371,40 @@ export class Sampler {
     widgetList.forEach((widget: Widget) => {
       elem.appendChild(widget.node);
     });
-
     return elem;
   }
 
   private highlightText(textFocus: string, elem: HTMLElement) {
-    let i = 0;
-    let split = textFocus.split(" ");
-    let keys = textFocus.toLowerCase().split(" ");
-    let lower = elem.innerHTML.toLowerCase();
-    let index = lower.indexOf(keys[0], i);
-    let html = "";
-    //log("Index is ", index, lower, keys[0]);
-    while (index > -1) {
-      html +=
-        elem.innerHTML.slice(i, index) +
-        '<span class="' +
-        SEARCH_FILTER_RESULTS +
-        '">' +
-        split[0] +
-        "</span>";
-      i = index + split[0].length;
-      index = lower.indexOf(keys[0], i);
-    }
+    // get down to the bare text for highlighting
+    if (elem.children.length > 0) {
+      let elems = Array.from(elem.children).map(
+        (e) => this.highlightText(textFocus, e as HTMLElement).outerHTML
+      );
+      elem.innerHTML = elems.join("");
+    } else {
+      let i = 0;
+      let split = textFocus.split(" ");
+      let keys = textFocus.toLowerCase().split(" ");
+      let lower = elem.innerHTML.toLowerCase();
+      let index = lower.indexOf(keys[0], i);
+      let html = "";
+      //log("Index is ", index, lower, keys[0]);
+      while (index > -1) {
+        html +=
+          elem.innerHTML.slice(i, index) +
+          '<span class="' +
+          SEARCH_FILTER_RESULTS +
+          '">' +
+          split[0] +
+          "</span>";
+        i = index + split[0].length;
+        index = lower.indexOf(keys[0], i);
+      }
 
-    html += elem.innerHTML.slice(i);
-    elem.innerHTML = html;
-    return elem;
+      html += elem.innerHTML.slice(i);
+      elem.innerHTML = html;
+    }
+    return elem; // finally return element
   }
 }
 

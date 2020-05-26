@@ -29,6 +29,9 @@
 /*-----------------------------------------------------------------------------
 | Verdant in the dock panel, copied css from tabs-extension
 |----------------------------------------------------------------------------*/
+.verdant-log-icon {
+  background: url("img/log-icon.svg");
+}
 
 #v-VerdantPanel,
 #v-VerdantPanel-tabs {

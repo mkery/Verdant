@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 import {
   Nodey,
   NodeyCodeCell,
@@ -17,8 +18,6 @@ import { jsn } from "../components/notebook";
 
 import { ASTUtils } from "./ast-utils";
 
-import * as crypto from "crypto";
-
 export class ASTRepair {
   public readonly history: History;
 
@@ -27,8 +26,8 @@ export class ASTRepair {
   }
 
   /*
-  * TODO repair nodey code that's not a cell
-  */
+   * TODO repair nodey code that's not a cell
+   */
   public async repair(
     nodey: Nodey | Star<Nodey>,
     newText?: string,

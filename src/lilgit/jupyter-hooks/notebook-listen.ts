@@ -4,7 +4,7 @@ import { IObservableJSON } from "@jupyterlab/observables";
 
 import { Cell, CodeCell, MarkdownCell, ICellModel } from "@jupyterlab/cells";
 
-import { PromiseDelegate } from "@phosphor/coreutils";
+import { PromiseDelegate } from "@lumino/coreutils";
 
 import { log } from "../components/notebook";
 
@@ -136,7 +136,7 @@ export class NotebookListen {
       //TODO
     });
 
-    document.addEventListener("paste", ev => {
+    document.addEventListener("paste", (ev) => {
       log("PASTE EVENT DETECTED", ev);
     });
   }
@@ -165,7 +165,7 @@ export class NotebookListen {
     newIndex: number,
     newValues: ICellModel[]
   ) {
-    newValues.forEach(async item => {
+    newValues.forEach(async (item) => {
       let verCell = this.verNotebook.getCell(item);
       log("moving cell", oldIndex, newIndex, newValues);
       this.verNotebook.moveCell(verCell, oldIndex, newIndex);

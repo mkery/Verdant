@@ -1,45 +1,45 @@
 import { NodeyCell, NodeyCode, NodeyNotebook } from "./nodey";
 import { History } from "./history";
 import { log } from "../components/notebook";
+import { SERIALIZE } from "./serialize-schema";
 
+// made verbose for log readability
 export enum ChangeType {
-  CHANGED = 2,
-  REMOVED = 1.5,
-  ADDED = 1,
-  SAME = 0,
-  MOVED = 3,
-  NONE = 4
+  CHANGED = "edited",
+  REMOVED = "removed",
+  ADDED = "added",
+  SAME = "no change",
+  MOVED = "moved",
+  NONE = "n/a"
 }
 
+// made verbose for log readability
 export enum CheckpointType {
-  RUN = "r",
-  SAVE = "s",
-  LOAD = "l",
-  ADD = "a",
-  DELETE = "d",
-  MOVED = "m"
+  RUN = "run",
+  SAVE = "notebook saved",
+  LOAD = "notebook loaded",
+  ADD = "cell added",
+  DELETE = "cell deleted",
+  MOVED = "cell moved"
 }
 
 export type CellRunData = {
   node: string;
-  changeType: number;
+  changeType: ChangeType;
   newOutput?: string[];
   index?: number;
 };
 
-// NOTE temporary type to allow flexibility
-type jsn = { [id: string]: any };
-
 /*
-* NOTE: Checkpoints (for now) are
-* - cell is run
-* - save
-* - load
-* - cell is added
-* - cell is deleted
-* - cell is moved
-* NOTE: signal new events so views update
-*/
+ * NOTE: Checkpoints (for now) are
+ * - cell is run
+ * - save
+ * - load
+ * - cell is added
+ * - cell is deleted
+ * - cell is moved
+ * NOTE: signal new events so views update
+ */
 
 export class HistoryCheckpoints {
   readonly history: History;
@@ -90,26 +90,32 @@ export class HistoryCheckpoints {
     return checkpoint;
   }
 
-  public getCellMap(checkpoint: Checkpoint): CellRunData[] {
-    let notebook = this.history.store.getNotebook(
-      checkpoint.notebook
-    ) as NodeyNotebook;
-    let targets = checkpoint.targetCells;
+  public getCellMap(checkpointList: Checkpoint | Checkpoint[]): CellRunData[] {
     let cellMap: CellRunData[] = [];
-    if (notebook) {
-      notebook.cells.forEach(name => {
-        let match = targets.find(item => item.node === name);
+    if (!Array.isArray(checkpointList)) checkpointList = [checkpointList];
 
-        // all other cells
-        if (match) cellMap.push(match);
-        else cellMap.push({ node: name, changeType: ChangeType.NONE });
-      });
+    checkpointList.forEach(checkpoint => {
+      let notebook = this.history.store.getNotebook(
+        checkpoint.notebook
+      ) as NodeyNotebook;
+      let targets = checkpoint.targetCells;
+      if (notebook) {
+        notebook.cells.forEach((name, index) => {
+          let match = targets.find(item => item.node === name);
+          // all other cells
+          if (match) cellMap[index] = match;
+          else if (!cellMap[index])
+            cellMap[index] = { node: name, changeType: ChangeType.NONE };
+        });
 
-      // for deleted cells
-      targets.forEach(t => {
-        if (t.changeType === ChangeType.REMOVED) cellMap.splice(t.index, 0, t);
-      });
-    }
+        // for deleted cells
+        targets.forEach(t => {
+          if (t.changeType === ChangeType.REMOVED)
+            cellMap.splice(t.index, 0, t);
+        });
+      }
+    });
+
     return cellMap;
   }
 
@@ -153,14 +159,16 @@ export class HistoryCheckpoints {
     return [checkpoint, this.handleCellRun.bind(this, checkpoint.id)];
   }
 
-  public fromJSON(data: jsn) {
-    this.checkpointList = data.map((item: jsn, index: number) => {
-      return Checkpoint.fromJSON(item, index);
-    });
+  public fromJSON(data: SERIALIZE.Checkpoint[]) {
+    this.checkpointList = data.map(
+      (item: SERIALIZE.Checkpoint, index: number) => {
+        return Checkpoint.fromJSON(item, index);
+      }
+    );
     log("RUNS FROM JSON", this.checkpointList);
   }
 
-  public toJSON(): jsn[] {
+  public toJSON(): SERIALIZE.Checkpoint[] {
     return this.checkpointList.map(item => {
       return item.toJSON();
     });
@@ -240,15 +248,15 @@ export class HistoryCheckpoints {
     cellSame: boolean,
     notebook: number
   ) {
-    let cellChange;
-    if (cellSame) cellChange = ChangeType.SAME;
-    else cellChange = ChangeType.CHANGED;
-
     let newOutput: string[] = [];
     if (cellRun instanceof NodeyCode) {
       let output = this.history.store.get(cellRun.output);
       if (output.created === runID) newOutput.push(output.name);
     }
+
+    let cellChange; // "changed" marker if there is edited text or new output
+    if (cellSame && newOutput.length < 1) cellChange = ChangeType.SAME;
+    else cellChange = ChangeType.CHANGED;
 
     let runCell = {
       node: cellRun.name,
@@ -282,7 +290,7 @@ export class Checkpoint {
     return this.id + "";
   }
 
-  public toJSON(): jsn {
+  public toJSON(): SERIALIZE.Checkpoint {
     return {
       checkpointType: this.checkpointType,
       timestamp: this.timestamp,
@@ -293,7 +301,7 @@ export class Checkpoint {
 }
 
 export namespace Checkpoint {
-  export function fromJSON(dat: jsn, id: number): Checkpoint {
+  export function fromJSON(dat: SERIALIZE.Checkpoint, id: number): Checkpoint {
     return new Checkpoint({
       id: id,
       checkpointType: dat.checkpointType,

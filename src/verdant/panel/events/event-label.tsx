@@ -1,52 +1,69 @@
-import { Widget } from "@phosphor/widgets";
+import * as React from "react";
 import { Checkpoint, CheckpointType } from "../../../lilgit/model/checkpoint";
+import { connect } from "react-redux";
+import { verdantState } from "../../redux/index";
 
 const EVENT_LABEL = "Verdant-events-label";
 
-export class NotebookEventLabel extends Widget {
-  private times: {
-    time: string;
-    events: Checkpoint[];
-  }[];
+type timeLabel = { time: string; label: string; events: Checkpoint[] };
+type EventLabel_Props = {
+  events: Checkpoint[];
+  event_id: number;
+  date_id: number;
+  eventCount: number;
+};
+type EventLabel_State = {
+  times: timeLabel[];
+};
 
-  constructor(event: Checkpoint) {
-    super();
-    this.times = [];
-    this.node.classList.add(EVENT_LABEL);
-
-    //build the label
-    this.addEvent(event);
+class NotebookEventLabel extends React.Component<
+  EventLabel_Props,
+  EventLabel_State
+> {
+  constructor(props: EventLabel_Props) {
+    super(props);
+    let times: timeLabel[] = [];
+    this.props.events.map(ev => this.addEvent(ev, times));
+    this.state = {
+      times
+    };
   }
 
-  public addEvent(event: Checkpoint) {
+  componentDidUpdate(prevProps) {
+    if (this.props.eventCount !== prevProps.eventCount) {
+      let times: timeLabel[] = [];
+      this.props.events.map(ev => this.addEvent(ev, times));
+      this.setState({ times: times });
+    }
+  }
+
+  render() {
+    return (
+      <div className={EVENT_LABEL}>
+        <div>
+          {this.state.times.map((time, index) => {
+            return <div key={index}>{`${time.time} ${time.label}`}</div>;
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  public addEvent(event: Checkpoint, times: timeLabel[]) {
     let time = Checkpoint.formatTime(event.timestamp);
 
-    let matchTime = this.times.filter(item => item.time === time)[0];
+    let matchTime = times.filter(item => item.time === time)[0];
     if (!matchTime) {
-      matchTime = { time: time, events: [] };
-      this.times.push(matchTime);
+      matchTime = { time: time, events: [], label: "" };
+      times.push(matchTime);
     }
 
     // add to start since assume it will be a later time
     matchTime.events.unshift(event);
-
-    // re-build
-    this.buildEventLabel();
+    matchTime.label = this.labelEvent(matchTime.events);
   }
 
-  private buildEventLabel() {
-    this.node.innerHTML = "";
-    let dateLabel = document.createElement("div");
-    this.times.forEach(time => {
-      let label = document.createElement("div");
-      let eventTitle = this.addEventLabel(time.events);
-      label.textContent = time.time + " " + eventTitle;
-      dateLabel.appendChild(label);
-    });
-    this.node.appendChild(dateLabel);
-  }
-
-  private addEventLabel(events: Checkpoint[]): string {
+  private labelEvent(events: Checkpoint[]): string {
     let eventTitle = "";
     let added = 0;
     let deleted = 0;
@@ -115,3 +132,16 @@ export class NotebookEventLabel extends Widget {
     return eventTitle;
   }
 }
+
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<EventLabel_Props>
+) => {
+  let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
+  return {
+    events: eventList.events,
+    eventCount: eventList.events.length
+  };
+};
+
+export default connect(mapStateToProps)(NotebookEventLabel);

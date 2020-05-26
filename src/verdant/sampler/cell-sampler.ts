@@ -5,19 +5,24 @@ import {
   NodeyMarkdown,
   NodeyOutput
 } from "../../lilgit/model/nodey";
+import { Sampler } from "../../lilgit/model/sampler";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 
 export namespace CellSampler {
-  export function sampleCell(historyModel: History, cell: NodeyCell) {
+  export async function sampleCell(historyModel: History, cell: NodeyCell) {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     sample.classList.add(cell.typeChar);
     let res = historyModel.inspector.sampleNode(cell);
     sample.textContent = res[0];
     if (cell.typeChar === "m") {
-      historyModel.inspector.renderDiff(cell, sample, {
-        newText: (cell as NodeyMarkdown).markdown
+      sample.classList.add("markdown");
+      sample.classList.add("jp-RenderedHTMLCommon");
+      sample.classList.add("markdown-sample");
+      await historyModel.inspector.renderDiff(cell, sample, {
+        newText: (cell as NodeyMarkdown).markdown,
+        diffKind: Sampler.NO_DIFF
       });
     }
 
@@ -33,7 +38,9 @@ export namespace CellSampler {
   ): HTMLElement {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    historyModel.inspector.renderDiff(output, sample);
+    historyModel.inspector.renderDiff(output, sample, {
+      diffKind: Sampler.NO_DIFF
+    });
     return sample;
   }
 }
