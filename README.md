@@ -24,34 +24,33 @@ For design discussion and the research behind this check out our [paper](https:/
 
 * JupyterLab
 
-## Development Install
+## Install
 
 For a development install, do the following in the repository directory:
 
+(_These first server extension steps are optional because AST parsing is currently (temporarily!) disabled in Verdant_)
 ```bash
 pip install lilgit-parser
 jupyter serverextension enable --py lilgit_parser
 jupyter serverextension list
 ```
-This should ensure that the server-extension parser part of Verdant is installed. Next:
+This should ensure that the server-extension parser part of Verdant is installed. 
+
+Next:
 
 ```bash
-npm install
-npm run build
-jupyter labextension link .
+yarn
+yarn build
+yarn start
 ```
 
-The last line builds JupyterLab and may take a minute. Now, run JupyterLab app to check if Verdant is working:
-
-```
-jupyter lab .
-```
+The last line installs Verdant as an extension and builds JupyterLab. It may take a minute. Upon a successful build, Jupyter Lab will launch in your browser window.
 
 If you make modifications to the Verdant source code, you'll need to rebuild the package and the JupyterLab app:
 
 ```bash
-npm run build
-jupyter lab build
+yarn build
+yarn start
 ```
 
 If you plan on making lots of edits to Verdant, extension building is easier if you use:
@@ -63,7 +62,7 @@ jupyter lab --watch
 and then each time you make a change, you'll only have to re-run:
 
 ```bash
-npm run build
+yarn build
 ```
 
 
