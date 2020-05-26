@@ -1,23 +1,23 @@
 import * as renderers from "@jupyterlab/rendermime";
 import { OutputAreaModel } from "@jupyterlab/outputarea";
-import { nbformat } from "@jupyterlab/coreutils";
+import * as nbformat from "@jupyterlab/nbformat";
 
-import { Widget } from "@phosphor/widgets";
-import { JSONObject } from "@phosphor/coreutils";
+import { Widget } from "@lumino/widgets";
+import { JSONObject } from "@lumino/coreutils";
 
 import {
   MimeModel,
   IRenderMime,
   IRenderMimeRegistry,
-  IOutputModel
+  IOutputModel,
 } from "@jupyterlab/rendermime";
 
 import { NodeyOutput } from "../../lilgit/model/nodey";
 
 /*
-*  Render baby exposes some basic markdown and code rendermine capability from JupyterLab.
-*  It's a baby because it is only a small bit of Jupyter's rendermime system
-*/
+ *  Render baby exposes some basic markdown and code rendermine capability from JupyterLab.
+ *  It's a baby because it is only a small bit of Jupyter's rendermime system
+ */
 export class RenderBaby {
   latexTypesetter: renderers.ILatexTypesetter;
   linkHandler: any;
@@ -42,7 +42,7 @@ export class RenderBaby {
       sanitizer: null,
       resolver: null,
       linkHandler: this.linkHandler,
-      latexTypesetter: this.latexTypesetter
+      latexTypesetter: this.latexTypesetter,
     });
   }
 
@@ -50,37 +50,42 @@ export class RenderBaby {
     return new MimeModel({ data });
   }
 
-  renderOutput(nodey: NodeyOutput) {
-    return nodey.raw.map((output: nbformat.IOutput) => {
-      let widget: Widget;
-      let area: OutputAreaModel = new OutputAreaModel();
-      area.fromJSON([output]);
-      let model: IOutputModel = area.get(0);
+  async renderOutput(nodey: NodeyOutput) {
+    return await Promise.all(
+      nodey.raw.map(async (output: nbformat.IOutput) => {
+        let widget: Widget;
+        let area: OutputAreaModel = new OutputAreaModel();
+        area.fromJSON([output]);
+        let model: IOutputModel = area.get(0);
 
-      let mimeType = this.rendermime.preferredMimeType(model.data, "any");
-      if (mimeType) {
-        let output = this.rendermime.createRenderer(mimeType);
-        output.renderModel(model).catch(error => {
-          // Manually append error message to output
-          output.node.innerHTML = `<pre>Javascript Error: ${
-            error.message
-          }</pre>`;
-          // Remove mime-type-specific CSS classes
-          output.node.className = "p-Widget jp-RenderedText";
-          output.node.setAttribute(
-            "data-mime-type",
-            "application/vnd.jupyter.stderr"
-          );
-        });
-        widget = output;
-      } else {
-        widget = new Widget();
-        widget.node.innerHTML =
-          `No renderer could be ` +
-          "found for output. It has the following MIME types: " +
-          Object.keys(nodey.raw).join(", ");
-      }
-      return widget;
-    });
+        let mimeType = this.rendermime.preferredMimeType(model.data, "any");
+        if (mimeType) {
+          let output = this.rendermime.createRenderer(mimeType);
+          await output.renderModel(model).catch((error) => {
+            // Manually append error message to output
+            output.node.innerHTML = `<pre>Javascript Error: ${error.message}</pre>`;
+            // Remove mime-type-specific CSS classes
+            output.node.className = "p-Widget jp-RenderedText";
+            output.node.setAttribute(
+              "data-mime-type",
+              "application/vnd.jupyter.stderr"
+            );
+          });
+          /*output.node.getElementsByTagName(
+          "pre"
+        )[0].outerHTML = `<div>${output.node
+          .getElementsByTagName("pre")[0]
+          .innerHTML.replace(/\n/g, "<br/>")}</div>`; // attempt to remove pre tags*/
+          widget = output;
+        } else {
+          widget = new Widget();
+          widget.node.innerHTML =
+            `No renderer could be ` +
+            "found for output. It has the following MIME types: " +
+            Object.keys(nodey.raw).join(", ");
+        }
+        return widget;
+      })
+    );
   }
 }

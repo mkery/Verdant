@@ -1,0 +1,19 @@
+1590517769086 Redux state:  {"currentEvent":null,"activeTab":0,"inspectOn":false,"inspecting":null,"searchQuery":null}
+1590517769086 Dispatching redux action:  {"type":"SET_GHOST_OPENER"}
+1590517769089 Jupyter Lab switching Notebook to Untitled.ipynb 
+1590517769089 Jupyter Lab layout change: {"ghost":false,"sideBar":false,"notebook":true}
+1590517769802 Redux state:  {"currentEvent":null,"activeTab":0,"inspectOn":false,"inspecting":null,"searchQuery":null}
+1590517769802 Dispatching redux action:  {"type":"INIT_EVENT_MAP"}
+1590517771810 Jupyter Lab switching Notebook to Untitled.ipynb 
+1590517771810 Jupyter Lab layout change: {"ghost":false,"sideBar":true,"notebook":true}
+1590517773267 Jupyter Lab switching Notebook to Untitled.ipynb 
+1590517773267 Jupyter Lab layout change: {"ghost":false,"sideBar":false,"notebook":true}
+1590517774387 Jupyter Lab switching Notebook to Untitled.ipynb 
+1590517774387 Jupyter Lab layout change: {"ghost":false,"sideBar":true,"notebook":true}
+1590517780882 Redux state:  {"currentEvent":{"checkpointType":"notebook loaded","timestamp":1590517769799,"notebook":0,"targetCells":[{"node":"c.0.0","changeType":"added"}]},"activeTab":0,"inspectOn":false,"inspecting":null,"searchQuery":null}
+1590517780882 Dispatching redux action:  {"type":"UPDATE_CHECKPOINT","currentEvent":{"checkpointType":"cell added","timestamp":1590517780881,"notebook":1,"targetCells":[{"node":"c.1.0","changeType":"added"}]}}
+1590517780928 Redux state:  {"currentEvent":{"checkpointType":"cell added","timestamp":1590517780881,"notebook":1,"targetCells":[{"node":"c.1.0","changeType":"added"}]},"activeTab":0,"inspectOn":false,"inspecting":null,"searchQuery":null}
+1590517780928 Dispatching redux action:  {"type":"UPDATE_CHECKPOINT","currentEvent":{"checkpointType":"run","timestamp":1590517780924,"notebook":1,"targetCells":[{"node":"c.0.1","changeType":"edited","run":true,"newOutput":["o.0.1"]}]}}
+1590517781963 Redux state:  {"currentEvent":{"checkpointType":"run","timestamp":1590517780924,"notebook":1,"targetCells":[{"node":"c.0.1","changeType":"edited","run":true,"newOutput":["o.0.1"]}]},"activeTab":0,"inspectOn":false,"inspecting":null,"searchQuery":null}
+1590517781963 Dispatching redux action:  {"type":"UPDATE_CHECKPOINT","currentEvent":{"checkpointType":"notebook saved","timestamp":1590517781957,"notebook":1,"targetCells":[]}}1590517782837 Redux state:  {"currentEvent":{"checkpointType":"notebook saved","timestamp":1590517781957,"notebook":1,"targetCells":[]},"activeTab":0,"inspectOn":false,"inspecting":null,"searchQuery":null}
+1590517782837 Dispatching redux action:  {"type":"UPDATE_CHECKPOINT","currentEvent":{"checkpointType":"notebook saved","timestamp":1590517782835,"notebook":1,"targetCells":[]}}

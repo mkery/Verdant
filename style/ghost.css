@@ -161,6 +161,7 @@
   left: 50%;
 }
 .tgl-light + .tgl-btn {
+  display: inline-block;
   background: #f0f0f0;
   border-radius: 2em;
   padding: 2px;

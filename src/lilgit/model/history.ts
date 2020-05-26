@@ -1,12 +1,12 @@
 import { VerNotebook } from "../components/notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
-import { PromiseDelegate } from "@phosphor/coreutils";
+import { PromiseDelegate } from "@lumino/coreutils";
 import { Sampler } from "./sampler";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 
-import { serialized_NodeyHistory } from "../jupyter-hooks/file-manager";
+import { SERIALIZE } from "./serialize-schema";
 
 import { HistoryStore } from "./history-store";
 
@@ -36,7 +36,7 @@ export class History {
     this.notebook = notebook;
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
-      var history = JSON.parse(data) as serialized_NodeyHistory;
+      var history = JSON.parse(data) as SERIALIZE.NodeHistory;
       log("FOUND HISTORY", history);
       this.fromJSON(history);
       this._ready.resolve(undefined);
@@ -54,7 +54,7 @@ export class History {
     return this._inspector;
   }
 
-  private fromJSON(data: serialized_NodeyHistory) {
+  private fromJSON(data: SERIALIZE.NodeHistory) {
     this.checkpoints.fromJSON(data.runs);
     this.store.fromJSON(data);
   }

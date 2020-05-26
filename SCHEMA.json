@@ -1,0 +1,31 @@
+{
+  "notebook": [{ "start_checkpoint": 0, "cells": ["c.0.0"] }],
+  "codeCells": [
+    {
+      "vers": [
+        {
+          "start_checkpoint": 0,
+          "parent": "n.0.1",
+          "output": "o.0.0",
+          "content": "print('foo')"
+        }
+      ]
+    }
+  ],
+  "mardownCells": [
+    {
+      "start_checkpoint": 0,
+      "content": "# some text"
+    }
+  ],
+  "codeSnippets": [],
+  "output": [{ "start_checkpoint": 0, "parent": "c.0.0", "raw": "ERROR" }],
+  "checkpoint": [
+    {
+      "type": "load",
+      "timestamp": 1571843357740,
+      "notebook": 0,
+      "targetCells": [{ "node": "c.0.0", "changeType": 1 }]
+    }
+  ]
+}

@@ -91,6 +91,7 @@ export class HistoryStore {
   getLatestOf(name: string | Nodey): Nodey | Star<Nodey> | UnsavedStar {
     let nodeHist = this.getHistoryOf(name);
     if (nodeHist === undefined && typeof name == "string") {
+      console.log("possible error ", name)
       // check if unsaved star
       let [typeChar, cellId, id] = name.split(".");
       if (typeChar === "TEMP") return this._starStore[cellId][parseInt(id)];
@@ -114,10 +115,16 @@ export class HistoryStore {
   get(name: string): Nodey {
     if (!name) return null;
     //log("attempting to find", name);
-    let [, , verVal] = name.split(".");
-    let ver = parseInt(verVal);
-    let nodeHist = this.getHistoryOf(name);
-    return nodeHist.versions[ver];
+    let [ch, , verVal] = name.split(".");
+    if (ch === "*") {
+      // THIS OCCURS IN A BUG
+      let nodeHist = this.getHistoryOf(name);
+      return nodeHist.lastSaved;
+    } else {
+      let ver = parseInt(verVal);
+      let nodeHist = this.getHistoryOf(name);
+      return nodeHist.versions[ver];
+    }
   }
 
   public store(nodey: Nodey): void {
@@ -163,9 +170,9 @@ export class HistoryStore {
   }
 
   /*
-  * Returns a list of Markdown artifacts, each with a list
-  * of all the versions of that artifact that match the query
-  */
+   * Returns a list of Markdown artifacts, each with a list
+   * of all the versions of that artifact that match the query
+   */
   public findMarkdown(
     query: string,
     filter?: (n: Nodey) => boolean
@@ -185,9 +192,9 @@ export class HistoryStore {
   }
 
   /*
-  * Returns a list of code artifacts, each with a list
-  * of all the versions of that artifact that match the query
-  */
+   * Returns a list of code artifacts, each with a list
+   * of all the versions of that artifact that match the query
+   */
   public findCode(
     query: string,
     filter?: (n: Nodey) => boolean
@@ -209,9 +216,9 @@ export class HistoryStore {
   }
 
   /*
-  * Returns a list of output artifacts, each with a list
-  * of all the versions of that artifact that match the query
-  */
+   * Returns a list of output artifacts, each with a list
+   * of all the versions of that artifact that match the query
+   */
   public findOutput(
     query: string,
     filter?: (n: Nodey) => boolean
@@ -317,8 +324,8 @@ export class HistoryStore {
 }
 
 /*
-* an Origin Pointer
-*/
+ * an Origin Pointer
+ */
 export class OriginPointer {
   public readonly origin: string;
   constructor(originNode: Nodey | string) {
@@ -328,8 +335,8 @@ export class OriginPointer {
 }
 
 /*
-* Just a container for a list of nodey versions
-*/
+ * Just a container for a list of nodey versions
+ */
 export class NodeHistory<T extends Nodey> {
   versions: T[] = [];
   originPointer: OriginPointer = null;
@@ -375,17 +382,21 @@ export class NodeHistory<T extends Nodey> {
   }
 
   toJSON() {
-    let data: jsn = {};
-    data.vers = this.versions.map(node => node.toJSON());
-    if (this.originPointer) data.origin = this.originPointer.origin;
+    let data: jsn[] = this.versions.map(node => node.toJSON());
+    if (this.originPointer)
+      data[data.length - 1].origin = this.originPointer.origin;
     return data;
   }
 
   fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
-    //log("FROM DATA", data);
-    if (data.origin) this.originPointer = new OriginPointer(data.origin);
-
-    this.versions = data.vers.map((nodeDat: jsn, version: number) => {
+    log("FACTORY DATA", data);
+    let list = data;
+    if (!Array.isArray(data))
+      // TODO probably bug
+      list = data.vers;
+    this.versions = list.map((nodeDat: jsn, version: number) => {
+      if (nodeDat.origin)
+        this.originPointer = new OriginPointer(nodeDat.origin);
       let nodey = factory(nodeDat);
       nodey.id = id;
       nodey.version = version;

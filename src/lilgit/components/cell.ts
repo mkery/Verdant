@@ -1,9 +1,9 @@
 import { NodeyCell, NodeyOutput, NodeyCodeCell } from "../model/nodey";
-import { OutputArea } from "@jupyterlab/outputarea";
 import { VerNotebook } from "./notebook";
 import { Checkpoint } from "../model/checkpoint";
 import { Cell, CodeCell } from "@jupyterlab/cells";
 import { Star } from "../model/history-stage";
+import { OutputArea } from "@jupyterlab/outputarea";
 
 /**
  * Verdant's cell component VerCell acts as an intermediary between

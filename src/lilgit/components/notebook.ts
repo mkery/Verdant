@@ -1,5 +1,5 @@
 import { PathExt } from "@jupyterlab/coreutils";
-import { PromiseDelegate } from "@phosphor/coreutils";
+import { PromiseDelegate } from "@lumino/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "../jupyter-hooks/notebook-listen";
 import { Checkpoint, CellRunData } from "../model/checkpoint";
@@ -10,11 +10,11 @@ import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
 
-const DEBUG = true;
+const DEBUG = false;
 
 /*
-* Notebook holds a list of cells
-*/
+ * Notebook holds a list of cells
+ */
 export class VerNotebook {
   readonly view: NotebookListen;
   readonly history: History;
@@ -55,7 +55,7 @@ export class VerNotebook {
   }
 
   private async load(matchPrior: boolean) {
-    let ev = new Promise(async accept => {
+    let ev = new Promise(async (accept) => {
       // first start a checkpoint for this load event
       let [checkpoint, resolve] = this.history.checkpoints.notebookLoad();
 
@@ -76,7 +76,7 @@ export class VerNotebook {
       let notebook: NodeyNotebook;
 
       if (newNotebook instanceof Star) {
-        this.cells.forEach(cell => {
+        this.cells.forEach((cell) => {
           let cellNode = cell.model;
           if (cellNode instanceof Star) {
             cell.commit(checkpoint);
@@ -113,7 +113,7 @@ export class VerNotebook {
   }
 
   get path(): string {
-    return this.view.panel.session.path;
+    return this.view.panel.sessionContext.path; // TODO updated, check still working
   }
 
   get name(): string {
@@ -126,7 +126,7 @@ export class VerNotebook {
 
   public async run(cellModel: ICellModel): Promise<[NodeyCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[NodeyCell, Checkpoint]>(async accept => {
+    let ev = new Promise<[NodeyCell, Checkpoint]>(async (accept) => {
       // first start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
@@ -160,7 +160,7 @@ export class VerNotebook {
 
   public async save(): Promise<[NodeyCell[], Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[NodeyCell[], Checkpoint]>(async accept => {
+    let ev = new Promise<[NodeyCell[], Checkpoint]>(async (accept) => {
       //  start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.notebookSaved();
       // now see if there are any unsaved changes
@@ -168,17 +168,17 @@ export class VerNotebook {
       if (nodey instanceof Star) {
         // look through cells for unsaved changes
         let cellCommits: Promise<[NodeyCell, boolean]>[] = [];
-        this.cells.forEach(cell => {
+        this.cells.forEach((cell) => {
           let cellNode = cell.model;
           if (cellNode instanceof Star) {
             cellCommits.push(cell.repairAndCommit(checkpoint));
           }
         });
 
-        Promise.all(cellCommits).then(cellsDone => {
+        Promise.all(cellCommits).then((cellsDone) => {
           // check which cells are verified to have changed
           let changedCells: NodeyCell[] = [];
-          cellsDone.forEach(item => {
+          cellsDone.forEach((item) => {
             let [newNodey, same] = item;
             if (!same) changedCells.push(newNodey);
           });
@@ -202,13 +202,13 @@ export class VerNotebook {
   }
 
   public getCell(cell: ICellModel): VerCell {
-    return this.cells.find(item => {
+    return this.cells.find((item) => {
       if (item.view && item.view.model) return item.view.model.id === cell.id;
     });
   }
 
   public getCellByNode(cell: NodeyCell | Star<NodeyCell>): VerCell {
-    return this.cells.find(item => cell.name === item.model.name);
+    return this.cells.find((item) => cell.name === item.model.name);
   }
 
   public async createCell(
@@ -219,7 +219,7 @@ export class VerNotebook {
     if (match) log("TODO Create new cell with match!");
     if (!this.ready || !this.model) return;
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
+    let ev = new Promise<[VerCell, Checkpoint]>(async (accept) => {
       log("CELL ADDED");
       let [checkpoint, resolve] = this.history.checkpoints.cellAdded();
       let nodey = await this.ast.create.fromCell(cell, checkpoint);
@@ -248,7 +248,7 @@ export class VerNotebook {
 
   public async deleteCell(index: number): Promise<[VerCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
+    let ev = new Promise<[VerCell, Checkpoint]>(async (accept) => {
       let oldCell = this.cells.splice(index, 1)[0];
       let [checkpoint, resolve] = this.history.checkpoints.cellDeleted();
 
@@ -282,7 +282,7 @@ export class VerNotebook {
     newPos: number
   ): Promise<Checkpoint> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<Checkpoint>(async accept => {
+    let ev = new Promise<Checkpoint>(async (accept) => {
       this.cells.splice(oldPos, 1);
       this.cells.splice(newPos, 0, cell);
 
@@ -313,7 +313,7 @@ export class VerNotebook {
     newCell: Cell
   ): Promise<[VerCell, Checkpoint]> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<[VerCell, Checkpoint]>(async accept => {
+    let ev = new Promise<[VerCell, Checkpoint]>(async (accept) => {
       // first start a checkpoint for this run
       let [checkpoint, resolve] = this.history.checkpoints.cellRun();
 
@@ -349,7 +349,7 @@ export class VerNotebook {
 
   public async focusCell(cell: Cell): Promise<VerCell> {
     await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = new Promise<VerCell>(accept => {
+    let ev = new Promise<VerCell>((accept) => {
       let verCell = this.getCell(cell.model);
       if (verCell) {
         this.view.activeCell = cell;

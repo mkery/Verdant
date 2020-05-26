@@ -52,6 +52,9 @@
 
 .v-VerdantPanel-sampler-version-content.markdown {
   font-family: var(--jp-content-font-family);
+  display: flex; /*to avoid weird text wrapping*/
+  flex-direction: column;
+  width: fit-content; /*helps ensure normal text wrapping*/
 }
 .v-VerdantPanel-sampler-version-content.code {
   white-space: pre-wrap;
@@ -74,6 +77,17 @@
   font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color1);
   font-family: var(--jp-ui-font-family);
+}
+
+.markdown-sample {
+  padding: 4px;
+}
+.markdown-sample h1,
+.markdown-sample h2,
+.markdown-sample h3,
+.markdown-sample h4 {
+  margin: 2px;
+  font-size: initial;
 }
 
 .v-Verdant-sampler-code-same {

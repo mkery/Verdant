@@ -8,8 +8,6 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { log } from "../components/notebook";
 
-import { CellRunData } from "../model/checkpoint";
-
 import { History } from "../model/history";
 
 export class FileManager {
@@ -40,7 +38,7 @@ export class FileManager {
         path,
         "today",
         "today",
-        JSON.stringify(historyModel.toJSON())
+        JSON.stringify(historyModel.toJSON(), null, 1)
       );
       //log("Model to save is", saveModel)
 
@@ -111,23 +109,4 @@ export class HistorySaveModel implements Contents.IModel {
     this.last_modified = modDate;
     this.content = content;
   }
-}
-
-export interface serialized_Nodey {
-  parent: string;
-  created: number;
-}
-
-export interface serialized_NodeyOutput extends serialized_Nodey {
-  raw: { [key: string]: any };
-}
-
-export type serialized_Run = (string | number | CellRunData | string[])[];
-
-export interface serialized_NodeyHistory {
-  runs: serialized_Run[];
-  cells: number[];
-  nodey: { nodey: number; versions: serialized_Nodey[] }[];
-  output: { output: number; versions: serialized_NodeyOutput[] }[];
-  deletedCells: number[];
 }

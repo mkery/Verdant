@@ -13,13 +13,23 @@
   display: inline-block;
   width: 1px;
   background-color: var(--jp-content-font-color3);
-  margin-left: 1px;
-  margin-right: 1px;
+  margin: 2px 1px;
   height: 1em;
 }
 
 .v-VerdantPanel-runCellMap-cell.highlight {
   border-color: white;
+}
+
+.Verdant-events-column {
+  display: inline-block;
+}
+.Verdant-events-column.label {
+  width: 25%;
+  min-width: 4em; /*to prevent weird date text cropping*/
+}
+.Verdant-events-column.map {
+  width: 75%;
 }
 
 .Verdant-events-date-header {
@@ -49,7 +59,9 @@
   background: var(--jp-rendermime-table-row-hover-background);
 }
 .Verdant-events-notebook {
-  display: inline-block;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   flex: 1 1 auto;
   vertical-align: baseline;
   padding-left: var(--jp-cell-padding);
@@ -67,20 +79,21 @@
   padding-top: 0.25em;
   flex: 5 0 50%;
   text-align: right;
-  overflow: hidden;
-  overflow-wrap: unset;
   white-space: nowrap;
-  max-width: 75%;
+  margin-right: 4px;
+  overflow: hidden;
+  max-width: 100%;
+  display: flex;
 }
 
 .v-VerdantPanel-runCellMap-cell.target {
   width: 2px;
   margin-left: 0px;
-  height: 1.5em;
-  margin-bottom: calc(-0.25em - 2px);
+  height: 1em;
   border-top: 2px solid var(--jp-content-font-color3);
   border-bottom: 2px solid var(--jp-content-font-color3);
   border-radius: 5px;
+  margin-top: -1px;
 }
 
 .v-VerdantPanel-runCellMap-cell-same {

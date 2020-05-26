@@ -1,15 +1,22 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "*": ["./node_modules/@types/*", "*"]
+    },
     "declaration": true,
-    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
     "noEmitOnError": true,
     "noUnusedLocals": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "ES6",
-    "outDir": "./lib",
-    "lib": ["DOM", "ES6"],
-    "types": []
+    "target": "es6",
+    "outDir": "lib",
+    "types": ["node"],
+    "jsx": "react",
+    "resolveJsonModule": true
   },
-  "include": ["src/*", "node_modules/@types"]
+  "include": ["src/*"]
 }
