@@ -144,7 +144,7 @@ export class NodeyCode extends Nodey {
     this.type = options.type;
     if (options.content && options.content.length > 0) {
       this.content = options.content.slice(0);
-      this.content = this.content.map(item => {
+      this.content = this.content.map((item) => {
         if (item instanceof SyntaxToken) return item;
         if (typeof item == "string") return item;
         else return new SyntaxToken(item); // fresh from a JSON file
@@ -195,7 +195,7 @@ export class NodeyCode extends Nodey {
       var deltaCh = Math.max(target.start.ch - myStart.ch, 0);
       this.start = {
         line: deltaLine + this.start.line,
-        ch: deltaCh + this.start.ch
+        ch: deltaCh + this.start.ch,
       };
       this.end = { line: deltaLine + this.end.line, ch: deltaCh + this.end.ch };
     }
@@ -203,14 +203,14 @@ export class NodeyCode extends Nodey {
 
   public hasChild(name: string) {
     return this.content.find(
-      item => item instanceof SyntaxToken === false && item === name
+      (item) => item instanceof SyntaxToken === false && item === name
     );
   }
 
   public getChildren(): string[] {
     if (!this.content || this.content.length === 0) return [];
     return this.content.filter(
-      item => !(item instanceof SyntaxToken)
+      (item) => !(item instanceof SyntaxToken)
     ) as string[];
   }
 
@@ -247,7 +247,7 @@ export namespace NodeyNotebook {
   export function fromJSON(dat: SERIALIZE.NodeyNotebook): NodeyNotebook {
     return new NodeyNotebook({
       created: dat.start_checkpoint,
-      cells: dat.cells
+      cells: dat.cells,
     });
   }
 }
@@ -318,10 +318,10 @@ export namespace NodeyOutput {
     }
 
     var p = Object.keys(a);
-    return Object.keys(b).every(function(i) {
+    return Object.keys(b).every(function (i) {
       return p.indexOf(i) !== -1;
     })
-      ? p.every(function(i) {
+      ? p.every(function (i) {
           return NodeyOutput.equals(a[i], b[i]);
         })
       : false;
@@ -331,42 +331,51 @@ export namespace NodeyOutput {
     return new NodeyOutput({
       raw: dat.raw,
       parent: dat.parent,
-      created: dat.start_checkpoint
+      created: dat.start_checkpoint,
     });
   }
 }
 
 export namespace NodeyCodeCell {
   export function fromJSON(dat: SERIALIZE.NodeyCode): NodeyCodeCell {
-    let output = dat.output.split(".");
+    let output = parseOutputPointer(dat);
+
     return new NodeyCodeCell({
       parent: dat.parent,
       created: dat.start_checkpoint,
       type: dat.type || "Module",
       content: dat.content || [],
-      outputId: parseInt(output[1]),
-      outputVer: output[2],
       literal: dat.literal,
       start: dat.start,
-      end: dat.end
+      end: dat.end,
+      ...output,
     });
   }
 }
 
 export namespace NodeyCode {
   export function fromJSON(dat: SERIALIZE.NodeyCode): NodeyCode {
-    let output = dat.output.split(".");
+    let output = parseOutputPointer(dat);
     return new NodeyCode({
       parent: dat.parent,
       created: dat.start_checkpoint,
       type: dat.type,
       content: dat.content,
-      outputId: parseInt(output[1]),
-      outputVer: output[2],
       literal: dat.literal,
       start: dat.start,
-      end: dat.end
+      end: dat.end,
+      ...output,
     });
+  }
+}
+
+function parseOutputPointer(dat: any): SERIALIZE.OutputPointer {
+  try {
+    let rawOut = dat.output.split(".");
+    return { outputId: parseInt(rawOut[1]), outputVer: rawOut[2] };
+  } catch (error) {
+    // for older log format
+    return { outputId: dat["outputId"], outputVer: dat["outputVer"] };
   }
 }
 
@@ -375,7 +384,7 @@ export namespace NodeyMarkdown {
     return new NodeyMarkdown({
       parent: dat.parent,
       created: dat.start_checkpoint,
-      markdown: dat.markdown
+      markdown: dat.markdown,
     });
   }
 }

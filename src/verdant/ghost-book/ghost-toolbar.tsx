@@ -33,18 +33,20 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
       created,
       this.props.history.checkpoints.all()
     );
-    let time =
-      Checkpoint.formatDate(created.timestamp) +
-      " " +
-      Checkpoint.formatTime(created.timestamp);
+    let time;
+    if (created)
+      // error save from older log format
+      time =
+        Checkpoint.formatDate(created.timestamp) +
+        " " +
+        Checkpoint.formatTime(created.timestamp);
 
     return (
       <div className={GHOST_TOOLBAR_ROW}>
         {`Viewing version # 
           ${this.props.name + 1}
            of notebook 
-           from 
-          ${time}`}
+          ${time ? "from " + time : ""}`}
       </div>
     );
   }
@@ -54,19 +56,16 @@ const mapStateToProps = (state: verdantState) => {
   return {
     history: state.history,
     name: state.notebook_ver,
-    checked: state.show_all_cells
+    checked: state.show_all_cells,
   };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
-    toggleShow: () => dispatch(toggleShowAllCells())
+    toggleShow: () => dispatch(toggleShowAllCells()),
   };
 };
 
-const GhostToolbar = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Toolbar);
+const GhostToolbar = connect(mapStateToProps, mapDispatchToProps)(Toolbar);
 
 export default GhostToolbar;

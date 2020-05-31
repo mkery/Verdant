@@ -25,6 +25,11 @@ export namespace SERIALIZE {
     end?: Pos;
   }
 
+  export interface OutputPointer {
+    outputId: number;
+    outputVer: string;
+  }
+
   export interface NodeyMarkdown extends Nodey {
     markdown: string;
   }

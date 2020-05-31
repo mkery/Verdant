@@ -10,7 +10,7 @@ import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
 
-const DEBUG = false;
+const DEBUG = true;
 
 /*
  * Notebook holds a list of cells

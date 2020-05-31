@@ -5,7 +5,7 @@ import {
   NodeyCodeCell,
   NodeyMarkdown,
   NodeyCell,
-  NodeyNotebook
+  NodeyNotebook,
 } from "./nodey";
 
 import { VerNotebook } from "../components/notebook";
@@ -17,6 +17,8 @@ import { log } from "../components/notebook";
 import { FileManager } from "../jupyter-hooks/file-manager";
 
 import { Star, UnsavedStar } from "./history-stage";
+
+const DEBUG = false;
 
 type jsn = { [id: string]: any };
 
@@ -51,7 +53,7 @@ export class HistoryStore {
   get cells(): NodeyCell[] {
     let notebook = this.currentNotebook;
     if (notebook instanceof Star) notebook = notebook.value;
-    return notebook.cells.map(name => this.get(name) as NodeyCell);
+    return notebook.cells.map((name) => this.get(name) as NodeyCell);
   }
 
   public getHistoryOf(name: string | Nodey): NodeHistory<Nodey> {
@@ -91,7 +93,7 @@ export class HistoryStore {
   getLatestOf(name: string | Nodey): Nodey | Star<Nodey> | UnsavedStar {
     let nodeHist = this.getHistoryOf(name);
     if (nodeHist === undefined && typeof name == "string") {
-      console.log("possible error ", name)
+      log("possible error ", name);
       // check if unsaved star
       let [typeChar, cellId, id] = name.split(".");
       if (typeChar === "TEMP") return this._starStore[cellId][parseInt(id)];
@@ -179,8 +181,8 @@ export class HistoryStore {
   ): NodeyMarkdown[][] {
     let results: NodeyMarkdown[][] = [];
     let text = query.toLowerCase();
-    this._markdownStore.forEach(history => {
-      let match = history.versions.filter(item => {
+    this._markdownStore.forEach((history) => {
+      let match = history.versions.filter((item) => {
         if (!item.markdown) return false;
         let matchesText = item.markdown.toLowerCase().indexOf(text) > -1;
         if (filter) return matchesText && filter(item);
@@ -201,8 +203,8 @@ export class HistoryStore {
   ): NodeyCode[][] {
     let results: NodeyCode[][] = [];
     let text = query.toLowerCase();
-    this._codeCellStore.forEach(history => {
-      let matches = history.versions.filter(cell => {
+    this._codeCellStore.forEach((history) => {
+      let matches = history.versions.filter((cell) => {
         let sourceText = this.history.inspector.renderNode(cell) || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
           if (filter) return filter(cell);
@@ -225,8 +227,8 @@ export class HistoryStore {
   ): NodeyOutput[][] {
     let results: NodeyOutput[][] = [];
     let text = query.toLowerCase();
-    this._outputStore.forEach(history => {
-      let matches = history.versions.filter(output => {
+    this._outputStore.forEach((history) => {
+      let matches = history.versions.filter((output) => {
         let sourceText = this.history.inspector.renderNode(output) || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
           if (filter) return filter(output);
@@ -287,10 +289,10 @@ export class HistoryStore {
   public toJSON(): jsn {
     return {
       notebook: this._notebookHistory.toJSON(),
-      codeCells: this._codeCellStore.map(hist => hist.toJSON()),
-      markdownCells: this._markdownStore.map(hist => hist.toJSON()),
-      snippets: this._snippetStore.map(hist => hist.toJSON()),
-      output: this._outputStore.map(hist => hist.toJSON())
+      codeCells: this._codeCellStore.map((hist) => hist.toJSON()),
+      markdownCells: this._markdownStore.map((hist) => hist.toJSON()),
+      snippets: this._snippetStore.map((hist) => hist.toJSON()),
+      output: this._outputStore.map((hist) => hist.toJSON()),
     };
   }
 
@@ -382,14 +384,14 @@ export class NodeHistory<T extends Nodey> {
   }
 
   toJSON() {
-    let data: jsn[] = this.versions.map(node => node.toJSON());
+    let data: jsn[] = this.versions.map((node) => node.toJSON());
     if (this.originPointer)
       data[data.length - 1].origin = this.originPointer.origin;
     return data;
   }
 
   fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
-    log("FACTORY DATA", data);
+    if (DEBUG) log("FACTORY DATA", data);
     let list = data;
     if (!Array.isArray(data))
       // TODO probably bug

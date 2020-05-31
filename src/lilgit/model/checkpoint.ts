@@ -3,6 +3,8 @@ import { History } from "./history";
 import { log } from "../components/notebook";
 import { SERIALIZE } from "./serialize-schema";
 
+const DEBUG = false;
+
 // made verbose for log readability
 export enum ChangeType {
   CHANGED = "edited",
@@ -10,8 +12,17 @@ export enum ChangeType {
   ADDED = "added",
   SAME = "no change",
   MOVED = "moved",
-  NONE = "n/a"
+  NONE = "n/a",
 }
+
+const CONVERT_ChangeType = {
+  2: ChangeType.CHANGED,
+  1.5: ChangeType.REMOVED,
+  1: ChangeType.ADDED,
+  0: ChangeType.SAME,
+  3: ChangeType.MOVED,
+  4: ChangeType.NONE,
+};
 
 // made verbose for log readability
 export enum CheckpointType {
@@ -20,7 +31,7 @@ export enum CheckpointType {
   LOAD = "notebook loaded",
   ADD = "cell added",
   DELETE = "cell deleted",
-  MOVED = "cell moved"
+  MOVED = "cell moved",
 }
 
 export type CellRunData = {
@@ -84,7 +95,7 @@ export class HistoryCheckpoints {
       timestamp: timestamp,
       targetCells: [],
       checkpointType: kind,
-      notebookId: notebookVer
+      notebookId: notebookVer,
     });
     this.checkpointList[id] = checkpoint;
     return checkpoint;
@@ -94,28 +105,35 @@ export class HistoryCheckpoints {
     let cellMap: CellRunData[] = [];
     if (!Array.isArray(checkpointList)) checkpointList = [checkpointList];
 
-    checkpointList.forEach(checkpoint => {
+    checkpointList.forEach((checkpoint) => {
       let notebook = this.history.store.getNotebook(
         checkpoint.notebook
       ) as NodeyNotebook;
+      if (DEBUG) log("MAKING CELL MAP: notebook found", notebook, checkpoint);
       let targets = checkpoint.targetCells;
       if (notebook) {
         notebook.cells.forEach((name, index) => {
-          let match = targets.find(item => item.node === name);
+          let match = targets.find((item) => item.node === name);
           // all other cells
-          if (match) cellMap[index] = match;
-          else if (!cellMap[index])
+          if (match) {
+            cellMap[index] = match;
+            // convert for older log format
+            if (typeof cellMap[index].changeType === "number")
+              cellMap[index].changeType =
+                CONVERT_ChangeType[cellMap[index].changeType];
+          } else if (!cellMap[index])
             cellMap[index] = { node: name, changeType: ChangeType.NONE };
         });
 
         // for deleted cells
-        targets.forEach(t => {
+        targets.forEach((t) => {
           if (t.changeType === ChangeType.REMOVED)
             cellMap.splice(t.index, 0, t);
         });
       }
     });
 
+    if (DEBUG) log("CELL MAP", cellMap);
     return cellMap;
   }
 
@@ -160,16 +178,17 @@ export class HistoryCheckpoints {
   }
 
   public fromJSON(data: SERIALIZE.Checkpoint[]) {
+    if (DEBUG) log("CHECKPOINTS FROM JSON", data);
     this.checkpointList = data.map(
       (item: SERIALIZE.Checkpoint, index: number) => {
         return Checkpoint.fromJSON(item, index);
       }
     );
-    log("RUNS FROM JSON", this.checkpointList);
+    if (DEBUG) log("CHECKPOINTS LOADED", this.checkpointList);
   }
 
   public toJSON(): SERIALIZE.Checkpoint[] {
-    return this.checkpointList.map(item => {
+    return this.checkpointList.map((item) => {
       return item.toJSON();
     });
   }
@@ -179,7 +198,7 @@ export class HistoryCheckpoints {
     newCells: CellRunData[],
     notebook: number
   ) {
-    newCells.forEach(item =>
+    newCells.forEach((item) =>
       this.checkpointList[saveId].targetCells.push(item)
     );
     this.checkpointList[saveId].notebook = notebook;
@@ -190,7 +209,7 @@ export class HistoryCheckpoints {
     newCells: NodeyCell[],
     notebook: number
   ) {
-    newCells.forEach(cell => {
+    newCells.forEach((cell) => {
       let newOutput: string[] = [];
       if (cell instanceof NodeyCode) {
         let output = this.history.store.get(cell.output);
@@ -201,7 +220,7 @@ export class HistoryCheckpoints {
         node: cell.name,
         changeType: ChangeType.CHANGED,
         run: true,
-        newOutput: newOutput
+        newOutput: newOutput,
       } as CellRunData;
 
       this.checkpointList[saveId].targetCells.push(cellSaved);
@@ -212,7 +231,7 @@ export class HistoryCheckpoints {
   private handleCellAdded(id: number, cell: NodeyCell, notebook: number) {
     let cellDat = {
       node: cell.name,
-      changeType: ChangeType.ADDED
+      changeType: ChangeType.ADDED,
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
     this.checkpointList[id].notebook = notebook;
@@ -227,7 +246,7 @@ export class HistoryCheckpoints {
     let cellDat = {
       node: cell.name,
       changeType: ChangeType.REMOVED,
-      index: index
+      index: index,
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
     this.checkpointList[id].notebook = notebook;
@@ -236,7 +255,7 @@ export class HistoryCheckpoints {
   private handleCellMoved(id: number, cell: NodeyCell, notebook: number) {
     let cellDat = {
       node: cell.name,
-      changeType: ChangeType.MOVED
+      changeType: ChangeType.MOVED,
     } as CellRunData;
     this.checkpointList[id].targetCells.push(cellDat);
     this.checkpointList[id].notebook = notebook;
@@ -262,7 +281,7 @@ export class HistoryCheckpoints {
       node: cellRun.name,
       changeType: cellChange,
       run: true,
-      newOutput: newOutput
+      newOutput: newOutput,
     } as CellRunData;
 
     this.checkpointList[runID].targetCells.push(runCell);
@@ -295,7 +314,7 @@ export class Checkpoint {
       checkpointType: this.checkpointType,
       timestamp: this.timestamp,
       notebook: this.notebook,
-      targetCells: this.targetCells
+      targetCells: this.targetCells,
     };
   }
 }
@@ -307,7 +326,7 @@ export namespace Checkpoint {
       checkpointType: dat.checkpointType,
       timestamp: dat.timestamp,
       notebook: dat.notebook,
-      targetCells: dat.targetCells
+      targetCells: dat.targetCells,
     });
   }
 
@@ -335,7 +354,7 @@ export namespace Checkpoint {
       "September",
       "October",
       "November",
-      "December"
+      "December",
     ];
 
     var dayNames = [
@@ -345,7 +364,7 @@ export namespace Checkpoint {
       "Wednesday",
       "Thursday",
       "Friday",
-      "Saturday"
+      "Saturday",
     ];
 
     var today = new Date();

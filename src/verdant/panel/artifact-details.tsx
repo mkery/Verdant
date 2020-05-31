@@ -6,7 +6,7 @@ import {
   Nodey,
   NodeyCode,
   NodeyMarkdown,
-  NodeyOutput
+  NodeyOutput,
 } from "../../lilgit/model/nodey";
 import { verdantState, ActiveTab, switchTab } from "../redux/index";
 import { connect } from "react-redux";
@@ -113,7 +113,7 @@ const mapDispatchToProps = (dispatch: any) => {
   return {
     showSummary: () => {
       dispatch(switchTab(ActiveTab.Artifacts));
-    }
+    },
   };
 };
 
@@ -122,11 +122,8 @@ const mapStateToProps = (state: verdantState) => {
     history: state.history,
     openGhostBook: state.openGhostBook,
     target: state.inspectTarget,
-    showingDetail: state.activeTab === ActiveTab.Artifact_Details
+    showingDetail: state.activeTab === ActiveTab.Artifact_Details,
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ArtifactDetails);
+export default connect(mapStateToProps, mapDispatchToProps)(ArtifactDetails);

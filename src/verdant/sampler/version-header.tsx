@@ -18,10 +18,23 @@ export default class VersionHeader extends React.Component<
   render() {
     // 1 index instead of 0 index just for display
     let ver = this.props.nodey.version + 1;
-    let created = this.props.history.checkpoints.get(this.props.nodey.created);
-    let notebookVer;
-    if (created) notebookVer = created.notebook + 1 + "";
-    else notebookVer = "???";
+    let notebookVer; // first notebook this version appears in
+    if (this.props.nodey.created) {
+      let created = this.props.history.checkpoints.get(
+        this.props.nodey.created
+      );
+      notebookVer = created.notebook + 1;
+    } else {
+      // older log format
+      try {
+        let cell = this.props.history.store.getCellParent(this.props.nodey);
+        let notebook = cell.parent.split(".");
+        notebookVer = parseInt(notebook[2]) + 1;
+      } catch (error) {
+        console.error("Notebook not found for nodey: ", error);
+      }
+    }
+
     let nodeLabel =
       "v" +
       ver +
@@ -35,11 +48,10 @@ export default class VersionHeader extends React.Component<
         <span
           className={VERSION_LINK}
           onClick={() => {
-            if (created && created.notebook !== undefined)
-              this.props.notebookLink(created.notebook);
+            if (notebookVer !== undefined) this.props.notebookLink(notebookVer);
           }}
         >
-          {"NOTEBOOK #" + notebookVer}
+          {`NOTEBOOK #${notebookVer ? notebookVer : "???"}`}
         </span>
       </div>
     );
