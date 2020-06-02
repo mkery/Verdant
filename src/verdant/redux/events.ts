@@ -6,10 +6,12 @@ import { VerCell } from "../../lilgit/components/cell";
 const ADD_EVENT = "ADD_EVENT";
 const INIT_EVENT_MAP = "INIT_EVENT_MAP";
 const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
+const DATE_EXPAND = "DATE_EXPAND";
 
 export const initEventMap = () => ({
   type: INIT_EVENT_MAP
 });
+
 export const addEvent = (ev: Checkpoint) => ({
   type: ADD_EVENT,
   event: ev
@@ -22,12 +24,29 @@ export const updateCheckpoint = (event: Checkpoint) => {
   };
 };
 
+export const dateOpen = (date: number) => {
+  return {
+    type: DATE_EXPAND,
+    date: date,
+    status: true
+  };
+};
+
+export const dateClose = (date: number) => {
+  return {
+    type: DATE_EXPAND,
+    date: date,
+    status: false
+  };
+};
+
 export type eventState = {
   notebook: number;
   events: Checkpoint[];
 };
 
 export type dateState = {
+  isOpen: boolean;
   date: number;
   events: eventState[];
 };
@@ -71,6 +90,19 @@ export const eventReducer = (
         ...state,
         dates: reducer_addEvent(action.ev, [...state.dates])
       };
+    case DATE_EXPAND:
+      const updatedElement = {
+        ...state.dates[action.date],
+        isOpen: action.status
+      };
+      return {
+        ...state,
+        dates: [
+            ...state.dates.slice(0, action.date),
+            updatedElement,
+            ...state.dates.slice(action.date + 1)
+        ]
+      };
     default:
       return state;
   }
@@ -85,7 +117,7 @@ export function reducer_addEvent(
   if (!date || !Checkpoint.sameDay(time, date.date)) {
     // new date
     let newEvent: eventState = { notebook: event.notebook, events: [event] };
-    let newDate: dateState = { date: time, events: [newEvent] };
+    let newDate: dateState = { isOpen: true, date: time, events: [newEvent] };
     dates.push(newDate);
   } else {
     // existing date

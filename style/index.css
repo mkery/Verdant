@@ -17,6 +17,9 @@
   --verdant-icon-timeinspect: url("img/time-inspect.svg");
   --verdant-icon-timeinspect-active: url("img/time-inspect-active.svg");
 
+  --verdant-icon-datearrow-closed: url("img/chevron-right.svg");
+  --verdant-icon-datearrow-open: url("img/chevron-down.svg");
+
   --verdant-ghost-color1: #eff4f7;
   --verdant-cell-change-color1: #92cbef;
   --verdant-cell-change-color2: #2199f1;

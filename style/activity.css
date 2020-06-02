@@ -42,11 +42,29 @@
   top: 0px;
   background: var(--jp-layout-color0);
   z-index: 2;
+  display: flex;
+  justify-content: space-between;
 }
 
 .Verdant-events-date-header-label {
   margin-left: 1.5em;
   margin-top: 2px;
+}
+
+.Verdant-events-date-header-arrow {
+  display: inline-block;
+  vertical-align: text-bottom;
+  background-image: var(--verdant-icon-datearrow-open);
+  min-width: 1.75em;
+  min-height: 2em;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1.5em;
+  padding: 5px;
+}
+
+.Verdant-events-date-header-arrow.closed {
+  background-image: var(--verdant-icon-datearrow-closed);
 }
 
 .Verdant-events-row {
