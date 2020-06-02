@@ -67,6 +67,10 @@
   background-image: var(--verdant-icon-datearrow-closed);
 }
 
+.Verdant-events-date-container.hidden {
+  display: none;
+}
+
 .Verdant-events-row {
   padding: var(--jp-cell-padding);
   display: flex;

@@ -37,7 +37,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
                }}>
           </div>
         </div>
-        <div className={DATE_GROUP}>
+        <div className={`${DATE_GROUP} ${this.props.isOpen ? "" : "hidden"}`}>
           {this.props.events.map((_, index) => {
             let reverse = this.props.events.length - 1 - index;
             return (
