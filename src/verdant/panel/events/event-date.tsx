@@ -1,15 +1,17 @@
 import * as React from "react";
-import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
-import { Checkpoint } from "../../../lilgit/model/checkpoint";
-import { History } from "../../../lilgit/model/history";
+import {connect} from "react-redux";
+import {verdantState} from "../../redux/index";
+import {Checkpoint} from "../../../lilgit/model/checkpoint";
+import {History} from "../../../lilgit/model/history";
 import NotebookEvent from "./event";
-import { dateOpen, dateClose, eventState } from "../../redux/events";
+import {dateOpen, dateClose, eventState} from "../../redux/events";
 
 const DATE_HEADER = "Verdant-events-date-header";
 const DATE_GROUP = "Verdant-events-date-container";
 const DATE_LABEL = "Verdant-events-date-header-label";
-const DATE_ARROW = "Verdant-events-date-header-arrow";
+const DATE_COLLAPSE_HEADER = "Verdant-events-date-collapse-header";
+const DATE_COUNT = "Verdant-events-date-collapse-header-count";
+const DATE_ARROW = "Verdant-events-date-collapse-header-arrow";
 
 type NotebookDate_Props = {
   date_id: number;
@@ -30,14 +32,22 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
           <div className={DATE_LABEL}>
             {Checkpoint.formatDate(this.props.date)}
           </div>
-          <div className={`${DATE_ARROW} ${this.props.isOpen ? "" : "closed"}`}
-               onClick={() => {
-                 if (this.props.isOpen) this.props.close(this.props.date_id);
-                 else this.props.open(this.props.date_id);
-               }}>
+          <div className={DATE_COLLAPSE_HEADER}>
+            <div
+              className={`${DATE_COUNT} ${this.props.isOpen ? "hidden" : ""}`}>
+              ({this.props.events.length})
+            </div>
+            <div
+              className={`${DATE_ARROW} ${this.props.isOpen ? "" : "closed"}`}
+              onClick={() => {
+                if (this.props.isOpen) this.props.close(this.props.date_id);
+                else this.props.open(this.props.date_id);
+              }}>
+            </div>
           </div>
         </div>
-        <div className={`${DATE_GROUP} ${this.props.isOpen ? "" : "hidden"}`}>
+        <div
+          className={`${DATE_GROUP} ${this.props.isOpen ? "" : "hidden"}`}>
           {this.props.events.map((_, index) => {
             let reverse = this.props.events.length - 1 - index;
             return (
@@ -52,12 +62,6 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
         </div>
       </div>
     );
-    /*let onOpen = () => (textLabel.textContent = dateString);
-    let onClose = () => {
-      textLabel.textContent =
-        dateString + " (" + this.events[dateString].length + ")";
-    };*/
-    //VersionSampler.addCaret(header, content, true, onOpen, onClose);
   }
 }
 
@@ -83,6 +87,6 @@ const mapStateToProps = (
 };
 
 export default connect(
-    mapStateToProps,
-    mapDispatchToProps
+  mapStateToProps,
+  mapDispatchToProps
 )(NotebookEventDate);
