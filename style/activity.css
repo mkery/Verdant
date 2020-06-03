@@ -66,17 +66,13 @@
   vertical-align: text-bottom;
   background-image: var(--verdant-icon-datearrow-open);
   width: 1.3em;
-  background-position: center;
+  background-position: top;
   background-repeat: no-repeat;
   padding: 5px;
 }
 
 .Verdant-events-date-collapse-header-arrow.closed {
   background-image: var(--verdant-icon-datearrow-closed);
-}
-
-.Verdant-events-date-container.hidden {
-  display: none;
 }
 
 .Verdant-events-row {
