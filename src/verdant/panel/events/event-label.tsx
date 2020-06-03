@@ -1,11 +1,25 @@
 import * as React from "react";
-import { Checkpoint, CheckpointType } from "../../../lilgit/model/checkpoint";
-import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
+import {Checkpoint, CheckpointType} from "../../../lilgit/model/checkpoint";
+import {connect} from "react-redux";
+import {verdantState} from "../../redux/index";
 
 const EVENT_LABEL = "Verdant-events-label";
 
-type timeLabel = { time: string; label: string; events: Checkpoint[] };
+// Used to track the counts of each kind of event for label construction
+interface eventCounts {
+  added: number;
+  deleted: number;
+  run: number;
+  load: number;
+  save: number;
+  moved: number;
+}
+
+type timeLabel = {
+  time: string;
+  eventCounts: eventCounts;
+  events: Checkpoint[]
+};
 type EventLabel_Props = {
   events: Checkpoint[];
   event_id: number;
@@ -16,10 +30,8 @@ type EventLabel_State = {
   times: timeLabel[];
 };
 
-class NotebookEventLabel extends React.Component<
-  EventLabel_Props,
-  EventLabel_State
-> {
+class NotebookEventLabel extends React.Component<EventLabel_Props,
+  EventLabel_State> {
   constructor(props: EventLabel_Props) {
     super(props);
     let times: timeLabel[] = [];
@@ -33,7 +45,63 @@ class NotebookEventLabel extends React.Component<
     if (this.props.eventCount !== prevProps.eventCount) {
       let times: timeLabel[] = [];
       this.props.events.map(ev => this.addEvent(ev, times));
-      this.setState({ times: times });
+      this.setState({times: times});
+    }
+  }
+
+  // Create label for timestamp
+  makeLabel = () => {
+    const counts: eventCounts = {
+      added: 0,
+      deleted: 0,
+      moved: 0,
+      load: 0,
+      run: 0,
+      save: 0
+    }
+
+    this.state.times.forEach(t => {
+      counts.added += t.eventCounts.added;
+      counts.deleted += t.eventCounts.deleted;
+      counts.moved += t.eventCounts.moved;
+      counts.load += t.eventCounts.load;
+      counts.run += t.eventCounts.run;
+      counts.save += t.eventCounts.save;
+    })
+
+    let label = "";
+
+    if (counts.added === 1) label += "Cell added, ";
+    else if (counts.added > 1) label += `${counts.added} Cells added, `;
+
+    if (counts.deleted === 1) label += "Cell removed, ";
+    else if (counts.deleted > 1) label += `${counts.deleted} Cells removed, `;
+
+    if (counts.moved === 1) label += "Cell moved, ";
+    else if (counts.moved > 1) label += `${counts.moved} Cells moved, `;
+
+    if (counts.run === 1) label += "Run, ";
+    else if (counts.run > 1) label += `${counts.run} Runs, `;
+
+    if (counts.load === 1) label += "Load, ";
+    else if (counts.load > 1) label += `${counts.load} Loads, `;
+
+    if (counts.save === 1) label += "Save, ";
+    else if (counts.save > 1) label += `${counts.save} Saves, `;
+
+    return label.slice(0, -2);
+  }
+
+  // Create timestamp element
+  makeTimestamp = () => {
+    const times = this.state.times;
+    if (times.length == 1) {
+      return <div> {`${times[0].time} ${this.makeLabel()}`} </div>;
+    } else {
+      return (<div>
+        {`${times[0].time} - ${times[times.length - 1].time}
+         ${this.makeLabel()}`}
+      </div>);
     }
   }
 
@@ -41,9 +109,7 @@ class NotebookEventLabel extends React.Component<
     return (
       <div className={EVENT_LABEL}>
         <div>
-          {this.state.times.map((time, index) => {
-            return <div key={index}>{`${time.time} ${time.label}`}</div>;
-          })}
+          {this.makeTimestamp()}
         </div>
       </div>
     );
@@ -54,82 +120,60 @@ class NotebookEventLabel extends React.Component<
 
     let matchTime = times.filter(item => item.time === time)[0];
     if (!matchTime) {
-      matchTime = { time: time, events: [], label: "" };
+      matchTime = {
+        time: time,
+        events: [],
+        eventCounts: {
+          added: 0,
+          deleted: 0,
+          moved: 0,
+          load: 0,
+          run: 0,
+          save: 0
+        }
+      };
       times.push(matchTime);
     }
 
     // add to start since assume it will be a later time
     matchTime.events.unshift(event);
-    matchTime.label = this.labelEvent(matchTime.events);
+    matchTime.eventCounts = this.countEvents(matchTime.events);
   }
 
-  private labelEvent(events: Checkpoint[]): string {
-    let eventTitle = "";
-    let added = 0;
-    let deleted = 0;
-    let run = 0;
-    let load = 0;
-    let save = 0;
-    let moved = 0;
-    let total = 0;
+  private countEvents(events: Checkpoint[]): eventCounts {
+    const counts: eventCounts = {
+      added: 0,
+      deleted: 0,
+      moved: 0,
+      load: 0,
+      run: 0,
+      save: 0
+    }
 
     events.forEach(ev => {
       switch (ev.checkpointType) {
         case CheckpointType.ADD:
-          added++;
-          total++;
+          counts.added++;
           break;
         case CheckpointType.DELETE:
-          deleted++;
-          total++;
+          counts.deleted++;
           break;
         case CheckpointType.RUN:
-          run++;
-          total++;
+          counts.run++;
           break;
         case CheckpointType.LOAD:
-          load++;
-          total++;
+          counts.load++;
           break;
         case CheckpointType.SAVE:
-          save++;
-          total++;
+          counts.save++;
           break;
         case CheckpointType.MOVED:
-          moved++;
-          total++;
+          counts.moved++;
           break;
       }
     });
 
-    if (added === 1) eventTitle = "Cell added";
-    if (added > 1) eventTitle = added + " Cells added";
-    total -= added;
-
-    if (total > 0 && deleted > 0 && eventTitle.length > 0) eventTitle += ", ";
-    if (deleted === 1) eventTitle += "Cell removed";
-    if (deleted > 1) eventTitle += deleted + " Cells removed";
-    total -= deleted;
-
-    if (total > 0 && run > 0 && eventTitle.length > 0) eventTitle += ", ";
-    if (run === 1) eventTitle += "Run";
-    if (run > 1) eventTitle += " Runs";
-    total -= run;
-
-    if (total > 0 && load > 0 && eventTitle.length > 0) eventTitle += ", ";
-    if (load > 0) eventTitle += "Load";
-    total -= load;
-
-    if (total > 0 && save > 0 && eventTitle.length > 0) eventTitle += ", ";
-    if (save > 0) eventTitle += "Save";
-    total -= save;
-
-    if (total > 0 && eventTitle.length > 0) eventTitle += ", ";
-    if (moved === 1) eventTitle += "Cell Moved";
-    if (moved > 1) eventTitle += moved + " Cells Moved";
-    total -= moved;
-
-    return eventTitle;
+    return counts;
   }
 }
 
