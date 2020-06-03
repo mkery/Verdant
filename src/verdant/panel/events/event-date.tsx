@@ -25,6 +25,25 @@ type NotebookDate_Props = {
 };
 
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
+  // Helper method to conditionally construct the list of events under a date
+  makeEventList = () => {
+    if (this.props.isOpen) {
+      return this.props.events.map((_, index) => {
+        let reverse = this.props.events.length - 1 - index;
+        return (
+          <div key={reverse}>
+            <NotebookEvent
+              date_id={this.props.date_id}
+              event_id={reverse}
+            />
+          </div>
+        );
+      })
+    } else {
+      return null;
+    }
+  }
+
   render() {
     return (
       <div>
@@ -47,18 +66,8 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
           </div>
         </div>
         <div
-          className={`${DATE_GROUP} ${this.props.isOpen ? "" : "hidden"}`}>
-          {this.props.events.map((_, index) => {
-            let reverse = this.props.events.length - 1 - index;
-            return (
-              <div key={reverse}>
-                <NotebookEvent
-                  date_id={this.props.date_id}
-                  event_id={reverse}
-                />
-              </div>
-            );
-          })}
+          className={DATE_GROUP}>
+          {this.makeEventList()}
         </div>
       </div>
     );
