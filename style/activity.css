@@ -57,31 +57,22 @@
   text-align: center;
 }
 
-.Verdant-events-date-collapse-header-count {
-
-}
-
 .Verdant-events-date-collapse-header-count.hidden {
   display: none;
 }
 
 .Verdant-events-date-collapse-header-arrow {
   display: inline-block;
-  vertical-align: center;
+  vertical-align: text-bottom;
   background-image: var(--verdant-icon-datearrow-open);
   width: 1.3em;
-  height: 1.3em;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 1.3em;
   padding: 5px;
 }
 
 .Verdant-events-date-collapse-header-arrow.closed {
   background-image: var(--verdant-icon-datearrow-closed);
-  width: .75em;
-  height: .75em;
-  background-size: 1em;
 }
 
 .Verdant-events-date-container.hidden {
