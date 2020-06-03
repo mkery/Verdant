@@ -47,7 +47,11 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
   render() {
     return (
       <div>
-        <div className={DATE_HEADER}>
+        <div className={DATE_HEADER}
+             onClick={() => {
+               if (this.props.isOpen) this.props.close(this.props.date_id);
+               else this.props.open(this.props.date_id);
+             }}>
           <div className={DATE_LABEL}>
             {Checkpoint.formatDate(this.props.date)}
           </div>
@@ -57,11 +61,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
               ({this.props.events.length})
             </div>
             <div
-              className={`${DATE_ARROW} ${this.props.isOpen ? "" : "closed"}`}
-              onClick={() => {
-                if (this.props.isOpen) this.props.close(this.props.date_id);
-                else this.props.open(this.props.date_id);
-              }}>
+              className={`${DATE_ARROW} ${this.props.isOpen ? "" : "closed"}`}>
             </div>
           </div>
         </div>
