@@ -55,16 +55,19 @@
   display: inline-block;
   vertical-align: text-bottom;
   background-image: var(--verdant-icon-datearrow-open);
-  min-width: 1.75em;
-  min-height: 2em;
+  width: 1.4em;
+  height: 1.4em;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 1.5em;
+  background-size: 1.4em;
   padding: 5px;
 }
 
 .Verdant-events-date-header-arrow.closed {
   background-image: var(--verdant-icon-datearrow-closed);
+  width: .8em;
+  height: .8em;
+  background-size: 1em;
 }
 
 .Verdant-events-date-container.hidden {
