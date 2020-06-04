@@ -1,10 +1,10 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {verdantState} from "../../redux/index";
-import {Checkpoint} from "../../../lilgit/model/checkpoint";
+import {Checkpoint, CheckpointType} from "../../../lilgit/model/checkpoint";
 import {History} from "../../../lilgit/model/history";
-import NotebookEvent from "./event";
 import {dateOpen, dateClose, eventState} from "../../redux/events";
+import NotebookEventDateBundle from "./event-date-bundle";
 
 const DATE_HEADER = "Verdant-events-date-header";
 const DATE_GROUP = "Verdant-events-date-container";
@@ -25,23 +25,36 @@ type NotebookDate_Props = {
 };
 
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
-  // Helper method to conditionally construct the list of events under a date
-  makeEventList() {
-    if (this.props.isOpen) {
-      return this.props.events.map((_, index) => {
-        let reverse = this.props.events.length - 1 - index;
-        return (
-          <div key={reverse}>
-            <NotebookEvent
-              date_id={this.props.date_id}
-              event_id={reverse}
-            />
-          </div>
-        );
-      })
-    } else {
-      return null;
-    }
+  private eventType(e: eventState): CheckpointType {
+    /* Returns CheckpointType if all checkpoints in event have same type,
+       else returns null */
+    const reducer = (acc, current) => acc === current ? acc : null;
+    return e.events.map(c => c.checkpointType).reduce(reducer);
+  }
+
+  private computeBundles(events: eventState[]): number[][] {
+    /* Computes list of bundled indices based on timestamp, ordered such that
+       flattening the outer list leads to a reversed list of the indices of
+       this.props.events */
+    console.log(this.eventType(events[0]));
+    // TODO: Implement proper computation
+    return events.map((_, i) => [i]);
+  }
+
+  makeBundles() {
+    const bundledIndices = this.computeBundles(this.props.events);
+
+    // Creates DateBundle for each set of dates
+    return bundledIndices.map(
+      (idx_list, i) => (
+        <div key={i}>
+          <NotebookEventDateBundle
+            events={[...idx_list]}
+            date_id={this.props.date_id}
+          />
+        </div>
+      )
+    )
   }
 
   render() {
@@ -65,9 +78,8 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
             </div>
           </div>
         </div>
-        <div
-          className={DATE_GROUP}>
-          {this.makeEventList()}
+        <div className={DATE_GROUP}>
+          {this.makeBundles()}
         </div>
       </div>
     );
