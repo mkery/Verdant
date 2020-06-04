@@ -51,27 +51,28 @@
   margin-top: 2px;
 }
 
-.Verdant-events-date-header-arrow {
+.Verdant-events-date-collapse-header {
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+}
+
+.Verdant-events-date-collapse-header-count.hidden {
+  display: none;
+}
+
+.Verdant-events-date-collapse-header-arrow {
   display: inline-block;
   vertical-align: text-bottom;
   background-image: var(--verdant-icon-datearrow-open);
-  width: 1.4em;
-  height: 1.4em;
-  background-position: center;
+  width: 1.3em;
+  background-position: top;
   background-repeat: no-repeat;
-  background-size: 1.4em;
   padding: 5px;
 }
 
-.Verdant-events-date-header-arrow.closed {
+.Verdant-events-date-collapse-header-arrow.closed {
   background-image: var(--verdant-icon-datearrow-closed);
-  width: .8em;
-  height: .8em;
-  background-size: 1em;
-}
-
-.Verdant-events-date-container.hidden {
-  display: none;
 }
 
 .Verdant-events-row {
