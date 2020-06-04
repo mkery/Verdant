@@ -5,6 +5,8 @@
 :root {
   --jp-private-verdant-manager-tab-height: 24px;
 
+  --verdant-icon-logo: url("img/log-icon.svg");
+
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-search: url("img/search.svg");
 
@@ -33,7 +35,7 @@
 | Verdant in the dock panel, copied css from tabs-extension
 |----------------------------------------------------------------------------*/
 .verdant-log-icon {
-  background: url("img/log-icon.svg");
+  background: var(--verdant-icon-logo);
 }
 
 #v-VerdantPanel,
