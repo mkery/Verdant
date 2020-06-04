@@ -26,7 +26,7 @@ type NotebookDate_Props = {
 
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
   // Helper method to conditionally construct the list of events under a date
-  makeEventList = () => {
+  makeEventList() {
     if (this.props.isOpen) {
       return this.props.events.map((_, index) => {
         let reverse = this.props.events.length - 1 - index;
