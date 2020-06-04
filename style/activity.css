@@ -25,11 +25,11 @@
   display: inline-block;
 }
 .Verdant-events-column.label {
-  width: 25%;
+  width: 35%;
   min-width: 4em; /*to prevent weird date text cropping*/
 }
 .Verdant-events-column.map {
-  width: 75%;
+  width: 65%;
 }
 
 .Verdant-events-date-header {
@@ -73,8 +73,8 @@
   color: var(--jp-content-font-color2);
   padding: var(--jp-cell-padding);
   padding-left: 0px;
-  max-width: 50%;
 }
+
 .Verdant-events-map {
   padding-top: 0.25em;
   flex: 5 0 50%;

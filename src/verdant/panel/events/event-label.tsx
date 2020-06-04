@@ -108,9 +108,7 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
   render() {
     return (
       <div className={EVENT_LABEL}>
-        <div>
           {this.makeTimestamp()}
-        </div>
       </div>
     );
   }
