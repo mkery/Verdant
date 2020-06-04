@@ -31,6 +31,7 @@ import "../style/ghost.css";
 import "../style/sampler.css";
 import "../style/activity.css";
 import "../style/verdant-panel.css";
+import "../style/landing.css";
 
 import { AST } from "./lilgit/analysis/ast";
 
@@ -39,6 +40,8 @@ import { VerdantNotebook } from "./verdant/verdant-notebook";
 import { History } from "./lilgit/model/history";
 
 import { VerdantPanel } from "./verdant/verdant-panel";
+
+import { VerdantLanding } from "./verdant/verdant-landing";
 
 import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
 
@@ -60,6 +63,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
       },
     };
+    landingPage = new Widget();
 
     // Set up singletons accessed by all instances
     fileManager = new FileManager(docManager);
@@ -73,10 +77,14 @@ const extension: JupyterFrontEndPlugin<void> = {
     sidePanel.id = "v-VerdantPanel";
     sidePanel.title.iconClass = "verdant-log-icon jp-SideBar-tabIcon";
     sidePanel.title.caption = "Verdant Log";
+    sidePanel.addWidget(landingPage);
     app.shell.add(sidePanel, "left", { rank: 600 });
 
     // Connect signal handlers for editor view change.
-    (app.shell as LabShell).layoutModified.connect(() => updateVerdantView());
+    (app.shell as LabShell).activeChanged.connect(() => updateVerdantView());
+
+    // Create landing page
+    loadLandingPage(landingPage);
 
     // Populate Verdant if a notebook is open
     updateVerdantView();
@@ -101,6 +109,7 @@ let sidePanel: StackedPanel;
 let ghostWidget: Ghost;
 let updateVerdantView: () => void;
 let openGhostBook: (store: Store, ver: number) => Ghost;
+let landingPage: Widget;
 
 type VerdantInstance = {
   history: History;
@@ -133,9 +142,11 @@ function __layoutChange(app: JupyterFrontEnd) {
     }
     // make sure Verdant UI is showing for the current notebook
     activeInstance.ui.show();
+    landingPage.hide();
   } else {
     // hide Verdant content if notebook is not showing
     if (activeInstance) activeInstance.ui.hide();
+    landingPage.show();
   }
 
   // Log: what is showing?
@@ -248,6 +259,13 @@ function __openGhostBook(app: JupyterFrontEnd, store: Store, ver: number) {
   // Activate the widget
   app.shell.activateById(ghostWidget.id);
   return ghostWidget;
+}
+
+/*
+ * Build landing page for Verdant to show when a notebook is not open
+ */
+function loadLandingPage(widget: Widget) {
+  ReactDOM.render(React.createElement(VerdantLanding), widget.node);
 }
 
 export default extension;
