@@ -50,7 +50,7 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
   }
 
   // Create label for timestamp
-  makeLabel = () => {
+  makeLabel() {
     const counts: eventCounts = {
       added: 0,
       deleted: 0,
@@ -93,7 +93,7 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
   }
 
   // Create timestamp element
-  makeTimestamp = () => {
+  makeTimestamp() {
     const times = this.state.times;
     if (times.length == 1) {
       return <div> {`${times[0].time} ${this.makeLabel()}`} </div>;
