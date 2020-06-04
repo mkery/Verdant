@@ -11,7 +11,6 @@ import { createStore, applyMiddleware, Store } from "redux";
 import { VerdantLog } from "./verdant/logger";
 import { verdantReducer, createInitialState } from "./verdant/redux/index";
 import { setGhostOpener } from "./verdant/redux/ghost";
-import { log, VerNotebook } from "./lilgit/components/notebook";
 
 import { Ghost } from "./verdant/ghost-book/ghost";
 
@@ -55,90 +54,32 @@ const extension: JupyterFrontEndPlugin<void> = {
     rendermime: IRenderMimeRegistry,
     latexTypesetter: renderers.ILatexTypesetter
   ) => {
-    /*
-     * Set up private singletons
-     */
+    // Set up private singletons
     const linkHandler = {
       handleLink: (node: HTMLElement, path: string) => {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
       },
     };
 
-    /*
-     * Set up singletons acessed by all instances
-     */
+    // Set up singletons accessed by all instances
     fileManager = new FileManager(docManager);
     renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
     sidePanel = new StackedPanel();
+    openGhostBook = __openGhostBook.bind(this, app);
+    updateVerdantView = __layoutChange.bind(this, app);
 
-    // set up ghost book as a singleton
-    openGhostBook = (store: Store, notebook: VerNotebook, ver: number) => {
-      // initial ghost book
-      if (!ghostWidget) {
-        ghostWidget = new Ghost(store, ver);
-      }
-      // changing notebook
-      else ghostWidget.initStore(store, ver);
-
-      if (!ghostWidget.isAttached) {
-        // Attach the widget to the main work area if it's not there
-        app.shell.add(ghostWidget, "main");
-      }
-      // Activate the widget
-      app.shell.activateById(ghostWidget.id);
-      return ghostWidget;
-    };
-
+    // Set up icon for Verdant tool in the main editor side panel
     restorer.add(sidePanel, "v-VerdantPanel");
     sidePanel.id = "v-VerdantPanel";
     sidePanel.title.iconClass = "verdant-log-icon jp-SideBar-tabIcon";
     sidePanel.title.caption = "Verdant Log";
     app.shell.add(sidePanel, "left", { rank: 600 });
 
-    /*
-     * this is how we'll keep track of which notebook
-     * we're looking at
-     */
-    let activeInstance: VerdantInstance = null;
-    const populate = () => {
-      let widg = app.shell.currentWidget;
-      if (widg instanceof NotebookPanel) {
-        // normal notebook
-        let verInst = getInstance(widg);
-        verInst.logger.log(
-          "Jupyter Lab switching Notebook to " + verInst.notebook.name
-        );
-        if (!activeInstance || activeInstance !== verInst) {
-          if (activeInstance) activeInstance.ui.hide();
-          activeInstance = verInst;
-          activeInstance.ui.show();
-        }
-      }
+    // Connect signal handlers for editor view change.
+    (app.shell as LabShell).layoutModified.connect(() => updateVerdantView());
 
-      // Log: what is showing?
-      instances.map((ver) => {
-        // start logging once there is an active instance
-        let showing = {
-          ghost: ghostWidget
-            ? ghostWidget.isVisible &&
-              ghostWidget.getFile() === ver.notebook.path
-            : false,
-          sideBar: sidePanel
-            ? sidePanel.isVisible && ver === activeInstance
-            : false,
-          notebook: ver.panel ? ver.panel.isVisible : false,
-        };
-        ver.logger.log("Jupyter Lab layout change:", JSON.stringify(showing));
-      });
-    };
-
-    // Connect signal handlers.
-    (app.shell as LabShell).layoutModified.connect(() => {
-      populate();
-    });
-
-    // Populate the tab manager.
-    populate();
+    // Populate Verdant if a notebook is open
+    updateVerdantView();
   },
   autoStart: true,
   requires: [
@@ -149,12 +90,17 @@ const extension: JupyterFrontEndPlugin<void> = {
   ],
 };
 
+/*
+ * Singletons used by all instances
+ */
 const instances: VerdantInstance[] = [];
+let activeInstance: VerdantInstance;
 let renderBaby: RenderBaby;
 let fileManager: FileManager;
 let sidePanel: StackedPanel;
-let openGhostBook: (store: Store, notebook: VerNotebook, ver: number) => Ghost;
 let ghostWidget: Ghost;
+let updateVerdantView: () => void;
+let openGhostBook: (store: Store, ver: number) => Ghost;
 
 type VerdantInstance = {
   history: History;
@@ -165,54 +111,143 @@ type VerdantInstance = {
   logger: VerdantLog;
 };
 
+/*
+ * Determine if a notebook is showing and update Verdant to
+ * show appropriate content for the user's current view
+ */
+function __layoutChange(app: JupyterFrontEnd) {
+  let widget = app.shell.currentWidget;
+
+  // normal notebook
+  if (widget instanceof NotebookPanel) {
+    // open Verdant for this current notebook
+    let verInst = getInstance(widget);
+    verInst.logger.log(
+      "Jupyter Lab switching Notebook to " + verInst.notebook.name
+    );
+
+    // check if we need to switch Verdant from a prior notebook
+    if (!activeInstance || activeInstance !== verInst) {
+      if (activeInstance) activeInstance.ui.hide();
+      activeInstance = verInst;
+    }
+    // make sure Verdant UI is showing for the current notebook
+    activeInstance.ui.show();
+  } else {
+    // hide Verdant content if notebook is not showing
+    if (activeInstance) activeInstance.ui.hide();
+  }
+
+  // Log: what is showing?
+  instances.map((ver) => {
+    // start logging once there is an active instance
+    let showing = {
+      ghost: ghostWidget
+        ? ghostWidget.isVisible && ghostWidget.getFile() === ver.notebook.path
+        : false,
+      sideBar: sidePanel
+        ? sidePanel.isVisible && ver === activeInstance
+        : false,
+      notebook: ver.panel ? ver.panel.isVisible : false,
+    };
+    ver.logger.log("Jupyter Lab layout change:", JSON.stringify(showing));
+  });
+}
+
+/*
+ * Retrieve a Verdant instance
+ */
 function getInstance(panel: NotebookPanel) {
-  let verInst = instances.find((inst) => inst.panel.id === panel.id);
+  // be careful since 2+ panels can open for the same notebook
+  let whichNotebook = panel.sessionContext.path;
+  let verInst = instances.find(
+    (inst) => inst.panel.sessionContext.path === whichNotebook
+  );
   if (!verInst) {
-    /*
-     * Create instance
-     */
-    let logger = new VerdantLog();
-    let log_redux = logger.getReduxLogger();
-    let history = new History(renderBaby, fileManager);
-    let analysis = new AST(history);
-    const initialState = createInitialState(history);
-    let store: Store = createStore(
-      verdantReducer,
-      initialState,
-      applyMiddleware(log_redux)
-    );
-
-    /*
-     * Create side panel
-     */
-    let ui = new Widget();
-    sidePanel.addWidget(ui);
-    ReactDOM.render(
-      React.createElement(
-        VerdantPanel,
-        {
-          store: store,
-        },
-        null
-      ),
-      ui.node
-    );
-
-    // set up notebook
-    let notebook = new VerdantNotebook(history, analysis, panel, store, logger);
-
-    // set up ghost book for this notebook
-    store.dispatch(setGhostOpener(openGhostBook.bind(this, store, notebook)));
-
-    verInst = { history, analysis, ui, notebook, panel, logger };
+    verInst = createVerdantInstance(panel);
     instances.push(verInst);
-    notebook.ready.then(() => {
-      log("Notebook is ready");
-    });
   }
   return verInst;
 }
 
-// TODO function shutDownInstance(panel: NotebookPanel)
+/*
+ * Create new Verdant instance
+ */
+function createVerdantInstance(panel: NotebookPanel): VerdantInstance {
+  let logger = new VerdantLog();
+  let log_redux = logger.getReduxLogger();
+  let history = new History(renderBaby, fileManager);
+  let analysis = new AST(history);
+  const initialState = createInitialState(history);
+
+  // create store for UI behavior
+  let store: Store = createStore(
+    verdantReducer,
+    initialState,
+    applyMiddleware(log_redux)
+  );
+
+  // create Verdant UI panel view
+  let ui = createVerdantPanelUI(store);
+
+  // set up notebook
+  let notebook = new VerdantNotebook(history, analysis, panel, store, logger);
+
+  // set up ghost book for this notebook
+  store.dispatch(setGhostOpener(openGhostBook.bind(this, store, notebook)));
+
+  // set up listener to close notebook
+  panel.disposed.connect((_) => shutDownInstance(panel));
+
+  // return new Verdant instance
+  return { history, analysis, ui, notebook, panel, logger };
+}
+
+/*
+ * Create Verdant UI side panel
+ */
+function createVerdantPanelUI(store: Store): Widget {
+  let ui = new Widget();
+  sidePanel.addWidget(ui);
+  ReactDOM.render(
+    React.createElement(
+      VerdantPanel,
+      {
+        store: store,
+      },
+      null
+    ),
+    ui.node
+  );
+  return ui;
+}
+
+/*
+ * Close a Verdant instance
+ */
+function shutDownInstance(panel: NotebookPanel) {
+  // TODO
+  console.log("NOTEBOOK CLOSED");
+}
+
+/*
+ * Open Ghost Book for any given Verdant instance
+ */
+function __openGhostBook(app: JupyterFrontEnd, store: Store, ver: number) {
+  // initial ghost book
+  if (!ghostWidget) {
+    ghostWidget = new Ghost(store, ver);
+  }
+  // changing notebook
+  else ghostWidget.initStore(store, ver);
+
+  if (!ghostWidget.isAttached) {
+    // Attach the widget to the main work area if it's not there
+    app.shell.add(ghostWidget, "main");
+  }
+  // Activate the widget
+  app.shell.activateById(ghostWidget.id);
+  return ghostWidget;
+}
 
 export default extension;
