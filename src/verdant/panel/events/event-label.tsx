@@ -179,11 +179,18 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<EventLabel_Props>
 ) => {
-  let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
-  return {
-    events: eventList.events,
-    eventCount: eventList.events.length
-  };
+  if (ownProps.event_id !== null) { // regular case
+    let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
+    return {
+      events: eventList.events,
+      eventCount: eventList.events.length
+    };
+  } else { // null case, for bundle labels
+    return {
+      events: ownProps.events,
+      eventCount: ownProps.events.length
+    };
+  }
 };
 
 export default connect(mapStateToProps)(NotebookEventLabel);

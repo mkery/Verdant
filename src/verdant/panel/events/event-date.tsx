@@ -75,7 +75,6 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
 
   makeBundles() {
     const bundledIndices = this.computeBundles(this.props.events);
-    console.log(bundledIndices);
 
     // Creates DateBundle for each set of dates
     return bundledIndices.map(

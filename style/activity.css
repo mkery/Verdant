@@ -32,6 +32,31 @@
   width: 65%;
 }
 
+.Verdant-events-date-bundle-header {
+  padding: var(--jp-cell-padding);
+  font-size: 1em;
+  padding-top: 1em;
+  position: sticky;
+  top: 0px;
+  background: var(--jp-layout-color0);
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+}
+
+.Verdant-events-date-bundle-header.closed {
+
+}
+
+.Verdant-events-date-bundle-header-label {
+  width: 35%;
+}
+
+.Verdant-events-date-bundle-header-numbers {
+  width: 65%;
+  display: flex;
+}
+
 .Verdant-events-date-header {
   padding: var(--jp-cell-padding);
   border-bottom: 1px solid var(--jp-border-color3);
