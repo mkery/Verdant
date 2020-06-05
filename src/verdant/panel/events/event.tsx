@@ -26,7 +26,6 @@ const COL = "Verdant-events-column";
 
 class NotebookEvent extends React.Component<NotebookEvent_Props> {
   render() {
-    console.log(this.props.events);
     return (
       <div className={EVENT_ROW} onClick={this.props.openGhostBook}>
         <div className={`${COL} label`}>

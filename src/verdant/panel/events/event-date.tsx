@@ -13,6 +13,8 @@ const DATE_COLLAPSE_HEADER = "Verdant-events-date-collapse-header";
 const DATE_COUNT = "Verdant-events-date-collapse-header-count";
 const DATE_ARROW = "Verdant-events-date-collapse-header-arrow";
 
+const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
+
 type NotebookDate_Props = {
   date_id: number;
   date: number;
@@ -36,13 +38,44 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
     /* Computes list of bundled indices based on timestamp, ordered such that
        flattening the outer list leads to a reversed list of the indices of
        this.props.events */
-    console.log(this.eventType(events[0]));
-    // TODO: Implement proper computation
-    return events.map((_, i) => [i]);
+    interface accumulatorObject { // TODO: where should this be moved?
+      accumulator: number[][]; // Holds partially constructed bundle output
+      timeBound: number; // Lower limit on time for inclusion in latest bundle
+      lastType: CheckpointType; // Type of current bundle
+    }
+
+    const reducer = (accObj: accumulatorObject, e: eventState, idx) => {
+      // Compute properties of current element
+      let timeStamp = e.events[0].timestamp;
+      let eventType = this.eventType(e);
+      if ((timeStamp > accObj.timeBound) &&
+        (eventType === accObj.lastType)) { // add event to current bundle
+        const newAccumulator = accObj.accumulator.slice(0, -1).concat(
+          [accObj.accumulator[accObj.accumulator.length - 1].concat([idx])]
+        )
+        return {
+          accumulator: newAccumulator,
+          timeBound: accObj.timeBound,
+          lastType: accObj.lastType
+        }
+      } else { // create new bundle
+        return {
+          accumulator: accObj.accumulator.concat([[idx]]),
+          timeBound: timeStamp - INTERVAL_WIDTH,
+          lastType: eventType
+        }
+      }
+    }
+    return events.reduceRight(reducer, {
+      accumulator: [],
+      timeBound: Infinity,
+      lastType: null
+    }).accumulator
   }
 
   makeBundles() {
     const bundledIndices = this.computeBundles(this.props.events);
+    console.log(bundledIndices);
 
     // Creates DateBundle for each set of dates
     return bundledIndices.map(

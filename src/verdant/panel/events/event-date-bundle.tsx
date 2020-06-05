@@ -17,7 +17,6 @@ type DateBundle_Props = {
 class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
   render() {
     if (this.props.events.length == 1) {
-      console.log(`Index: ${this.props.events[0]}\nArray: ${this.props.event_states}`);
       return (
         <NotebookEvent
           date_id={this.props.date_id}
@@ -30,17 +29,15 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
         <div>
           <div className={DATE_BUNDLE_HEADER}></div>
           <div className={DATE_BUNDLE_CONTAINER}>
-            {this.props.events.map((id, index) => {
-              return (
+            {this.props.events.map((id) => (
                 <div key={id}>
                   <NotebookEvent
                     date_id={this.props.date_id}
                     event_id={id}
-                    events={this.props.event_states[index]}
+                    events={this.props.event_states[id]}
                   />
                 </div>
-              );
-            })}
+              ))}
           </div>
         </div>
       );
