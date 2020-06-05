@@ -82,6 +82,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
       (idx_list, i) => (
         <div key={i}>
           <NotebookEventDateBundle
+            bundle_id={i}
             events={[...idx_list]}
             date_id={this.props.date_id}
           />
@@ -112,7 +113,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
           </div>
         </div>
         <div className={DATE_GROUP}>
-          {this.makeBundles()}
+          {this.props.isOpen ? this.makeBundles() : null}
         </div>
       </div>
     );
