@@ -188,8 +188,9 @@ function createVerdantInstance(panel: NotebookPanel): VerdantInstance {
   let logger = new VerdantLog();
   let log_redux = logger.getReduxLogger();
   let history = new History(renderBaby, fileManager);
+  const getHistory = () => history;
   let analysis = new AST(history);
-  const initialState = createInitialState(history);
+  const initialState = createInitialState(getHistory);
 
   // create store for UI behavior
   let store: Store = createStore(
@@ -205,7 +206,7 @@ function createVerdantInstance(panel: NotebookPanel): VerdantInstance {
   let notebook = new VerdantNotebook(history, analysis, panel, store, logger);
 
   // set up ghost book for this notebook
-  store.dispatch(setGhostOpener(openGhostBook.bind(this, store, notebook)));
+  store.dispatch(setGhostOpener(openGhostBook.bind(this, store)));
 
   // set up listener to close notebook
   panel.disposed.connect((_) => shutDownInstance(panel));
@@ -239,6 +240,7 @@ function createVerdantPanelUI(store: Store): Widget {
 function shutDownInstance(panel: NotebookPanel) {
   // TODO
   console.log("NOTEBOOK CLOSED");
+  updateVerdantView();
 }
 
 /*

@@ -119,7 +119,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.history,
+    history: state.getHistory(),
     openGhostBook: state.openGhostBook,
     target: state.inspectTarget,
     showingDetail: state.activeTab === ActiveTab.Artifact_Details,

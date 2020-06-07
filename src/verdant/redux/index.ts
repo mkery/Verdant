@@ -14,33 +14,33 @@ const INSPECT_OFF = "INSPECT_OFF";
 export const inspectNode = (target: Nodey) => {
   return {
     type: INSPECT_TARGET,
-    target
+    target,
   };
 };
 
 export const inspectOn = () => {
   return {
-    type: INSPECT_ON
+    type: INSPECT_ON,
   };
 };
 
 export const inspectOff = () => {
   return {
-    type: INSPECT_OFF
+    type: INSPECT_OFF,
   };
 };
 
 export const switchTab = (name: ActiveTab) => {
   return {
     type: SWITCH_TAB,
-    tab: name
+    tab: name,
   };
 };
 
 export const searchForText = (query: string) => {
   return {
     type: SEARCH_FOR,
-    query
+    query,
   };
 };
 
@@ -48,7 +48,7 @@ export enum ActiveTab {
   Events,
   Artifacts,
   Artifact_Details,
-  Search
+  Search,
 }
 
 export type artifactState = {
@@ -59,7 +59,7 @@ export type artifactState = {
 };
 
 export type verdantState = {
-  history: History;
+  getHistory: () => History;
   currentEvent: Checkpoint;
   activeTab: ActiveTab;
   inspectOn: boolean;
@@ -70,9 +70,9 @@ export type verdantState = {
 } & ghostState &
   eventMapState;
 
-export const createInitialState = (history: History): verdantState => {
+export const createInitialState = (getHistory: () => History): verdantState => {
   return {
-    history: history,
+    getHistory: getHistory,
     currentEvent: null,
     activeTab: ActiveTab.Events,
     inspectOn: false,
@@ -81,24 +81,24 @@ export const createInitialState = (history: History): verdantState => {
     cellArtifacts: [],
     notebookArtifact: null,
     ...eventsInitialState(),
-    ...ghostInitialState()
+    ...ghostInitialState(),
   };
 };
 
 export const verdantReducer = (state: verdantState, action: any) => {
   switch (action.type) {
     case SWITCH_TAB:
-      if (state.inspectOn) Wishbone.endWishbone(state.history.notebook);
+      if (state.inspectOn) Wishbone.endWishbone(state.getHistory().notebook);
       return { ...state, activeTab: action.tab, inspectOn: false };
     case INSPECT_TARGET:
       return { ...state, inspectTarget: action.target };
     case INSPECT_ON:
       if (!state.inspectOn) {
-        Wishbone.startWishbone(state.history);
+        Wishbone.startWishbone(state.getHistory());
       }
       return { ...state, inspectOn: true };
     case INSPECT_OFF:
-      if (state.inspectOn) Wishbone.endWishbone(state.history.notebook);
+      if (state.inspectOn) Wishbone.endWishbone(state.getHistory().notebook);
       return { ...state, inspectOn: false };
     case SEARCH_FOR:
       return { ...state, searchQuery: action.query };

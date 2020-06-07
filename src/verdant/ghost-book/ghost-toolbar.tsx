@@ -54,7 +54,7 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.history,
+    history: state.getHistory(),
     name: state.notebook_ver,
     checked: state.show_all_cells,
   };
