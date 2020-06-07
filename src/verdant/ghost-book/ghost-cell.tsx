@@ -90,7 +90,7 @@ const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
   let cell = state.ghostCells[ownProps.id];
   return {
     ...ownProps,
-    history: state.history,
+    history: state.getHistory(),
     hasFocus: () => state.active_cell === cell.name,
     linkArtifact: state.link_artifact,
     ...cell,

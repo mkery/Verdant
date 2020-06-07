@@ -36,8 +36,9 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
         </div>
         <div className={`${COL} map`}>
           <div className={EVENT_MAP}>
-            <div className={EVENT_NOTEBOOK}>{`# ${this.props.events.notebook +
-              1}`}</div>
+            <div className={EVENT_NOTEBOOK}>{`# ${
+              this.props.events.notebook + 1
+            }`}</div>
             <div className={EVENT_NOTEBOOK}>{this.showMap()}</div>
           </div>
         </div>
@@ -76,9 +77,9 @@ const mapStateToProps = (
 ) => {
   let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
   return {
-    history: state.history,
+    history: state.getHistory(),
     events: eventList,
-    openGhostBook: () => state.openGhostBook(eventList.notebook)
+    openGhostBook: () => state.openGhostBook(eventList.notebook),
   };
 };
 

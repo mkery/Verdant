@@ -8,7 +8,7 @@ import {
   inspectNode,
   switchTab,
   ActiveTab,
-  artifactState
+  artifactState,
 } from "../../redux/index";
 
 const CELL = "v-VerdantPanel-Summary-cell";
@@ -95,20 +95,17 @@ const mapDispatchToProps = (dispatch: any) => {
     showDetails: (n: Nodey) => {
       dispatch(inspectNode(n));
       dispatch(switchTab(ActiveTab.Artifact_Details));
-    }
+    },
   };
 };
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.history,
+    history: state.getHistory(),
     cells: state.cellArtifacts,
     notebook: state.notebookArtifact,
-    artifact_count: state.cellArtifacts.length
+    artifact_count: state.cellArtifacts.length,
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Summary);
+export default connect(mapStateToProps, mapDispatchToProps)(Summary);

@@ -27,7 +27,7 @@ export class VerdantLog {
       activeTab: state.activeTab,
       inspectOn: state.inspectOn,
       inspecting: state.inspectTarget,
-      searchQuery: state.searchQuery
+      searchQuery: state.searchQuery,
     };
     this.log("Redux state: ", JSON.stringify(record));
     this.log("Dispatching redux action: ", JSON.stringify(action));
@@ -50,13 +50,13 @@ export class VerdantLog {
   }
 
   loadLog() {
-    return new Promise(accept => {
+    return new Promise((accept) => {
       const name = this.getFile();
       const path = this.getPath() + name;
       let contents = new ContentsManager();
       contents
         .get(path)
-        .then(res => {
+        .then((res) => {
           accept(res.content);
         })
         .catch(() => {
@@ -92,7 +92,7 @@ export class VerdantLog {
 }
 
 /* Function for redux middleware */
-const verLogger = (log: VerdantLog, store: Store) => next => action => {
+const verLogger = (log: VerdantLog, store: Store) => (next) => (action) => {
   log.recordAction(action, store);
   let result = next(action);
   return result;

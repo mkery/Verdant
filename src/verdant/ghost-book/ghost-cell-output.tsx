@@ -57,9 +57,9 @@ const mapStateToProps = (
   let output = state.ghostCells[ownProps.id];
   return {
     ...ownProps,
-    history: state.history,
+    history: state.getHistory(),
     linkArtifact: state.link_artifact,
-    ...output
+    ...output,
   };
 };
 

@@ -45,17 +45,21 @@ class CellLabel extends React.Component<GhostCellLabel_Props, {}> {
       let deleted = false;
       let moved = false;
 
-      this.props.events.forEach(ev => {
+      this.props.events.forEach((ev) => {
         if (ev.checkpointType === CheckpointType.ADD) added = true;
         else if (ev.checkpointType === CheckpointType.DELETE) deleted = true;
         else if (ev.checkpointType === CheckpointType.MOVED) moved = true;
         else if (ev.checkpointType === CheckpointType.RUN) {
           run = true;
-          let cell = ev.targetCells.find(cell => cell.node === this.props.name);
+          let cell = ev.targetCells.find(
+            (cell) => cell.node === this.props.name
+          );
           if (cell.changeType === ChangeType.CHANGED) changed = true;
           if (cell.newOutput && cell.newOutput.length > 0) newOutput = true;
         } else if (ev.checkpointType === CheckpointType.SAVE) {
-          let cell = ev.targetCells.find(cell => cell.node === this.props.name);
+          let cell = ev.targetCells.find(
+            (cell) => cell.node === this.props.name
+          );
           if (cell.changeType === ChangeType.CHANGED) changed = true;
         }
       });
@@ -106,8 +110,8 @@ const mapStateToProps = (
     ...ownProps,
     name: cell.name,
     events: cell.events,
-    history: state.history,
-    linkArtifact: state.link_artifact
+    history: state.getHistory(),
+    linkArtifact: state.link_artifact,
   };
 };
 
