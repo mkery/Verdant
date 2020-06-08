@@ -43,10 +43,10 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
 
     return (
       <div className={GHOST_TOOLBAR_ROW}>
-        {`Viewing version # 
+        <div>{`Viewing version # 
           ${this.props.name + 1}
            of notebook 
-          ${time ? "from " + time : ""}`}
+          ${time ? "from " + time : ""}`}</div>
       </div>
     );
   }
