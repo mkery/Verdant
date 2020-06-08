@@ -48,8 +48,8 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
         onClick={() => this.props.clickEv()}
       >
         <div className={`v-Verdant-GhostBook-cell-band ${active}`} />
+        <GhostCellLabel id={this.props.id} />
         <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
-          <GhostCellLabel id={this.props.id} />
           <div
             className={`v-Verdant-GhostBook-cell ${this.props.name.charAt(
               0

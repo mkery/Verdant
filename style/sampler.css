@@ -42,7 +42,7 @@
 
 .v-VerdantPanel-sampler-version-content {
   width: max-content;
-  padding-left: 24px;
+  padding-left: var(--jp-code-padding);
   font-family: var(--jp-cell-prompt-font-family);
 }
 .v-VerdantPanel-sampler-version-content.overflow {
@@ -65,9 +65,7 @@
   line-height: var(--jp-code-line-height);
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
   font-family: var(--jp-cell-prompt-font-family);
-  margin-top: 10px;
   text-align: left;
-  padding-bottom: 1em;
   overflow-x: auto;
 }
 .v-VerdantPanel-sampler-version.last {
