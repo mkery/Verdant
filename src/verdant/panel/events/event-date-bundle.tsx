@@ -9,12 +9,14 @@ import {
 } from "../../redux/events";
 import NotebookEventLabel from "./event-label";
 import {Checkpoint} from "../../../lilgit/model/checkpoint";
+import {History} from "../../../lilgit/model/history";
+import NotebookEventMap from "./event-map";
 
 const DATE_BUNDLE_HEADER = "Verdant-events-date-bundle-header";
 const DATE_BUNDLE_HEADER_LABEL = "Verdant-events-date-bundle-header-label";
-const DATE_BUNDLE_HEADER_NUMBERS = "Verdant-events-date-bundle-header-numbers";
-const DATE_ARROW = "Verdant-events-date-collapse-header-arrow";
+const DATE_BUNDLE_HEADER_NUMBERS = "Verdant-events-map";
 const DATE_BUNDLE_CONTAINER = "Verdant-events-date-bundle-container";
+const EVENT_NOTEBOOK = "Verdant-events-notebook";
 
 
 type DateBundle_Props = {
@@ -22,6 +24,7 @@ type DateBundle_Props = {
   date_id: number;
   bundle_id: number; // Index of bundle in date
   event_states: eventState[];
+  history: History;
   isOpen: boolean;
   open: (d: number, b: number) => void;
   close: (d: number, b: number) => void;
@@ -53,7 +56,9 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
     return (
       <div
         className={`${DATE_BUNDLE_HEADER} ${this.props.isOpen ? "" : "closed"}`}
-        onClick={() => {this.props.isOpen ? close() : open()}}
+        onClick={() => {
+          this.props.isOpen ? close() : open()
+        }}
       >
         <div className={DATE_BUNDLE_HEADER_LABEL}>
           <NotebookEventLabel
@@ -64,11 +69,19 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
         </div>
 
         <div className={DATE_BUNDLE_HEADER_NUMBERS}>
-          <div>
+          <div className={EVENT_NOTEBOOK}>
             {`# ${this.props.event_states[firstEvent].notebook + 1} - 
               ${this.props.event_states[lastEvent].notebook + 1}`}
           </div>
-          <div className={`${DATE_ARROW} ${this.props.isOpen ? "" : "closed"}`}>
+          <div className={EVENT_NOTEBOOK}>
+            {
+              this.props.isOpen ?
+                <div></div> :
+                <NotebookEventMap
+                  checkpoints={this.props.checkpoints}
+                  history={this.props.history}
+                />
+            }
           </div>
         </div>
       </div>
@@ -129,7 +142,8 @@ const mapStateToProps = (
     event_states: state.dates[ownProps.date_id].events,
     isOpen: state.dates[ownProps.date_id]
       .bundleStates[ownProps.bundle_id].isOpen,
-    checkpoints: checkpoints
+    checkpoints: checkpoints,
+    history: state.history
   };
 };
 
