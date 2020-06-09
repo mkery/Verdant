@@ -43,7 +43,6 @@
 .v-VerdantPanel-sampler-version-content {
   width: max-content;
   padding-left: var(--jp-code-padding);
-  font-family: var(--jp-cell-prompt-font-family);
 }
 .v-VerdantPanel-sampler-version-content.overflow {
   border-bottom: 1px solid var(--jp-warn-color0);
@@ -58,6 +57,7 @@
 }
 .v-VerdantPanel-sampler-version-content.code {
   white-space: pre-wrap;
+  font-family: var(--jp-code-font-family);
 }
 
 .v-VerdantPanel-sampler-version {
