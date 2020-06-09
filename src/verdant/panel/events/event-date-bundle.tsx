@@ -12,11 +12,13 @@ import {Checkpoint} from "../../../lilgit/model/checkpoint";
 import {History} from "../../../lilgit/model/history";
 import NotebookEventMap from "./event-map";
 
-const DATE_BUNDLE_HEADER = "Verdant-events-date-bundle-header";
-const DATE_BUNDLE_HEADER_LABEL = "Verdant-events-date-bundle-header-label";
-const DATE_BUNDLE_HEADER_NUMBERS = "Verdant-events-map";
+const DATE_BUNDLE_HEADER = "Verdant-events-row";
+const DATE_BUNDLE_HEADER_CLOSED = "Verdant-date-bundle-closed";
+const DATE_BUNDLE_HEADER_LABEL = "Verdant-events-column label";
+const DATE_BUNDLE_HEADER_NUMBERS = "Verdant-events-column map";
 const DATE_BUNDLE_CONTAINER = "Verdant-events-date-bundle-container";
-const EVENT_NOTEBOOK = "Verdant-events-notebook";
+const EVENT_INDEX_LABEL = "Verdant-events-index-label";
+const EVENT_MAP_LABEL = "Verdant-events-map-label";
 
 
 type DateBundle_Props = {
@@ -55,7 +57,8 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
 
     return (
       <div
-        className={`${DATE_BUNDLE_HEADER} ${this.props.isOpen ? "" : "closed"}`}
+        className={`${DATE_BUNDLE_HEADER} 
+        ${this.props.isOpen ? "" : DATE_BUNDLE_HEADER_CLOSED}`}
         onClick={() => {
           this.props.isOpen ? close() : open()
         }}
@@ -67,13 +70,12 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
             events={this.props.checkpoints}
           />
         </div>
-
         <div className={DATE_BUNDLE_HEADER_NUMBERS}>
-          <div className={EVENT_NOTEBOOK}>
+          <div className={EVENT_INDEX_LABEL}>
             {`# ${this.props.event_states[firstEvent].notebook + 1} - 
               ${this.props.event_states[lastEvent].notebook + 1}`}
           </div>
-          <div className={EVENT_NOTEBOOK}>
+          <div className={EVENT_MAP_LABEL}>
             {
               this.props.isOpen ?
                 <div></div> :
@@ -106,10 +108,10 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
   renderBundle() {
     /* Render a bundle of events */
     return (
-      <div>
+      <>
         {this.renderBundleLabel()}
         {this.props.isOpen ? this.renderBundleBody() : null}
-      </div>
+      </>
     );
   }
 

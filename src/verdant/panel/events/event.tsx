@@ -1,10 +1,10 @@
 import * as React from "react";
-import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
-import { History } from "../../../lilgit/model/history";
+import {connect} from "react-redux";
+import {verdantState} from "../../redux/index";
+import {History} from "../../../lilgit/model/history";
 import NotebookEventLabel from "./event-label";
 import NotebookEventMap from "./event-map";
-import { eventState } from "src/verdant/redux/events";
+import {eventState} from "src/verdant/redux/events";
 
 type NotebookEvent_Props = {
   date_id: number;
@@ -15,9 +15,10 @@ type NotebookEvent_Props = {
 };
 
 const EVENT_ROW = "Verdant-events-row";
-const EVENT_NOTEBOOK = "Verdant-events-notebook";
-const EVENT_MAP = "Verdant-events-map";
 const COL = "Verdant-events-column";
+const EVENT_INDEX_LABEL = "Verdant-events-index-label";
+const EVENT_MAP_LABEL = "Verdant-events-map-label";
+
 
 class NotebookEvent extends React.Component<NotebookEvent_Props> {
   render() {
@@ -30,13 +31,14 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
           />
         </div>
         <div className={`${COL} map`}>
-          <div className={EVENT_MAP}>
-            <div className={EVENT_NOTEBOOK}>{`# ${this.props.events.notebook +
-              1}`}</div>
-            <NotebookEventMap
-              checkpoints={this.props.events.events}
-              history={this.props.history}
-              />
+          <div className={EVENT_INDEX_LABEL}>
+            {`# ${this.props.events.notebook + 1}`}
+          </div>
+          <div className={EVENT_MAP_LABEL}>
+          <NotebookEventMap
+            checkpoints={this.props.events.events}
+            history={this.props.history}
+          />
           </div>
         </div>
       </div>

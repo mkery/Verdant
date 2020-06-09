@@ -81,13 +81,13 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
     else if (counts.moved > 1) label += `${counts.moved} Cells moved, `;
 
     if (counts.run === 1) label += "Run, ";
-    else if (counts.run > 1) label += `${counts.run} Runs, `;
+    else if (counts.run > 1) label += `Runs, `;
 
     if (counts.load === 1) label += "Load, ";
-    else if (counts.load > 1) label += `${counts.load} Loads, `;
+    else if (counts.load > 1) label += `Loads, `;
 
     if (counts.save === 1) label += "Save, ";
-    else if (counts.save > 1) label += `${counts.save} Saves, `;
+    else if (counts.save > 1) label += `Saves, `;
 
     return label.slice(0, -2);
   }
@@ -98,10 +98,12 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
     if (times.length == 1) {
       return <div> {`${times[0].time} ${this.makeLabel()}`} </div>;
     } else {
-      return (<div>
-        {`${times[0].time} - ${times[times.length - 1].time}
-         ${this.makeLabel()}`}
-      </div>);
+      let firstTime = times[0].time;
+      let lastTime = times[times.length - 1].time;
+      if (firstTime.slice(-2) == lastTime.slice(-2)) {
+        firstTime = firstTime.slice(0, -2);
+      }
+      return <div>{`${firstTime}-${lastTime} ${this.makeLabel()}`}</div>;
     }
   }
 
