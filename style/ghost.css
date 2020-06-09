@@ -53,24 +53,41 @@
 }
 
 .v-Verdant-GhostBook-cell-header {
-  width: var(--jp-cell-prompt-width);
+  min-width: var(--jp-cell-prompt-width);
+  max-width: var(--jp-cell-prompt-width);
   background-color: ghostwhite;
+  box-sizing: border-box;
   padding: var(--jp-cell-padding);
   font-size: var(--jp-ui-font-size0);
   font-family: var(--jp-ui-font-family);
   color: var(--jp-content-link-color);
   text-decoration: underline;
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.v-Verdant-GhostBook-cell-container {
+.v-Verdant-GhostBook-container {
   padding: var(--jp-cell-padding);
   display: flex;
   flex-direction: row;
 }
+
+.v-Verdant-GhostBook-container-stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.v-Verdant-GhostBook-cell-container {
+  display: flex;
+  flex-direction: row;
+}
+
 .v-Verdant-GhostBook-cell-content {
   flex: 1 1 100%;
   max-width: calc(100% - var(--jp-cell-prompt-width));
+  background: white;
 }
 .v-Verdant-GhostBook-cell-band {
   flex: 1 1 var(--jp-cell-collapser-width);
@@ -104,6 +121,11 @@
   display: block;
   color: var(--jp-content-font-color2);
   margin-bottom: 0.25em;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-top: 0.25em;
+  padding-left: 6px;
 }
 
 .v-Verdant-GhostBook-header-label {

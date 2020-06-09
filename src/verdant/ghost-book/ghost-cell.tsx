@@ -44,18 +44,22 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
 
     return (
       <div
-        className={`v-Verdant-GhostBook-cell-container ${active}`}
+        className={`v-Verdant-GhostBook-container ${active}`}
         onClick={() => this.props.clickEv()}
       >
         <div className={`v-Verdant-GhostBook-cell-band ${active}`} />
-        <GhostCellLabel id={this.props.id} />
-        <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
-          <div
-            className={`v-Verdant-GhostBook-cell ${this.props.name.charAt(
-              0
-            )}  ${active}`}
-            dangerouslySetInnerHTML={{ __html: this.state.sample }}
-          ></div>
+        <div className="v-Verdant-GhostBook-container-stack">
+          <div className="v-Verdant-GhostBook-cell-container">
+            <GhostCellLabel id={this.props.id} />
+            <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
+              <div
+                className={`v-Verdant-GhostBook-cell ${this.props.name.charAt(
+                  0
+                )}  ${active}`}
+                dangerouslySetInnerHTML={{ __html: this.state.sample }}
+              ></div>
+            </div>
+          </div>
           {this.showOutput(nodey)}
         </div>
       </div>
