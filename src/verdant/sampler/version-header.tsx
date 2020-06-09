@@ -19,7 +19,7 @@ export default class VersionHeader extends React.Component<
     // 1 index instead of 0 index just for display
     let ver = this.props.nodey.version + 1;
     let notebookVer; // first notebook this version appears in
-    if (this.props.nodey.created) {
+    if (this.props.nodey.created !== undefined) {
       let created = this.props.history.checkpoints.get(
         this.props.nodey.created
       );
