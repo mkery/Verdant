@@ -16,7 +16,6 @@ const DATE_BUNDLE_HEADER = "Verdant-events-row";
 const DATE_BUNDLE_HEADER_CLOSED = "Verdant-date-bundle-closed";
 const DATE_BUNDLE_HEADER_LABEL = "Verdant-events-column label";
 const DATE_BUNDLE_HEADER_NUMBERS = "Verdant-events-column map";
-const DATE_BUNDLE_CONTAINER = "Verdant-events-date-bundle-container";
 const EVENT_INDEX_LABEL = "Verdant-events-index-label";
 const EVENT_MAP_LABEL = "Verdant-events-map-label";
 
@@ -92,17 +91,15 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
 
   renderBundleBody() {
     /* Render the individual events of the body of the bundle */
-    return (<div className={DATE_BUNDLE_CONTAINER}>
-      {this.props.events.map((id) => (
-        <div key={id}>
-          <NotebookEvent
-            date_id={this.props.date_id}
-            event_id={id}
-            events={this.props.event_states[id]}
-          />
-        </div>
-      ))}
-    </div>);
+    return (this.props.events.map((id) => (
+      <div key={id}>
+        <NotebookEvent
+          date_id={this.props.date_id}
+          event_id={id}
+          events={this.props.event_states[id]}
+        />
+      </div>
+    )));
   }
 
   renderBundle() {
@@ -145,7 +142,7 @@ const mapStateToProps = (
     isOpen: state.dates[ownProps.date_id]
       .bundleStates[ownProps.bundle_id].isOpen,
     checkpoints: checkpoints,
-    history: state.history
+    history: state.getHistory()
   };
 };
 

@@ -51,7 +51,7 @@ const mapStateToProps = (
   ownProps: Partial<NotebookEvent_Props>
 ) => {
   return {
-    history: state.history,
+    history: state.getHistory(),
     openGhostBook: () => state.openGhostBook(ownProps.events.notebook)
   };
 };

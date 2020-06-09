@@ -132,7 +132,7 @@ const mapStateToProps = (
 ) => {
   let dateState = state.dates[ownProps.date_id];
   return {
-    history: state.history,
+    history: state.getHistory(),
     date: dateState.date,
     events: dateState.events,
     eventCount: dateState.events.length,

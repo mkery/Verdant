@@ -30,26 +30,18 @@
 }
 .Verdant-events-column.map {
   width: 65%;
-}
-
-.Verdant-events-date-bundle-header {
-  padding: var(--jp-cell-padding);
   display: flex;
-  flex-direction: row;
-  padding-right: 0px;
 }
 
-.Verdant-events-date-bundle-header.closed {
-
+.Verdant-events-index-label {
+  width: 40%;
 }
 
-.Verdant-events-date-bundle-header-label {
-  width: 35%;
+.Verdant-events-map-label {
+  width: 60%;
 }
 
-.Verdant-events-date-bundle-header-numbers {
-  width: 65%;
-  display: flex;
+.Verdant-date-bundle-closed {
 }
 
 .Verdant-events-date-header {
