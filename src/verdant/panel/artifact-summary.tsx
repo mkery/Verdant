@@ -1,8 +1,7 @@
 import * as React from "react";
 import Summary from "./summary/summary";
 import InspectorButton from "./summary/inspector-button";
-import { History } from "../../lilgit/model/history";
-import { verdantState, ActiveTab, switchTab } from "../redux/index";
+import { ActiveTab, switchTab } from "../redux/index";
 import { connect } from "react-redux";
 
 const PANEL = "v-VerdantPanel-content";
@@ -11,7 +10,6 @@ const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
 const HEADER = "v-VerdantPanel-tab-header";
 
 export type CrumbBox_Props = {
-  history: History;
   showDetail: () => void;
 };
 
@@ -41,17 +39,8 @@ const mapDispatchToProps = (dispatch: any) => {
   return {
     showDetail: () => {
       dispatch(switchTab(ActiveTab.Artifact_Details));
-    }
+    },
   };
 };
 
-const mapStateToProps = (state: verdantState) => {
-  return {
-    history: state.history
-  };
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ArtifactSummary);
+export default connect(null, mapDispatchToProps)(ArtifactSummary);

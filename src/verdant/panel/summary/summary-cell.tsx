@@ -65,8 +65,8 @@ const mapStateToProps = (
   ownProps: Partial<CellArtifact_Props>
 ) => {
   return {
-    history: state.history,
-    cell: state.cellArtifacts[ownProps.artifact_id]
+    history: state.getHistory(),
+    cell: state.cellArtifacts[ownProps.artifact_id],
   };
 };
 

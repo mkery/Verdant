@@ -42,8 +42,7 @@
 
 .v-VerdantPanel-sampler-version-content {
   width: max-content;
-  padding-left: 24px;
-  font-family: var(--jp-cell-prompt-font-family);
+  padding-left: var(--jp-code-padding);
 }
 .v-VerdantPanel-sampler-version-content.overflow {
   border-bottom: 1px solid var(--jp-warn-color0);
@@ -58,6 +57,7 @@
 }
 .v-VerdantPanel-sampler-version-content.code {
   white-space: pre-wrap;
+  font-family: var(--jp-code-font-family);
 }
 
 .v-VerdantPanel-sampler-version {
@@ -65,9 +65,7 @@
   line-height: var(--jp-code-line-height);
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
   font-family: var(--jp-cell-prompt-font-family);
-  margin-top: 10px;
   text-align: left;
-  padding-bottom: 1em;
   overflow-x: auto;
 }
 .v-VerdantPanel-sampler-version.last {

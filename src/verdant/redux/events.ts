@@ -1,7 +1,7 @@
-import {History} from "../../lilgit/model/history";
-import {Checkpoint} from "../../lilgit/model/checkpoint";
-import {verdantState, artifactState} from "./index";
-import {VerCell} from "../../lilgit/components/cell";
+import { History } from "../../lilgit/model/history";
+import { Checkpoint } from "../../lilgit/model/checkpoint";
+import { verdantState, artifactState } from "./index";
+import { VerCell } from "../../lilgit/components/cell";
 
 const ADD_EVENT = "ADD_EVENT";
 const INIT_EVENT_MAP = "INIT_EVENT_MAP";
@@ -9,18 +9,18 @@ const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
 const DATE_EXPAND = "DATE_EXPAND";
 
 export const initEventMap = () => ({
-  type: INIT_EVENT_MAP
+  type: INIT_EVENT_MAP,
 });
 
 export const addEvent = (ev: Checkpoint) => ({
   type: ADD_EVENT,
-  event: ev
+  event: ev,
 });
 
 export const updateCheckpoint = (event: Checkpoint) => {
   return {
     type: UPDATE_CHECKPOINT,
-    currentEvent: event
+    currentEvent: event,
   };
 };
 
@@ -28,7 +28,7 @@ export const dateOpen = (date: number) => {
   return {
     type: DATE_EXPAND,
     date: date,
-    status: true
+    status: true,
   };
 };
 
@@ -36,7 +36,7 @@ export const dateClose = (date: number) => {
   return {
     type: DATE_EXPAND,
     date: date,
-    status: false
+    status: false,
   };
 };
 
@@ -56,7 +56,7 @@ export type eventMapState = {
 };
 
 export const eventsInitialState = (): eventMapState => {
-  return {dates: [] as dateState[]};
+  return { dates: [] as dateState[] };
 };
 
 export const eventReducer = (
@@ -69,9 +69,9 @@ export const eventReducer = (
         return {
           ...state,
           dates: reducer_initEventMap(state),
-          currentEvent: getInitialEvent(state.history),
-          cellArtifacts: cellReducer(state.history),
-          notebookArtifact: notebookReducer(state.history)
+          currentEvent: getInitialEvent(state.getHistory()),
+          cellArtifacts: cellReducer(state.getHistory()),
+          notebookArtifact: notebookReducer(state.getHistory()),
         };
       else return state;
     case UPDATE_CHECKPOINT:
@@ -80,28 +80,28 @@ export const eventReducer = (
           // update both event map and current event with new event
           ...state,
           currentEvent: action.currentEvent,
-          cellArtifacts: cellReducer(state.history),
-          notebookArtifact: notebookReducer(state.history),
-          dates: reducer_addEvent(action.currentEvent, state.dates)
+          cellArtifacts: cellReducer(state.getHistory()),
+          notebookArtifact: notebookReducer(state.getHistory()),
+          dates: reducer_addEvent(action.currentEvent, state.dates),
         };
       } else return state;
     case ADD_EVENT:
       return {
         ...state,
-        dates: reducer_addEvent(action.ev, [...state.dates])
+        dates: reducer_addEvent(action.ev, [...state.dates]),
       };
     case DATE_EXPAND:
       const updatedElement = {
         ...state.dates[action.date],
-        isOpen: action.status
+        isOpen: action.status,
       };
       return {
         ...state,
         dates: [
           ...state.dates.slice(0, action.date),
           updatedElement,
-          ...state.dates.slice(action.date + 1)
-        ]
+          ...state.dates.slice(action.date + 1),
+        ],
       };
     default:
       return state;
@@ -116,8 +116,8 @@ export function reducer_addEvent(
   let date = dates[dates.length - 1];
   if (!date || !Checkpoint.sameDay(time, date.date)) {
     // new date
-    let newEvent: eventState = {notebook: event.notebook, events: [event]};
-    let newDate: dateState = {isOpen: true, date: time, events: [newEvent]};
+    let newEvent: eventState = { notebook: event.notebook, events: [event] };
+    let newDate: dateState = { isOpen: true, date: time, events: [newEvent] };
     dates.push(newDate);
   } else {
     // existing date
@@ -129,7 +129,7 @@ export function reducer_addEvent(
       // new notebook for this date
       let newEvent: eventState = {
         notebook: event.notebook,
-        events: [event]
+        events: [event],
       };
       date.events.push(newEvent);
     }
@@ -139,12 +139,13 @@ export function reducer_addEvent(
 
 function reducer_initEventMap(state: verdantState) {
   let dates = [] as dateState[];
-  state.history.checkpoints
-    .all()
-    .forEach(event => reducer_addEvent(event, dates));
+  state
+    .getHistory()
+    .checkpoints.all()
+    .forEach((event) => reducer_addEvent(event, dates));
   // Set all dates to closed except the most recent
   return dates.map((x, i) => {
-    return {...x, isOpen: i == dates.length - 1};
+    return { ...x, isOpen: i == dates.length - 1 };
   });
 }
 
@@ -159,14 +160,14 @@ function cellReducer(history: History): artifactState[] {
     }
     let ver = cell.model.version + 1;
 
-    return {name, ver, outputVer};
+    return { name, ver, outputVer };
   });
 }
 
 function notebookReducer(history: History): artifactState {
   let i = history.notebook.model.version;
   let version = parseInt(i) + 1;
-  return {name: "", ver: version, file: history.notebook.name};
+  return { name: "", ver: version, file: history.notebook.name };
 }
 
 function getInitialEvent(history: History): Checkpoint {

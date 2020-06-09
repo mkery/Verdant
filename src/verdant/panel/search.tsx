@@ -7,7 +7,7 @@ import {
   verdantState,
   inspectNode,
   switchTab,
-  ActiveTab
+  ActiveTab,
 } from "../redux/index";
 import { connect } from "react-redux";
 
@@ -40,7 +40,7 @@ class Search extends React.Component<Search_Props, Search_State> {
     this.state = {
       searchbox_text: "",
       search_results: [],
-      result_labels: []
+      result_labels: [],
     };
   }
 
@@ -60,10 +60,10 @@ class Search extends React.Component<Search_Props, Search_State> {
             className={SEARCH_TEXT}
             contentEditable={true}
             value={this.state.searchbox_text}
-            onChange={ev => {
+            onChange={(ev) => {
               this.setState({ searchbox_text: ev.target.value });
             }}
-            onKeyDown={ev => {
+            onKeyDown={(ev) => {
               if (ev.keyCode === 13) {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -88,7 +88,7 @@ class Search extends React.Component<Search_Props, Search_State> {
       // finally set search results
       this.setState({
         search_results: [code, markdown, output],
-        result_labels: ["code", "markdown", "output"]
+        result_labels: ["code", "markdown", "output"],
       });
     }
   }
@@ -108,7 +108,7 @@ class Search extends React.Component<Search_Props, Search_State> {
 
   buildResultSection(results: Nodey[][], header: string) {
     let totalResults = 0;
-    let resultElems = results.map(item => {
+    let resultElems = results.map((item) => {
       totalResults += item.length;
       let callback = () => {
         this.props.openCrumbBox(item[0]);
@@ -146,19 +146,16 @@ const mapDispatchToProps = (dispatch: any) => {
     openCrumbBox: (inspectTarget?: Nodey) => {
       dispatch(inspectNode(inspectTarget));
       dispatch(switchTab(ActiveTab.Artifact_Details));
-    }
+    },
   };
 };
 
 const mapStateToProps = (state: verdantState) => {
   return {
     search_query: state.searchQuery,
-    history: state.history,
-    openGhostBook: state.openGhostBook
+    history: state.getHistory(),
+    openGhostBook: state.openGhostBook,
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Search);
+export default connect(mapStateToProps, mapDispatchToProps)(Search);

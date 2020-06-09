@@ -29,9 +29,13 @@ class CellOutput extends React.Component<
 
   render() {
     return (
-      <div className="v-Verdant-GhostBook-cell">
+      <div className="v-Verdant-GhostBook-cell-container">
         <GhostCellLabel id={this.props.id} />
-        <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
+        <div className="v-Verdant-GhostBook-cell-content">
+          <div className="v-Verdant-GhostBook-cell">
+            <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -57,9 +61,9 @@ const mapStateToProps = (
   let output = state.ghostCells[ownProps.id];
   return {
     ...ownProps,
-    history: state.history,
+    history: state.getHistory(),
     linkArtifact: state.link_artifact,
-    ...output
+    ...output,
   };
 };
 
