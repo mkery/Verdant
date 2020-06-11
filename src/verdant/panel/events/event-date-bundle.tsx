@@ -9,7 +9,6 @@ import {
 } from "../../redux/events";
 import NotebookEventLabel from "./event-label";
 import {Checkpoint} from "../../../lilgit/model/checkpoint";
-import {History} from "../../../lilgit/model/history";
 import NotebookEventMap from "./event-map";
 
 const DATE_BUNDLE_HEADER = "Verdant-events-row";
@@ -25,7 +24,6 @@ type DateBundle_Props = {
   date_id: number;
   bundle_id: number; // Index of bundle in date
   event_states: eventState[];
-  history: History;
   isOpen: boolean;
   open: (d: number, b: number) => void;
   close: (d: number, b: number) => void;
@@ -80,7 +78,6 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
                 <div></div> :
                 <NotebookEventMap
                   checkpoints={this.props.checkpoints}
-                  history={this.props.history}
                 />
             }
           </div>
@@ -141,8 +138,7 @@ const mapStateToProps = (
     event_states: state.dates[ownProps.date_id].events,
     isOpen: state.dates[ownProps.date_id]
       .bundleStates[ownProps.bundle_id].isOpen,
-    checkpoints: checkpoints,
-    history: state.getHistory()
+    checkpoints: checkpoints
   };
 };
 

@@ -51,6 +51,7 @@ const mapStateToProps = (
   ownProps: Partial<EventMap_Props>
 ) => {
   return {
+    history: state.getHistory()
   };
 };
 
