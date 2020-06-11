@@ -1,7 +1,6 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {verdantState} from "../../redux/index";
-import {History} from "../../../lilgit/model/history";
 import NotebookEventLabel from "./event-label";
 import NotebookEventMap from "./event-map";
 import {eventState} from "src/verdant/redux/events";
@@ -10,7 +9,6 @@ type NotebookEvent_Props = {
   date_id: number;
   event_id: number;
   events: eventState;
-  history: History;
   openGhostBook: () => void;
 };
 
@@ -37,7 +35,6 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
           <div className={EVENT_MAP_LABEL}>
           <NotebookEventMap
             checkpoints={this.props.events.events}
-            history={this.props.history}
           />
           </div>
         </div>
@@ -51,7 +48,6 @@ const mapStateToProps = (
   ownProps: Partial<NotebookEvent_Props>
 ) => {
   return {
-    history: state.getHistory(),
     openGhostBook: () => state.openGhostBook(ownProps.events.notebook)
   };
 };
