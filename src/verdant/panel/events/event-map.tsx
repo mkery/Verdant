@@ -9,32 +9,32 @@ interface EventMap_Props {
   history: History;
 }
 
-const EVENT_NOTEBOOK = "Verdant-events-notebook";
-const CELL = "v-VerdantPanel-runCellMap-cell";
-const CELL_ADDED = "v-VerdantPanel-runCellMap-cell-added";
-const CELL_CHANGED = "v-VerdantPanel-runCellMap-cell-changed";
-const CELL_REMOVED = "v-VerdantPanel-runCellMap-cell-removed";
-const CELL_SAME = "v-VerdantPanel-runCellMap-cell-same";
+const MAP = "Verdant-events-map";
+const MAP_CELL = `${MAP}-cell`;
+const MAP_CELL_ADDED = `${MAP_CELL}-added`;
+const MAP_CELL_CHANGED = `${MAP_CELL}-changed`;
+const MAP_CELL_REMOVED = `${MAP_CELL}-removed`;
+const MAP_CELL_SAME = `${MAP_CELL}-same`;
 
 class NotebookEventMap extends React.Component<EventMap_Props> {
   showMap() {
     let checkpoints = this.props.checkpoints;
     let cellMap = this.props.history.checkpoints.getCellMap(checkpoints);
     return cellMap.map((cell, index) => {
-      let classes = `${CELL}`;
+      let classes = `${MAP_CELL}`;
       let kind = cell.changeType;
       switch (kind) {
         case ChangeType.ADDED:
-          classes = `${CELL} target ${CELL_ADDED}`;
+          classes = `${MAP_CELL} target ${MAP_CELL_ADDED}`;
           break;
         case ChangeType.CHANGED:
-          classes = `${CELL} target ${CELL_CHANGED}`;
+          classes = `${MAP_CELL} target ${MAP_CELL_CHANGED}`;
           break;
         case ChangeType.REMOVED:
-          classes = `${CELL} target ${CELL_REMOVED}`;
+          classes = `${MAP_CELL} target ${MAP_CELL_REMOVED}`;
           break;
         case ChangeType.SAME:
-          classes = `${CELL} target ${CELL_SAME}`;
+          classes = `${MAP_CELL} target ${MAP_CELL_SAME}`;
           break;
       }
       return <div key={index} className={classes}></div>;
@@ -42,7 +42,7 @@ class NotebookEventMap extends React.Component<EventMap_Props> {
   }
 
   render() {
-    return <div className={EVENT_NOTEBOOK}>{this.showMap()}</div>;
+    return <div className={MAP}>{this.showMap()}</div>;
   }
 }
 
