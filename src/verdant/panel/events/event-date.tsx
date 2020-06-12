@@ -2,7 +2,7 @@ import * as React from "react";
 import {connect} from "react-redux";
 import {verdantState} from "../../redux/index";
 import {Checkpoint, CheckpointType} from "../../../lilgit/model/checkpoint";
-import {dateOpen, dateClose, eventState} from "../../redux/events";
+import {dateOpen, dateClose, saveBundles, eventState} from "../../redux/events";
 import NotebookEventDateBundle from "./event-date-bundle";
 
 const DATE_HEADER = "Verdant-events-date-header";
@@ -28,6 +28,8 @@ type NotebookDate_Props = {
   isOpen: boolean;
   open: (d: number) => void;
   close: (d: number) => void;
+  bundles: number[][];
+  saveBundles: (bundles: number[][], d: number) => void;
 };
 
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
@@ -61,7 +63,18 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
 
   private makeBundles() {
     /* Creates date bundles using bundled indices */
-    const bundledIndices = this.computeBundles(this.props.events);
+    let bundledIndices;
+    if (this.props.bundles === null || // There are no saved bundles
+        this.props.bundles.reduce( // The bundles are out of date
+          (a, x) => a + x.length, 0
+        ) !== this.props.events.length) {
+      // If there are no bundles or the bundles need an update, compute bundles
+      bundledIndices = this.computeBundles(this.props.events);
+      this.props.saveBundles(bundledIndices, this.props.date_id);
+    } else {
+      // Retrieve stored bundles
+      bundledIndices = this.props.bundles;
+    }
 
     // Creates DateBundle for each set of dates
     return bundledIndices.map(
@@ -90,7 +103,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
     }).accumulator
   }
 
-  private reducer (accObj: accumulatorObject, e: eventState, idx) {
+  private reducer(accObj: accumulatorObject, e: eventState, idx) {
     /* Helper method for computeBundles.
        Function to use in reducing over bundles in computeBundles. */
     // Compute properties of current element
@@ -128,7 +141,8 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
 const mapDispatchToProps = (dispatch: any) => {
   return {
     open: (d) => dispatch(dateOpen(d)),
-    close: (d) => dispatch(dateClose(d))
+    close: (d) => dispatch(dateClose(d)),
+    saveBundles: (bundles, d) => dispatch(saveBundles(bundles, d))
   };
 };
 
@@ -142,6 +156,7 @@ const mapStateToProps = (
     events: dateState.events,
     eventCount: dateState.events.length,
     isOpen: dateState.isOpen,
+    bundles: dateState.bundles
   };
 };
 

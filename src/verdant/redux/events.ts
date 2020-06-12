@@ -7,8 +7,8 @@ const ADD_EVENT = "ADD_EVENT";
 const INIT_EVENT_MAP = "INIT_EVENT_MAP";
 const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
 const DATE_EXPAND = "DATE_EXPAND";
+const SAVE_BUNDLES = "SAVE_BUNDLES";
 const BUNDLE_EXPAND = "BUNDLE_EXPAND";
-
 
 export const initEventMap = () => ({
   type: INIT_EVENT_MAP,
@@ -42,6 +42,14 @@ export const dateClose = (date: number) => {
   };
 };
 
+export const saveBundles = (bundles: number[], date: number) => {
+  return {
+    type: SAVE_BUNDLES,
+    date: date,
+    bundles: bundles
+  }
+}
+
 export const bundleOpen = (date: number, bundle: number) => {
   return {
     type: BUNDLE_EXPAND,
@@ -73,6 +81,7 @@ export type dateState = {
   isOpen: boolean;
   date: number;
   events: eventState[];
+  bundles: number[][] | null;
   bundleStates: bundleState[];
 };
 
@@ -128,6 +137,19 @@ export const eventReducer = (
           ...state.dates.slice(action.date + 1),
         ],
       };
+    case SAVE_BUNDLES:
+      const updatedBundles = {
+        ...state.dates[action.date],
+        bundles: action.bundles
+      }
+      return {
+        ...state,
+        dates: [
+          ...state.dates.slice(0, action.date),
+          updatedBundles,
+          ...state.dates.slice(action.date + 1),
+        ]
+      };
     case BUNDLE_EXPAND:
       const bundleStates = state.dates[action.date].bundleStates;
       bundleStates[action.bundle_id].isOpen = action.status;
@@ -161,6 +183,7 @@ export function reducer_addEvent(
       isOpen: true,
       date: time,
       events: [newEvent],
+      bundles: null,
       bundleStates: [{isOpen: false}]
     };
     dates.push(newDate);
