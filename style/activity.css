@@ -1,48 +1,6 @@
-.v-VerdantPanel-runCellMap {
-  line-height: calc(1.5em + 4px);
-  display: inline-block;
-  text-align: left;
-  padding-left: 2px;
-  padding-right: 2px;
-  flex: 1 1 69%;
-  max-width: 69%;
-  vertical-align: top;
-}
+/* Date CSS */
 
-.v-VerdantPanel-runCellMap-cell {
-  display: inline-block;
-  width: 1px;
-  background-color: var(--jp-content-font-color3);
-  margin: 2px 1px;
-  height: 1em;
-}
-
-.v-VerdantPanel-runCellMap-cell.highlight {
-  border-color: white;
-}
-
-.Verdant-events-column {
-  display: inline-block;
-}
-.Verdant-events-column.label {
-  width: 35%;
-  min-width: 4em; /*to prevent weird date text cropping*/
-}
-.Verdant-events-column.map {
-  width: 65%;
-  display: flex;
-}
-
-.Verdant-events-index-label {
-  width: 40%;
-}
-
-.Verdant-events-map-label {
-  width: 60%;
-}
-
-.Verdant-date-bundle-closed {
-}
+.Verdant-events-date {}
 
 .Verdant-events-date-header {
   padding: var(--jp-cell-padding);
@@ -63,17 +21,20 @@
   margin-top: 2px;
 }
 
-.Verdant-events-date-collapse-header {
+.Verdant-events-date-header-collapse {
   display: flex;
   flex-direction: row;
   text-align: center;
 }
 
-.Verdant-events-date-collapse-header-count.hidden {
+.Verdant-events-date-header-collapse-count {
+}
+
+.Verdant-events-date-header-collapse-count.hidden {
   display: none;
 }
 
-.Verdant-events-date-collapse-header-arrow {
+.Verdant-events-date-header-collapse-arrow {
   display: inline-block;
   vertical-align: text-bottom;
   background-image: var(--verdant-icon-datearrow-open);
@@ -83,28 +44,124 @@
   padding: 5px;
 }
 
-.Verdant-events-date-collapse-header-arrow.closed {
+.Verdant-events-date-header-collapse-arrow.closed {
   background-image: var(--verdant-icon-datearrow-closed);
 }
 
-.Verdant-events-row {
+/* Bundle CSS */
+
+.Verdant-events-bundle {}
+
+.Verdant-events-bundle-single {
+  width: 90%;
+}
+
+.Verdant-events-bundle-multi {}
+
+.Verdant-events-bundle-multi-header {
+  display: flex;
+  flex-direction: row;
+}
+
+.Verdant-events-bundle-multi-header-arrow {
+  width: 10%;
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+}
+
+.Verdant-events-bundle-multi-header-arrow-image {
+  display: inline-block;
+  vertical-align: text-top;
+  background-image: var(--verdant-icon-datearrow-open);
+  width: 1.3em;
+  background-position: top;
+  background-repeat: no-repeat;
+  padding: 5px;
+}
+
+.Verdant-events-bundle-multi-header-arrow-image.closed {
+  background-image: var(--verdant-icon-datearrow-closed);
+}
+
+.Verdant-events-bundle-multi-header-container {
+  width: 90%;
+  min-height: 1.5em;
+}
+
+.Verdant-events-bundle-multi-header-container-open {
+  display: flex;
+  align-items: center;
+}
+
+.Verdant-events-bundle-multi-header-container-open::before {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid;
+  margin-right: .25em;
+}
+
+.Verdant-events-bundle-multi-header-container-open::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid;
+  margin-left: .25em;
+}
+
+.Verdant-events-bundle-multi-body {
+  background-color: #F6F6F6;
+  width: 90%;
+}
+
+.Verdant-events-bundle-multi-footer {
+  display: flex;
+}
+
+.Verdant-events-bundle-multi-footer-line {
+  content: '';
+  width: 90%;
+  border-bottom: 1px solid;
+}
+
+.Verdant-events-bundle-multi-footer-spacer {
+  content: '';
+  width: 10%;
+}
+
+/* Event CSS */
+
+.Verdant-events-event {
   padding: var(--jp-cell-padding);
   display: flex;
   flex-direction: row;
-  padding-right: 0px;
+  padding-right: 0;
+  vertical-align: center;
 }
-.Verdant-events-row:hover {
+
+.Verdant-events-event:hover {
   background: var(--jp-rendermime-table-row-hover-background);
 }
-.Verdant-events-notebook {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  flex: 1 1 auto;
-  vertical-align: baseline;
-  padding-left: var(--jp-cell-padding);
-  padding-right: var(--jp-cell-padding);
+
+.Verdant-events-event-stamp {
+  width: 33.3%;
+  min-width: 4em; /* to prevent weird date text cropping */
 }
+
+.Verdant-events-event-row {
+  width: 66.7%;
+  display: flex;
+}
+
+.Verdant-events-event-row-index {
+  width: 33.3%;
+}
+
+.Verdant-events-event-row-map {
+  width: 66.7%;
+}
+
+/* Event Label CSS */
+
 .Verdant-events-label {
   display: inline-block;
   flex: 1 1 auto;
@@ -113,18 +170,31 @@
   padding-left: 0px;
 }
 
+/* Event Map CSS */
+
 .Verdant-events-map {
-  padding-top: 0.25em;
-  flex: 5 0 50%;
-  text-align: right;
-  white-space: nowrap;
-  margin-right: 4px;
-  overflow: hidden;
-  max-width: 100%;
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  vertical-align: baseline;
+  padding-left: var(--jp-cell-padding);
+  padding-right: var(--jp-cell-padding);
 }
 
-.v-VerdantPanel-runCellMap-cell.target {
+.Verdant-events-map-cell {
+  display: inline-block;
+  width: 1px;
+  background-color: var(--jp-content-font-color3);
+  margin: 2px 1px;
+  height: 1em;
+}
+
+.Verdant-events-map-cell.highlight {
+  border-color: white;
+}
+
+.Verdant-events-map-cell.target {
   width: 2px;
   margin-left: 0px;
   height: 1em;
@@ -134,25 +204,21 @@
   margin-top: -1px;
 }
 
-.v-VerdantPanel-runCellMap-cell-same {
-  background-color: #d0c8d2;
+.Verdant-events-map-cell-added {
+  background-color: var(--verdant-cell-add-color1);
+  border-color: var(--verdant-cell-add-color2);
 }
 
-.v-VerdantPanel-runCellMap-cell-changed {
+.Verdant-events-map-cell-changed {
   background-color: var(--verdant-cell-change-color2);
   border-color: var(--verdant-cell-change-color2);
 }
 
-.v-VerdantPanel-runCellMap-cell-removed {
+.Verdant-events-map-cell-removed {
   background-color: var(--verdant-cell-remove-color1);
   border-color: var(--verdant-cell-remove-color2);
 }
 
-.v-VerdantPanel-runCellMap-cell-same {
+.Verdant-events-map-cell-same {
   background-color: #d0c8d2;
-}
-
-.v-VerdantPanel-runCellMap-cell-added {
-  background-color: var(--verdant-cell-add-color1);
-  border-color: var(--verdant-cell-add-color2);
 }

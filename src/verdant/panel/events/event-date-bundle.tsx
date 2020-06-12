@@ -11,12 +11,29 @@ import NotebookEventLabel from "./event-label";
 import {Checkpoint} from "../../../lilgit/model/checkpoint";
 import NotebookEventMap from "./event-map";
 
-const DATE_BUNDLE_HEADER = "Verdant-events-row";
-const DATE_BUNDLE_HEADER_CLOSED = "Verdant-date-bundle-closed";
-const DATE_BUNDLE_HEADER_LABEL = "Verdant-events-column label";
-const DATE_BUNDLE_HEADER_NUMBERS = "Verdant-events-column map";
-const EVENT_INDEX_LABEL = "Verdant-events-index-label";
-const EVENT_MAP_LABEL = "Verdant-events-map-label";
+/* CSS Constants */
+const BUNDLE = "Verdant-events-bundle";
+const BUNDLE_SINGLE = `${BUNDLE}-single`;
+const BUNDLE_MULTI = `${BUNDLE}-multi`;
+const BUNDLE_MULTI_HEADER = `${BUNDLE_MULTI}-header`;
+const BUNDLE_MULTI_HEADER_ARROW = `${BUNDLE_MULTI_HEADER}-arrow`;
+const BUNDLE_MULTI_HEADER_ARROW_IMAGE = `${BUNDLE_MULTI_HEADER_ARROW}-image`;
+const BUNDLE_MULTI_HEADER_CONTAINER = `${BUNDLE_MULTI_HEADER}-container`;
+const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED = `Verdant-events-event`;
+const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_STAMP =
+  `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}-stamp`;
+const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW =
+  `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}-row`;
+const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_INDEX =
+  `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}-index`;
+const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_MAP =
+  `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}-map`;
+const BUNDLE_MULTI_HEADER_CONTAINER_OPEN =
+  `${BUNDLE_MULTI_HEADER_CONTAINER}-open`;
+const BUNDLE_MULTI_BODY = `${BUNDLE_MULTI}-body`;
+const BUNDLE_MULTI_FOOTER = `${BUNDLE_MULTI}-footer`;
+const BUNDLE_MULTI_FOOTER_LINE = `${BUNDLE_MULTI_FOOTER}-line`;
+const BUNDLE_MULTI_FOOTER_SPACER = `${BUNDLE_MULTI_FOOTER}-spacer`;
 
 
 type DateBundle_Props = {
@@ -31,91 +48,132 @@ type DateBundle_Props = {
 }
 
 class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
-  renderSingle() {
-    /* Render a single event (no bundle) */
+  render() {
     return (
-      <NotebookEvent
-        date_id={this.props.date_id}
-        event_id={this.props.events[0]}
-        events={this.props.event_states[this.props.events[0]]}
-      />
+      <div className={BUNDLE}>
+        {this.props.events.length === 1 ?
+          this.renderSingle() : this.renderBundle()}
+      </div>
     );
   }
 
-  renderBundleLabel() {
-    /* Render the label for a bundle of events */
-    const lastEvent = this.props.events[0];
-    const firstEvent = this.props.events[this.props.events.length - 1];
+  renderSingle() {
+    /* Render a single event (no bundle) */
+    return (
+      <div className={BUNDLE_SINGLE}>
+        <NotebookEvent
+          date_id={this.props.date_id}
+          event_id={this.props.events[0]}
+          events={this.props.event_states[this.props.events[0]]}
+        />
+      </div>
+    );
+  }
 
-    const open = () =>
-      this.props.open(this.props.date_id, this.props.bundle_id);
+  renderBundle() {
+    /* Render a bundle of events */
+
     const close = () =>
       this.props.close(this.props.date_id, this.props.bundle_id);
 
+    const open = () =>
+      this.props.open(this.props.date_id, this.props.bundle_id);
+
     return (
-      <div
-        className={`${DATE_BUNDLE_HEADER} 
-        ${this.props.isOpen ? "" : DATE_BUNDLE_HEADER_CLOSED}`}
-        onClick={() => {
-          this.props.isOpen ? close() : open()
-        }}
-      >
-        <div className={DATE_BUNDLE_HEADER_LABEL}>
+      <div className={BUNDLE_MULTI}>
+        {this.props.isOpen ? (
+          <>
+            <div className={BUNDLE_MULTI_HEADER} onClick={() => close()}>
+              <div className={BUNDLE_MULTI_HEADER_CONTAINER}>
+                {this.renderBundleHeaderOpen()}
+              </div>
+              <div className={BUNDLE_MULTI_HEADER_ARROW}>
+                <div className={BUNDLE_MULTI_HEADER_ARROW_IMAGE}></div>
+              </div>
+            </div>
+            {this.renderBundleBody()}
+            {this.renderBundleFooter()}
+          </>
+        ) : (
+          <div className={BUNDLE_MULTI_HEADER} onClick={() => open()}>
+            <div className={BUNDLE_MULTI_HEADER_CONTAINER}>
+              {this.renderBundleHeaderClosed()}
+            </div>
+            <div className={BUNDLE_MULTI_HEADER_ARROW}>
+              <div
+                className={`${BUNDLE_MULTI_HEADER_ARROW_IMAGE} closed`}></div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  renderBundleHeaderClosed() {
+    /* Render the header for a closed bundle of events */
+    const lastEvent = this.props.events[0];
+    const firstEvent = this.props.events[this.props.events.length - 1];
+
+    return (
+      <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}>
+        <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_STAMP}>
           <NotebookEventLabel
             date_id={this.props.date_id}
             event_id={null}
             events={this.props.checkpoints}
           />
         </div>
-        <div className={DATE_BUNDLE_HEADER_NUMBERS}>
-          <div className={EVENT_INDEX_LABEL}>
+        <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}>
+          <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_INDEX}>
             {`# ${this.props.event_states[firstEvent].notebook + 1} - 
               ${this.props.event_states[lastEvent].notebook + 1}`}
           </div>
-          <div className={EVENT_MAP_LABEL}>
-            {
-              this.props.isOpen ?
-                <div></div> :
-                <NotebookEventMap
-                  checkpoints={this.props.checkpoints}
-                />
-            }
+          <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_MAP}>
+            <NotebookEventMap checkpoints={this.props.checkpoints}/>
           </div>
         </div>
       </div>
     );
   }
 
-  renderBundleBody() {
-    /* Render the individual events of the body of the bundle */
-    return (this.props.events.map((id) => (
-      <div key={id}>
-        <NotebookEvent
-          date_id={this.props.date_id}
-          event_id={id}
-          events={this.props.event_states[id]}
-        />
-      </div>
-    )));
-  }
+  renderBundleHeaderOpen() {
+    /* Render the header for an open bundle of events */
+    const lastEvent = this.props.events[0];
+    const firstEvent = this.props.events[this.props.events.length - 1];
 
-  renderBundle() {
-    /* Render a bundle of events */
     return (
-      <>
-        {this.renderBundleLabel()}
-        {this.props.isOpen ? this.renderBundleBody() : null}
-      </>
+      <div className={BUNDLE_MULTI_HEADER_CONTAINER_OPEN}>
+        {`# ${this.props.event_states[firstEvent].notebook + 1} - 
+              ${this.props.event_states[lastEvent].notebook + 1}`}
+      </div>
     );
   }
 
-  render() {
-    if (this.props.events.length == 1) {
-      return this.renderSingle();
-    } else {
-      return this.renderBundle();
-    }
+  renderBundleBody() {
+    /* Render the individual events of the body of the bundle */
+    return (
+      <div className={BUNDLE_MULTI_BODY}>
+        {this.props.events.map((id) => (
+          <NotebookEvent key={id}
+                         date_id={this.props.date_id}
+                         event_id={id}
+                         events={this.props.event_states[id]}
+          />
+        ))}
+      </div>
+    );
   }
+
+  renderBundleFooter() {
+    /* Render the bottom of an open bundle */
+    return (
+      <div className={BUNDLE_MULTI_FOOTER}>
+        <div className={BUNDLE_MULTI_FOOTER_LINE}></div>
+        <div className={BUNDLE_MULTI_FOOTER_SPACER}></div>
+      </div>
+    );
+  }
+
 }
 
 const mapDispatchToProps = (dispatch: any) => {

@@ -5,12 +5,14 @@ import {Checkpoint, CheckpointType} from "../../../lilgit/model/checkpoint";
 import {dateOpen, dateClose, saveBundles, eventState} from "../../redux/events";
 import NotebookEventDateBundle from "./event-date-bundle";
 
-const DATE_HEADER = "Verdant-events-date-header";
-const DATE_GROUP = "Verdant-events-date-container";
-const DATE_LABEL = "Verdant-events-date-header-label";
-const DATE_COLLAPSE_HEADER = "Verdant-events-date-collapse-header";
-const DATE_COUNT = "Verdant-events-date-collapse-header-count";
-const DATE_ARROW = "Verdant-events-date-collapse-header-arrow";
+/* CSS Constants */
+const DATE = "Verdant-events-date"
+const DATE_HEADER = `${DATE}-header`;
+const DATE_HEADER_LABEL = `${DATE_HEADER}-label`;
+const DATE_HEADER_COLLAPSE = `${DATE_HEADER}-collapse`;
+const DATE_HEADER_COLLAPSE_COUNT = `${DATE_HEADER_COLLAPSE}-count`;
+const DATE_HEADER_COLLAPSE_ARROW = `${DATE_HEADER_COLLAPSE}-arrow`;
+
 
 const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
 
@@ -24,7 +26,6 @@ type NotebookDate_Props = {
   date_id: number;
   date: number;
   events: eventState[];
-  eventCount: number; // TODO
   isOpen: boolean;
   open: (d: number) => void;
   close: (d: number) => void;
@@ -35,26 +36,28 @@ type NotebookDate_Props = {
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
   render() {
     return (
-      <div>
+      <div className={DATE}>
         <div className={DATE_HEADER}
              onClick={() => {
                if (this.props.isOpen) this.props.close(this.props.date_id);
                else this.props.open(this.props.date_id);
              }}>
-          <div className={DATE_LABEL}>
+          <div className={DATE_HEADER_LABEL}>
             {Checkpoint.formatDate(this.props.date)}
           </div>
-          <div className={DATE_COLLAPSE_HEADER}>
+          <div className={DATE_HEADER_COLLAPSE}>
             <div
-              className={`${DATE_COUNT} ${this.props.isOpen ? "hidden" : ""}`}>
+              className={`${DATE_HEADER_COLLAPSE_COUNT} 
+              ${this.props.isOpen ? "hidden" : ""}`}>
               ({this.props.events.length})
             </div>
             <div
-              className={`${DATE_ARROW} ${this.props.isOpen ? "" : "closed"}`}>
+              className={`${DATE_HEADER_COLLAPSE_ARROW} 
+              ${this.props.isOpen ? "" : "closed"}`}>
             </div>
           </div>
         </div>
-        <div className={DATE_GROUP}>
+        <div>
           {this.props.isOpen ? this.makeBundles() : null}
         </div>
       </div>
@@ -65,9 +68,9 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
     /* Creates date bundles using bundled indices */
     let bundledIndices;
     if (this.props.bundles === null || // There are no saved bundles
-        this.props.bundles.reduce( // The bundles are out of date
-          (a, x) => a + x.length, 0
-        ) !== this.props.events.length) {
+      this.props.bundles.reduce( // The bundles are out of date
+        (a, x) => a + x.length, 0
+      ) !== this.props.events.length) {
       // If there are no bundles or the bundles need an update, compute bundles
       bundledIndices = this.computeBundles(this.props.events);
       this.props.saveBundles(bundledIndices, this.props.date_id);
@@ -79,13 +82,12 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
     // Creates DateBundle for each set of dates
     return bundledIndices.map(
       (idx_list, i) => (
-        <div key={i}>
           <NotebookEventDateBundle
+            key={i}
             bundle_id={i}
             events={[...idx_list]}
             date_id={this.props.date_id}
           />
-        </div>
       )
     )
   }
@@ -154,7 +156,6 @@ const mapStateToProps = (
   return {
     date: dateState.date,
     events: dateState.events,
-    eventCount: dateState.events.length,
     isOpen: dateState.isOpen,
     bundles: dateState.bundles
   };
