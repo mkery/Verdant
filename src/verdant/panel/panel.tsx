@@ -1,5 +1,4 @@
 import * as React from "react";
-import { History } from "../../lilgit/model/history";
 import ArtifactDetails from "./artifact-details";
 import ArtifactSummary from "./artifact-summary";
 import EventMap from "./event-map";
@@ -13,7 +12,6 @@ const TAB = "v-VerdantPanel-tab";
 const SEARCH_ICON = "v-VerdantPanel-searchIcon";
 
 type Panel_Props = {
-  history: History;
   activeTab: ActiveTab;
   setActiveTab: (n: ActiveTab) => void;
   openGhostBook: (n: number) => void;
@@ -70,21 +68,17 @@ class PanelContainer extends React.Component<Partial<Panel_Props>> {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.history,
     activeTab: state.activeTab,
-    openGhostBook: state.openGhostBook
+    openGhostBook: state.openGhostBook,
   };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
-    setActiveTab: (name: ActiveTab) => dispatch(switchTab(name))
+    setActiveTab: (name: ActiveTab) => dispatch(switchTab(name)),
   };
 };
 
-const Panel = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(PanelContainer);
+const Panel = connect(mapStateToProps, mapDispatchToProps)(PanelContainer);
 
 export default Panel;

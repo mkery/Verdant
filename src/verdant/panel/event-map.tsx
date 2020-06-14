@@ -37,19 +37,16 @@ class EventMap extends React.Component<EventMap_Props> {
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
-    initEventMap: () => dispatch(initEventMap())
+    initEventMap: () => dispatch(initEventMap()),
   };
 };
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.history,
+    history: state.getHistory(),
     dates: state.dates,
-    currentEvent: state.currentEvent
+    currentEvent: state.currentEvent,
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(EventMap);
+export default connect(mapStateToProps, mapDispatchToProps)(EventMap);

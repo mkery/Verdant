@@ -13,34 +13,34 @@ const SWITCH_CELL = "SWITCH_CELL";
 export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
   return {
     type: SET_GHOST_OPENER,
-    fun
+    fun,
   };
 };
 
 export const initGhostBook = (state: Partial<ghostState>) => {
   return {
     type: INIT_GHOSTBOOK,
-    state
+    state,
   };
 };
 
 export const closeGhostBook = () => {
   return {
     type: SWITCH_NOTEBOOK,
-    ver: null as string
+    ver: null as string,
   };
 };
 
 export const toggleShowAllCells = () => {
   return {
-    type: TOGGLE_SHOW_CELLS
+    type: TOGGLE_SHOW_CELLS,
   };
 };
 
 export const focusCell = (cell_index: number) => {
   return {
     type: SWITCH_CELL,
-    cell_index
+    cell_index,
   };
 };
 
@@ -52,7 +52,7 @@ export const ghostInitialState = (): ghostState => {
     active_cell: null,
     show_all_cells: true,
     link_artifact: null,
-    changeGhostTitle: null
+    changeGhostTitle: null,
   };
 };
 
@@ -63,7 +63,7 @@ export type ghostState = {
   active_cell: string;
   show_all_cells: boolean;
   link_artifact: (n: string) => void;
-  changeGhostTitle: (h: History, n: number) => void;
+  changeGhostTitle: (n: number) => void;
 };
 
 export type cellEffect =
@@ -87,21 +87,19 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
     case INIT_GHOSTBOOK:
       let present = { ...state };
       for (let key in action.state) present[key] = action.state[key];
-      present.ghostCells = loadCells(state.history, present.notebook_ver);
-      // change the Phosphor Jupyter widget title
-      present.changeGhostTitle(state.history, present.notebook_ver);
+      present.ghostCells = loadCells(state.getHistory(), present.notebook_ver);
       return present;
     case TOGGLE_SHOW_CELLS:
       return {
         ...state,
-        show_all_cells: !state.show_all_cells
+        show_all_cells: !state.show_all_cells,
       };
     case SWITCH_CELL:
       let cell = state.ghostCells[action.cell_index].name;
       if (state.active_cell != cell)
         return {
           ...state,
-          active_cell: cell
+          active_cell: cell,
         };
       else return state;
     default:
@@ -120,32 +118,32 @@ function loadCells(history: History, ver: number): ghostCellState[] {
     output?: number;
   };
 
-  let cells: cellDat[] = notebook.cells.map(item => ({
+  let cells: cellDat[] = notebook.cells.map((item) => ({
     cell: item,
-    events: []
+    events: [],
   }));
 
   let deletedCells: cellDat[] = [];
-  events.forEach(ev => {
-    ev.targetCells.forEach(cell => {
+  events.forEach((ev) => {
+    ev.targetCells.forEach((cell) => {
       let index = notebook.cells.indexOf(cell.node);
       if (index < 0 && ev.checkpointType === CheckpointType.DELETE) {
         deletedCells.push({
           cell: cell.node,
           index: cell.index,
-          events: [ev]
+          events: [ev],
         });
       } else cells[index].events.push(ev);
     });
   });
 
   // to not mess up the other indices
-  deletedCells.forEach(item => {
+  deletedCells.forEach((item) => {
     cells.splice(item.index, 0, item);
   });
 
   let output: cellDat[] = [];
-  cells.forEach(cell => {
+  cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
     if (nodey instanceof NodeyCode && nodey.output) {
       let out = { cell: nodey.output };
@@ -156,13 +154,13 @@ function loadCells(history: History, ver: number): ghostCellState[] {
   });
   cells = cells.concat(output);
 
-  return cells.map(cell => {
+  return cells.map((cell) => {
     return {
       name: cell.cell,
       events: cell.events,
       effects: [],
       sample: "",
-      output: cell.output
+      output: cell.output,
     };
   });
 }
