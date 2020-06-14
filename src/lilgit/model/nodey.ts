@@ -73,6 +73,32 @@ export class NodeyNotebook extends Nodey {
 }
 
 /*
+ * Simple raw cell type (rare, since most cells are code or markdown)
+ */
+export class NodeyRawCell extends Nodey implements NodeyCell {
+  literal: string;
+  constructor(options: NodeyOptions) {
+    super(options);
+    this.updateState(options);
+  }
+
+  public updateState(options: NodeyOptions) {
+    super.updateState(options);
+    if (options.literal) this.literal = options.literal;
+  }
+
+  public toJSON(): SERIALIZE.NodeyRawCell {
+    let jsn = super.toJSON() as SERIALIZE.NodeyRawCell;
+    jsn.literal = this.literal;
+    return jsn;
+  }
+
+  get typeChar() {
+    return "r";
+  }
+}
+
+/*
  *  does not do anything. For syntax punctuation and new lines only
  */
 export class SyntaxToken {
@@ -385,6 +411,16 @@ export namespace NodeyMarkdown {
       parent: dat.parent,
       created: dat.start_checkpoint,
       markdown: dat.markdown,
+    });
+  }
+}
+
+export namespace NodeyRawCell {
+  export function fromJSON(dat: SERIALIZE.NodeyRawCell): NodeyRawCell {
+    return new NodeyRawCell({
+      parent: dat.parent,
+      created: dat.start_checkpoint,
+      literal: dat.literal,
     });
   }
 }

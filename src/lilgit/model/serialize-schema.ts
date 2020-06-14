@@ -34,6 +34,10 @@ export namespace SERIALIZE {
     markdown: string;
   }
 
+  export interface NodeyRawCell extends Nodey {
+    literal: string;
+  }
+
   export interface Checkpoint {
     checkpointType: CheckpointType;
     timestamp: number;

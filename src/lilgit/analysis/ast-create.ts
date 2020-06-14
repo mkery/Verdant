@@ -1,6 +1,6 @@
 import { jsn } from "../components/notebook";
 import { History } from "../model/history";
-import { CodeCell, MarkdownCell, Cell } from "@jupyterlab/cells";
+import { CodeCell, MarkdownCell, Cell, RawCell } from "@jupyterlab/cells";
 import { ASTUtils } from "./ast-utils";
 import { Checkpoint } from "../model/checkpoint";
 import {
@@ -10,7 +10,8 @@ import {
   NodeyCodeCell,
   NodeyMarkdown,
   NodeyNotebook,
-  NodeyOutput
+  NodeyOutput,
+  NodeyRawCell,
 } from "../model/nodey";
 
 export class ASTCreate {
@@ -57,6 +58,12 @@ export class ASTCreate {
     return output;
   }
 
+  public createRawCell(options: jsn) {
+    let nodey = new NodeyRawCell(options);
+    this.history.store.store(nodey);
+    return nodey;
+  }
+
   public async fromCell(cell: Cell, checkpoint: Checkpoint) {
     let nodey: NodeyCell;
     if (cell instanceof CodeCell) {
@@ -69,7 +76,7 @@ export class ASTCreate {
           start: { line: 1, ch: 0 },
           end: { line: 1, ch: 0 },
           type: "Module",
-          created: checkpoint.id
+          created: checkpoint.id,
         });
       }
       // Next, create output
@@ -78,7 +85,7 @@ export class ASTCreate {
         {
           raw: output_raw,
           created: checkpoint.id,
-          parent: nodey.name
+          parent: nodey.name,
         },
         nodey as NodeyCodeCell
       );
@@ -86,6 +93,10 @@ export class ASTCreate {
       // create markdown cell from text
       let text = cell.model.value.text;
       nodey = this.createMarkdown({ markdown: text, created: checkpoint.id });
+    } else if (cell instanceof RawCell) {
+      // create raw cell from text
+      let text: string = cell.editor.model.value.text;
+      nodey = this.createRawCell({ literal: text, created: checkpoint.id });
     }
     return nodey;
   }
