@@ -2,7 +2,7 @@ import { Notebook } from "@jupyterlab/notebook";
 import { Star } from "../model/history-stage";
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../model/checkpoint";
-import { NodeyNotebook } from "../model/nodey";
+import { NodeyNotebook, NodeyCode } from "../model/nodey";
 import { ASTRepair } from "./ast-repair";
 import { ASTCreate } from "./ast-create";
 import { History } from "../model/history";
@@ -22,8 +22,8 @@ export class AST {
   }
 
   /*
-  * Should send a series of
-  */
+   * Should send a series of
+   */
   public async coldStartNotebook(
     notebook_view: Notebook,
     checkpoint: Checkpoint
@@ -36,14 +36,15 @@ export class AST {
     await Promise.all(
       notebook_view.widgets.map(async (item, index) => {
         if (item instanceof Cell)
-          return this.create.fromCell(item, checkpoint).then(nodey => {
+          return this.create.fromCell(item, checkpoint).then((nodey) => {
+            if (!nodey) console.log("CREATED NO NODEY???", nodey, item);
             if (notebook instanceof Star)
               notebook.value.cells[index] = nodey.name;
             else notebook.cells[index] = nodey.name;
             nodey.parent = notebook.name;
             changedCells.push({
               node: nodey.name,
-              changeType: ChangeType.ADDED
+              changeType: ChangeType.ADDED,
             });
           });
       })
@@ -57,8 +58,8 @@ export class AST {
     notebook_view: Notebook,
     checkpoint: Checkpoint
   ): Promise<[NodeyNotebook | Star<NodeyNotebook>, CellRunData[]]> {
-    // check cells
-    let newCells = notebook_view.widgets.map(item => {
+    // get cells for the purpose of matching
+    let newCells = notebook_view.widgets.map((item) => {
       if (item instanceof Cell) {
         let kind = "raw";
         let text = item.model.value.text;
@@ -68,8 +69,48 @@ export class AST {
       }
     });
 
-    log("cells are", newCells, checkpoint);
+    // compare notebook history with newCells
+    let histNotebook;
+    if (notebook instanceof NodeyNotebook) histNotebook = notebook;
+    else histNotebook = notebook.value;
 
+    // !!!Goal: compare with old cells from history and figure out if there are new cells
+    // !!!TODO need ast comparison working to really do that
+    if (newCells.length != histNotebook.cells.length) {
+      log(
+        "WARNING: Notebook loaded with " +
+          (newCells.length - histNotebook.cells.length) +
+          " different cells"
+      );
+
+      // Set up notebook to update
+      let updatedNotebook = this.history.stage.markAsEdited(
+        histNotebook
+      ) as Star<NodeyNotebook>;
+      updatedNotebook.value.cells = [];
+      let changedCells: CellRunData[] = [];
+
+      // OK so until we have the functionality to match cells,
+      // let's pretend all cells are brand new
+      await Promise.all(
+        notebook_view.widgets.map(async (c) => {
+          if (c instanceof Cell) {
+            let nodey = await this.create.fromCell(c, checkpoint);
+            updatedNotebook.value.cells.push(nodey.name);
+            let newOutput;
+            if (nodey instanceof NodeyCode) newOutput = [nodey.output];
+            changedCells.push({
+              node: nodey.name,
+              changeType: ChangeType.ADDED,
+              newOutput,
+            });
+          }
+        })
+      );
+      return [updatedNotebook, changedCells];
+    }
+
+    // case where nothing has changed
     return [notebook, []];
   }
 }

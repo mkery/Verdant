@@ -10,7 +10,7 @@ import { AST } from "../analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
 
-const DEBUG = false;
+const DEBUG = true;
 
 /*
  * Notebook holds a list of cells
@@ -74,8 +74,10 @@ export class VerNotebook {
         );
 
       let notebook: NodeyNotebook;
+      console.log("GOT NOTEBOOK", newNotebook, changedCells);
 
       if (newNotebook instanceof Star) {
+        console.log("COMMIT NEW NOTEBOOK");
         this.cells.forEach((cell) => {
           let cellNode = cell.model;
           if (cellNode instanceof Star) {
