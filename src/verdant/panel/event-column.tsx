@@ -8,14 +8,14 @@ import { verdantState } from "../redux/index";
 
 const PANEL = "v-VerdantPanel-content";
 
-type EventMap_Props = {
+type EventColumn_Props = {
   history: History;
   currentEvent: Checkpoint;
   initEventMap: () => void;
   dates: dateState[];
 };
 
-class EventMap extends React.Component<EventMap_Props> {
+class EventColumn extends React.Component<EventColumn_Props> {
   componentDidMount() {
     this.props.history.ready.then(async () => {
       await this.props.history.notebook.ready;
@@ -49,4 +49,4 @@ const mapStateToProps = (state: verdantState) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(EventMap);
+export default connect(mapStateToProps, mapDispatchToProps)(EventColumn);

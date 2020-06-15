@@ -3,7 +3,7 @@ import {Checkpoint, CheckpointType} from "../../../lilgit/model/checkpoint";
 import {connect} from "react-redux";
 import {verdantState} from "../../redux/index";
 
-const EVENT_LABEL = "Verdant-events-label";
+const LABEL = "Verdant-events-label";
 
 // Used to track the counts of each kind of event for label construction
 interface eventCounts {
@@ -39,6 +39,14 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
     this.state = {
       times
     };
+  }
+
+  render() {
+    return (
+      <div className={LABEL}>
+        {this.makeTimestamp()}
+      </div>
+    );
   }
 
   componentDidUpdate(prevProps) {
@@ -105,14 +113,6 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
       }
       return <div>{`${firstTime}-${lastTime} ${this.makeLabel()}`}</div>;
     }
-  }
-
-  render() {
-    return (
-      <div className={EVENT_LABEL}>
-          {this.makeTimestamp()}
-      </div>
-    );
   }
 
   public addEvent(event: Checkpoint, times: timeLabel[]) {
