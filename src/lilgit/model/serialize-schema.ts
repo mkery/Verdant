@@ -1,43 +1,7 @@
-import { Pos } from "./nodey";
+import { Nodey } from "./nodey";
 import { CheckpointType, CellRunData } from "./checkpoint";
 
 export namespace SERIALIZE {
-  export interface Nodey {
-    parent?: string;
-    start_checkpoint: number;
-  }
-
-  export interface NodeyNotebook extends Nodey {
-    start_checkpoint: number;
-    cells: string[];
-  }
-
-  export interface NodeyOutput extends Nodey {
-    raw: { [key: string]: any };
-  }
-
-  export interface NodeyCode extends Nodey {
-    type?: string;
-    output: string;
-    content?: any[];
-    literal: string;
-    start?: Pos;
-    end?: Pos;
-  }
-
-  export interface OutputPointer {
-    outputId: number;
-    outputVer: string;
-  }
-
-  export interface NodeyMarkdown extends Nodey {
-    markdown: string;
-  }
-
-  export interface NodeyRawCell extends Nodey {
-    literal: string;
-  }
-
   export interface Checkpoint {
     checkpointType: CheckpointType;
     timestamp: number;

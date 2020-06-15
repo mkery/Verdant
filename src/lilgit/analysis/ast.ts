@@ -30,7 +30,10 @@ export class AST {
   ): Promise<[NodeyNotebook, CellRunData[]]> {
     let changedCells: CellRunData[] = [];
     // create a new notebook
-    let notebook = this.create.createNotebook({ created: checkpoint.id });
+    let notebook = this.create.createNotebook({
+      created: checkpoint.id,
+      cells: [],
+    });
 
     // create new cells
     await Promise.all(

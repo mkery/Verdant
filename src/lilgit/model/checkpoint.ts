@@ -15,6 +15,7 @@ export enum ChangeType {
   NONE = "n/a",
 }
 
+// old log format for conversion
 const CONVERT_ChangeType = {
   2: ChangeType.CHANGED,
   1.5: ChangeType.REMOVED,

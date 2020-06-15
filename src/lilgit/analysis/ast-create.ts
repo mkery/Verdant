@@ -21,13 +21,13 @@ export class ASTCreate {
     this.history = history;
   }
 
-  public createNotebook(options: jsn) {
+  public createNotebook(options: NodeyNotebook.Options) {
     let notebook = new NodeyNotebook(options);
     this.history.store.store(notebook);
     return notebook;
   }
 
-  public createMarkdown(options: jsn) {
+  public createMarkdown(options: NodeyMarkdown.Options) {
     let nodey = new NodeyMarkdown(options);
     this.history.store.store(nodey);
     return nodey;
@@ -51,7 +51,7 @@ export class ASTCreate {
     return new SyntaxToken(tok);
   }
 
-  public createOutput(options: jsn, parent: NodeyCodeCell) {
+  public createOutput(options: NodeyOutput.Options, parent: NodeyCodeCell) {
     let output = new NodeyOutput(options);
     this.history.store.store(output);
     parent.output = output.name;
