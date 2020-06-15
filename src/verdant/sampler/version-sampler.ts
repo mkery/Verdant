@@ -19,7 +19,11 @@ export namespace VersionSampler {
     query?: string,
     diff?: number
   ) {
-    diff = Sampler.NO_DIFF; //DEBUG ONLY
+    console.log("History: ", history)
+    console.log("Nodey: ", nodey)
+    console.log("Query: ", query)
+    console.log("Diff: ", diff)
+    //diff = Sampler.NO_DIFF; //DEBUG ONLY
     let inspector = history.inspector;
     let text = inspector.renderNode(nodey);
 
