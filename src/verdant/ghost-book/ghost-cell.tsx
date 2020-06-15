@@ -1,13 +1,13 @@
 import * as React from "react";
-import { History } from "../../lilgit/model/history";
-import { Nodey, NodeyCode } from "../../lilgit/model/nodey";
-import { Sampler } from "../../lilgit/model/sampler";
-import { VersionSampler } from "../sampler/version-sampler";
+import {History} from "../../lilgit/model/history";
+import {Nodey, NodeyCode} from "../../lilgit/model/nodey";
+import {Sampler} from "../../lilgit/model/sampler";
+import {VersionSampler} from "../sampler/version-sampler";
 import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
-import { connect } from "react-redux";
-import { verdantState } from "../redux/index";
-import { focusCell, ghostCellState } from "../redux/ghost";
+import {connect} from "react-redux";
+import {verdantState} from "../redux/index";
+import {focusCell, ghostCellState} from "../redux/ghost";
 
 type GhostCell_Events = {
   linkArtifact: (name: string) => void;
@@ -25,7 +25,7 @@ export type GhostCell_Props = {
 class Cell extends React.Component<GhostCell_Props, { sample: string }> {
   constructor(props: GhostCell_Props) {
     super(props);
-    this.state = { sample: "" };
+    this.state = {sample: ""};
   }
 
   componentDidMount() {
@@ -47,16 +47,16 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
         className={`v-Verdant-GhostBook-container ${active}`}
         onClick={() => this.props.clickEv()}
       >
-        <div className={`v-Verdant-GhostBook-cell-band ${active}`} />
+        <div className={`v-Verdant-GhostBook-cell-band ${active}`}/>
         <div className="v-Verdant-GhostBook-container-stack">
           <div className="v-Verdant-GhostBook-cell-container">
-            <GhostCellLabel id={this.props.id} />
+            <GhostCellLabel id={this.props.id}/>
             <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
               <div
                 className={`v-Verdant-GhostBook-cell ${this.props.name.charAt(
                   0
                 )}  ${active}`}
-                dangerouslySetInnerHTML={{ __html: this.state.sample }}
+                dangerouslySetInnerHTML={{__html: this.state.sample}}
               ></div>
             </div>
           </div>
@@ -72,20 +72,26 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
       // ERROR case
       console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
     } else {
-      let diff = this.props.events ? Sampler.CHANGE_DIFF : Sampler.NO_DIFF;
+      let diff;
+      if (this.props.events === undefined || this.props.events.length === 0) {
+        diff = Sampler.NO_DIFF;
+      } else {
+        console.log(this.props.events);
+        diff = Sampler.CHANGE_DIFF;
+      }
       let sample = await VersionSampler.sample(
         this.props.history,
         nodey,
         null,
         diff
       );
-      this.setState({ sample: sample.outerHTML });
+      this.setState({sample: sample.outerHTML});
     }
   }
 
   private showOutput(nodey: Nodey) {
     if (nodey instanceof NodeyCode && nodey.output)
-      return <GhostCellOutput id={this.props.output} />;
+      return <GhostCellOutput id={this.props.output}/>;
     return null;
   }
 }
