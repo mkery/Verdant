@@ -44,26 +44,28 @@ export const focusCell = (cell_index: number) => {
   };
 };
 
+export type ghostState = {
+  openGhostBook: (notebook: number) => Ghost;
+  notebook_ver: number;
+  ghostCells: Map<string, ghostCellState>;
+  ghostCellOutputs: Map<string, ghostCellState>;
+  active_cell: string;
+  show_all_cells: boolean;
+  link_artifact: (n: string) => void;
+  changeGhostTitle: (n: number) => void;
+};
+
 export const ghostInitialState = (): ghostState => {
   return {
     openGhostBook: null,
     notebook_ver: -1,
-    ghostCells: [],
+    ghostCells: new Map(),
+    ghostCellOutputs: new Map(),
     active_cell: null,
     show_all_cells: true,
     link_artifact: null,
     changeGhostTitle: null,
   };
-};
-
-export type ghostState = {
-  openGhostBook: (notebook: number) => Ghost;
-  notebook_ver: number;
-  ghostCells: ghostCellState[];
-  active_cell: string;
-  show_all_cells: boolean;
-  link_artifact: (n: string) => void;
-  changeGhostTitle: (n: number) => void;
 };
 
 export type cellEffect =
@@ -75,6 +77,7 @@ export type cellEffect =
 
 export type ghostCellState = {
   name: string;
+  index: number;
   output: number;
   events: Checkpoint[];
   effects: cellEffect[];
@@ -87,7 +90,7 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
     case INIT_GHOSTBOOK:
       let present = { ...state };
       for (let key in action.state) present[key] = action.state[key];
-      present.ghostCells = loadCells(state.getHistory(), present.notebook_ver);
+      [present.ghostCells, present.ghostCellOutputs] = loadCells(state.getHistory(), present.notebook_ver);
       return present;
     case TOGGLE_SHOW_CELLS:
       return {
@@ -107,16 +110,18 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
   }
 };
 
-function loadCells(history: History, ver: number): ghostCellState[] {
+// Type of cells from notebook.cells
+type cellDat = {
+  cell: string;
+  index?: number;
+  events?: Checkpoint[];
+  output?: number;
+};
+
+function loadCells(history: History, ver: number) {
+  // Load notebook and events
   let notebook = history.store.getNotebook(ver);
   let events = history.checkpoints.getByNotebook(ver);
-
-  type cellDat = {
-    cell: string;
-    index?: number;
-    events?: Checkpoint[];
-    output?: number;
-  };
 
   let cells: cellDat[] = notebook.cells.map((item) => ({
     cell: item,
@@ -124,6 +129,7 @@ function loadCells(history: History, ver: number): ghostCellState[] {
   }));
 
   let deletedCells: cellDat[] = [];
+
   events.forEach((ev) => {
     ev.targetCells.forEach((cell) => {
       let index = notebook.cells.indexOf(cell.node);
@@ -152,15 +158,31 @@ function loadCells(history: History, ver: number): ghostCellState[] {
       cell.output = index + cells.length;
     }
   });
-  cells = cells.concat(output);
 
-  return cells.map((cell) => {
-    return {
+  const loadedCells = new Map();
+  cells.forEach((cell, index) => {
+    loadedCells.set(cell.cell, {
       name: cell.cell,
+      index: index,
       events: cell.events,
       effects: [],
       sample: "",
-      output: cell.output,
-    };
+      output: cell.output
+    })
   });
+
+  const loadedOutput = new Map();
+  output.forEach((cell, index) => {
+    loadedOutput.set(cell.cell, {
+      name: cell.cell,
+      index: index + cells.length,
+      events: cell.events,
+      effects: [],
+      sample: "",
+      output: cell.output
+    })
+  });
+
+  return [loadedCells, loadedOutput];
+
 }

@@ -77,9 +77,10 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: GhostCellOutput_Props
 ) => {
+  const outputs = [...state.ghostCellOutputs.entries()];
   return {
     history: state.getHistory(),
-    name: state.ghostCells[ownProps.id].name
+    name: outputs.find(e => e[1].index == ownProps.id)[1].name
   };
 };
 
