@@ -37,10 +37,10 @@ export const toggleShowAllCells = () => {
   };
 };
 
-export const focusCell = (cell_index: number) => {
+export const focusCell = (cell_name: string) => {
   return {
     type: SWITCH_CELL,
-    cell_index,
+    cell: cell_name,
   };
 };
 
@@ -48,7 +48,7 @@ export type ghostState = {
   openGhostBook: (notebook: number) => Ghost;
   notebook_ver: number;
   ghostCells: Map<string, ghostCellState>;
-  ghostCellOutputs: Map<string, ghostCellState>;
+  ghostCellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
   show_all_cells: boolean;
   link_artifact: (n: string) => void;
@@ -78,9 +78,13 @@ export type cellEffect =
 export type ghostCellState = {
   name: string;
   index: number;
-  output: number;
+  output: string;
   events: Checkpoint[];
-  effects: cellEffect[];
+};
+
+export type ghostCellOutputState = {
+  name: string;
+  events: Checkpoint[];
 };
 
 export const ghostReduce = (state: verdantState, action: any): ghostState => {
@@ -98,11 +102,10 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
         show_all_cells: !state.show_all_cells,
       };
     case SWITCH_CELL:
-      let cell = state.ghostCells[action.cell_index].name;
-      if (state.active_cell != cell)
+      if (state.active_cell != action.cell)
         return {
           ...state,
-          active_cell: cell,
+          active_cell: action.cell,
         };
       else return state;
     default:
@@ -115,7 +118,7 @@ type cellDat = {
   cell: string;
   index?: number;
   events?: Checkpoint[];
-  output?: number;
+  output?: string;
 };
 
 function loadCells(history: History, ver: number) {
@@ -153,9 +156,10 @@ function loadCells(history: History, ver: number) {
     let nodey = history.store.get(cell.cell);
     if (nodey instanceof NodeyCode && nodey.output) {
       let out = { cell: nodey.output };
-      let index = output.length;
       output.push(out);
-      cell.output = index + cells.length;
+      cell.output = nodey.output;
+    } else {
+      cell.output = null;
     }
   });
 
@@ -165,7 +169,6 @@ function loadCells(history: History, ver: number) {
       name: cell.cell,
       index: index,
       events: cell.events,
-      effects: [],
       sample: "",
       output: cell.output
     })
@@ -175,11 +178,8 @@ function loadCells(history: History, ver: number) {
   output.forEach((cell, index) => {
     loadedOutput.set(cell.cell, {
       name: cell.cell,
-      index: index + cells.length,
       events: cell.events,
-      effects: [],
       sample: "",
-      output: cell.output
     })
   });
 

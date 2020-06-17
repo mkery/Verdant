@@ -8,12 +8,10 @@ import { connect } from "react-redux";
 import { verdantState } from "../redux/index";
 
 type GhostCellOutput_Props = {
-  // Index of the output cell in state.GhostCells
-  id: number;
+  // String id of the output cell
+  name: string;
   // Entire state history. Used for VersionSampler
   history?: History;
-  // String id of the output cell
-  name?: string;
 }
 
 type GhostCellOutput_State = {
@@ -74,13 +72,10 @@ class GhostCellOutput extends React.Component<
 }
 
 const mapStateToProps = (
-  state: verdantState,
-  ownProps: GhostCellOutput_Props
+  state: verdantState
 ) => {
-  const outputs = [...state.ghostCellOutputs.entries()];
   return {
-    history: state.getHistory(),
-    name: outputs.find(e => e[1].index == ownProps.id)[1].name
+    history: state.getHistory()
   };
 };
 
