@@ -34,10 +34,10 @@ class CellContainer extends React.Component<{ cells: ghostCellState[] }> {
     );
   }
 
-  private showCells() {
-    return this.props.cells.map((cell: ghostCellState, index: number) => {
-      return <GhostCell key={index} id={index} />;
-    });
+  private showCells() { // Map non-output cells to GhostCells
+    return this.props.cells.map((cell: ghostCellState, index: number) =>
+      cell.name[0] !== "o" ? <GhostCell key={index} id={index} /> : null
+    );
   }
 }
 

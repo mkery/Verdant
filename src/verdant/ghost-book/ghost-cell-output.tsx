@@ -6,25 +6,40 @@ import { NodeyOutput } from "../../lilgit/model/nodey";
 import GhostCellLabel from "./ghost-cell-label";
 import { connect } from "react-redux";
 import { verdantState } from "../redux/index";
-import { ghostCellState } from "../redux/ghost";
 
 type GhostCellOutput_Props = {
+  // Index of the output cell in state.GhostCells
   id: number;
+  // Entire state history. Used for VersionSampler
   history?: History;
-  linkArtifact?: (name: string) => void;
-} & Partial<ghostCellState>; // loaded via redux
+  // String id of the output cell
+  name?: string;
+}
 
-class CellOutput extends React.Component<
+type GhostCellOutput_State = {
+  sample: string;
+}
+
+class GhostCellOutput extends React.Component<
   GhostCellOutput_Props,
-  { sample: string }
+  GhostCellOutput_State
 > {
-  constructor(props: GhostCellOutput_Props) {
+  /*
+  * Component to render output of a code ghost cell.
+  * */
+  constructor(props) {
+    /* Explicit constructor to initialize state */
+    // Required super call
     super(props);
-    this.state = { sample: "" };
+    // Set state
+    this.state = {
+      sample: ""
+    }
   }
 
-  componentDidMount() {
-    this.getSample();
+  async componentDidMount() {
+    /* If the component is rendered, generate body HTML */
+    await this.getSample();
   }
 
   render() {
@@ -41,14 +56,17 @@ class CellOutput extends React.Component<
   }
 
   async getSample() {
+    // Get output HTML
     let output = this.props.history.store.get(this.props.name) as NodeyOutput;
     if (output.raw.length > 0) {
+      // Attach diffs to output
       let outSample = await VersionSampler.sample(
         this.props.history,
         output,
         null,
+        // Never show diffing for output cells TODO: Add diffing?
         Sampler.NO_DIFF
-      ); //TODO fix
+      );
       this.setState({ sample: outSample.outerHTML });
     }
   }
@@ -58,15 +76,10 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: GhostCellOutput_Props
 ) => {
-  let output = state.ghostCells[ownProps.id];
   return {
-    ...ownProps,
     history: state.getHistory(),
-    linkArtifact: state.link_artifact,
-    ...output,
+    name: state.ghostCells[ownProps.id].name
   };
 };
 
-const GhostCellOutput = connect(mapStateToProps)(CellOutput);
-
-export default GhostCellOutput;
+export default connect(mapStateToProps)(GhostCellOutput);

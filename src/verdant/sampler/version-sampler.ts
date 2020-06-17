@@ -19,11 +19,6 @@ export namespace VersionSampler {
     query?: string,
     diff?: number
   ) {
-    console.log("History: ", history)
-    console.log("Nodey: ", nodey)
-    console.log("Query: ", query)
-    console.log("Diff: ", diff)
-    //diff = Sampler.NO_DIFF; //DEBUG ONLY
     let inspector = history.inspector;
     let text = inspector.renderNode(nodey);
 
@@ -66,7 +61,6 @@ export namespace VersionSampler {
     query?: string,
     diff?: number
   ): Promise<HTMLElement> {
-    if (diff === undefined) diff = Sampler.CHANGE_DIFF;
     content.classList.add("code");
     await inspector.renderDiff(nodeyVer, content, {
       newText: text,
@@ -95,7 +89,6 @@ export namespace VersionSampler {
     query?: string,
     diff?: number
   ): Promise<HTMLElement> {
-    if (diff === undefined) diff = Sampler.CHANGE_DIFF;
     content.classList.add("markdown");
     content.classList.add("jp-RenderedHTMLCommon");
     await inspector.renderDiff(nodeyVer, content, {

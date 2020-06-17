@@ -1,16 +1,26 @@
 import * as React from "react";
-import { CheckpointType, ChangeType } from "../../lilgit/model/checkpoint";
+import {
+  CheckpointType,
+  ChangeType,
+  Checkpoint
+} from "../../lilgit/model/checkpoint";
 import { History } from "../../lilgit/model/history";
 import { Nodey, NodeyOutput } from "../../lilgit/model/nodey";
 import { verdantState } from "../redux/index";
-import { ghostCellState } from "../redux/ghost";
 import { connect } from "react-redux";
 
 type GhostCellLabel_Props = {
+  // Index of the cell in state.GhostCells
   id: number;
+  // Entire state history. Used for VersionSampler
   history?: History;
+  // Function to link element to artifact panel.
   linkArtifact?: (name: string) => void;
-} & Partial<ghostCellState>; // loaded via redux
+  // String id of the cell
+  name?: string;
+  // Checkpoints associated with the cell
+  events?: Checkpoint[];
+};
 
 class CellLabel extends React.Component<GhostCellLabel_Props, {}> {
   render() {
