@@ -49,7 +49,7 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
         <div className={`v-Verdant-GhostBook-cell-band ${active}`}/>
         <div className="v-Verdant-GhostBook-container-stack">
           <div className="v-Verdant-GhostBook-cell-container">
-            <GhostCellLabel id={this.props.id}/>
+            <GhostCellLabel name={this.props.name} events={this.props.events} />
             <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
               <div
                 className={`v-Verdant-GhostBook-cell 

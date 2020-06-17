@@ -45,7 +45,7 @@ class GhostCellOutput extends React.Component<
   render() {
     return (
       <div className="v-Verdant-GhostBook-cell-container">
-        <GhostCellLabel id={this.props.id} />
+        <GhostCellLabel name={this.props.name} />
         <div className="v-Verdant-GhostBook-cell-content">
           <div className="v-Verdant-GhostBook-cell">
             <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
