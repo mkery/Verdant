@@ -33,7 +33,6 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
   }
 
   render() {
-    // TODO if (!this.props.showing) return null;
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
@@ -53,9 +52,8 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
             <GhostCellLabel id={this.props.id}/>
             <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
               <div
-                className={`v-Verdant-GhostBook-cell ${this.props.name.charAt(
-                  0
-                )}  ${active}`}
+                className={`v-Verdant-GhostBook-cell 
+                ${this.props.name.charAt(0)}  ${active}`}
                 dangerouslySetInnerHTML={{__html: this.state.sample}}
               ></div>
             </div>
@@ -68,6 +66,7 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
 
   private async getSample() {
     let nodey = this.props.history.store.get(this.props.name);
+    console.log("Rendering Ghost Cell ", this.props.name);
     if (!nodey) {
       // ERROR case
       console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
@@ -76,7 +75,6 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
       if (this.props.events === undefined || this.props.events.length === 0) {
         diff = Sampler.NO_DIFF;
       } else {
-        console.log(this.props.events);
         diff = Sampler.CHANGE_DIFF;
       }
       let sample = await VersionSampler.sample(
@@ -104,6 +102,7 @@ const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
     hasFocus: () => state.active_cell === cell.name,
     linkArtifact: state.link_artifact,
     ...cell,
+
   };
 };
 
