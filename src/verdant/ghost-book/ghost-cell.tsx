@@ -11,12 +11,12 @@ import {focusCell} from "../redux/ghost";
 import {Checkpoint} from "../../lilgit/model/checkpoint";
 
 export type GhostCell_Props = {
-  // Index of the cell in state.GhostCells
-  id: number;
+  // The index of the cell
+  id?: number;
   // Entire state history. Used for VersionSampler
   history?: History;
   // String id of the cell
-  name?: string;
+  name: string;
   // Index of the cell's output cell (for a code cell) in state.GhostCells
   output?: number;
   // Checkpoints associated with the cell
@@ -106,8 +106,9 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 }
 
 const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
-  let cell = state.ghostCells[ownProps.id];
+  let cell = state.ghostCells.get(ownProps.name);
   return {
+    id: cell.index,
     history: state.getHistory(),
     hasFocus: () => state.active_cell === cell.name,
     name: cell.name,

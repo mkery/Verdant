@@ -24,7 +24,7 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
 /*
  * Make a sub class to contain cells to make updates work across notebooks better
  */
-class CellContainer extends React.Component<{ cells: ghostCellState[] }> {
+class CellContainer extends React.Component<{ cells: Map<string, ghostCellState> }> {
   render() {
     return (
       <div className="v-Verdant-GhostBook">
@@ -34,9 +34,17 @@ class CellContainer extends React.Component<{ cells: ghostCellState[] }> {
     );
   }
 
-  private showCells() { // Map non-output cells to GhostCells
-    return this.props.cells.map((cell: ghostCellState, index: number) =>
-      cell.name[0] !== "o" ? <GhostCell key={index} id={index} /> : null
+  private showCells() {
+    /* Map cells to GhostCells */
+    // construct list from Map
+    let cellList = [...this.props.cells.entries()];
+    // sort list by index of cell
+    cellList.sort(
+      (a, b) =>
+        a[1].index - b[1].index
+    );
+    return cellList.map((cell, index: number) =>
+      <GhostCell key={index} name={cell[0]} />
     );
   }
 }
