@@ -18,7 +18,7 @@ export type GhostCell_Props = {
   // String id of the cell
   name: string;
   // Index of the cell's output cell (for a code cell) in state.GhostCells
-  output?: number;
+  output?: string;
   // Checkpoints associated with the cell
   events?: Checkpoint[];
 
@@ -76,7 +76,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
             </div>
           </div>
           {nodey instanceof NodeyCode && nodey.output ?
-            <GhostCellOutput id={this.props.output}/> : null}
+            <GhostCellOutput name={this.props.output}/> : null}
         </div>
       </div>
     );
@@ -106,20 +106,15 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 }
 
 const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
-  let cell = state.ghostCells.get(ownProps.name);
   return {
-    id: cell.index,
     history: state.getHistory(),
-    hasFocus: () => state.active_cell === cell.name,
-    name: cell.name,
-    output: cell.output,
-    events: cell.events
+    hasFocus: () => state.active_cell === ownProps.name
   };
 };
 
 const mapDispatchToProps = (dispatch: any, ownProps: GhostCell_Props) => {
   return {
-    clickEv: () => dispatch(focusCell(ownProps.id)),
+    clickEv: () => dispatch(focusCell(ownProps.name)),
   };
 };
 

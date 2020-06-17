@@ -23,13 +23,12 @@ type GhostCellLabel_Props = {
 class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
   /* Component to render label for a ghost cell. */
   render() {
-    let text = this.describe();
     return (
       <div
         className="v-Verdant-GhostBook-cell-header"
         onClick={() => this.props.linkArtifact(this.props.name)}
       >
-        {text}
+        {this.describe()}
       </div>
     );
   }
