@@ -43,6 +43,7 @@ class GhostCellOutput extends React.Component<
   }
 
   render() {
+    /* Render cell output */
     return (
       <div className="v-Verdant-GhostBook-cell-container">
         <GhostCellLabel name={this.props.name} />
