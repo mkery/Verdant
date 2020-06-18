@@ -113,18 +113,20 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
   }
 };
 
-// Type of cells from notebook.cells
-type cellDat = {
-  cell: string;
-  index?: number;
-  events?: Checkpoint[];
-  output?: string;
-};
+
 
 function loadCells(history: History, ver: number) {
   // Load notebook and events
   let notebook = history.store.getNotebook(ver);
   let events = history.checkpoints.getByNotebook(ver);
+
+  // Type of cells after loading from notebook.cells
+  type cellDat = {
+    cell: string;
+    index?: number;
+    events?: Checkpoint[];
+    output?: string;
+  };
 
   let cells: cellDat[] = notebook.cells.map((item) => ({
     cell: item,
@@ -133,10 +135,14 @@ function loadCells(history: History, ver: number) {
 
   let deletedCells: cellDat[] = [];
 
+  // For each event, update list of events matching target cells
   events.forEach((ev) => {
     ev.targetCells.forEach((cell) => {
       let index = notebook.cells.indexOf(cell.node);
       if (index < 0 && ev.checkpointType === CheckpointType.DELETE) {
+        // Add new deleted cell with the event.
+        // If a cell cannot be deleted multiple times per notebook version,
+        // it should be fine to simply add a new deleted cell each time.
         deletedCells.push({
           cell: cell.node,
           index: cell.index,
@@ -146,11 +152,12 @@ function loadCells(history: History, ver: number) {
     });
   });
 
-  // to not mess up the other indices
+  // Put deleted cells in the cells list with proper indexing
   deletedCells.forEach((item) => {
     cells.splice(item.index, 0, item);
   });
 
+  // Compute output cells
   let output: cellDat[] = [];
   cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
@@ -163,6 +170,7 @@ function loadCells(history: History, ver: number) {
     }
   });
 
+  // Add cells to cell map
   const loadedCells = new Map();
   cells.forEach((cell, index) => {
     loadedCells.set(cell.cell, {
@@ -174,6 +182,7 @@ function loadCells(history: History, ver: number) {
     })
   });
 
+  // Add output to output map
   const loadedOutput = new Map();
   output.forEach((cell, index) => {
     loadedOutput.set(cell.cell, {

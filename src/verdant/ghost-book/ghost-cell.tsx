@@ -10,6 +10,15 @@ import {verdantState} from "../redux/index";
 import {focusCell} from "../redux/ghost";
 import {Checkpoint} from "../../lilgit/model/checkpoint";
 
+/* CSS Constants */
+const CONTAINER = "v-Verdant-GhostBook-container";
+const CONTAINER_STACK = `${CONTAINER}-stack`;
+
+const CELL = "v-Verdant-GhostBook-cell";
+const CELL_BAND = `${CELL}-band`;
+const CELL_CONTAINER = `${CELL}-container`;
+const CELL_CONTENT = `${CELL}-content`;
+
 export type GhostCell_Props = {
   // The index of the cell
   id?: number;
@@ -46,7 +55,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     /* Render cell */
 
     // Asynchronously update innerHTML if change has occurred
-    this.getSample();
+    this.updateSample();
 
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
@@ -55,20 +64,20 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       return null;
     }
     let active = this.props.hasFocus() ? "active" : "";
+    console.log(this.props.name);
 
     return (
       <div
-        className={`v-Verdant-GhostBook-container ${active}`}
+        className={`${CONTAINER} ${active}`}
         onClick={() => this.props.clickEv()}
       >
-        <div className={`v-Verdant-GhostBook-cell-band ${active}`}/>
-        <div className="v-Verdant-GhostBook-container-stack">
-          <div className="v-Verdant-GhostBook-cell-container">
+        <div className={`${CELL_BAND} ${active}`}/>
+        <div className={CONTAINER_STACK}>
+          <div className={CELL_CONTAINER}>
             <GhostCellLabel name={this.props.name} events={this.props.events}/>
-            <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
+            <div className={`${CELL_CONTENT} ${active}`}>
               <div
-                className={`v-Verdant-GhostBook-cell 
-                ${this.props.name.charAt(0)}  ${active}`}
+                className={`${CELL} ${this.props.name.charAt(0)}  ${active}`}
                 dangerouslySetInnerHTML={{__html: this.state.sample}}
               />
             </div>
@@ -80,7 +89,15 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     );
   }
 
+  private async updateSample() {
+    /* Update the sample HTML if it has changed */
+    let newSample = await this.getSample();
+    if (newSample.outerHTML != this.state.sample)
+      this.setState({sample: newSample.outerHTML});
+  }
+
   private async getSample() {
+    /* Get the new sample HTML */
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
@@ -92,16 +109,12 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       } else {
         diff = Sampler.CHANGE_DIFF;
       }
-      let sample = await VersionSampler.sample(
+      return VersionSampler.sample(
         this.props.history,
         nodey,
         null,
         diff
       );
-
-      // update state only if a change has occurred
-      if (sample.outerHTML != this.state.sample)
-        this.setState({sample: sample.outerHTML});
     }
   }
 }

@@ -7,6 +7,10 @@ import { Store } from "redux";
 import { Provider } from "react-redux";
 import { verdantState } from "../redux";
 
+/* CSS Constants */
+const BOOK = "v-Verdant-GhostBook";
+const BOOK_CELLAREA = `${BOOK}-cellArea`;
+
 export interface GhostBook_Props {
   store: Store;
 }
@@ -27,9 +31,9 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
 class CellContainer extends React.Component<{ cells: Map<string, ghostCellState> }> {
   render() {
     return (
-      <div className="v-Verdant-GhostBook">
+      <div className={BOOK}>
         <GhostToolbar />
-        <div className="v-Verdant-GhostBook-cellArea">{this.showCells()}</div>
+        <div className={BOOK_CELLAREA}>{this.showCells()}</div>
       </div>
     );
   }
