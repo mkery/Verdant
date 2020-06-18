@@ -7,6 +7,12 @@ import GhostCellLabel from "./ghost-cell-label";
 import { connect } from "react-redux";
 import { verdantState } from "../redux/index";
 
+/* CSS CONSTANTS */
+const CELL = "v-Verdant-GhostBook-cell";
+const CELL_CONTAINER = `${CELL}-container`;
+const CELL_CONTENT = `${CELL}-content`;
+
+
 type GhostCellOutput_Props = {
   // String id of the output cell
   name: string;
@@ -43,10 +49,10 @@ class GhostCellOutput extends React.Component<
   render() {
     /* Render cell output */
     return (
-      <div className="v-Verdant-GhostBook-cell-container">
+      <div className={CELL_CONTAINER}>
         <GhostCellLabel name={this.props.name} />
-        <div className="v-Verdant-GhostBook-cell-content">
-          <div className="v-Verdant-GhostBook-cell">
+        <div className={CELL_CONTENT}>
+          <div className={CELL}>
             <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
           </div>
         </div>

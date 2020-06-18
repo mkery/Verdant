@@ -9,6 +9,9 @@ import {Nodey} from "../../lilgit/model/nodey";
 import {verdantState} from "../redux/index";
 import {connect} from "react-redux";
 
+/* CSS Constants */
+const LABEL = "v-Verdant-GhostBook-cell-header";
+
 // Accumulator for computing labels based on events
 type eventTypesAcc = {
   run: boolean;
@@ -35,7 +38,7 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
   render() {
     return (
       <div
-        className="v-Verdant-GhostBook-cell-header"
+        className={LABEL}
         onClick={() => this.props.linkArtifact(this.props.name)}
       >
         {this.describe()}
