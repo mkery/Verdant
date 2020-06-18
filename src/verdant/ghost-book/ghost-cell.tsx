@@ -21,7 +21,6 @@ export type GhostCell_Props = {
   output?: string;
   // Checkpoints associated with the cell
   events?: Checkpoint[];
-
   // On-click action
   clickEv?: () => void;
   // On-focus action
@@ -39,17 +38,16 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     super(props);
     // Set state
     this.state = {
-      sample: ""
+      sample: "",
     }
-  }
-
-  async componentDidMount() {
-    /* If the component is rendered, generate body HTML */
-    await this.getSample();
   }
 
   render() {
     /* Render cell */
+
+    // Asynchronously update innerHTML if change has occurred
+    this.getSample();
+
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
@@ -100,7 +98,10 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         null,
         diff
       );
-      this.setState({sample: sample.outerHTML});
+
+      // update state only if a change has occurred
+      if (sample.outerHTML != this.state.sample)
+        this.setState({sample: sample.outerHTML});
     }
   }
 }

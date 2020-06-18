@@ -103,7 +103,7 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
     /* Computes label from accumulated event changes.
     * Helper method for describe. */
     // Initialize label
-    let text = "";
+    let text = " ";
 
     // Compute label based on accumulator
     if (acc.run) { // if run
@@ -145,9 +145,7 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
   }
 }
 
-const mapStateToProps = (
-  state: verdantState,
-) => {
+const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     linkArtifact: state.link_artifact,
