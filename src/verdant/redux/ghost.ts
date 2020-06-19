@@ -88,13 +88,11 @@ export type ghostCellState = {
   index: number;
   events: Checkpoint[];
   output: string;
-  sample: string;
 };
 
 export type ghostCellOutputState = {
   name: string;
   events: Checkpoint[];
-  sample: string;
 };
 
 export const ghostReduce = (state: verdantState, action: any): ghostState => {
@@ -188,7 +186,6 @@ function loadCells(history: History, ver: number) {
       type: getCellType(cell.cell),
       index: index,
       events: cell.events,
-      sample: "",
       output: cell.output
     })
   });
@@ -199,7 +196,6 @@ function loadCells(history: History, ver: number) {
     loadedOutput.set(cell.cell, {
       name: cell.cell,
       events: cell.events,
-      sample: ""
     })
   });
 
