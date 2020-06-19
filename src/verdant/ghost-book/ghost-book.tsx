@@ -54,6 +54,7 @@ class CellContainer extends React.Component<{ cells: Map<string, ghostCellState>
         id={cell[1].index}
         events={cell[1].events}
         output={cell[1].output}
+        type={cell[1].type}
       />
     );
   }

@@ -10,6 +10,13 @@ const SWITCH_NOTEBOOK = "SWITCH_NOTEBOOK";
 const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
 const SWITCH_CELL = "SWITCH_CELL";
 
+export enum CELL_TYPE {
+  /* types of cells in ghost notebook main cell list */
+  CODE,
+  MARKDOWN,
+  NONE
+}
+
 export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
   return {
     type: SET_GHOST_OPENER,
@@ -77,14 +84,17 @@ export type cellEffect =
 
 export type ghostCellState = {
   name: string;
+  type: CELL_TYPE;
   index: number;
-  output: string;
   events: Checkpoint[];
+  output: string;
+  sample: string;
 };
 
 export type ghostCellOutputState = {
   name: string;
   events: Checkpoint[];
+  sample: string;
 };
 
 export const ghostReduce = (state: verdantState, action: any): ghostState => {
@@ -175,6 +185,7 @@ function loadCells(history: History, ver: number) {
   cells.forEach((cell, index) => {
     loadedCells.set(cell.cell, {
       name: cell.cell,
+      type: getCellType(cell.cell),
       index: index,
       events: cell.events,
       sample: "",
@@ -188,10 +199,18 @@ function loadCells(history: History, ver: number) {
     loadedOutput.set(cell.cell, {
       name: cell.cell,
       events: cell.events,
-      sample: "",
+      sample: ""
     })
   });
 
   return [loadedCells, loadedOutput];
+}
 
+function getCellType(name: string): CELL_TYPE {
+  /* Computes cell type from a cell name */
+  if (name.includes("c")) return CELL_TYPE.CODE;
+  if (name.includes("m")) return CELL_TYPE.MARKDOWN;
+
+  // Default for error handling
+  return CELL_TYPE.NONE;
 }
