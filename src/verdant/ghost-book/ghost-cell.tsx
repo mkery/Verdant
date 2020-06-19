@@ -7,7 +7,7 @@ import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
 import {connect} from "react-redux";
 import {verdantState} from "../redux/index";
-import {focusCell} from "../redux/ghost";
+import {CELL_TYPE, focusCell} from "../redux/ghost";
 import {Checkpoint} from "../../lilgit/model/checkpoint";
 
 /* CSS Constants */
@@ -19,6 +19,12 @@ const CELL_BAND = `${CELL}-band`;
 const CELL_CONTAINER = `${CELL}-container`;
 const CELL_CONTENT = `${CELL}-content`;
 
+const CODE_CELL = "code";
+const MARKDOWN_CELL = "markdown";
+
+// Enum for types of cells
+
+
 export type GhostCell_Props = {
   // The index of the cell
   id?: number;
@@ -26,6 +32,8 @@ export type GhostCell_Props = {
   history?: History;
   // String id of the cell
   name: string;
+  // Type of the cell
+  type: CELL_TYPE;
   // Index of the cell's output cell (for a code cell) in state.GhostCells
   output?: string;
   // Checkpoints associated with the cell
@@ -77,7 +85,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
             <GhostCellLabel name={this.props.name} events={this.props.events}/>
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
-                className={`${CELL} ${this.props.name.charAt(0)}  ${active}`}
+                className={`${CELL} ${this.cellTypeCSS()}  ${active}`}
                 dangerouslySetInnerHTML={{__html: this.state.sample}}
               />
             </div>
@@ -115,6 +123,18 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         null,
         diff
       );
+    }
+  }
+
+  private cellTypeCSS(): string {
+    /* Returns the CSS class for the cell type */
+    switch (this.props.type) {
+      case CELL_TYPE.CODE:
+        return CODE_CELL;
+      case CELL_TYPE.MARKDOWN:
+        return MARKDOWN_CELL;
+      case CELL_TYPE.NONE:
+        return "";
     }
   }
 }
