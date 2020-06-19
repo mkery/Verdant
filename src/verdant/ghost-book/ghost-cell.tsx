@@ -94,7 +94,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
               />
             </div>
           </div>
-          {displayOutput ? <GhostCellOutput name={this.props.output}/> : null}
+          {displayOutput ? <GhostCellOutput name={this.props.output} codeCell={this.props.name}/>  : null}
         </div>
       </div>
     );
