@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Sampler } from "../../lilgit/model/sampler";
-import { VersionSampler } from "../sampler/version-sampler";
-import { History } from "../../lilgit/model/history";
-import { NodeyOutput } from "../../lilgit/model/nodey";
+import {Sampler} from "../../lilgit/model/sampler";
+import {VersionSampler} from "../sampler/version-sampler";
+import {History} from "../../lilgit/model/history";
+import {NodeyOutput} from "../../lilgit/model/nodey";
 import GhostCellLabel from "./ghost-cell-label";
-import { connect } from "react-redux";
-import { verdantState } from "../redux/index";
+import {connect} from "react-redux";
+import {verdantState} from "../redux/index";
 
 /* CSS CONSTANTS */
 const CELL = "v-Verdant-GhostBook-cell";
@@ -24,10 +24,8 @@ type GhostCellOutput_State = {
   sample: string;
 }
 
-class GhostCellOutput extends React.Component<
-  GhostCellOutput_Props,
-  GhostCellOutput_State
-> {
+class GhostCellOutput extends React.Component<GhostCellOutput_Props,
+  GhostCellOutput_State> {
   /*
   * Component to render output of a code ghost cell.
   * */
@@ -41,23 +39,33 @@ class GhostCellOutput extends React.Component<
     }
   }
 
-  async componentDidMount() {
-    /* If the component is rendered, generate body HTML */
-    await this.getSample();
-  }
-
   render() {
     /* Render cell output */
+
+    // Conditionally update HTML
+    this.updateSample();
+
+    // If output is empty, return nothing
+
+    if (this.state.sample.length === 0) return null;
+
     return (
       <div className={CELL_CONTAINER}>
-        <GhostCellLabel name={this.props.name} />
+        <GhostCellLabel name={this.props.name}/>
         <div className={CELL_CONTENT}>
           <div className={CELL}>
-            <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
+            <div dangerouslySetInnerHTML={{__html: this.state.sample}}/>
           </div>
         </div>
       </div>
     );
+  }
+
+  private async updateSample() {
+    /* Update the sample HTML if it has changed */
+    let newSample = await this.getSample();
+    if (newSample && newSample.outerHTML != this.state.sample)
+      this.setState({sample: newSample.outerHTML});
   }
 
   async getSample() {
@@ -65,14 +73,13 @@ class GhostCellOutput extends React.Component<
     let output = this.props.history.store.get(this.props.name) as NodeyOutput;
     if (output.raw.length > 0) {
       // Attach diffs to output
-      let outSample = await VersionSampler.sample(
+      return VersionSampler.sample(
         this.props.history,
         output,
         null,
         // Never show diffing for output cells TODO: Add diffing?
         Sampler.NO_DIFF
       );
-      this.setState({ sample: outSample.outerHTML });
     }
   }
 }
