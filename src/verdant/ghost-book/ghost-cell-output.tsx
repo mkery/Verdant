@@ -14,6 +14,8 @@ const CELL_CONTENT = `${CELL}-content`;
 
 
 type GhostCellOutput_Props = {
+  // Parent code cell id
+  codeCell: string;
   // String id of the output cell
   name: string;
   // Entire state history. Used for VersionSampler
@@ -46,7 +48,6 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
     this.updateSample();
 
     // If output is empty, return nothing
-
     if (this.state.sample.length === 0) return null;
 
     return (
@@ -64,8 +65,19 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
   private async updateSample() {
     /* Update the sample HTML if it has changed */
     let newSample = await this.getSample();
-    if (newSample && newSample.outerHTML != this.state.sample)
+    if (
+      newSample === undefined && // sample is undefined and
+      this.state.sample !== ""   // sample has not been reset
+    ) {
+      // undefined samples are reset to blank
+      this.setState({sample: ""});
+    } else if (
+      newSample !== undefined &&                // sample is not undefined
+      this.state.sample !== newSample.outerHTML // sample has not been updated
+    ) {
+      // new samples update state
       this.setState({sample: newSample.outerHTML});
+    }
   }
 
   async getSample() {
