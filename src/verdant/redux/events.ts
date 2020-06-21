@@ -46,16 +46,16 @@ export const saveBundles = (bundles: number[], date: number) => {
   return {
     type: SAVE_BUNDLES,
     date: date,
-    bundles: bundles
-  }
-}
+    bundles: bundles,
+  };
+};
 
 export const bundleOpen = (date: number, bundle: number) => {
   return {
     type: BUNDLE_EXPAND,
     date: date,
     bundle_id: bundle,
-    status: true
+    status: true,
   };
 };
 
@@ -64,7 +64,7 @@ export const bundleClose = (date: number, bundle: number) => {
     type: BUNDLE_EXPAND,
     date: date,
     bundle_id: bundle,
-    status: false
+    status: false,
   };
 };
 
@@ -75,7 +75,7 @@ export type eventState = {
 
 export type bundleState = {
   isOpen: boolean;
-}
+};
 
 export type dateState = {
   isOpen: boolean;
@@ -140,15 +140,15 @@ export const eventReducer = (
     case SAVE_BUNDLES:
       const updatedBundles = {
         ...state.dates[action.date],
-        bundles: action.bundles
-      }
+        bundles: action.bundles,
+      };
       return {
         ...state,
         dates: [
           ...state.dates.slice(0, action.date),
           updatedBundles,
           ...state.dates.slice(action.date + 1),
-        ]
+        ],
       };
     case BUNDLE_EXPAND:
       const bundleStates = state.dates[action.date].bundleStates;
@@ -162,8 +162,8 @@ export const eventReducer = (
         dates: [
           ...state.dates.slice(0, action.date),
           updatedBundleDate,
-          ...state.dates.slice(action.date + 1)
-        ]
+          ...state.dates.slice(action.date + 1),
+        ],
       };
     default:
       return state;
@@ -178,13 +178,13 @@ export function reducer_addEvent(
   let date = dates[dates.length - 1];
   if (!date || !Checkpoint.sameDay(time, date.date)) {
     // new date
-    let newEvent: eventState = {notebook: event.notebook, events: [event]};
+    let newEvent: eventState = { notebook: event.notebook, events: [event] };
     let newDate: dateState = {
       isOpen: true,
       date: time,
       events: [newEvent],
       bundles: null,
-      bundleStates: [{isOpen: false}]
+      bundleStates: [{ isOpen: false }],
     };
     dates.push(newDate);
   } else {
@@ -201,7 +201,7 @@ export function reducer_addEvent(
       };
       date.events.push(newEvent);
       // keep bundleStates as long as event list
-      date.bundleStates.push({isOpen: false});
+      date.bundleStates.push({ isOpen: false });
     }
   }
   return dates;
@@ -215,8 +215,8 @@ function reducer_initEventMap(state: verdantState) {
     .forEach((event) => reducer_addEvent(event, dates));
   // Set all dates to closed except the most recent
   return dates.map((x, i) => {
-    x.bundleStates.map(b => b.isOpen = false);
-    return {...x, isOpen: i == dates.length - 1};
+    x.bundleStates.map((b) => (b.isOpen = false));
+    return { ...x, isOpen: i == dates.length - 1 };
   });
 }
 

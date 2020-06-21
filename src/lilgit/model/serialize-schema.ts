@@ -1,14 +1,7 @@
 import { Nodey } from "./nodey";
-import { CheckpointType, CellRunData } from "./checkpoint";
+import { Checkpoint } from "./checkpoint";
 
 export namespace SERIALIZE {
-  export interface Checkpoint {
-    checkpointType: CheckpointType;
-    timestamp: number;
-    notebook: number;
-    targetCells: CellRunData[];
-  }
-
   export interface NodeHistory {
     runs: Checkpoint[];
     cells: number[];

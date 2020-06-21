@@ -1,57 +1,15 @@
-import { NodeyCell, NodeyCode, NodeyNotebook } from "./nodey";
-import { History } from "./history";
-import { log } from "../components/notebook";
-import { SERIALIZE } from "./serialize-schema";
+import { NodeyCell, NodeyCode, NodeyNotebook } from "../nodey";
+import { History } from "../history";
+import { log } from "../../components/notebook";
+import {
+  CheckpointType,
+  CellRunData,
+  CONVERT_ChangeType,
+  ChangeType,
+} from "./constants";
+import { Checkpoint } from "./checkpoint";
 
 const DEBUG = false;
-
-// made verbose for log readability
-export enum ChangeType {
-  CHANGED = "edited",
-  REMOVED = "removed",
-  ADDED = "added",
-  SAME = "no change",
-  MOVED = "moved",
-  NONE = "n/a",
-}
-
-// old log format for conversion
-const CONVERT_ChangeType = {
-  2: ChangeType.CHANGED,
-  1.5: ChangeType.REMOVED,
-  1: ChangeType.ADDED,
-  0: ChangeType.SAME,
-  3: ChangeType.MOVED,
-  4: ChangeType.NONE,
-};
-
-// made verbose for log readability
-export enum CheckpointType {
-  RUN = "run",
-  SAVE = "notebook saved",
-  LOAD = "notebook loaded",
-  ADD = "cell added",
-  DELETE = "cell deleted",
-  MOVED = "cell moved",
-}
-
-export type CellRunData = {
-  node: string;
-  changeType: ChangeType;
-  newOutput?: string[];
-  index?: number;
-};
-
-/*
- * NOTE: Checkpoints (for now) are
- * - cell is run
- * - save
- * - load
- * - cell is added
- * - cell is deleted
- * - cell is moved
- * NOTE: signal new events so views update
- */
 
 export class HistoryCheckpoints {
   readonly history: History;
@@ -120,8 +78,9 @@ export class HistoryCheckpoints {
             cellMap[index] = match;
             // convert for older log format
             if (typeof cellMap[index].changeType === "number")
-              cellMap[index].changeType =
-                CONVERT_ChangeType[cellMap[index].changeType];
+              cellMap[index].changeType = CONVERT_ChangeType(
+                cellMap[index].changeType
+              );
           } else if (!cellMap[index])
             cellMap[index] = { node: name, changeType: ChangeType.NONE };
         });
@@ -178,17 +137,17 @@ export class HistoryCheckpoints {
     return [checkpoint, this.handleCellRun.bind(this, checkpoint.id)];
   }
 
-  public fromJSON(data: SERIALIZE.Checkpoint[]) {
+  public fromJSON(data: Checkpoint.SERIALIZE[]) {
     if (DEBUG) log("CHECKPOINTS FROM JSON", data);
     this.checkpointList = data.map(
-      (item: SERIALIZE.Checkpoint, index: number) => {
+      (item: Checkpoint.SERIALIZE, index: number) => {
         return Checkpoint.fromJSON(item, index);
       }
     );
     if (DEBUG) log("CHECKPOINTS LOADED", this.checkpointList);
   }
 
-  public toJSON(): SERIALIZE.Checkpoint[] {
+  public toJSON(): Checkpoint.SERIALIZE[] {
     return this.checkpointList.map((item) => {
       return item.toJSON();
     });
@@ -287,138 +246,5 @@ export class HistoryCheckpoints {
 
     this.checkpointList[runID].targetCells.push(runCell);
     this.checkpointList[runID].notebook = notebook;
-  }
-}
-
-export class Checkpoint {
-  readonly timestamp: number;
-  readonly id: number;
-  notebook: number;
-  readonly targetCells: CellRunData[];
-  readonly checkpointType: CheckpointType;
-
-  //runID, timestamp, notebook, runCells, output
-  constructor(options: { [key: string]: any }) {
-    this.timestamp = options.timestamp;
-    this.id = options.id;
-    this.notebook = options.notebook;
-    this.targetCells = options.targetCells;
-    this.checkpointType = options.checkpointType;
-  }
-
-  public get name() {
-    return this.id + "";
-  }
-
-  public toJSON(): SERIALIZE.Checkpoint {
-    return {
-      checkpointType: this.checkpointType,
-      timestamp: this.timestamp,
-      notebook: this.notebook,
-      targetCells: this.targetCells,
-    };
-  }
-}
-
-export namespace Checkpoint {
-  export function fromJSON(dat: SERIALIZE.Checkpoint, id: number): Checkpoint {
-    return new Checkpoint({
-      id: id,
-      checkpointType: dat.checkpointType,
-      timestamp: dat.timestamp,
-      notebook: dat.notebook,
-      targetCells: dat.targetCells,
-    });
-  }
-
-  export function formatTime(date: Date | number): string {
-    if (typeof date == "number") date = new Date(date);
-    var hours = date.getHours();
-    var minutes = date.getMinutes();
-    var ampm = hours >= 12 ? "pm" : "am";
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
-    return hours + ":" + (minutes < 10 ? "0" + minutes : minutes) + ampm;
-  }
-
-  export function formatDate(date: Date | number): string {
-    if (typeof date == "number") date = new Date(date);
-    var monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
-    var dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-
-    var today = new Date();
-    var yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-
-    var dateDesc = "";
-
-    if (sameDay(today, date)) dateDesc = "today ";
-    else if (sameDay(yesterday, date)) dateDesc = "yesterday ";
-    else dateDesc = dayNames[date.getDay()] + " ";
-
-    dateDesc +=
-      monthNames[date.getMonth()] +
-      " " +
-      date.getDate() +
-      " " +
-      date.getFullYear();
-    return dateDesc;
-  }
-
-  export function sameDay(d1: Date | number, d2: Date | number) {
-    if (typeof d1 == "number") d1 = new Date(d1);
-    if (typeof d2 == "number") d2 = new Date(d2);
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
-    );
-  }
-
-  export function beforeDay(d1: Date, d2: Date) {
-    return (
-      !this.sameDay(d1, d2) &&
-      d1.getFullYear() <= d2.getFullYear() &&
-      d1.getMonth() <= d2.getMonth() &&
-      d1.getDate() <= d2.getDate()
-    );
-  }
-
-  export function sameMinute(d1: Date, d2: Date) {
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate() &&
-      d1.getHours() === d2.getHours() &&
-      d1.getMinutes() === d2.getMinutes()
-    );
-  }
-
-  export function dateNow(): Date {
-    var d = new Date();
-    d.setHours(12, 0, 0); // set to default time since we only want the day
-    return d;
   }
 }

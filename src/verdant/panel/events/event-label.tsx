@@ -1,7 +1,7 @@
 import * as React from "react";
-import {Checkpoint, CheckpointType} from "../../../lilgit/model/checkpoint";
-import {connect} from "react-redux";
-import {verdantState} from "../../redux/index";
+import { Checkpoint, CheckpointType } from "../../../lilgit/model/checkpoint";
+import { connect } from "react-redux";
+import { verdantState } from "../../redux/index";
 
 const LABEL = "Verdant-events-label";
 
@@ -18,7 +18,7 @@ interface eventCounts {
 type timeLabel = {
   time: string;
   eventCounts: eventCounts;
-  events: Checkpoint[]
+  events: Checkpoint[];
 };
 type EventLabel_Props = {
   events: Checkpoint[];
@@ -30,30 +30,28 @@ type EventLabel_State = {
   times: timeLabel[];
 };
 
-class NotebookEventLabel extends React.Component<EventLabel_Props,
-  EventLabel_State> {
+class NotebookEventLabel extends React.Component<
+  EventLabel_Props,
+  EventLabel_State
+> {
   constructor(props: EventLabel_Props) {
     super(props);
     let times: timeLabel[] = [];
-    this.props.events.map(ev => this.addEvent(ev, times));
+    this.props.events.map((ev) => this.addEvent(ev, times));
     this.state = {
-      times
+      times,
     };
   }
 
   render() {
-    return (
-      <div className={LABEL}>
-        {this.makeTimestamp()}
-      </div>
-    );
+    return <div className={LABEL}>{this.makeTimestamp()}</div>;
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.eventCount !== prevProps.eventCount) {
       let times: timeLabel[] = [];
-      this.props.events.map(ev => this.addEvent(ev, times));
-      this.setState({times: times});
+      this.props.events.map((ev) => this.addEvent(ev, times));
+      this.setState({ times: times });
     }
   }
 
@@ -65,17 +63,17 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
       moved: 0,
       load: 0,
       run: 0,
-      save: 0
-    }
+      save: 0,
+    };
 
-    this.state.times.forEach(t => {
+    this.state.times.forEach((t) => {
       counts.added += t.eventCounts.added;
       counts.deleted += t.eventCounts.deleted;
       counts.moved += t.eventCounts.moved;
       counts.load += t.eventCounts.load;
       counts.run += t.eventCounts.run;
       counts.save += t.eventCounts.save;
-    })
+    });
 
     let label = "";
 
@@ -118,7 +116,7 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
   public addEvent(event: Checkpoint, times: timeLabel[]) {
     let time = Checkpoint.formatTime(event.timestamp);
 
-    let matchTime = times.filter(item => item.time === time)[0];
+    let matchTime = times.filter((item) => item.time === time)[0];
     if (!matchTime) {
       matchTime = {
         time: time,
@@ -129,8 +127,8 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
           moved: 0,
           load: 0,
           run: 0,
-          save: 0
-        }
+          save: 0,
+        },
       };
       times.push(matchTime);
     }
@@ -147,10 +145,10 @@ class NotebookEventLabel extends React.Component<EventLabel_Props,
       moved: 0,
       load: 0,
       run: 0,
-      save: 0
-    }
+      save: 0,
+    };
 
-    events.forEach(ev => {
+    events.forEach((ev) => {
       switch (ev.checkpointType) {
         case CheckpointType.ADD:
           counts.added++;
@@ -181,16 +179,18 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<EventLabel_Props>
 ) => {
-  if (ownProps.event_id !== null) { // regular case
+  if (ownProps.event_id !== null) {
+    // regular case
     let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
     return {
       events: eventList.events,
-      eventCount: eventList.events.length
+      eventCount: eventList.events.length,
     };
-  } else { // null case, for bundle labels
+  } else {
+    // null case, for bundle labels
     return {
       events: ownProps.events,
-      eventCount: ownProps.events.length
+      eventCount: ownProps.events.length,
     };
   }
 };
