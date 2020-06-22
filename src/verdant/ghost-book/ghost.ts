@@ -28,7 +28,7 @@ export class Ghost extends Widget {
     const initialState: Partial<ghostState> = {
       notebook_ver: ver,
       active_cell: null,
-      show_all_cells: true,
+      diffPresent: true,
       changeGhostTitle: changeTitle.bind(this),
       link_artifact: (name: string) => {
         let history = store.getState().getHistory();

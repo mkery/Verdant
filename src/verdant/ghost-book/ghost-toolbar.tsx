@@ -11,12 +11,15 @@ const JP_TOOLBAR = "jp-Toolbar";
 
 const HEADER = "v-Verdant-GhostBook-header";
 const HEADER_ROW = `${HEADER}-row`;
+const HEADER_TOGGLE = `${HEADER}-toggle`;
+const HEADER_TOGGLE_TEXT = `${HEADER_TOGGLE}-text`;
+const HEADER_TOGGLE_BUTTON = `${HEADER_TOGGLE}-button`;
 
 
 interface GhostToolbar_Props {
   history: History;
   name: number;
-  checked: boolean;
+  diffPresent: boolean;
   toggleShow: () => void;
 }
 
@@ -51,6 +54,13 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
       <div className={HEADER_ROW}>
         <div> Viewing version # {this.props.name + 1} of
           notebook {time ? "from " + time : ""} </div>
+        <div className={HEADER_TOGGLE}>
+          <div className={HEADER_TOGGLE_TEXT}>
+          {this.props.diffPresent ? "Checked" : "Unchecked"}
+          </div>
+          <div className={HEADER_TOGGLE_BUTTON}
+               onClick={this.props.toggleShow}/>
+        </div>
       </div>
     );
   }
@@ -60,7 +70,7 @@ const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     name: state.notebook_ver,
-    checked: state.show_all_cells,
+    diffPresent: state.diffPresent,
   };
 };
 

@@ -34,6 +34,8 @@ export type GhostCell_Props = {
   name: string;
   // Type of the cell
   type: CELL_TYPE;
+  // Whether to display diffs with present cells or prior version
+  diffPresent: boolean;
   // Index of the cell's output cell (for a code cell) in state.GhostCells
   output?: string;
   // Checkpoints associated with the cell
@@ -94,7 +96,11 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
               />
             </div>
           </div>
-          {displayOutput ? <GhostCellOutput name={this.props.output} codeCell={this.props.name}/>  : null}
+          {displayOutput ?
+            <GhostCellOutput
+              name={this.props.output}
+              codeCell={this.props.name}
+            /> : null}
         </div>
       </div>
     );
@@ -124,7 +130,8 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         this.props.history,
         nodey,
         null,
-        diff
+        diff,
+        this.props.diffPresent
       );
     }
   }

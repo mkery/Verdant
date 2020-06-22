@@ -17,7 +17,8 @@ export namespace VersionSampler {
     history: History,
     nodey: Nodey,
     query?: string,
-    diff?: number
+    diff?: number,
+    diffPresent?: boolean
   ) {
     let inspector = history.inspector;
     let text = inspector.renderNode(nodey);
@@ -30,9 +31,9 @@ export namespace VersionSampler {
     sample.appendChild(content);
 
     if (nodey instanceof NodeyCode)
-      await buildCode(inspector, nodey, text, content, query, diff);
+      await buildCode(inspector, nodey, text, content, query, diff, diffPresent);
     else if (nodey instanceof NodeyMarkdown)
-      await buildMarkdown(inspector, nodey, text, content, query, diff);
+      await buildMarkdown(inspector, nodey, text, content, query, diff, diffPresent);
     else if (nodey instanceof NodeyOutput)
       await buildOutput(inspector, nodey, content, query);
 
@@ -59,13 +60,15 @@ export namespace VersionSampler {
     text: string,
     content: HTMLElement,
     query?: string,
-    diff?: number
+    diff?: number,
+    diffPresent?: boolean
   ): Promise<HTMLElement> {
     content.classList.add("code");
     await inspector.renderDiff(nodeyVer, content, {
       newText: text,
       diffKind: diff,
-      textFocus: query
+      textFocus: query,
+      diffPresent: diffPresent
     });
 
     return content;
@@ -87,14 +90,16 @@ export namespace VersionSampler {
     text: string,
     content: HTMLElement,
     query?: string,
-    diff?: number
-  ): Promise<HTMLElement> {
+    diff?: number,
+    diffPresent?: boolean
+): Promise<HTMLElement> {
     content.classList.add("markdown");
     content.classList.add("jp-RenderedHTMLCommon");
     await inspector.renderDiff(nodeyVer, content, {
       newText: text,
       diffKind: diff,
-      textFocus: query
+      textFocus: query,
+      diffPresent: diffPresent
     });
 
     return content;

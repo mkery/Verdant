@@ -89,7 +89,7 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
         this.props.history,
         output,
         null,
-        // Never show diffing for output cells TODO: Add diffing?
+        // Never attempt to show diffing for output cells
         Sampler.NO_DIFF
       );
     }

@@ -260,6 +260,7 @@ export class Sampler {
       newText?: string;
       diffKind?: number;
       textFocus?: string;
+      diffPresent?: boolean;
     } = {}
   ) {
     if (nodey instanceof NodeyCode) this.diffCode(nodey, elem, options);
@@ -280,6 +281,7 @@ export class Sampler {
       newText?: string;
       diffKind?: number;
       textFocus?: string;
+      diffPresent?: boolean;
     }
   ) {
     let diffKind = opts.diffKind;
@@ -287,6 +289,7 @@ export class Sampler {
 
     // now split text into lines so that it displays correctly
     let lines = opts.newText.split("\n");
+    // TODO: Modify this to allow for diffs with current state
     let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
     let oldLines: string[] = [];
     if (prior) oldLines = this.renderCodeNode(prior).split("\n");
@@ -331,6 +334,7 @@ export class Sampler {
       newText?: string;
       diffKind?: number;
       textFocus?: string;
+      diffPresent?: boolean;
     }
   ) {
     let diffKind = opts.diffKind;
