@@ -1,8 +1,8 @@
-import { verdantState } from "./index";
-import { Ghost } from "../ghost-book/ghost";
-import { CheckpointType, Checkpoint } from "../../lilgit/model/checkpoint/";
-import { NodeyCode } from "../../lilgit/model/nodey";
-import { History } from "../../lilgit/model/history";
+import {verdantState} from "./index";
+import {Ghost} from "../ghost-book/ghost";
+import {CheckpointType, Checkpoint} from "../../lilgit/model/checkpoint";
+import {NodeyCode} from "../../lilgit/model/nodey";
+import {History} from "../../lilgit/model/history";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
@@ -57,7 +57,7 @@ export type ghostState = {
   ghostCells: Map<string, ghostCellState>;
   ghostCellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
-  show_all_cells: boolean;
+  diffPresent: boolean;
   link_artifact: (n: string) => void;
   changeGhostTitle: (n: number) => void;
 };
@@ -69,7 +69,7 @@ export const ghostInitialState = (): ghostState => {
     ghostCells: new Map(),
     ghostCellOutputs: new Map(),
     active_cell: null,
-    show_all_cells: true,
+    diffPresent: true,
     link_artifact: null,
     changeGhostTitle: null,
   };
@@ -98,17 +98,29 @@ export type ghostCellOutputState = {
 export const ghostReduce = (state: verdantState, action: any): ghostState => {
   switch (action.type) {
     case SET_GHOST_OPENER:
-      return { ...state, openGhostBook: action.fun };
-    case INIT_GHOSTBOOK:
-      let present = { ...state };
+      return {...state, openGhostBook: action.fun};
+    case INIT_GHOSTBOOK: {
+      let present = {...state};
       for (let key in action.state) present[key] = action.state[key];
-      [present.ghostCells, present.ghostCellOutputs] = loadCells(state.getHistory(), present.notebook_ver);
+      [present.ghostCells, present.ghostCellOutputs] =
+        loadCells(
+          present.getHistory(),
+          present.notebook_ver,
+          state.diffPresent
+        );
       return present;
-    case TOGGLE_SHOW_CELLS:
-      return {
-        ...state,
-        show_all_cells: !state.show_all_cells,
-      };
+    }
+    case TOGGLE_SHOW_CELLS: {
+      const present = {...state}
+      present.diffPresent = !present.diffPresent;
+      [present.ghostCells, present.ghostCellOutputs] =
+        loadCells(
+          present.getHistory(),
+          present.notebook_ver,
+          present.diffPresent
+        );
+      return present;
+    }
     case SWITCH_CELL:
       if (state.active_cell != action.cell)
         return {
@@ -122,12 +134,16 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
 };
 
 
-
-function loadCells(history: History, ver: number) {
+function loadCells(history: History, ver: number, diffPresent: boolean) {
   // Load notebook and events
-  let notebook = history.store.getNotebook(ver);
-  let events = history.checkpoints.getByNotebook(ver);
-
+  let notebook, events;
+  if (diffPresent) {
+    notebook = history.store.getNotebook(ver);
+    events = history.checkpoints.getByNotebook(ver);
+  } else {
+    notebook = history.store.currentNotebook;
+    events = [];
+  }
   // Type of cells after loading from notebook.cells
   type cellDat = {
     cell: string;
@@ -156,10 +172,11 @@ function loadCells(history: History, ver: number) {
           index: cell.index,
           events: [ev],
         });
-      } else cells[index].events.push(ev);
+      } else {
+        cells[index].events.push(ev);
+      }
     });
   });
-
   // Put deleted cells in the cells list with proper indexing
   deletedCells.forEach((item) => {
     cells.splice(item.index, 0, item);
@@ -170,7 +187,7 @@ function loadCells(history: History, ver: number) {
   cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
     if (nodey instanceof NodeyCode && nodey.output) {
-      let out = { cell: nodey.output };
+      let out = {cell: nodey.output};
       output.push(out);
       cell.output = nodey.output;
     } else {

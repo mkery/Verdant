@@ -25,10 +25,15 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
   }
 }
 
+export interface GhostCellContainer_Props {
+  cells: Map<string, ghostCellState>;
+  diffPresent: boolean;
+}
+
 /*
  * Make a sub class to contain cells to make updates work across notebooks better
  */
-class CellContainer extends React.Component<{ cells: Map<string, ghostCellState> }> {
+class CellContainer extends React.Component<GhostCellContainer_Props> {
   render() {
     return (
       <div className={BOOK}>
@@ -55,6 +60,7 @@ class CellContainer extends React.Component<{ cells: Map<string, ghostCellState>
         events={cell[1].events}
         output={cell[1].output}
         type={cell[1].type}
+        diffPresent={this.props.diffPresent}
       />
     );
   }
@@ -62,7 +68,8 @@ class CellContainer extends React.Component<{ cells: Map<string, ghostCellState>
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    cells: state.ghostCells
+    cells: state.ghostCells,
+    diffPresent: state.diffPresent
   };
 };
 
