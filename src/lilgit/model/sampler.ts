@@ -260,7 +260,7 @@ export class Sampler {
       newText?: string;
       diffKind?: number;
       textFocus?: string;
-      diffPresent?: boolean;
+      prior?: string;
     } = {}
   ) {
     if (nodey instanceof NodeyCode) this.diffCode(nodey, elem, options);
@@ -282,15 +282,22 @@ export class Sampler {
       diffKind?: number;
       textFocus?: string;
       diffPresent?: boolean;
+      prior?: string;
     }
   ) {
     let diffKind = opts.diffKind;
-    if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
+    if (opts.diffKind === undefined) {
+      diffKind = Sampler.NO_DIFF;
+    }
 
     // now split text into lines so that it displays correctly
     let lines = opts.newText.split("\n");
-    // TODO: Modify this to allow for diffs with current state
-    let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
+    let prior;
+    if (diffKind == Sampler.PRESENT_DIFF) {
+      prior = this.history.store.get(opts.prior) as NodeyCode;
+    } else {
+      prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
+    }
     let oldLines: string[] = [];
     if (prior) oldLines = this.renderCodeNode(prior).split("\n");
 
@@ -305,7 +312,7 @@ export class Sampler {
   private diffLine(diffKind: number, oldText: string, newText: string) {
     let line = document.createElement("div");
     let innerHTML = "";
-    if (diffKind === Sampler.CHANGE_DIFF) {
+    if (diffKind !== Sampler.NO_DIFF) {
       let diff = JSDiff.diffWords(oldText, newText);
       diff.forEach((part) => {
         let partDiv = document.createElement("span");
@@ -335,6 +342,7 @@ export class Sampler {
       diffKind?: number;
       textFocus?: string;
       diffPresent?: boolean;
+      prior?: string;
     }
   ) {
     let diffKind = opts.diffKind;
@@ -342,8 +350,13 @@ export class Sampler {
 
     if (diffKind === Sampler.NO_DIFF || !nodey.markdown)
       await this.renderBaby.renderMarkdown(elem, opts.newText);
-    else if (diffKind === Sampler.CHANGE_DIFF) {
-      let prior = this.history.store.getPriorVersion(nodey) as NodeyMarkdown;
+    else {
+      let prior;
+      if (diffKind === Sampler.PRESENT_DIFF) {
+        prior = this.history.store.get(opts.prior) as NodeyMarkdown;
+      } else {
+        prior = this.history.store.getPriorVersion(nodey) as NodeyMarkdown;
+      }
       if (!prior || !prior.markdown) {
         // easy, everything is added
         await this.renderBaby.renderMarkdown(elem, opts.newText);
@@ -415,4 +428,5 @@ export class Sampler {
 export namespace Sampler {
   export const NO_DIFF = -1;
   export const CHANGE_DIFF = 0;
+  export const PRESENT_DIFF = 1;
 }

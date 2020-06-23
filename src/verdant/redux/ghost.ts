@@ -69,7 +69,7 @@ export const ghostInitialState = (): ghostState => {
     ghostCells: new Map(),
     ghostCellOutputs: new Map(),
     active_cell: null,
-    diffPresent: true,
+    diffPresent: false,
     link_artifact: null,
     changeGhostTitle: null,
   };
@@ -88,6 +88,7 @@ export type ghostCellState = {
   index: number;
   events: Checkpoint[];
   output: string;
+  prior: string;
 };
 
 export type ghostCellOutputState = {
@@ -104,18 +105,18 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       for (let key in action.state) present[key] = action.state[key];
       [present.ghostCells, present.ghostCellOutputs] =
         loadCells(
-          present.getHistory(),
+          state.getHistory(),
           present.notebook_ver,
-          state.diffPresent
+          present.diffPresent
         );
       return present;
     }
     case TOGGLE_SHOW_CELLS: {
       const present = {...state}
-      present.diffPresent = !present.diffPresent;
+      present.diffPresent = !state.diffPresent;
       [present.ghostCells, present.ghostCellOutputs] =
         loadCells(
-          present.getHistory(),
+          state.getHistory(),
           present.notebook_ver,
           present.diffPresent
         );
@@ -135,21 +136,25 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
 
 
 function loadCells(history: History, ver: number, diffPresent: boolean) {
+  // TODO: Have method to display deleted cells when diffPresent
   // Load notebook and events
   let notebook, events;
   if (diffPresent) {
-    notebook = history.store.getNotebook(ver);
-    events = history.checkpoints.getByNotebook(ver);
-  } else {
     notebook = history.store.currentNotebook;
     events = [];
+  } else {
+    notebook = history.store.getNotebook(ver);
+    events = history.checkpoints.getByNotebook(ver);
   }
+
+
   // Type of cells after loading from notebook.cells
   type cellDat = {
     cell: string;
     index?: number;
     events?: Checkpoint[];
     output?: string;
+    prior?: string;
   };
 
   let cells: cellDat[] = notebook.cells.map((item) => ({
@@ -195,6 +200,29 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     }
   });
 
+  if (diffPresent) { // compute cell to diff against
+    // Get current version's cells
+    const prior = history.store.getNotebook(ver).cells;
+    // Add prior value to each cell
+    cells = cells.map(cell => {
+      const cell_id = cell.cell.substr(0, 3);
+
+      let priorCell = prior.find(name =>
+        name.substr(0, 3) === cell_id);
+
+      // Default to first instance of cell
+      if (priorCell === undefined) priorCell = `${cell_id}.0`;
+
+      cell.prior = priorCell;
+      return cell;
+    })
+  } else { // TODO: move prior cell computation here for regular ghost diff
+    cells = cells.map(cell => {
+      cell.prior = null;
+      return cell;
+    });
+  }
+
   // Add cells to cell map
   const loadedCells = new Map();
   cells.forEach((cell, index) => {
@@ -203,7 +231,8 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
       type: getCellType(cell.cell),
       index: index,
       events: cell.events,
-      output: cell.output
+      output: cell.output,
+      prior: cell.prior
     })
   });
 
