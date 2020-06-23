@@ -35,7 +35,6 @@ export type GhostCell_Props = {
   // Type of the cell
   type: CELL_TYPE;
   // Name of the prior cell to diff against in diffPresent case
-  // TODO: use this for all cases
   prior: string;
   // Whether to display diffs with present cells or prior version
   diffPresent?: boolean;

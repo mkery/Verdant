@@ -216,7 +216,7 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
       cell.prior = priorCell;
       return cell;
     })
-  } else { // TODO: move prior cell computation here for regular ghost diff
+  } else {
     cells = cells.map(cell => {
       cell.prior = null;
       return cell;
