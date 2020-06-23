@@ -60,7 +60,7 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
         events={cell[1].events}
         output={cell[1].output}
         type={cell[1].type}
-        diffPresent={this.props.diffPresent}
+        prior={cell[1].prior}
       />
     );
   }

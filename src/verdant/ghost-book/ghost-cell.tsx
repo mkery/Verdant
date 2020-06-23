@@ -34,8 +34,11 @@ export type GhostCell_Props = {
   name: string;
   // Type of the cell
   type: CELL_TYPE;
+  // Name of the prior cell to diff against in diffPresent case
+  // TODO: use this for all cases
+  prior: string;
   // Whether to display diffs with present cells or prior version
-  diffPresent: boolean;
+  diffPresent?: boolean;
   // Index of the cell's output cell (for a code cell) in state.GhostCells
   output?: string;
   // Checkpoints associated with the cell
@@ -70,7 +73,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
-      console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
+      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return null;
     }
     let active = this.props.hasFocus() ? "active" : "";
@@ -118,22 +121,26 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
-      console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
-    } else {
-      let diff;
-      if (this.props.events === undefined || this.props.events.length === 0) {
-        diff = Sampler.NO_DIFF;
-      } else {
-        diff = Sampler.CHANGE_DIFF;
-      }
-      return VersionSampler.sample(
-        this.props.history,
-        nodey,
-        null,
-        diff,
-        this.props.diffPresent
-      );
+      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
+      return;
     }
+    let diff;
+    if (this.props.diffPresent) {
+      diff = Sampler.PRESENT_DIFF;
+    } else if (this.props.events === undefined) {
+      diff = Sampler.NO_DIFF;
+    } else if (this.props.events.length === 0) { // optimizing case
+      diff = Sampler.NO_DIFF;
+    } else {
+      diff = Sampler.CHANGE_DIFF;
+    }
+    return VersionSampler.sample(
+      this.props.history,
+      nodey,
+      null,
+      diff,
+      this.props.prior
+    );
   }
 
   private cellTypeCSS(): string {
@@ -158,6 +165,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
   return {
     history: state.getHistory(),
+    diffPresent: state.diffPresent,
     hasFocus: () => state.active_cell === ownProps.name
   };
 };
