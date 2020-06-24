@@ -1,5 +1,5 @@
 import { History } from "../../lilgit/model/history";
-import { Checkpoint } from "../../lilgit/model/checkpoint";
+import { Checkpoint } from "../../lilgit/model/checkpoint/";
 import { verdantState, artifactState } from "./index";
 import { VerCell } from "../../lilgit/components/cell";
 
@@ -99,7 +99,7 @@ export const eventReducer = (
 ): verdantState => {
   switch (action.type) {
     case INIT_EVENT_MAP:
-      if (state.dates.length < 1)
+      if (state.dates.length < 2)
         return {
           ...state,
           dates: reducer_initEventMap(state),

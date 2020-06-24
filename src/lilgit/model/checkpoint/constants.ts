@@ -6,6 +6,7 @@ export enum ChangeType {
   SAME = "no change",
   MOVED = "moved",
   NONE = "n/a",
+  TYPE_CHANGED = "type changed",
 }
 
 // old log format for conversion
@@ -29,6 +30,7 @@ export enum CheckpointType {
   ADD = "cell added",
   DELETE = "cell deleted",
   MOVED = "cell moved",
+  SWITCH_CELL_TYPE = "cell type changed",
 }
 
 export type CellRunData = {

@@ -48,6 +48,10 @@ export class HistoryStore {
     return this._notebookHistory.latest;
   }
 
+  get lastSavedNotebook(): NodeyNotebook {
+    return this._notebookHistory.lastSaved as NodeyNotebook;
+  }
+
   public getNotebook(ver: number): NodeyNotebook {
     return this._notebookHistory.versions[ver];
   }

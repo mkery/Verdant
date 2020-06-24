@@ -12,7 +12,7 @@ import { HistoryStore } from "./history-store";
 
 import { HistoryStage } from "./history-stage";
 
-import { HistoryCheckpoints } from "./checkpoint";
+import { HistoryCheckpoints } from "./checkpoint/checkpoint-history";
 
 import { log } from "../components/notebook";
 

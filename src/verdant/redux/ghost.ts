@@ -1,6 +1,6 @@
 import { verdantState } from "./index";
 import { Ghost } from "../ghost-book/ghost";
-import { CheckpointType, Checkpoint } from "../../lilgit/model/checkpoint";
+import { CheckpointType, Checkpoint } from "../../lilgit/model/checkpoint/";
 import { NodeyCode } from "../../lilgit/model/nodey";
 import { History } from "../../lilgit/model/history";
 

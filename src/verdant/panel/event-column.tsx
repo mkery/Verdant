@@ -1,6 +1,6 @@
 import * as React from "react";
 import { History } from "../../lilgit/model/history";
-import { Checkpoint } from "../../lilgit/model/checkpoint";
+import { Checkpoint } from "../../lilgit/model/checkpoint/";
 import NotebookEventDate from "./events/event-date";
 import { connect } from "react-redux";
 import { initEventMap, dateState } from "../redux/events";

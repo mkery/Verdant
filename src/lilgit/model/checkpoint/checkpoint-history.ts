@@ -1,4 +1,4 @@
-import { NodeyCell, NodeyCode, NodeyNotebook } from "../nodey";
+import { NodeyNotebook } from "../nodey";
 import { History } from "../history";
 import { log } from "../../components/notebook";
 import {
@@ -43,7 +43,7 @@ export class HistoryCheckpoints {
     return id;
   }
 
-  private generateCheckpoint(
+  public generateCheckpoint(
     kind: CheckpointType,
     notebookVer?: number
   ): Checkpoint {
@@ -97,46 +97,6 @@ export class HistoryCheckpoints {
     return cellMap;
   }
 
-  public notebookSaved(): [
-    Checkpoint,
-    (newCells: NodeyCell[], notebook: number) => void
-  ] {
-    let checkpoint = this.generateCheckpoint(CheckpointType.SAVE);
-    return [checkpoint, this.handleNotebookSaved.bind(this, checkpoint.id)];
-  }
-
-  public notebookLoad(): [
-    Checkpoint,
-    (newCells: CellRunData[], notebook: number) => void
-  ] {
-    let checkpoint = this.generateCheckpoint(CheckpointType.LOAD);
-    // process is the same for save, so we'll just reuse that function for now
-    return [checkpoint, this.handleNotebookLoaded.bind(this, checkpoint.id)];
-  }
-
-  public cellAdded() {
-    let checkpoint = this.generateCheckpoint(CheckpointType.ADD);
-    return [checkpoint, this.handleCellAdded.bind(this, checkpoint.id)];
-  }
-
-  public cellDeleted() {
-    let checkpoint = this.generateCheckpoint(CheckpointType.DELETE);
-    return [checkpoint, this.handleCellDeleted.bind(this, checkpoint.id)];
-  }
-
-  public cellMoved() {
-    let checkpoint = this.generateCheckpoint(CheckpointType.MOVED);
-    return [checkpoint, this.handleCellMoved.bind(this, checkpoint.id)];
-  }
-
-  public cellRun(): [
-    Checkpoint,
-    (cellRun: NodeyCell, cellSame: boolean, notebookName: number) => void
-  ] {
-    let checkpoint = this.generateCheckpoint(CheckpointType.RUN);
-    return [checkpoint, this.handleCellRun.bind(this, checkpoint.id)];
-  }
-
   public fromJSON(data: Checkpoint.SERIALIZE[]) {
     if (DEBUG) log("CHECKPOINTS FROM JSON", data);
     this.checkpointList = data.map(
@@ -153,98 +113,24 @@ export class HistoryCheckpoints {
     });
   }
 
-  private handleNotebookLoaded(
-    saveId: number,
-    newCells: CellRunData[],
-    notebook: number
-  ) {
-    newCells.forEach((item) =>
-      this.checkpointList[saveId].targetCells.push(item)
-    );
-    this.checkpointList[saveId].notebook = notebook;
-  }
-
-  private handleNotebookSaved(
-    saveId: number,
-    newCells: NodeyCell[],
-    notebook: number
-  ) {
-    newCells.forEach((cell) => {
-      let newOutput: string[] = [];
-      if (cell instanceof NodeyCode) {
-        let output = this.history.store.get(cell.output);
-        if (output.created === saveId) newOutput.push(output.name);
-      }
-
-      let cellSaved = {
-        node: cell.name,
-        changeType: ChangeType.CHANGED,
-        run: true,
-        newOutput: newOutput,
-      } as CellRunData;
-
-      this.checkpointList[saveId].targetCells.push(cellSaved);
-    });
-    this.checkpointList[saveId].notebook = notebook;
-  }
-
-  private handleCellAdded(id: number, cell: NodeyCell, notebook: number) {
-    let cellDat = {
-      node: cell.name,
-      changeType: ChangeType.ADDED,
-    } as CellRunData;
-    this.checkpointList[id].targetCells.push(cellDat);
-    this.checkpointList[id].notebook = notebook;
-  }
-
-  private handleCellDeleted(
+  public resolveCheckpoint(
     id: number,
-    cell: NodeyCell,
-    notebook: number,
-    index: number
-  ) {
-    let cellDat = {
-      node: cell.name,
-      changeType: ChangeType.REMOVED,
-      index: index,
-    } as CellRunData;
-    this.checkpointList[id].targetCells.push(cellDat);
-    this.checkpointList[id].notebook = notebook;
-  }
-
-  private handleCellMoved(id: number, cell: NodeyCell, notebook: number) {
-    let cellDat = {
-      node: cell.name,
-      changeType: ChangeType.MOVED,
-    } as CellRunData;
-    this.checkpointList[id].targetCells.push(cellDat);
-    this.checkpointList[id].notebook = notebook;
-  }
-
-  private handleCellRun(
-    runID: number,
-    cellRun: NodeyCell,
-    cellSame: boolean,
+    cellRunDat: CellRunData[],
     notebook: number
   ) {
-    let newOutput: string[] = [];
-    if (cellRun instanceof NodeyCode) {
-      let output = this.history.store.get(cellRun.output);
-      if (output.created === runID) newOutput.push(output.name);
+    cellRunDat.forEach((cell) =>
+      this.checkpointList[id].targetCells.push(cell)
+    );
+    if (notebook) {
+      this.checkpointList[id].notebook = notebook;
+    } else {
+      console.error(
+        "ERROR Missing notebook for event!!! ",
+        this.checkpointList[id]
+      );
+      this.checkpointList[
+        id
+      ].notebook = this.history.store.lastSavedNotebook.id;
     }
-
-    let cellChange; // "changed" marker if there is edited text or new output
-    if (cellSame && newOutput.length < 1) cellChange = ChangeType.SAME;
-    else cellChange = ChangeType.CHANGED;
-
-    let runCell = {
-      node: cellRun.name,
-      changeType: cellChange,
-      run: true,
-      newOutput: newOutput,
-    } as CellRunData;
-
-    this.checkpointList[runID].targetCells.push(runCell);
-    this.checkpointList[runID].notebook = notebook;
   }
 }
