@@ -23,7 +23,7 @@ export class LoadNotebook extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     let newNotebook: NodeyNotebook | Star<NodeyNotebook>;
     let changedCells: CellRunData[];
     if (this.matchPrior) {
@@ -66,14 +66,13 @@ export class LoadNotebook extends NotebookEvent {
     });
     log("cell names", this.notebook.cells);
 
-    return [[], notebook];
+    return [];
   }
 
-  recordCheckpoint(_: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(_: NodeyCell[]) {
     this.history.checkpoints.resolveCheckpoint(
       this.checkpoint.id,
-      this.changedCells,
-      notebook.version
+      this.changedCells
     );
   }
 }

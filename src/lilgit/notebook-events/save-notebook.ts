@@ -2,7 +2,7 @@ import { NotebookEvent } from ".";
 import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
 import { Star } from "../model/history-stage";
 import { log } from "../components/notebook";
-import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
+import { NodeyCell, NodeyCode } from "../model/nodey";
 
 export class SaveNotebook extends NotebookEvent {
   createCheckpoint() {
@@ -11,7 +11,7 @@ export class SaveNotebook extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     // now see if there are any unsaved changes
     let currentNotebook = this.notebook.model;
     if (currentNotebook instanceof Star) {
@@ -41,10 +41,10 @@ export class SaveNotebook extends NotebookEvent {
 
         return [[changedCells], notebook];
       });
-    } else return [[], currentNotebook];
+    } else return [];
   }
 
-  recordCheckpoint(changedCells: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(changedCells: NodeyCell[]) {
     let cellDat = changedCells.map((cell) => {
       let newOutput: string[] = [];
       if (cell instanceof NodeyCode) {
@@ -61,11 +61,7 @@ export class SaveNotebook extends NotebookEvent {
       return cellSaved;
     });
 
-    this.history.checkpoints.resolveCheckpoint(
-      this.checkpoint.id,
-      cellDat,
-      notebook.version
-    );
+    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, cellDat);
   }
 
   endEvent() {

@@ -24,7 +24,7 @@ export class SwitchCellType extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     // this is going to create and store the new nodey
     let newNodey = await this.notebook.ast.create.fromCell(
       this.cell,
@@ -52,19 +52,15 @@ export class SwitchCellType extends NotebookEvent {
     );
     log("notebook commited", notebook, this.notebook.model, verCell);
 
-    return [[newNodey], notebook as NodeyNotebook];
+    return [newNodey];
   }
 
-  recordCheckpoint(changedCells: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(changedCells: NodeyCell[]) {
     let cellDat = {
       node: changedCells[0].name,
       changeType: ChangeType.TYPE_CHANGED,
     } as CellRunData;
 
-    this.history.checkpoints.resolveCheckpoint(
-      this.checkpoint.id,
-      [cellDat],
-      notebook.version
-    );
+    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [cellDat]);
   }
 }

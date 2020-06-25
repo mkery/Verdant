@@ -3,7 +3,7 @@ import { NotebookEvent } from ".";
 import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
 import { VerNotebook } from "../components/notebook";
 import { log } from "../components/notebook";
-import { NodeyCell, NodeyCode, NodeyNotebook } from "../model/nodey";
+import { NodeyCell, NodeyCode } from "../model/nodey";
 
 export class RunCell extends NotebookEvent {
   cellModel: ICellModel;
@@ -20,7 +20,7 @@ export class RunCell extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     // now repair the cell against the prior version
     let cell = this.notebook.getCell(this.cellModel);
     log("LOOKING FOR CELL", this.cellModel, this.notebook.cells);
@@ -35,10 +35,10 @@ export class RunCell extends NotebookEvent {
     );
     log("notebook commited", notebook, this.notebook.model);
 
-    return [[newNodey], notebook as NodeyNotebook];
+    return [newNodey];
   }
 
-  recordCheckpoint(changedCells: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(changedCells: NodeyCell[]) {
     let cellRun = changedCells[0];
     let newOutput: string[] = [];
     if (cellRun instanceof NodeyCode) {
@@ -57,11 +57,7 @@ export class RunCell extends NotebookEvent {
       newOutput: newOutput,
     } as CellRunData;
 
-    this.history.checkpoints.resolveCheckpoint(
-      this.checkpoint.id,
-      [runCell],
-      notebook.version
-    );
+    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [runCell]);
   }
 
   endEvent() {

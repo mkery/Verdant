@@ -31,7 +31,7 @@ export class CreateCell extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     // create the representation of the new cell
     let nodey = await this.notebook.ast.create.fromCell(
       this.cell,
@@ -52,18 +52,14 @@ export class CreateCell extends NotebookEvent {
     let updatedNotebook = this.history.stage.commit(this.checkpoint, model);
     log("notebook commited", updatedNotebook, this.notebook.model);
 
-    return [[newCell.model as NodeyCell], updatedNotebook as NodeyNotebook];
+    return [newCell.model as NodeyCell];
   }
 
-  recordCheckpoint(changedCells: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(changedCells: NodeyCell[]) {
     let cellDat = {
       node: changedCells[0].name,
       changeType: ChangeType.ADDED,
     } as CellRunData;
-    this.history.checkpoints.resolveCheckpoint(
-      this.checkpoint.id,
-      [cellDat],
-      notebook.version
-    );
+    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [cellDat]);
   }
 }

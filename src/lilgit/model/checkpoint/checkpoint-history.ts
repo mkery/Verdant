@@ -43,10 +43,7 @@ export class HistoryCheckpoints {
     return id;
   }
 
-  public generateCheckpoint(
-    kind: CheckpointType,
-    notebookVer?: number
-  ): Checkpoint {
+  public generateCheckpoint(kind: CheckpointType): Checkpoint {
     let id = this.generateId();
     let timestamp = Date.now();
     let checkpoint = new Checkpoint({
@@ -54,10 +51,42 @@ export class HistoryCheckpoints {
       timestamp: timestamp,
       targetCells: [],
       checkpointType: kind,
-      notebookId: notebookVer,
+      notebookId: undefined,
     });
     this.checkpointList[id] = checkpoint;
     return checkpoint;
+  }
+
+  public resolveCheckpoint(id: number, cellRunDat: CellRunData[]) {
+    // update checkpoint with new cell change data
+    cellRunDat.forEach((cell) =>
+      this.checkpointList[id].targetCells.push(cell)
+    );
+
+    // set notebook ID for event if notebook is not yet set
+    if (this.checkpointList[id].notebook === undefined) {
+      let targetCells = this.checkpointList[id].targetCells;
+      for (let i = 0; i < targetCells.length; i++) {
+        let cell = targetCells[i];
+        if (
+          cell.changeType !== ChangeType.SAME &&
+          cell.changeType !== ChangeType.NONE
+        ) {
+          let node = this.history.store.get(cell.node);
+          let notebook = this.history.store.get(node.parent);
+          this.checkpointList[id].notebook = notebook.version;
+          break;
+        }
+      }
+
+      // if nothing happened in this checkpoint,
+      // give it same notebook as the previous checkpoint
+      if (this.checkpointList[id].notebook === undefined) {
+        let prev = this.checkpointList[id - 1];
+        if (prev) this.checkpointList[id].notebook = prev.notebook;
+        else this.checkpointList[id].notebook = 0;
+      }
+    }
   }
 
   public getCellMap(checkpointList: Checkpoint | Checkpoint[]): CellRunData[] {
@@ -111,26 +140,5 @@ export class HistoryCheckpoints {
     return this.checkpointList.map((item) => {
       return item.toJSON();
     });
-  }
-
-  public resolveCheckpoint(
-    id: number,
-    cellRunDat: CellRunData[],
-    notebook: number
-  ) {
-    cellRunDat.forEach((cell) =>
-      this.checkpointList[id].targetCells.push(cell)
-    );
-    if (notebook) {
-      this.checkpointList[id].notebook = notebook;
-    } else {
-      console.error(
-        "ERROR Missing notebook for event!!! ",
-        this.checkpointList[id]
-      );
-      this.checkpointList[
-        id
-      ].notebook = this.history.store.lastSavedNotebook.id;
-    }
   }
 }

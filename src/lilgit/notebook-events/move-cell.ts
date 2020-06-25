@@ -30,7 +30,7 @@ export class MoveCell extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     this.notebook.cells.splice(this.oldPos, 1);
     this.notebook.cells.splice(this.newPos, 0, this.cell);
 
@@ -48,18 +48,14 @@ export class MoveCell extends NotebookEvent {
     );
     log("notebook commited", notebook, this.notebook.model);
 
-    return [[this.cell.model as NodeyCell], notebook as NodeyNotebook];
+    return [this.cell.model as NodeyCell];
   }
 
-  recordCheckpoint(changedCells: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(changedCells: NodeyCell[]) {
     let cellDat = {
       node: changedCells[0].name,
       changeType: ChangeType.MOVED,
     } as CellRunData;
-    this.history.checkpoints.resolveCheckpoint(
-      this.checkpoint.id,
-      [cellDat],
-      notebook.version
-    );
+    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [cellDat]);
   }
 }

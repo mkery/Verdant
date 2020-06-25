@@ -20,7 +20,7 @@ export class DeleteCell extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<[NodeyCell[], NodeyNotebook]> {
+  async modelUpdate(): Promise<NodeyCell[]> {
     let oldCell = this.notebook.cells.splice(this.cell_index, 1)[0];
 
     // commit the final version of this cell
@@ -42,20 +42,16 @@ export class DeleteCell extends NotebookEvent {
     );
     log("notebook commited", notebook, this.notebook.model);
 
-    return [[oldCell.model as NodeyCell], notebook as NodeyNotebook];
+    return [oldCell.model as NodeyCell];
   }
 
-  recordCheckpoint(changedCells: NodeyCell[], notebook: NodeyNotebook) {
+  recordCheckpoint(changedCells: NodeyCell[]) {
     let cell = changedCells[0];
     let cellDat = {
       node: cell.name,
       changeType: ChangeType.REMOVED,
       index: this.cell_index,
     } as CellRunData;
-    this.history.checkpoints.resolveCheckpoint(
-      this.checkpoint.id,
-      [cellDat],
-      notebook.version
-    );
+    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [cellDat]);
   }
 }
