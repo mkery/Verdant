@@ -64,29 +64,9 @@ export class HistoryCheckpoints {
     );
 
     // set notebook ID for event if notebook is not yet set
-    if (this.checkpointList[id].notebook === undefined) {
-      let targetCells = this.checkpointList[id].targetCells;
-      for (let i = 0; i < targetCells.length; i++) {
-        let cell = targetCells[i];
-        if (
-          cell.changeType !== ChangeType.SAME &&
-          cell.changeType !== ChangeType.NONE
-        ) {
-          let node = this.history.store.get(cell.node);
-          let notebook = this.history.store.get(node.parent);
-          this.checkpointList[id].notebook = notebook.version;
-          break;
-        }
-      }
 
-      // if nothing happened in this checkpoint,
-      // give it same notebook as the previous checkpoint
-      if (this.checkpointList[id].notebook === undefined) {
-        let prev = this.checkpointList[id - 1];
-        if (prev) this.checkpointList[id].notebook = prev.notebook;
-        else this.checkpointList[id].notebook = 0;
-      }
-    }
+    if (this.checkpointList[id].notebook === undefined)
+      this.findCheckpointNotebook(id);
   }
 
   public getCellMap(checkpointList: Checkpoint | Checkpoint[]): CellRunData[] {
@@ -126,13 +106,43 @@ export class HistoryCheckpoints {
     return cellMap;
   }
 
+  findCheckpointNotebook(id: number) {
+    // set notebook ID for event if notebook is not yet set
+    let targetCells = this.checkpointList[id].targetCells;
+    for (let i = 0; i < targetCells.length; i++) {
+      let cell = targetCells[i];
+      if (
+        cell.changeType !== ChangeType.SAME &&
+        cell.changeType !== ChangeType.NONE
+      ) {
+        let node = this.history.store.get(cell.node);
+        let notebook = this.history.store.get(node.parent);
+        this.checkpointList[id].notebook = notebook.version;
+        break;
+      }
+    }
+
+    // if nothing happened in this checkpoint,
+    // give it same notebook as the previous checkpoint
+    if (this.checkpointList[id].notebook === undefined) {
+      let prev = this.checkpointList[id - 1];
+      if (prev) this.checkpointList[id].notebook = prev.notebook;
+      else this.checkpointList[id].notebook = 0;
+    }
+  }
+
   public fromJSON(data: Checkpoint.SERIALIZE[]) {
     if (DEBUG) log("CHECKPOINTS FROM JSON", data);
+    let fixList = [];
     this.checkpointList = data.map(
       (item: Checkpoint.SERIALIZE, index: number) => {
-        return Checkpoint.fromJSON(item, index);
+        let checkpoint = Checkpoint.fromJSON(item, index);
+        if (checkpoint.notebook === undefined) fixList.push(index);
+        return checkpoint;
       }
     );
+    // fix for old logs for bug where checkpoint notebook is not set
+    fixList.forEach((id) => this.findCheckpointNotebook(id));
     if (DEBUG) log("CHECKPOINTS LOADED", this.checkpointList);
   }
 
