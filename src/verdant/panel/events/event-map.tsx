@@ -1,6 +1,6 @@
 import * as React from "react";
-import { ChangeType, Checkpoint } from "../../../lilgit/model/checkpoint/";
-import { History } from "../../../lilgit/model/history";
+import { ChangeType, Checkpoint } from "../../../lilgit/checkpoint";
+import { History } from "../../../lilgit/history/";
 import { verdantState } from "../../redux";
 import { connect } from "react-redux";
 

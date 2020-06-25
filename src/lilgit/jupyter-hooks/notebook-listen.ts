@@ -6,11 +6,11 @@ import { Cell, CodeCell, MarkdownCell, ICellModel } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@lumino/coreutils";
 
-import { log } from "../components/notebook";
+import { log } from "../notebook";
 
 import { IObservableList } from "@jupyterlab/observables";
 
-import { VerNotebook } from "../components/notebook";
+import { VerNotebook } from "../notebook";
 import {
   SaveNotebook,
   CreateCell,

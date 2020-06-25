@@ -1,4 +1,4 @@
-import { VerNotebook } from "../lilgit/components/notebook";
+import { VerNotebook } from "../lilgit/notebook";
 import { Store } from "redux";
 import { Contents, ContentsManager } from "@jupyterlab/services";
 

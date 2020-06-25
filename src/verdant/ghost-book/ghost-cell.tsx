@@ -1,7 +1,7 @@
 import * as React from "react";
-import { History } from "../../lilgit/model/history";
-import { Nodey, NodeyCode } from "../../lilgit/model/nodey";
-import { Sampler } from "../../lilgit/model/sampler";
+import { History } from "../../lilgit/history/";
+import { Nodey, NodeyCode } from "../../lilgit/nodey/";
+import { Sampler } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";

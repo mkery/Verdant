@@ -1,22 +1,21 @@
-import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../model/nodey";
+import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../nodey/";
 import { ServerConnection } from "@jupyterlab/services";
 import { URLExt } from "@jupyterlab/coreutils";
-import { jsn } from "../components/notebook";
-import { Star } from "../model/history-stage";
-import { History } from "../model/history";
-import { log } from "../components/notebook";
+import { jsn } from "../notebook";
+import { Star, History } from "../history/";
+import { log } from "../notebook";
 
 type Range = { start: Pos; end: Pos };
 type Pos = { line: number; ch: number };
 /*
-*
-*/
+ *
+ */
 export namespace ASTUtils {
   export async function parseRequest(rawText: string = ""): Promise<jsn> {
     let text = Private.cleanCodeString(rawText);
     let fullRequest = {
       method: "POST",
-      body: JSON.stringify({ code: text })
+      body: JSON.stringify({ code: text }),
     };
     let serverSettings = ServerConnection.makeSettings();
 
@@ -45,7 +44,7 @@ export namespace ASTUtils {
       type: "Module",
       start: { line: 0, ch: 0 },
       end: { line: 0, ch: 0 },
-      literal: code
+      literal: code,
     };
     let lines = code.split("\n");
     let lastCh = lines[lines.length - 1].length;
@@ -54,8 +53,8 @@ export namespace ASTUtils {
   }
 
   /*
-  *
-  */
+   *
+   */
   export function findNodeAtRange(
     nodey: NodeyCodeCell,
     change: Range,
@@ -71,8 +70,8 @@ export namespace ASTUtils {
   }
 
   /*
-  *
-  */
+   *
+   */
   //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
   export function inRange(nodey: NodeyCode, change: Range): number {
     var val = 0;
@@ -97,8 +96,8 @@ export namespace ASTUtils {
   }
 
   /*
-  * goal: get rid of wrappers or any types called Module
-  */
+   * goal: get rid of wrappers or any types called Module
+   */
   export function reduceASTDict(ast: {
     [key: string]: any;
   }): { [key: string]: any } {
@@ -114,7 +113,7 @@ export namespace ASTUtils {
 namespace Private {
   export function cleanCodeString(code: string): string {
     // annoying but important: make sure docstrings do not interrupt the string literal
-    var newCode = code.replace(/""".*"""/g, str => {
+    var newCode = code.replace(/""".*"""/g, (str) => {
       return "'" + str + "'";
     });
 
@@ -128,18 +127,18 @@ namespace Private {
 
     // make sure newline inside strings doesn't cause an EOL error
     // and make sure any special characters are escaped correctly
-    newCode = newCode.replace(/(").*?(\\.).*?(?=")/g, str => {
+    newCode = newCode.replace(/(").*?(\\.).*?(?=")/g, (str) => {
       return str.replace(/\\/g, "\\\\");
     });
-    newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, str => {
+    newCode = newCode.replace(/(').*?(\\.).*?(?=')/g, (str) => {
       return str.replace(/\\/g, "\\\\");
     });
     //log("cleaned code is ", newCode);
     return newCode;
   }
   /*
-  *
-  */
+   *
+   */
   export function _findNodeAtRange(
     node: NodeyCode,
     min: number,
@@ -193,8 +192,8 @@ export type $NodeyCodeCell$ = NodeyCodeCell | Star<NodeyCodeCell>;
 
 export namespace $NodeyCode$ {
   /*
-  * Helper functions for matching
-  */
+   * Helper functions for matching
+   */
   export function getType(nodey: NodeyCode | Star<NodeyCode>): string {
     if (nodey instanceof NodeyCode) return nodey.type;
     return nodey.value.type;

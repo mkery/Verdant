@@ -1,8 +1,8 @@
 import { verdantState } from "./index";
 import { Ghost } from "../ghost-book/ghost";
-import { CheckpointType, Checkpoint } from "../../lilgit/model/checkpoint/";
-import { NodeyCode } from "../../lilgit/model/nodey";
-import { History } from "../../lilgit/model/history";
+import { CheckpointType, Checkpoint } from "../../lilgit/checkpoint";
+import { NodeyCode } from "../../lilgit/nodey/";
+import { History } from "../../lilgit/history/";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";

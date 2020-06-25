@@ -1,6 +1,6 @@
-import { NodeyNotebook } from "../nodey";
-import { History } from "../history";
-import { log } from "../../components/notebook";
+import { NodeyNotebook } from "../nodey/";
+import { History } from "../history/";
+import { log } from "../notebook";
 import {
   CheckpointType,
   CellRunData,

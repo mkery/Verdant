@@ -7,17 +7,15 @@ import {
   NodeyCell,
   NodeyNotebook,
   NodeyRawCell,
-} from "./nodey";
+} from "../nodey";
 
-import { VerNotebook } from "../components/notebook";
+import { VerNotebook } from "../notebook";
 
-import { History } from "./history";
-
-import { log } from "../components/notebook";
+import { log } from "../notebook";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 
-import { Star, UnsavedStar } from "./history-stage";
+import { History, Star, UnsavedStar } from ".";
 
 const DEBUG = false;
 

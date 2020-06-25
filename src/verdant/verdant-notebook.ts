@@ -1,13 +1,13 @@
 import { Store } from "redux";
 import { Cell } from "@jupyterlab/cells";
 import { AST } from "../lilgit/analysis/ast";
-import { History } from "../lilgit/model/history";
-import { VerNotebook } from "../lilgit/components/notebook";
-import { VerCell } from "../lilgit/components/cell";
+import { History } from "../lilgit/history/";
+import { VerNotebook } from "../lilgit/notebook";
+import { VerCell } from "../lilgit/cell";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { inspectNode, switchTab, ActiveTab } from "./redux/index";
 import { updateCheckpoint } from "./redux/events";
-import { Nodey } from "../lilgit/model/nodey";
+import { Nodey } from "../lilgit/nodey/";
 import { VerdantLog } from "./logger";
 import { NotebookEvent } from "../lilgit/notebook-events";
 
@@ -45,11 +45,13 @@ export class VerdantNotebook extends VerNotebook {
   }
 
   public async focusCell(cell: Cell): Promise<VerCell> {
-    let verCell = await super.focusCell(cell);
-    if (verCell) {
-      // TODO let index = this.cells.indexOf(verCell);
-      // TODO this.panel.highlightCell(index);
-    }
+    let verCell = super.focusCell(cell);
+    verCell.then((cell) => {
+      if (cell) {
+        // TODO let index = this.cells.indexOf(verCell);
+        // TODO this.panel.highlightCell(index);
+      }
+    });
     return verCell;
   }
 }

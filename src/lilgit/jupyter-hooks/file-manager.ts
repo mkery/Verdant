@@ -1,14 +1,12 @@
 import { PathExt } from "@jupyterlab/coreutils";
 
-import { VerNotebook } from "../components/notebook";
+import { VerNotebook, log } from "../notebook";
 
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { log } from "../components/notebook";
-
-import { History } from "../model/history";
+import { History } from "../history/";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
@@ -49,7 +47,7 @@ export class FileManager {
           log("Model written to file", saveModel);
           accept();
         })
-        .catch(rej => {
+        .catch((rej) => {
           //here when you reject the promise if the filesave fails
           console.error(rej);
           reject();
@@ -58,7 +56,7 @@ export class FileManager {
   }
 
   public loadFromFile(notebook: VerNotebook): Promise<any> {
-    return new Promise(accept => {
+    return new Promise((accept) => {
       var notebookPath = notebook.path;
       //log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
@@ -71,7 +69,7 @@ export class FileManager {
       let contents = new ContentsManager();
       contents
         .get(path)
-        .then(res => {
+        .then((res) => {
           log("Found a model ", res);
           accept(res.content);
         })

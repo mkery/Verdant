@@ -1,8 +1,8 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { History } from "../../lilgit/model/history";
-import { Checkpoint } from "../../lilgit/model/checkpoint/";
-import { log } from "../../lilgit/components/notebook";
+import { History } from "../../lilgit/history/";
+import { Checkpoint } from "../../lilgit/checkpoint";
+import { log } from "../../lilgit/notebook";
 import { verdantState } from "../redux/index";
 import { toggleShowAllCells } from "../redux/ghost";
 

@@ -1,5 +1,5 @@
-import { Nodey } from "./nodey";
-import { Checkpoint } from "./checkpoint";
+import { Nodey } from "../nodey";
+import { Checkpoint } from "../checkpoint";
 
 export namespace SERIALIZE {
   export interface NodeHistory {

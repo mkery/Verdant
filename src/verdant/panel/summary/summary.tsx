@@ -1,6 +1,6 @@
 import * as React from "react";
-import { History } from "../../../lilgit/model/history";
-import { Nodey } from "../../../lilgit/model/nodey";
+import { History } from "../../../lilgit/history/";
+import { Nodey } from "../../../lilgit/nodey/";
 import { CellVersions, CellArtifact } from "./summary-cell";
 import { connect } from "react-redux";
 import {

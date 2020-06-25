@@ -1,6 +1,6 @@
 import { Widget } from "@lumino/widgets";
 
-import { log } from "../components/notebook";
+import { log } from "../notebook";
 
 import * as JSDiff from "diff";
 
@@ -12,11 +12,11 @@ import {
   SyntaxToken,
   NodeyCell,
   NodeyCodeCell,
-} from "./nodey";
+} from "../nodey";
 
 import { CodeCell, Cell } from "@jupyterlab/cells";
 
-import { History } from "./history";
+import { History } from "../history";
 
 import { ASTUtils } from "../analysis/ast-utils";
 

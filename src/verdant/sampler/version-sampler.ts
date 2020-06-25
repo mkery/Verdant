@@ -3,10 +3,10 @@ import {
   NodeyMarkdown,
   NodeyCode,
   NodeyOutput,
-  NodeyCodeCell
-} from "../../lilgit/model/nodey";
-import { History } from "../../lilgit/model/history";
-import { Sampler } from "../../lilgit/model/sampler";
+  NodeyCodeCell,
+} from "../../lilgit/nodey/";
+import { History } from "../../lilgit/history/";
+import { Sampler } from "../../lilgit/sampler/";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
@@ -67,7 +67,7 @@ export namespace VersionSampler {
     await inspector.renderDiff(nodeyVer, content, {
       newText: text,
       diffKind: diff,
-      textFocus: query
+      textFocus: query,
     });
 
     return content;
@@ -97,7 +97,7 @@ export namespace VersionSampler {
     await inspector.renderDiff(nodeyVer, content, {
       newText: text,
       diffKind: diff,
-      textFocus: query
+      textFocus: query,
     });
 
     return content;

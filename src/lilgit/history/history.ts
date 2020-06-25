@@ -1,20 +1,16 @@
-import { VerNotebook } from "../components/notebook";
+import { VerNotebook, log } from "../notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { PromiseDelegate } from "@lumino/coreutils";
-import { Sampler } from "./sampler";
+import { Sampler } from "../sampler/";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 
 import { SERIALIZE } from "./serialize-schema";
 
-import { HistoryStore } from "./history-store";
+import { HistoryStore, HistoryStage } from ".";
 
-import { HistoryStage } from "./history-stage";
-
-import { HistoryCheckpoints } from "./checkpoint/checkpoint-history";
-
-import { log } from "../components/notebook";
+import { HistoryCheckpoints } from "../checkpoint/checkpoint-history";
 
 export class History {
   public notebook: VerNotebook;

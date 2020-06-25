@@ -1,7 +1,7 @@
-import { History } from "../../lilgit/model/history";
-import { Checkpoint } from "../../lilgit/model/checkpoint/";
+import { History } from "../../lilgit/history/";
+import { Checkpoint } from "../../lilgit/checkpoint";
 import { verdantState, artifactState } from "./index";
-import { VerCell } from "../../lilgit/components/cell";
+import { VerCell } from "../../lilgit/cell";
 
 const ADD_EVENT = "ADD_EVENT";
 const INIT_EVENT_MAP = "INIT_EVENT_MAP";

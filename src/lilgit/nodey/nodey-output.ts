@@ -1,5 +1,5 @@
 import { Nodey } from "./nodey";
-import { log } from "../../components/notebook";
+import { log } from "../notebook";
 
 /*
  * Output holds raw output

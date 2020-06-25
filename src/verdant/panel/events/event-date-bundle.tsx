@@ -4,7 +4,7 @@ import { verdantState } from "../../redux";
 import { connect } from "react-redux";
 import { bundleClose, bundleOpen, eventState } from "../../redux/events";
 import NotebookEventLabel from "./event-label";
-import { Checkpoint } from "../../../lilgit/model/checkpoint/";
+import { Checkpoint } from "../../../lilgit/checkpoint";
 import NotebookEventMap from "./event-map";
 
 /* CSS Constants */

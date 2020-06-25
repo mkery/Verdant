@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Sampler } from "../../lilgit/model/sampler";
+import { Sampler } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
-import { History } from "../../lilgit/model/history";
-import { NodeyOutput } from "../../lilgit/model/nodey";
+import { History } from "../../lilgit/history/";
+import { NodeyOutput } from "../../lilgit/nodey/";
 import GhostCellLabel from "./ghost-cell-label";
 import { connect } from "react-redux";
 import { verdantState } from "../redux/index";

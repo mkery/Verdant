@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Nodey } from "../../lilgit/model/nodey";
-import { History } from "../../lilgit/model/history";
+import { Nodey } from "../../lilgit/nodey/";
+import { History } from "../../lilgit/history/";
 import { VersionSampler } from "./version-sampler";
 
 const VERSION_HEADER = "v-VerdantPanel-sampler-version-header";

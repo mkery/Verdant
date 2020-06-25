@@ -4,9 +4,9 @@ import {
   NodeyCodeCell,
   NodeyCode,
   NodeyMarkdown,
-  NodeyOutput
-} from "../../../lilgit/model/nodey";
-import { History } from "../../../lilgit/model/history";
+  NodeyOutput,
+} from "../../../lilgit/nodey/";
+import { History } from "../../../lilgit/history/";
 import VersionHeader from "../../sampler/version-header";
 import { VersionSampler } from "../../sampler/version-sampler";
 
@@ -33,7 +33,7 @@ export class Mixin extends React.Component<Mixin_Props, Mixin_State> {
     super(props);
     this.state = {
       target_name: Mixin.nameNodey(this.props.target),
-      samples: []
+      samples: [],
     };
   }
 
@@ -119,7 +119,7 @@ export namespace Mixin {
           }}
         >{`cell ${cell.id}`}</div>,
         Mixin.addSeperator(),
-        Mixin.addItem(name)
+        Mixin.addItem(name),
       ];
     }
   }
