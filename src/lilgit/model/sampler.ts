@@ -1,28 +1,29 @@
-import { Widget } from "@lumino/widgets";
+import {Widget} from "@lumino/widgets";
 
-import { log } from "../components/notebook";
+import {log} from "../components/notebook";
 
 import * as JSDiff from "diff";
 
 import {
   Nodey,
+  NodeyCell,
   NodeyCode,
+  NodeyCodeCell,
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
-  NodeyCell,
-  NodeyCodeCell,
 } from "./nodey";
 
-import { CodeCell, Cell } from "@jupyterlab/cells";
+import {Cell, CodeCell} from "@jupyterlab/cells";
 
-import { History } from "./history";
+import {History} from "./history";
 
-import { ASTUtils } from "../analysis/ast-utils";
+import {ASTUtils} from "../analysis/ast-utils";
 
-import { RenderBaby } from "../jupyter-hooks/render-baby";
+import {RenderBaby} from "../jupyter-hooks/render-baby";
 
-import { Signal } from "@lumino/signaling";
+import {Signal} from "@lumino/signaling";
+import {CELL_TYPE} from "../../verdant/redux/ghost";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -133,7 +134,7 @@ export class Sampler {
       );
       endCh = Math.round(
         ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
-          lineText.length
+        lineText.length
       );
       endCh = Math.min(endCh, lineText.length - 1);
     }
@@ -141,8 +142,8 @@ export class Sampler {
     res = ASTUtils.findNodeAtRange(
       parent,
       {
-        start: { line: lineNum, ch: startCh },
-        end: { line: lineNum, ch: endCh },
+        start: {line: lineNum, ch: startCh},
+        end: {line: lineNum, ch: endCh},
       },
       this.history
     );
@@ -151,13 +152,13 @@ export class Sampler {
 
   private findAncestorByAttr(el: HTMLElement, attr: string) {
     if (el.hasAttribute(attr)) return el;
-    while ((el = el.parentElement) && !el.hasAttribute(attr));
+    while ((el = el.parentElement) && !el.hasAttribute(attr)) ;
     return el;
   }
 
   private findAncestor(el: HTMLElement, cls: string) {
     if (el.classList.contains(cls)) return el;
-    while ((el = el.parentElement) && !el.classList.contains(cls));
+    while ((el = el.parentElement) && !el.classList.contains(cls)) ;
     return el;
   }
 
@@ -256,55 +257,54 @@ export class Sampler {
   public async renderDiff(
     nodey: Nodey,
     elem: HTMLElement,
+    type: CELL_TYPE,
     options: {
       newText?: string;
       diffKind?: number;
-      textFocus?: string;
       prior?: string;
-    } = {}
+    } = {},
+    textFocus?: string,
   ) {
-    if (nodey instanceof NodeyCode) this.diffCode(nodey, elem, options);
-    else if (nodey instanceof NodeyMarkdown)
-      await this.diffMarkdown(nodey, elem, options);
-    else if (nodey instanceof NodeyOutput) await this.diffOutput(nodey, elem);
-
-    if (options.textFocus) {
-      elem = this.highlightText(options.textFocus, elem);
+    switch (type) {
+      case CELL_TYPE.CODE:
+        this.diffCode(elem, options.newText, options.prior, options.diffKind);
+        break;
+      case CELL_TYPE.OUTPUT:
+        await this.diffOutput(nodey as NodeyOutput, elem);
+        break;
+      case CELL_TYPE.MARKDOWN:
+        await this.diffMarkdown(elem, options);
+        break;
+      case CELL_TYPE.NONE:
+        console.log("Error");
+    }
+    if (textFocus) {
+      elem = this.highlightText(textFocus, elem);
     }
     return elem;
   }
 
   private diffCode(
-    nodey: NodeyCode,
     elem: HTMLElement,
-    opts: {
-      newText?: string;
-      diffKind?: number;
-      textFocus?: string;
-      diffPresent?: boolean;
-      prior?: string;
-    }
+    newText: string,
+    priorName: string,
+    diffKind: number = Sampler.NO_DIFF
   ) {
-    let diffKind = opts.diffKind;
-    if (opts.diffKind === undefined) {
-      diffKind = Sampler.NO_DIFF;
-    }
 
-    // now split text into lines so that it displays correctly
-    let lines = opts.newText.split("\n");
-    let prior;
-    if (diffKind == Sampler.PRESENT_DIFF) {
-      prior = this.history.store.get(opts.prior) as NodeyCode;
-    } else {
-      prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
-    }
-    let oldLines: string[] = [];
-    if (prior) oldLines = this.renderCodeNode(prior).split("\n");
+    // Split new text into lines
+    let lines = newText.split("\n");
 
-    lines.forEach((ln: string, index: number) => {
-      let oldln = oldLines[index] || "";
-      elem.appendChild(this.diffLine(diffKind, oldln, ln));
-    });
+    // Split old text into lines
+    let prior = this.history.store.get(priorName) as NodeyCode;
+    let oldLines = this.renderCodeNode(prior).split("\n");
+
+    // Loop over lines and append diffs to elem
+    const maxLength = Math.max(lines.length, oldLines.length);
+    for (let i = 0; i < maxLength; i++) {
+      let newLine = lines[i] || "";
+      let oldLine = oldLines[i] || "";
+      elem.appendChild(this.diffLine(diffKind, oldLine, newLine));
+    }
 
     return elem;
   }
@@ -335,7 +335,6 @@ export class Sampler {
   }
 
   private async diffMarkdown(
-    nodey: NodeyMarkdown,
     elem: HTMLElement,
     opts: {
       newText?: string;
@@ -348,15 +347,10 @@ export class Sampler {
     let diffKind = opts.diffKind;
     if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
 
-    if (diffKind === Sampler.NO_DIFF || !nodey.markdown)
+    if (diffKind === Sampler.NO_DIFF)
       await this.renderBaby.renderMarkdown(elem, opts.newText);
     else {
-      let prior;
-      if (diffKind === Sampler.PRESENT_DIFF) {
-        prior = this.history.store.get(opts.prior) as NodeyMarkdown;
-      } else {
-        prior = this.history.store.getPriorVersion(nodey) as NodeyMarkdown;
-      }
+      let prior = this.history.store.get(opts.prior) as NodeyMarkdown;
       if (!prior || !prior.markdown) {
         // easy, everything is added
         await this.renderBaby.renderMarkdown(elem, opts.newText);
