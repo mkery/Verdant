@@ -5,8 +5,9 @@ import {
   NodeyOutput,
   NodeyCodeCell
 } from "../../lilgit/model/nodey";
-import { History } from "../../lilgit/model/history";
-import { Sampler } from "../../lilgit/model/sampler";
+import {History} from "../../lilgit/model/history";
+import {Sampler} from "../../lilgit/model/sampler";
+import {CELL_TYPE} from "../redux/ghost";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
@@ -31,9 +32,9 @@ export namespace VersionSampler {
     sample.appendChild(content);
 
     if (nodey instanceof NodeyCode)
-      await buildCode(inspector, nodey, text, content, query, diff, prior);
+      await buildCode(inspector, nodey, text, content, prior, query, diff);
     else if (nodey instanceof NodeyMarkdown)
-      await buildMarkdown(inspector, nodey, text, content, query, diff, prior);
+      await buildMarkdown(inspector, nodey, text, content, prior, query, diff);
     else if (nodey instanceof NodeyOutput)
       await buildOutput(inspector, nodey, content, query);
 
@@ -59,17 +60,16 @@ export namespace VersionSampler {
     nodeyVer: NodeyCode,
     text: string,
     content: HTMLElement,
+    prior: string,
     query?: string,
     diff?: number,
-    prior?: string
   ): Promise<HTMLElement> {
     content.classList.add("code");
-    await inspector.renderDiff(nodeyVer, content, {
+    await inspector.renderDiff(nodeyVer, content, CELL_TYPE.CODE, {
       newText: text,
       diffKind: diff,
-      textFocus: query,
       prior: prior
-    });
+    }, query);
 
     return content;
   }
@@ -80,7 +80,7 @@ export namespace VersionSampler {
     content: HTMLElement,
     query?: string
   ): Promise<HTMLElement> {
-    await inspector.renderDiff(nodeyVer, content, { textFocus: query });
+    await inspector.renderDiff(nodeyVer, content, CELL_TYPE.OUTPUT, {}, query);
     return content;
   }
 
@@ -89,18 +89,17 @@ export namespace VersionSampler {
     nodeyVer: NodeyMarkdown,
     text: string,
     content: HTMLElement,
+    prior: string,
     query?: string,
     diff?: number,
-    prior?: string
-): Promise<HTMLElement> {
+  ): Promise<HTMLElement> {
     content.classList.add("markdown");
     content.classList.add("jp-RenderedHTMLCommon");
-    await inspector.renderDiff(nodeyVer, content, {
+    await inspector.renderDiff(nodeyVer, content, CELL_TYPE.MARKDOWN, {
       newText: text,
       diffKind: diff,
-      textFocus: query,
       prior: prior
-    });
+    }, query);
 
     return content;
   }

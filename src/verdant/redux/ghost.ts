@@ -14,6 +14,7 @@ export enum CELL_TYPE {
   /* types of cells in ghost notebook main cell list */
   CODE,
   MARKDOWN,
+  OUTPUT,
   NONE
 }
 
@@ -147,6 +148,8 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     events = history.checkpoints.getByNotebook(ver);
   }
 
+  console.log(ver, notebook.cells);
+
 
   // Type of cells after loading from notebook.cells
   type cellDat = {
@@ -201,6 +204,8 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   });
 
   if (diffPresent) { // compute cell to diff against
+    // set prior to matching cell in passed version
+
     // Get current version's cells
     const prior = history.store.getNotebook(ver).cells;
     // Add prior value to each cell
@@ -217,8 +222,13 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
       return cell;
     })
   } else {
+    // set prior to previous version of cell
     cells = cells.map(cell => {
-      cell.prior = null;
+      const prevCell = history.store.getPriorVersion(cell.cell);
+      if (prevCell === null)
+        cell.prior = `${cell.cell.substr(0, 3)}.0`;
+      else
+        cell.prior = prevCell.name;
       return cell;
     });
   }
