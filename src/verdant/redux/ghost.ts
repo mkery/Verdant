@@ -148,9 +148,6 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     events = history.checkpoints.getByNotebook(ver);
   }
 
-  console.log(ver, notebook.cells);
-
-
   // Type of cells after loading from notebook.cells
   type cellDat = {
     cell: string;
