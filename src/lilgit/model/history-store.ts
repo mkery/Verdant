@@ -6,6 +6,7 @@ import {
   NodeyMarkdown,
   NodeyCell,
   NodeyNotebook,
+  NodeyRawCell,
 } from "./nodey";
 
 import { VerNotebook } from "../components/notebook";
@@ -29,6 +30,7 @@ export class HistoryStore {
   private _notebookHistory: NodeHistory<NodeyNotebook>;
   private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
   private _markdownStore: NodeHistory<NodeyMarkdown>[] = [];
+  private _rawCellStore: NodeHistory<NodeyRawCell>[] = [];
   private _outputStore: NodeHistory<NodeyOutput>[] = [];
   private _snippetStore: NodeHistory<NodeyCode>[] = [];
 
@@ -44,6 +46,10 @@ export class HistoryStore {
 
   get currentNotebook(): NodeyNotebook | Star<NodeyNotebook> {
     return this._notebookHistory.latest;
+  }
+
+  get lastSavedNotebook(): NodeyNotebook {
+    return this._notebookHistory.lastSaved as NodeyNotebook;
   }
 
   public getNotebook(ver: number): NodeyNotebook {
@@ -81,6 +87,8 @@ export class HistoryStore {
         return this._snippetStore[id];
       case "m":
         return this._markdownStore[id];
+      case "r":
+        return this._rawCellStore[id];
       case "*": // a star node
         return this.getHistoryOf(idVal + "." + ver);
       case "TEMP": // an unsaved star node
@@ -246,10 +254,15 @@ export class HistoryStore {
     else if (nodey instanceof NodeyMarkdown) return this._markdownStore;
     else if (nodey instanceof NodeyOutput) return this._outputStore;
     else if (nodey instanceof NodeyCode) return this._snippetStore;
+    else if (nodey instanceof NodeyRawCell) return this._rawCellStore;
   }
 
   private _makeHistoryFor(nodey: Nodey) {
-    if (nodey instanceof NodeyCodeCell || nodey instanceof NodeyMarkdown)
+    if (
+      nodey instanceof NodeyCodeCell ||
+      nodey instanceof NodeyMarkdown ||
+      nodey instanceof NodeyRawCell
+    )
       return new NodeHistory<NodeyCell>();
     else if (nodey instanceof NodeyOutput)
       return new NodeHistory<NodeyOutput>();
@@ -291,6 +304,7 @@ export class HistoryStore {
       notebook: this._notebookHistory.toJSON(),
       codeCells: this._codeCellStore.map((hist) => hist.toJSON()),
       markdownCells: this._markdownStore.map((hist) => hist.toJSON()),
+      rawCells: this._rawCellStore.map((hist) => hist.toJSON()),
       snippets: this._snippetStore.map((hist) => hist.toJSON()),
       output: this._outputStore.map((hist) => hist.toJSON()),
     };
@@ -307,6 +321,12 @@ export class HistoryStore {
       hist.fromJSON(item, NodeyMarkdown.fromJSON, id);
       return hist;
     });
+    if (data.rawCells)
+      this._rawCellStore = data.rawCells.map((item: jsn, id: number) => {
+        let hist = new NodeHistory<NodeyRawCell>();
+        hist.fromJSON(item, NodeyRawCell.fromJSON, id);
+        return hist;
+      });
     this._snippetStore = data.snippets.map((item: jsn, id: number) => {
       let hist = new NodeHistory<NodeyCode>();
       hist.fromJSON(item, NodeyCode.fromJSON, id);

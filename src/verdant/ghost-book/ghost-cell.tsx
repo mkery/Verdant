@@ -37,7 +37,7 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
-      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
+      console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return null;
     }
     let active = this.props.hasFocus() ? "active" : "";
@@ -70,7 +70,7 @@ class Cell extends React.Component<GhostCell_Props, { sample: string }> {
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
-      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
+      console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
     } else {
       let diff = this.props.events ? Sampler.CHANGE_DIFF : Sampler.NO_DIFF;
       let sample = await VersionSampler.sample(

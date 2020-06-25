@@ -1,8 +1,8 @@
 import * as React from "react";
-import {ChangeType, Checkpoint} from "../../../lilgit/model/checkpoint";
-import {History} from "../../../lilgit/model/history";
-import {verdantState} from "../../redux";
-import {connect} from "react-redux";
+import { ChangeType, Checkpoint } from "../../../lilgit/model/checkpoint/";
+import { History } from "../../../lilgit/model/history";
+import { verdantState } from "../../redux";
+import { connect } from "react-redux";
 
 interface EventMap_Props {
   checkpoints: Checkpoint[];
@@ -51,7 +51,7 @@ const mapStateToProps = (
   ownProps: Partial<EventMap_Props>
 ) => {
   return {
-    history: state.getHistory()
+    history: state.getHistory(),
   };
 };
 

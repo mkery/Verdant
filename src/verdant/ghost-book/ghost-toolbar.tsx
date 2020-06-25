@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { History } from "../../lilgit/model/history";
-import { Checkpoint } from "../../lilgit/model/checkpoint";
+import { Checkpoint } from "../../lilgit/model/checkpoint/";
 import { log } from "../../lilgit/components/notebook";
 import { verdantState } from "../redux/index";
 import { toggleShowAllCells } from "../redux/ghost";
@@ -27,12 +27,7 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
   private showLabel() {
     let notebook = this.props.history.store.getNotebook(this.props.name);
     let created = this.props.history.checkpoints.get(notebook.created);
-    log(
-      "CHECKPOINT FOUND",
-      notebook.created,
-      created,
-      this.props.history.checkpoints.all()
-    );
+    log("CHECKPOINT FOUND", notebook.created, created);
     let time;
     if (created)
       // error save from older log format

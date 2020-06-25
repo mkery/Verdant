@@ -11,6 +11,14 @@ import { log } from "../components/notebook";
 import { IObservableList } from "@jupyterlab/observables";
 
 import { VerNotebook } from "../components/notebook";
+import {
+  SaveNotebook,
+  CreateCell,
+  DeleteCell,
+  MoveCell,
+  SwitchCellType,
+  RunCell,
+} from "../notebook-events";
 
 export class NotebookListen {
   public activeCell: Cell;
@@ -75,7 +83,8 @@ export class NotebookListen {
      * fileChanged is "A signal emitted when the model is saved or reverted.""
      */
     this._notebookPanel.context.fileChanged.connect(() => {
-      this.verNotebook.save();
+      let saveEvent = new SaveNotebook(this.verNotebook);
+      this.verNotebook.handleNotebookEvent(saveEvent);
     });
     this._notebook.model.cells.changed.connect(
       (sender: any, data: IObservableList.IChangedArgs<ICellModel>) => {
@@ -114,7 +123,8 @@ export class NotebookListen {
       //waaat can get execution signals from other notebooks
       if (args.notebook.id === this._notebook.id) {
         const cell = args.cell;
-        this.verNotebook.run(cell.model);
+        let runEvent = new RunCell(this.verNotebook, cell.model);
+        this.verNotebook.handleNotebookEvent(runEvent);
       }
     });
 
@@ -141,22 +151,24 @@ export class NotebookListen {
     });
   }
 
-  private async _addNewCells(newIndex: number, newValues: ICellModel[]) {
+  private _addNewCells(newIndex: number, newValues: ICellModel[]) {
     newValues.forEach(async (_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
-      var [verCell, checkpoint] = await this.verNotebook.createCell(
+      let createCellEvent = new CreateCell(
+        this.verNotebook,
         cell,
         newIndex,
         false
       );
-      log("adding a new cell!", cell, verCell, verCell.model, checkpoint);
+      this.verNotebook.handleNotebookEvent(createCellEvent);
     });
   }
 
   private _removeCells(oldIndex: number, oldValues: ICellModel[]) {
     log("removing cells", oldIndex, oldValues);
     oldValues.forEach(() => {
-      this.verNotebook.deleteCell(oldIndex);
+      let deleteCellEvent = new DeleteCell(this.verNotebook, oldIndex);
+      this.verNotebook.handleNotebookEvent(deleteCellEvent);
     });
   }
 
@@ -168,18 +180,29 @@ export class NotebookListen {
     newValues.forEach(async (item) => {
       let verCell = this.verNotebook.getCell(item);
       log("moving cell", oldIndex, newIndex, newValues);
-      this.verNotebook.moveCell(verCell, oldIndex, newIndex);
+      let moveCellEvent = new MoveCell(
+        this.verNotebook,
+        verCell,
+        oldIndex,
+        newIndex
+      );
+      this.verNotebook.handleNotebookEvent(moveCellEvent);
     });
   }
 
-  private async _cellTypeChanged(
+  private _cellTypeChanged(
     _: number,
     newIndex: number,
     oldValues: ICellModel[]
   ) {
-    oldValues.forEach(async (_, index) => {
+    oldValues.forEach((_, index) => {
       var cell: Cell = this._notebook.widgets[newIndex + index];
-      this.verNotebook.switchCellType(newIndex + index, cell);
+      let switchCellEvent = new SwitchCellType(
+        this.verNotebook,
+        cell,
+        newIndex + index
+      );
+      this.verNotebook.handleNotebookEvent(switchCellEvent);
     });
   }
 

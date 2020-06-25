@@ -1,6 +1,6 @@
 import { History } from "../../lilgit/model/history";
 import { Nodey } from "../../lilgit/model/nodey";
-import { Checkpoint } from "../../lilgit/model/checkpoint";
+import { Checkpoint } from "../../lilgit/model/checkpoint/";
 import { ghostState, ghostReduce, ghostInitialState } from "./ghost";
 import { eventMapState, eventReducer, eventsInitialState } from "./events";
 import { Wishbone } from "../panel/details/wishbone";

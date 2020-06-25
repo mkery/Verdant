@@ -3,8 +3,9 @@ import { History } from "../../lilgit/model/history";
 import {
   NodeyCell,
   NodeyMarkdown,
-  NodeyOutput
+  NodeyOutput,
 } from "../../lilgit/model/nodey";
+
 import { Sampler } from "../../lilgit/model/sampler";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
@@ -22,7 +23,7 @@ export namespace CellSampler {
       sample.classList.add("markdown-sample");
       await historyModel.inspector.renderDiff(cell, sample, {
         newText: (cell as NodeyMarkdown).markdown,
-        diffKind: Sampler.NO_DIFF
+        diffKind: Sampler.NO_DIFF,
       });
     }
 
@@ -39,7 +40,7 @@ export namespace CellSampler {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     historyModel.inspector.renderDiff(output, sample, {
-      diffKind: Sampler.NO_DIFF
+      diffKind: Sampler.NO_DIFF,
     });
     return sample;
   }
