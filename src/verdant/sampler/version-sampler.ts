@@ -65,11 +65,7 @@ export namespace VersionSampler {
     diff?: number,
   ): Promise<HTMLElement> {
     content.classList.add("code");
-    await inspector.renderDiff(nodeyVer, content, CELL_TYPE.CODE, {
-      newText: text,
-      diffKind: diff,
-      prior: prior
-    }, query);
+    await inspector.renderCellContents(nodeyVer, content, CELL_TYPE.CODE, query, text, diff, prior);
 
     return content;
   }
@@ -80,7 +76,7 @@ export namespace VersionSampler {
     content: HTMLElement,
     query?: string
   ): Promise<HTMLElement> {
-    await inspector.renderDiff(nodeyVer, content, CELL_TYPE.OUTPUT, {}, query);
+    await inspector.renderCellContents(nodeyVer, content, CELL_TYPE.OUTPUT, query);
     return content;
   }
 
@@ -95,11 +91,7 @@ export namespace VersionSampler {
   ): Promise<HTMLElement> {
     content.classList.add("markdown");
     content.classList.add("jp-RenderedHTMLCommon");
-    await inspector.renderDiff(nodeyVer, content, CELL_TYPE.MARKDOWN, {
-      newText: text,
-      diffKind: diff,
-      prior: prior
-    }, query);
+    await inspector.renderCellContents(nodeyVer, content, CELL_TYPE.MARKDOWN, query, text, diff, prior);
 
     return content;
   }

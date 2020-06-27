@@ -254,26 +254,24 @@ export class Sampler {
     return JSON.stringify(nodey.raw);
   }
 
-  public async renderDiff(
+  public async renderCellContents(
     nodey: Nodey,
     elem: HTMLElement,
     type: CELL_TYPE,
-    options: {
-      newText?: string;
-      diffKind?: number;
-      prior?: string;
-    } = {},
     textFocus?: string,
+    newText?: string,
+    diffKind?: number,
+    prior?: string
   ) {
     switch (type) {
       case CELL_TYPE.CODE:
-        this.diffCode(elem, options.newText, options.prior, options.diffKind);
+        this.diffCode(elem, newText, prior, diffKind);
         break;
       case CELL_TYPE.OUTPUT:
         await this.diffOutput(nodey as NodeyOutput, elem);
         break;
       case CELL_TYPE.MARKDOWN:
-        await this.diffMarkdown(elem, options);
+        await this.diffMarkdown(elem, newText, diffKind, prior);
         break;
       case CELL_TYPE.NONE:
         console.log("Error");
@@ -336,28 +334,23 @@ export class Sampler {
 
   private async diffMarkdown(
     elem: HTMLElement,
-    opts: {
-      newText?: string;
-      diffKind?: number;
-      textFocus?: string;
-      diffPresent?: boolean;
-      prior?: string;
-    }
+    newText?: string,
+    diffKind?: number,
+    priorVersion?: string
   ) {
-    let diffKind = opts.diffKind;
-    if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
+    if (diffKind === undefined) diffKind = Sampler.NO_DIFF;
 
     if (diffKind === Sampler.NO_DIFF)
-      await this.renderBaby.renderMarkdown(elem, opts.newText);
+      await this.renderBaby.renderMarkdown(elem, newText);
     else {
-      let prior = this.history.store.get(opts.prior) as NodeyMarkdown;
+      let prior = this.history.store.get(priorVersion) as NodeyMarkdown;
       if (!prior || !prior.markdown) {
         // easy, everything is added
-        await this.renderBaby.renderMarkdown(elem, opts.newText);
+        await this.renderBaby.renderMarkdown(elem, newText);
         elem.classList.add(CHANGE_ADDED_CLASS);
       } else {
         let priorText = prior.markdown;
-        let diff = JSDiff.diffWords(priorText, opts.newText);
+        let diff = JSDiff.diffWords(priorText, newText);
         await diff.forEach(async (part) => {
           let partDiv = document.createElement("div");
           await this.renderBaby.renderMarkdown(partDiv, part.value);

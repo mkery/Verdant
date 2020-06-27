@@ -17,10 +17,9 @@ export namespace CellSampler {
       sample.classList.add("markdown");
       sample.classList.add("jp-RenderedHTMLCommon");
       sample.classList.add("markdown-sample");
-      await historyModel.inspector.renderDiff(cell, sample, CELL_TYPE.MARKDOWN, {
-        newText: (cell as NodeyMarkdown).markdown,
-        diffKind: Sampler.NO_DIFF
-      });
+      await historyModel.inspector.renderCellContents(cell, sample, CELL_TYPE.MARKDOWN, null,
+        (cell as NodeyMarkdown).markdown,
+        Sampler.NO_DIFF);
     }
 
     sample.addEventListener("click", () => {
@@ -35,9 +34,7 @@ export namespace CellSampler {
   ): HTMLElement {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    historyModel.inspector.renderDiff(output, sample, CELL_TYPE.OUTPUT, {
-      diffKind: Sampler.NO_DIFF
-    });
+    historyModel.inspector.renderCellContents(output, sample, CELL_TYPE.OUTPUT, null, null, Sampler.NO_DIFF);
     return sample;
   }
 }
