@@ -24,6 +24,8 @@ import {RenderBaby} from "../jupyter-hooks/render-baby";
 
 import {Signal} from "@lumino/signaling";
 import {CELL_TYPE} from "../../verdant/redux/ghost";
+import {VersionSampler} from "../../verdant/sampler/version-sampler";
+import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -254,24 +256,27 @@ export class Sampler {
     return JSON.stringify(nodey.raw);
   }
 
-  public async renderCellContents(
+  public async renderArtifactCell(
     nodey: Nodey,
     elem: HTMLElement,
     type: CELL_TYPE,
+    diffKind: number = Sampler.NO_DIFF,
     textFocus?: string,
     newText?: string,
-    diffKind?: number,
     prior?: string
   ) {
+    // This function is also used in artifact pane. TODO: create new version
+    // that works for artifact pane by rendering passed nodey
+
     switch (type) {
       case CELL_TYPE.CODE:
-        this.diffCode(elem, newText, prior, diffKind);
+        this.diffCode(elem, newText, diffKind, prior);
         break;
       case CELL_TYPE.OUTPUT:
         await this.diffOutput(nodey as NodeyOutput, elem);
         break;
       case CELL_TYPE.MARKDOWN:
-        await this.diffMarkdown(elem, newText, diffKind, prior);
+        await this.diffMarkdown(elem, diffKind, newText, prior);
         break;
       case CELL_TYPE.NONE:
         console.log("Error");
@@ -282,19 +287,120 @@ export class Sampler {
     return elem;
   }
 
+  public async renderSearchCell(
+    nodey: Nodey,
+    elem: HTMLElement,
+    type: CELL_TYPE,
+    diffKind: number = Sampler.NO_DIFF,
+    textFocus?: string,
+    newText?: string,
+    prior?: string
+  ) {
+    // This function is also used in artifact pane. TODO: create new version
+    // that works for artifact pane by rendering passed nodey
+
+    switch (type) {
+      case CELL_TYPE.CODE:
+        this.diffCode(elem, newText, diffKind, prior);
+        break;
+      case CELL_TYPE.OUTPUT:
+        await this.diffOutput(nodey as NodeyOutput, elem);
+        break;
+      case CELL_TYPE.MARKDOWN:
+        await this.diffMarkdown(elem, diffKind, newText, prior);
+        break;
+      case CELL_TYPE.NONE:
+        console.log("Error");
+    }
+    if (textFocus) {
+      elem = this.highlightText(textFocus, elem);
+    }
+    return elem;
+  }
+
+  public async renderDiffCell(
+    nodey: Nodey,
+    elem: HTMLElement,
+    type: CELL_TYPE,
+    diffKind: number = Sampler.NO_DIFF,
+    newText?: string,
+    prior?: string
+  ) {
+    switch (type) {
+      case CELL_TYPE.CODE:
+        this.diffCode(elem, newText, diffKind, prior);
+        break;
+      case CELL_TYPE.OUTPUT:
+        await this.diffOutput(nodey as NodeyOutput, elem);
+        break;
+      case CELL_TYPE.MARKDOWN:
+        await this.diffMarkdown(elem, diffKind, newText, prior);
+        break;
+      case CELL_TYPE.NONE:
+        console.log("Error");
+    }
+  }
+
+  public async renderCell(
+    sample_type: VersionSampler.SAMPLE_TYPE,
+    nodey: Nodey,
+    elem: HTMLElement,
+    type: CELL_TYPE,
+    diffKind: number = Sampler.NO_DIFF,
+    textFocus?: string,
+    newText?: string,
+    prior?: string
+  ) {
+    // This function is also used in artifact pane. TODO: create new version
+    // that works for artifact pane by rendering passed nodey
+
+    switch (sample_type) {
+      case SAMPLE_TYPE.DIFF:
+        return this.renderDiffCell(
+          nodey,
+          elem,
+          type,
+          diffKind,
+          newText,
+          prior
+        );
+      case SAMPLE_TYPE.ARTIFACT:
+        return this.renderArtifactCell(
+          nodey,
+          elem,
+          type,
+          diffKind,
+          textFocus,
+          newText,
+          prior
+        );
+      case SAMPLE_TYPE.SEARCH:
+        return this.renderSearchCell(
+          nodey,
+          elem,
+          type,
+          diffKind,
+          textFocus,
+          newText,
+          prior
+        );
+    }
+  }
+
   private diffCode(
     elem: HTMLElement,
     newText: string,
-    priorName: string,
-    diffKind: number = Sampler.NO_DIFF
+    diffKind: number = Sampler.NO_DIFF,
+    priorVersion: string
   ) {
 
     // Split new text into lines
     let lines = newText.split("\n");
 
     // Split old text into lines
-    let prior = this.history.store.get(priorName) as NodeyCode;
-    let oldLines = this.renderCodeNode(prior).split("\n");
+    let prior = this.history.store.get(priorVersion) as NodeyCode;
+    let oldLines = diffKind === Sampler.NO_DIFF ? [] :
+      this.renderCodeNode(prior).split("\n");
 
     // Loop over lines and append diffs to elem
     const maxLength = Math.max(lines.length, oldLines.length);
@@ -334,12 +440,10 @@ export class Sampler {
 
   private async diffMarkdown(
     elem: HTMLElement,
+    diffKind: number = Sampler.NO_DIFF,
     newText?: string,
-    diffKind?: number,
     priorVersion?: string
   ) {
-    if (diffKind === undefined) diffKind = Sampler.NO_DIFF;
-
     if (diffKind === Sampler.NO_DIFF)
       await this.renderBaby.renderMarkdown(elem, newText);
     else {

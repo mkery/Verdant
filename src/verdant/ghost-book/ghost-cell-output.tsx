@@ -6,6 +6,7 @@ import {NodeyOutput} from "../../lilgit/model/nodey";
 import GhostCellLabel from "./ghost-cell-label";
 import {connect} from "react-redux";
 import {verdantState} from "../redux/index";
+import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
 
 /* CSS CONSTANTS */
 const CELL = "v-Verdant-GhostBook-cell";
@@ -86,6 +87,7 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
     if (output.raw.length > 0) {
       // Attach diffs to output
       return VersionSampler.sample(
+        SAMPLE_TYPE.DIFF,
         this.props.history,
         output,
         null,

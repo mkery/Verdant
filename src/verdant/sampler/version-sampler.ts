@@ -14,7 +14,14 @@ const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
 const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
+  export enum SAMPLE_TYPE {
+    DIFF,
+    ARTIFACT,
+    SEARCH
+  }
+
   export async function sample(
+    sampleType: SAMPLE_TYPE,
     history: History,
     nodey: Nodey,
     query?: string,
@@ -32,11 +39,11 @@ export namespace VersionSampler {
     sample.appendChild(content);
 
     if (nodey instanceof NodeyCode)
-      await buildCode(inspector, nodey, text, content, prior, query, diff);
+      await buildCode(sampleType, inspector, nodey, text, content, prior, query, diff);
     else if (nodey instanceof NodeyMarkdown)
-      await buildMarkdown(inspector, nodey, text, content, prior, query, diff);
+      await buildMarkdown(sampleType, inspector, nodey, text, content, prior, query, diff);
     else if (nodey instanceof NodeyOutput)
-      await buildOutput(inspector, nodey, content, query);
+      await buildOutput(sampleType, inspector, nodey, content, query);
 
     return sample;
   }
@@ -56,6 +63,7 @@ export namespace VersionSampler {
   }
 
   async function buildCode(
+    sampleType: SAMPLE_TYPE,
     inspector: Sampler,
     nodeyVer: NodeyCode,
     text: string,
@@ -65,22 +73,40 @@ export namespace VersionSampler {
     diff?: number,
   ): Promise<HTMLElement> {
     content.classList.add("code");
-    await inspector.renderCellContents(nodeyVer, content, CELL_TYPE.CODE, query, text, diff, prior);
+    await inspector.renderCell(
+      sampleType,
+      nodeyVer,
+      content,
+      CELL_TYPE.CODE,
+      diff,
+      query,
+      text,
+      prior
+    );
 
     return content;
   }
 
   async function buildOutput(
+    sampleType: SAMPLE_TYPE,
     inspector: Sampler,
     nodeyVer: NodeyOutput,
     content: HTMLElement,
     query?: string
   ): Promise<HTMLElement> {
-    await inspector.renderCellContents(nodeyVer, content, CELL_TYPE.OUTPUT, query);
+    await inspector.renderCell(
+      sampleType,
+      nodeyVer,
+      content,
+      CELL_TYPE.OUTPUT,
+      Sampler.NO_DIFF,
+      query
+    );
     return content;
   }
 
   async function buildMarkdown(
+    sampleType: SAMPLE_TYPE,
     inspector: Sampler,
     nodeyVer: NodeyMarkdown,
     text: string,
@@ -91,7 +117,16 @@ export namespace VersionSampler {
   ): Promise<HTMLElement> {
     content.classList.add("markdown");
     content.classList.add("jp-RenderedHTMLCommon");
-    await inspector.renderCellContents(nodeyVer, content, CELL_TYPE.MARKDOWN, query, text, diff, prior);
+    await inspector.renderCell(
+      sampleType,
+      nodeyVer,
+      content,
+      CELL_TYPE.MARKDOWN,
+      diff,
+      query,
+      text,
+      prior
+    );
 
     return content;
   }

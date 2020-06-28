@@ -3,6 +3,7 @@ import {History} from "../../lilgit/model/history";
 import {NodeyCell, NodeyMarkdown, NodeyOutput} from "../../lilgit/model/nodey";
 import {Sampler} from "../../lilgit/model/sampler";
 import {CELL_TYPE} from "../redux/ghost";
+import {VersionSampler} from "./version-sampler";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 
@@ -17,9 +18,15 @@ export namespace CellSampler {
       sample.classList.add("markdown");
       sample.classList.add("jp-RenderedHTMLCommon");
       sample.classList.add("markdown-sample");
-      await historyModel.inspector.renderCellContents(cell, sample, CELL_TYPE.MARKDOWN, null,
+      await historyModel.inspector.renderCell(
+        VersionSampler.SAMPLE_TYPE.ARTIFACT,
+        cell,
+        sample,
+        CELL_TYPE.MARKDOWN,
+        Sampler.NO_DIFF,
+        null,
         (cell as NodeyMarkdown).markdown,
-        Sampler.NO_DIFF);
+      );
     }
 
     sample.addEventListener("click", () => {
@@ -34,7 +41,13 @@ export namespace CellSampler {
   ): HTMLElement {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    historyModel.inspector.renderCellContents(output, sample, CELL_TYPE.OUTPUT, null, null, Sampler.NO_DIFF);
+    historyModel.inspector.renderCell(
+      VersionSampler.SAMPLE_TYPE.ARTIFACT,
+      output,
+      sample,
+      CELL_TYPE.OUTPUT,
+      Sampler.NO_DIFF
+    );
     return sample;
   }
 }

@@ -9,6 +9,7 @@ import {connect} from "react-redux";
 import {verdantState} from "../redux/index";
 import {CELL_TYPE, focusCell} from "../redux/ghost";
 import {Checkpoint} from "../../lilgit/model/checkpoint";
+import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
 
 /* CSS Constants */
 const CONTAINER = "v-Verdant-GhostBook-container";
@@ -134,6 +135,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       diff = Sampler.CHANGE_DIFF;
     }
     return VersionSampler.sample(
+      SAMPLE_TYPE.DIFF,
       this.props.history,
       nodey,
       null,
