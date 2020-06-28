@@ -1,12 +1,11 @@
 import {
   Nodey,
-  NodeyMarkdown,
   NodeyCode,
-  NodeyOutput,
-  NodeyCodeCell
+  NodeyCodeCell,
+  NodeyMarkdown,
+  NodeyOutput
 } from "../../lilgit/model/nodey";
 import {History} from "../../lilgit/model/history";
-import {Sampler} from "../../lilgit/model/sampler";
 import {CELL_TYPE} from "../redux/ghost";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
@@ -38,13 +37,29 @@ export namespace VersionSampler {
     content.classList.add(INSPECT_VERSION_CONTENT);
     sample.appendChild(content);
 
-    if (nodey instanceof NodeyCode)
-      await buildCode(sampleType, inspector, nodey, text, content, prior, query, diff);
-    else if (nodey instanceof NodeyMarkdown)
-      await buildMarkdown(sampleType, inspector, nodey, text, content, prior, query, diff);
-    else if (nodey instanceof NodeyOutput)
-      await buildOutput(sampleType, inspector, nodey, content, query);
+    let cellType = CELL_TYPE.NONE;
+    if (nodey instanceof NodeyCode) {
+      cellType = CELL_TYPE.CODE;
+      content.classList.add("code");
+    } else if (nodey instanceof NodeyMarkdown) {
+      cellType = CELL_TYPE.MARKDOWN;
+      content.classList.add("markdown");
+      content.classList.add("jp-RenderedHTMLCommon");
+    }
+    else if (nodey instanceof NodeyOutput) {
+      cellType = CELL_TYPE.OUTPUT;
+    }
 
+    await inspector.renderCell(
+      sampleType,
+      nodey,
+      content,
+      cellType,
+      diff,
+      query,
+      text,
+      prior
+    );
     return sample;
   }
 
@@ -60,75 +75,6 @@ export namespace VersionSampler {
         nodey.type + " " + nodey.id + " from " + nameNodey(history, cell);
     }
     return nodeyName;
-  }
-
-  async function buildCode(
-    sampleType: SAMPLE_TYPE,
-    inspector: Sampler,
-    nodeyVer: NodeyCode,
-    text: string,
-    content: HTMLElement,
-    prior: string,
-    query?: string,
-    diff?: number,
-  ): Promise<HTMLElement> {
-    content.classList.add("code");
-    await inspector.renderCell(
-      sampleType,
-      nodeyVer,
-      content,
-      CELL_TYPE.CODE,
-      diff,
-      query,
-      text,
-      prior
-    );
-
-    return content;
-  }
-
-  async function buildOutput(
-    sampleType: SAMPLE_TYPE,
-    inspector: Sampler,
-    nodeyVer: NodeyOutput,
-    content: HTMLElement,
-    query?: string
-  ): Promise<HTMLElement> {
-    await inspector.renderCell(
-      sampleType,
-      nodeyVer,
-      content,
-      CELL_TYPE.OUTPUT,
-      Sampler.NO_DIFF,
-      query
-    );
-    return content;
-  }
-
-  async function buildMarkdown(
-    sampleType: SAMPLE_TYPE,
-    inspector: Sampler,
-    nodeyVer: NodeyMarkdown,
-    text: string,
-    content: HTMLElement,
-    prior: string,
-    query?: string,
-    diff?: number,
-  ): Promise<HTMLElement> {
-    content.classList.add("markdown");
-    content.classList.add("jp-RenderedHTMLCommon");
-    await inspector.renderCell(
-      sampleType,
-      nodeyVer,
-      content,
-      CELL_TYPE.MARKDOWN,
-      diff,
-      query,
-      text,
-      prior
-    );
-
-    return content;
   }
 
   /*
