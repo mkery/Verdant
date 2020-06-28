@@ -261,13 +261,13 @@ export class Sampler {
   ) {
     switch (type) {
       case CELL_TYPE.CODE:
-        this.diffCode(elem, newText, Sampler.NO_DIFF);
+        this.plainCode(elem, newText);
         break;
       case CELL_TYPE.OUTPUT:
-        await this.diffOutput(nodey as NodeyOutput, elem);
+        await this.renderOutput(nodey as NodeyOutput, elem);
         break;
       case CELL_TYPE.MARKDOWN:
-        await this.diffMarkdown(elem, Sampler.NO_DIFF, newText);
+        await this.renderBaby.renderMarkdown(elem, newText);
         break;
     }
     return elem;
@@ -282,13 +282,13 @@ export class Sampler {
   ) {
     switch (type) {
       case CELL_TYPE.CODE:
-        this.diffCode(elem, newText, Sampler.NO_DIFF);
+        this.plainCode(elem, newText);
         break;
       case CELL_TYPE.OUTPUT:
-        await this.diffOutput(nodey as NodeyOutput, elem);
+        await this.renderOutput(nodey as NodeyOutput, elem);
         break;
       case CELL_TYPE.MARKDOWN:
-        await this.diffMarkdown(elem, Sampler.NO_DIFF, newText);
+        await this.renderBaby.renderMarkdown(elem, newText);
         break;
     }
     if (textFocus) {
@@ -310,12 +310,28 @@ export class Sampler {
         this.diffCode(elem, newText, diffKind, prior);
         break;
       case CELL_TYPE.OUTPUT:
-        await this.diffOutput(nodey as NodeyOutput, elem);
+        await this.renderOutput(nodey as NodeyOutput, elem);
         break;
       case CELL_TYPE.MARKDOWN:
         await this.diffMarkdown(elem, diffKind, newText, prior);
         break;
     }
+  }
+
+  // Methods for rendering code cells
+
+  private plainCode(elem: HTMLElement, newText: string) {
+    /* Inserts code data to elem */
+
+    // Split new text into lines
+    newText.split("\n").forEach(line => {
+      // Append a div with line contents to elem
+      let div = document.createElement("div");
+      div.innerHTML = line;
+      elem.appendChild(div);
+    });
+
+    return elem;
   }
 
   private diffCode(
@@ -324,52 +340,53 @@ export class Sampler {
     diffKind: number = Sampler.NO_DIFF,
     priorVersion?: string
   ) {
+    /* Inserts code data to elem with diffs if necessary */
+
+    // If no diff necessary, use plaincode
+    if (diffKind === Sampler.NO_DIFF) return this.plainCode(elem, newText);
 
     // Split new text into lines
     let lines = newText.split("\n");
 
     // Split old text into lines
-    let oldLines: string[] = [];
-    if (diffKind !== Sampler.NO_DIFF) {
-      let prior = this.history.store.get(priorVersion) as NodeyCode;
-      oldLines = this.renderCodeNode(prior).split("\n");
-    }
+    let prior = this.history.store.get(priorVersion) as NodeyCode;
+    let oldLines = this.renderCodeNode(prior).split("\n");
 
     // Loop over lines and append diffs to elem
     const maxLength = Math.max(lines.length, oldLines.length);
     for (let i = 0; i < maxLength; i++) {
       let newLine = lines[i] || "";
       let oldLine = oldLines[i] || "";
-      elem.appendChild(this.diffLine(diffKind, oldLine, newLine));
+      elem.appendChild(this.diffLine(oldLine, newLine));
     }
 
     return elem;
   }
 
-  private diffLine(diffKind: number, oldText: string, newText: string) {
+  private diffLine(oldText: string, newText: string) {
+    /* Diffs a single line. */
     let line = document.createElement("div");
     let innerHTML = "";
-    if (diffKind !== Sampler.NO_DIFF) {
-      let diff = JSDiff.diffWords(oldText, newText);
-      diff.forEach((part) => {
-        let partDiv = document.createElement("span");
-        //log("DIFF", part);
-        partDiv.textContent = part.value;
-        if (part.added) {
-          partDiv.classList.add(CHANGE_ADDED_CLASS);
-          innerHTML += partDiv.outerHTML;
-        } else if (part.removed) {
-          partDiv.classList.add(CHANGE_REMOVED_CLASS);
-          innerHTML += partDiv.outerHTML;
-        } else {
-          innerHTML += part.value;
-        }
-      });
-    } else innerHTML = newText;
-    //log(innerHTML);
+    let diff = JSDiff.diffWords(oldText, newText);
+    diff.forEach((part) => {
+      let partDiv = document.createElement("span");
+      //log("DIFF", part);
+      partDiv.textContent = part.value;
+      if (part.added) {
+        partDiv.classList.add(CHANGE_ADDED_CLASS);
+        innerHTML += partDiv.outerHTML;
+      } else if (part.removed) {
+        partDiv.classList.add(CHANGE_REMOVED_CLASS);
+        innerHTML += partDiv.outerHTML;
+      } else {
+        innerHTML += part.value;
+      }
+    });
     line.innerHTML = innerHTML;
     return line;
   }
+
+  // Methods for rendering markdown cells
 
   private async diffMarkdown(
     elem: HTMLElement,
@@ -407,7 +424,9 @@ export class Sampler {
     return elem;
   }
 
-  private async diffOutput(nodey: NodeyOutput, elem: HTMLElement) {
+  // Methods for rendering output cells
+
+  private async renderOutput(nodey: NodeyOutput, elem: HTMLElement) {
     let widgetList = await this.renderBaby.renderOutput(nodey);
     widgetList.forEach((widget: Widget) => {
       elem.appendChild(widget.node);
@@ -415,7 +434,11 @@ export class Sampler {
     return elem;
   }
 
+  // Helper method for search cells
+
   private highlightText(textFocus: string, elem: HTMLElement) {
+    /* Highlight text in an HTML element */
+
     // get down to the bare text for highlighting
     if (elem.children.length > 0) {
       let elems = Array.from(elem.children).map(
@@ -429,15 +452,10 @@ export class Sampler {
       let lower = elem.innerHTML.toLowerCase();
       let index = lower.indexOf(keys[0], i);
       let html = "";
-      //log("Index is ", index, lower, keys[0]);
       while (index > -1) {
         html +=
-          elem.innerHTML.slice(i, index) +
-          '<span class="' +
-          SEARCH_FILTER_RESULTS +
-          '">' +
-          split[0] +
-          "</span>";
+          `${elem.innerHTML.slice(i, index)} 
+           <span class="${SEARCH_FILTER_RESULTS}"> ${split[0]} </span>`;
         i = index + split[0].length;
         index = lower.indexOf(keys[0], i);
       }
