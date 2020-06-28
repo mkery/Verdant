@@ -9,7 +9,7 @@ import {
 import {History} from "../../../lilgit/model/history";
 import VersionHeader from "../../sampler/version-header";
 import {VersionSampler} from "../../sampler/version-sampler";
-import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
+import {SAMPLE_TYPE} from "../../../lilgit/model/sampler";
 
 const HEADER = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_CONTENT = "v-VerdantPanel-sampler-content";

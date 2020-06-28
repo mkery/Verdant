@@ -4,7 +4,7 @@ import {History} from "../../lilgit/model/history";
 import {VersionSampler} from "./version-sampler";
 import VersionHeader from "./version-header";
 import {Sampler} from "../../lilgit/model/sampler";
-import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
+import {SAMPLE_TYPE} from "../../lilgit/model/sampler";
 
 const SEARCH_SAMPLE = "v-VerdantPanel-search-version";
 const VERSION_HEADER = "v-VerdantPanel-sampler-version-header";

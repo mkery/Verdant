@@ -6,18 +6,13 @@ import {
   NodeyOutput
 } from "../../lilgit/model/nodey";
 import {History} from "../../lilgit/model/history";
-import {CELL_TYPE} from "../redux/ghost";
+import {CELL_TYPE, SAMPLE_TYPE} from "../../lilgit/model/sampler";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
 const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
-  export enum SAMPLE_TYPE {
-    DIFF,
-    ARTIFACT,
-    SEARCH
-  }
 
   export async function sample(
     sampleType: SAMPLE_TYPE,
@@ -37,7 +32,7 @@ export namespace VersionSampler {
     content.classList.add(INSPECT_VERSION_CONTENT);
     sample.appendChild(content);
 
-    let cellType = CELL_TYPE.NONE;
+    let cellType;
     if (nodey instanceof NodeyCode) {
       cellType = CELL_TYPE.CODE;
       content.classList.add("code");
@@ -50,16 +45,21 @@ export namespace VersionSampler {
       cellType = CELL_TYPE.OUTPUT;
     }
 
-    await inspector.renderCell(
-      sampleType,
-      nodey,
-      content,
-      cellType,
-      diff,
-      query,
-      text,
-      prior
-    );
+    switch (sampleType) {
+      case SAMPLE_TYPE.ARTIFACT:
+        await inspector.renderArtifactCell(
+          nodey, content, cellType, text);
+        break;
+      case SAMPLE_TYPE.SEARCH:
+        await inspector.renderSearchCell(
+          nodey, content, cellType, query, text);
+        break;
+      case SAMPLE_TYPE.DIFF:
+        await inspector.renderDiffCell(
+          nodey, content, cellType, diff, text, prior);
+        break;
+    }
+
     return sample;
   }
 

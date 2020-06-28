@@ -1,22 +1,15 @@
 import {verdantState} from "./index";
 import {Ghost} from "../ghost-book/ghost";
-import {CheckpointType, Checkpoint} from "../../lilgit/model/checkpoint";
+import {Checkpoint, CheckpointType} from "../../lilgit/model/checkpoint";
 import {NodeyCode} from "../../lilgit/model/nodey";
 import {History} from "../../lilgit/model/history";
+import {CELL_TYPE} from "../../lilgit/model/sampler";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
 const SWITCH_NOTEBOOK = "SWITCH_NOTEBOOK";
 const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
 const SWITCH_CELL = "SWITCH_CELL";
-
-export enum CELL_TYPE {
-  /* types of cells in ghost notebook main cell list */
-  CODE,
-  MARKDOWN,
-  OUTPUT,
-  NONE
-}
 
 export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
   return {
@@ -258,8 +251,6 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
 function getCellType(name: string): CELL_TYPE {
   /* Computes cell type from a cell name */
   if (name.includes("c")) return CELL_TYPE.CODE;
-  if (name.includes("m")) return CELL_TYPE.MARKDOWN;
-
-  // Default for error handling
-  return CELL_TYPE.NONE;
+  else if (name.includes("m")) return CELL_TYPE.MARKDOWN;
+  else return CELL_TYPE.OUTPUT;
 }

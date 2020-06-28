@@ -6,7 +6,7 @@ import {NodeyOutput} from "../../lilgit/model/nodey";
 import GhostCellLabel from "./ghost-cell-label";
 import {connect} from "react-redux";
 import {verdantState} from "../redux/index";
-import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
+import {SAMPLE_TYPE} from "../../lilgit/model/sampler";
 
 /* CSS CONSTANTS */
 const CELL = "v-Verdant-GhostBook-cell";

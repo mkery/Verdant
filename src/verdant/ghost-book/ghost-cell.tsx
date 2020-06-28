@@ -1,15 +1,14 @@
 import * as React from "react";
 import {History} from "../../lilgit/model/history";
 import {NodeyCode} from "../../lilgit/model/nodey";
-import {Sampler} from "../../lilgit/model/sampler";
+import {CELL_TYPE, SAMPLE_TYPE, Sampler} from "../../lilgit/model/sampler";
 import {VersionSampler} from "../sampler/version-sampler";
 import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
 import {connect} from "react-redux";
 import {verdantState} from "../redux/index";
-import {CELL_TYPE, focusCell} from "../redux/ghost";
+import {focusCell} from "../redux/ghost";
 import {Checkpoint} from "../../lilgit/model/checkpoint";
-import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
 
 /* CSS Constants */
 const CONTAINER = "v-Verdant-GhostBook-container";
@@ -151,7 +150,8 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         return CODE_CELL;
       case CELL_TYPE.MARKDOWN:
         return MARKDOWN_CELL;
-      case CELL_TYPE.NONE:
+      case CELL_TYPE.OUTPUT:
+        console.log("Error: shouldn't render output cell in main cell");
         return "";
     }
   }

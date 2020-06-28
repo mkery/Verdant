@@ -23,9 +23,6 @@ import {ASTUtils} from "../analysis/ast-utils";
 import {RenderBaby} from "../jupyter-hooks/render-baby";
 
 import {Signal} from "@lumino/signaling";
-import {CELL_TYPE} from "../../verdant/redux/ghost";
-import {VersionSampler} from "../../verdant/sampler/version-sampler";
-import SAMPLE_TYPE = VersionSampler.SAMPLE_TYPE;
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -272,8 +269,6 @@ export class Sampler {
       case CELL_TYPE.MARKDOWN:
         await this.diffMarkdown(elem, Sampler.NO_DIFF, newText);
         break;
-      case CELL_TYPE.NONE:
-        console.log("Error");
     }
     return elem;
   }
@@ -295,8 +290,6 @@ export class Sampler {
       case CELL_TYPE.MARKDOWN:
         await this.diffMarkdown(elem, Sampler.NO_DIFF, newText);
         break;
-      case CELL_TYPE.NONE:
-        console.log("Error");
     }
     if (textFocus) {
       elem = this.highlightText(textFocus, elem);
@@ -322,28 +315,6 @@ export class Sampler {
       case CELL_TYPE.MARKDOWN:
         await this.diffMarkdown(elem, diffKind, newText, prior);
         break;
-      case CELL_TYPE.NONE:
-        console.log("Error");
-    }
-  }
-
-  public async renderCell(
-    sample_type: VersionSampler.SAMPLE_TYPE,
-    nodey: Nodey,
-    elem: HTMLElement,
-    type: CELL_TYPE,
-    diffKind: number = Sampler.NO_DIFF,
-    textFocus?: string,
-    newText?: string,
-    prior?: string
-  ) {
-    switch (sample_type) {
-      case SAMPLE_TYPE.DIFF:
-        return this.renderDiffCell(nodey, elem, type, diffKind, newText, prior);
-      case SAMPLE_TYPE.ARTIFACT:
-        return this.renderArtifactCell(nodey, elem, type, newText);
-      case SAMPLE_TYPE.SEARCH:
-        return this.renderSearchCell(nodey, elem, type, textFocus, newText);
     }
   }
 
@@ -358,9 +329,11 @@ export class Sampler {
     let lines = newText.split("\n");
 
     // Split old text into lines
-    let prior = this.history.store.get(priorVersion) as NodeyCode;
-    let oldLines = diffKind === Sampler.NO_DIFF ? [] :
-      this.renderCodeNode(prior).split("\n");
+    let oldLines: string[] = [];
+    if (diffKind !== Sampler.NO_DIFF) {
+      let prior = this.history.store.get(priorVersion) as NodeyCode;
+      oldLines = this.renderCodeNode(prior).split("\n");
+    }
 
     // Loop over lines and append diffs to elem
     const maxLength = Math.max(lines.length, oldLines.length);
@@ -480,4 +453,18 @@ export namespace Sampler {
   export const NO_DIFF = -1;
   export const CHANGE_DIFF = 0;
   export const PRESENT_DIFF = 1;
+}
+
+export enum SAMPLE_TYPE {
+  /* types of render callers */
+  DIFF,
+  ARTIFACT,
+  SEARCH
+}
+
+export enum CELL_TYPE {
+  /* types of cells being rendered */
+  CODE,
+  MARKDOWN,
+  OUTPUT,
 }
