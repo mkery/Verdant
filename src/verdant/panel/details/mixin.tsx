@@ -9,7 +9,7 @@ import {
 import {History} from "../../../lilgit/model/history";
 import VersionHeader from "../../sampler/version-header";
 import {VersionSampler} from "../../sampler/version-sampler";
-import {SAMPLE_TYPE} from "../../../lilgit/model/sampler";
+import {SAMPLE_TYPE, Sampler} from "../../../lilgit/model/sampler";
 
 const HEADER = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_CONTENT = "v-VerdantPanel-sampler-content";
@@ -97,7 +97,13 @@ export class Mixin extends React.Component<Mixin_Props, Mixin_State> {
     let history = this.props.history.store.getHistoryOf(this.props.target);
     let samples = await Promise.all(
       history.versions.map(async (nodeyVer, index) => {
-        let s = await VersionSampler.sample(SAMPLE_TYPE.ARTIFACT, this.props.history, nodeyVer);
+        let prior = this.props.history.store.getPriorVersion(nodeyVer);
+        let s;
+        if (prior != null) {
+          s = await VersionSampler.sample(SAMPLE_TYPE.DIFF, this.props.history, nodeyVer, null, Sampler.CHANGE_DIFF, prior.name);
+        } else {
+          s = await VersionSampler.sample(SAMPLE_TYPE.ARTIFACT, this.props.history, nodeyVer);
+        }
         return s.outerHTML;
       })
     );
