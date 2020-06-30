@@ -1,24 +1,32 @@
 import * as React from "react";
-import { connect } from "react-redux";
-import { History } from "../../lilgit/model/history";
-import { Checkpoint } from "../../lilgit/model/checkpoint/";
-import { log } from "../../lilgit/components/notebook";
-import { verdantState } from "../redux/index";
-import { toggleShowAllCells } from "../redux/ghost";
+import {connect} from "react-redux";
+import {History} from "../../lilgit/model/history";
+import {Checkpoint} from "../../lilgit/model/checkpoint";
+import {verdantState} from "../redux/index";
+import {toggleShowAllCells} from "../redux/ghost";
+
+/* CSS Constants */
+const JP_TOOLBAR = "jp-Toolbar";
+
+const HEADER = "v-Verdant-GhostBook-header";
+const HEADER_ROW = `${HEADER}-row`;
+const HEADER_TOGGLE = `${HEADER}-toggle`;
+const HEADER_TOGGLE_TEXT = `${HEADER_TOGGLE}-text`;
+const HEADER_TOGGLE_BUTTON = `${HEADER_TOGGLE}-button`;
+
 
 interface GhostToolbar_Props {
   history: History;
   name: number;
-  checked: boolean;
+  diffPresent: boolean;
   toggleShow: () => void;
 }
 
-const GHOST_TOOLBAR_ROW = "v-Verdant-GhostBook-header-row";
 
 class Toolbar extends React.Component<GhostToolbar_Props> {
   public render() {
     return (
-      <div className="jp-Toolbar v-Verdant-GhostBook-header">
+      <div className={`${HEADER} ${JP_TOOLBAR}`}>
         {this.showLabel()}
       </div>
     );
@@ -27,7 +35,7 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
   private showLabel() {
     let notebook = this.props.history.store.getNotebook(this.props.name);
     let created = this.props.history.checkpoints.get(notebook.created);
-    log("CHECKPOINT FOUND", notebook.created, created);
+
     let time;
     if (created)
       // error save from older log format
@@ -37,11 +45,16 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
         Checkpoint.formatTime(created.timestamp);
 
     return (
-      <div className={GHOST_TOOLBAR_ROW}>
-        <div>{`Viewing version # 
-          ${this.props.name + 1}
-           of notebook 
-          ${time ? "from " + time : ""}`}</div>
+      <div className={HEADER_ROW}>
+        <div> Viewing version # {this.props.name + 1} of
+          notebook {time ? "from " + time : ""} </div>
+        <div className={HEADER_TOGGLE}>
+          <div className={HEADER_TOGGLE_TEXT}>
+          {this.props.diffPresent ? "Checked" : "Unchecked"}
+          </div>
+          <div className={HEADER_TOGGLE_BUTTON}
+               onClick={this.props.toggleShow}/>
+        </div>
       </div>
     );
   }
@@ -51,7 +64,7 @@ const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     name: state.notebook_ver,
-    checked: state.show_all_cells,
+    diffPresent: state.diffPresent,
   };
 };
 

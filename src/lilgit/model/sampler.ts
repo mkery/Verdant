@@ -1,28 +1,28 @@
-import { Widget } from "@lumino/widgets";
+import {Widget} from "@lumino/widgets";
 
-import { log } from "../components/notebook";
+import {log} from "../components/notebook";
 
 import * as JSDiff from "diff";
 
 import {
   Nodey,
+  NodeyCell,
   NodeyCode,
+  NodeyCodeCell,
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
-  NodeyCell,
-  NodeyCodeCell,
 } from "./nodey";
 
-import { CodeCell, Cell } from "@jupyterlab/cells";
+import {Cell, CodeCell} from "@jupyterlab/cells";
 
-import { History } from "./history";
+import {History} from "./history";
 
-import { ASTUtils } from "../analysis/ast-utils";
+import {ASTUtils} from "../analysis/ast-utils";
 
-import { RenderBaby } from "../jupyter-hooks/render-baby";
+import {RenderBaby} from "../jupyter-hooks/render-baby";
 
-import { Signal } from "@lumino/signaling";
+import {Signal} from "@lumino/signaling";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -133,7 +133,7 @@ export class Sampler {
       );
       endCh = Math.round(
         ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
-          lineText.length
+        lineText.length
       );
       endCh = Math.min(endCh, lineText.length - 1);
     }
@@ -141,8 +141,8 @@ export class Sampler {
     res = ASTUtils.findNodeAtRange(
       parent,
       {
-        start: { line: lineNum, ch: startCh },
-        end: { line: lineNum, ch: endCh },
+        start: {line: lineNum, ch: startCh},
+        end: {line: lineNum, ch: endCh},
       },
       this.history
     );
@@ -151,13 +151,13 @@ export class Sampler {
 
   private findAncestorByAttr(el: HTMLElement, attr: string) {
     if (el.hasAttribute(attr)) return el;
-    while ((el = el.parentElement) && !el.hasAttribute(attr));
+    while ((el = el.parentElement) && !el.hasAttribute(attr)) ;
     return el;
   }
 
   private findAncestor(el: HTMLElement, cls: string) {
     if (el.classList.contains(cls)) return el;
-    while ((el = el.parentElement) && !el.classList.contains(cls));
+    while ((el = el.parentElement) && !el.classList.contains(cls)) ;
     return el;
   }
 
@@ -231,13 +231,13 @@ export class Sampler {
   }
 
   private renderCodeNode(nodey: NodeyCode): string {
-    var literal = nodey.literal || "";
+    let literal = nodey.literal || "";
     if (nodey.content) {
       nodey.content.forEach((name) => {
         if (name instanceof SyntaxToken) {
           literal += name.tokens;
         } else {
-          var child = this.history.store.get(name);
+          let child = this.history.store.get(name);
           literal += this.renderCodeNode(child as NodeyCode);
         }
       });
@@ -253,100 +253,155 @@ export class Sampler {
     return JSON.stringify(nodey.raw);
   }
 
-  public async renderDiff(
+  public async renderArtifactCell(
     nodey: Nodey,
     elem: HTMLElement,
-    options: {
-      newText?: string;
-      diffKind?: number;
-      textFocus?: string;
-    } = {}
+    newText?: string
   ) {
-    if (nodey instanceof NodeyCode) this.diffCode(nodey, elem, options);
-    else if (nodey instanceof NodeyMarkdown)
-      await this.diffMarkdown(nodey, elem, options);
-    else if (nodey instanceof NodeyOutput) await this.diffOutput(nodey, elem);
-
-    if (options.textFocus) {
-      elem = this.highlightText(options.textFocus, elem);
+    switch (nodey.typeChar) {
+      case "c":
+        this.plainCode(elem, newText);
+        break;
+      case "o":
+        await this.renderOutput(nodey as NodeyOutput, elem);
+        break;
+      case "m":
+        await this.renderBaby.renderMarkdown(elem, newText);
+        break;
     }
     return elem;
   }
 
-  private diffCode(
-    nodey: NodeyCode,
+  public async renderSearchCell(
+    nodey: Nodey,
     elem: HTMLElement,
-    opts: {
-      newText?: string;
-      diffKind?: number;
-      textFocus?: string;
-    }
+    textFocus?: string,
+    newText?: string,
   ) {
-    let diffKind = opts.diffKind;
-    if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
+    switch (nodey.typeChar) {
+      case "c":
+        this.plainCode(elem, newText);
+        break;
+      case "o":
+        await this.renderOutput(nodey as NodeyOutput, elem);
+        break;
+      case "m":
+        await this.renderBaby.renderMarkdown(elem, newText);
+        break;
+    }
+    if (textFocus) {
+      elem = this.highlightText(textFocus, elem);
+    }
+    return elem;
+  }
 
-    // now split text into lines so that it displays correctly
-    let lines = opts.newText.split("\n");
-    let prior = this.history.store.getPriorVersion(nodey) as NodeyCode;
-    let oldLines: string[] = [];
-    if (prior) oldLines = this.renderCodeNode(prior).split("\n");
+  public async renderDiffCell(
+    nodey: Nodey,
+    elem: HTMLElement,
+    diffKind: number = Sampler.NO_DIFF,
+    newText?: string,
+    prior?: string
+  ) {
+    switch (nodey.typeChar) {
+      case "c":
+        this.diffCode(elem, newText, diffKind, prior);
+        break;
+      case "o":
+        await this.renderOutput(nodey as NodeyOutput, elem);
+        break;
+      case "m":
+        await this.diffMarkdown(elem, diffKind, newText, prior);
+        break;
+    }
+  }
 
-    lines.forEach((ln: string, index: number) => {
-      let oldln = oldLines[index] || "";
-      elem.appendChild(this.diffLine(diffKind, oldln, ln));
+  // Methods for rendering code cells
+
+  private plainCode(elem: HTMLElement, newText: string) {
+    /* Inserts code data to elem */
+
+    // Split new text into lines
+    newText.split("\n").forEach(line => {
+      // Append a div with line contents to elem
+      let div = document.createElement("div");
+      div.innerHTML = line;
+      elem.appendChild(div);
     });
 
     return elem;
   }
 
-  private diffLine(diffKind: number, oldText: string, newText: string) {
+  private diffCode(
+    elem: HTMLElement,
+    newText: string,
+    diffKind: number = Sampler.NO_DIFF,
+    priorVersion?: string
+  ) {
+    /* Inserts code data to elem with diffs if necessary */
+
+    // If no diff necessary, use plaincode
+    if (diffKind === Sampler.NO_DIFF) return this.plainCode(elem, newText);
+
+    // Split new text into lines
+    let lines = newText.split("\n");
+
+    // Split old text into lines
+    let prior = this.history.store.get(priorVersion) as NodeyCode;
+    let oldLines = this.renderCodeNode(prior).split("\n");
+
+    // Loop over lines and append diffs to elem
+    const maxLength = Math.max(lines.length, oldLines.length);
+    for (let i = 0; i < maxLength; i++) {
+      let newLine = lines[i] || "";
+      let oldLine = oldLines[i] || "";
+      elem.appendChild(this.diffLine(oldLine, newLine));
+    }
+
+    return elem;
+  }
+
+  private diffLine(oldText: string, newText: string) {
+    /* Diffs a single line. */
     let line = document.createElement("div");
     let innerHTML = "";
-    if (diffKind === Sampler.CHANGE_DIFF) {
-      let diff = JSDiff.diffWords(oldText, newText);
-      diff.forEach((part) => {
-        let partDiv = document.createElement("span");
-        //log("DIFF", part);
-        partDiv.textContent = part.value;
-        if (part.added) {
-          partDiv.classList.add(CHANGE_ADDED_CLASS);
-          innerHTML += partDiv.outerHTML;
-        } else if (part.removed) {
-          partDiv.classList.add(CHANGE_REMOVED_CLASS);
-          innerHTML += partDiv.outerHTML;
-        } else {
-          innerHTML += part.value;
-        }
-      });
-    } else innerHTML = newText;
-    //log(innerHTML);
+    let diff = JSDiff.diffWords(oldText, newText);
+    diff.forEach((part) => {
+      let partDiv = document.createElement("span");
+      //log("DIFF", part);
+      partDiv.textContent = part.value;
+      if (part.added) {
+        partDiv.classList.add(CHANGE_ADDED_CLASS);
+        innerHTML += partDiv.outerHTML;
+      } else if (part.removed) {
+        partDiv.classList.add(CHANGE_REMOVED_CLASS);
+        innerHTML += partDiv.outerHTML;
+      } else {
+        innerHTML += part.value;
+      }
+    });
     line.innerHTML = innerHTML;
     return line;
   }
 
-  private async diffMarkdown(
-    nodey: NodeyMarkdown,
-    elem: HTMLElement,
-    opts: {
-      newText?: string;
-      diffKind?: number;
-      textFocus?: string;
-    }
-  ) {
-    let diffKind = opts.diffKind;
-    if (opts.diffKind === undefined) diffKind = Sampler.NO_DIFF;
+  // Methods for rendering markdown cells
 
-    if (diffKind === Sampler.NO_DIFF || !nodey.markdown)
-      await this.renderBaby.renderMarkdown(elem, opts.newText);
-    else if (diffKind === Sampler.CHANGE_DIFF) {
-      let prior = this.history.store.getPriorVersion(nodey) as NodeyMarkdown;
+  private async diffMarkdown(
+    elem: HTMLElement,
+    diffKind: number = Sampler.NO_DIFF,
+    newText?: string,
+    priorVersion?: string
+  ) {
+    if (diffKind === Sampler.NO_DIFF)
+      await this.renderBaby.renderMarkdown(elem, newText);
+    else {
+      let prior = this.history.store.get(priorVersion) as NodeyMarkdown;
       if (!prior || !prior.markdown) {
         // easy, everything is added
-        await this.renderBaby.renderMarkdown(elem, opts.newText);
+        await this.renderBaby.renderMarkdown(elem, newText);
         elem.classList.add(CHANGE_ADDED_CLASS);
       } else {
         let priorText = prior.markdown;
-        let diff = JSDiff.diffWords(priorText, opts.newText);
+        let diff = JSDiff.diffWords(priorText, newText);
         await diff.forEach(async (part) => {
           let partDiv = document.createElement("div");
           await this.renderBaby.renderMarkdown(partDiv, part.value);
@@ -366,7 +421,9 @@ export class Sampler {
     return elem;
   }
 
-  private async diffOutput(nodey: NodeyOutput, elem: HTMLElement) {
+  // Methods for rendering output cells
+
+  private async renderOutput(nodey: NodeyOutput, elem: HTMLElement) {
     let widgetList = await this.renderBaby.renderOutput(nodey);
     widgetList.forEach((widget: Widget) => {
       elem.appendChild(widget.node);
@@ -374,7 +431,11 @@ export class Sampler {
     return elem;
   }
 
+  // Helper method for search cells
+
   private highlightText(textFocus: string, elem: HTMLElement) {
+    /* Highlight text in an HTML element */
+
     // get down to the bare text for highlighting
     if (elem.children.length > 0) {
       let elems = Array.from(elem.children).map(
@@ -388,15 +449,10 @@ export class Sampler {
       let lower = elem.innerHTML.toLowerCase();
       let index = lower.indexOf(keys[0], i);
       let html = "";
-      //log("Index is ", index, lower, keys[0]);
       while (index > -1) {
         html +=
-          elem.innerHTML.slice(i, index) +
-          '<span class="' +
-          SEARCH_FILTER_RESULTS +
-          '">' +
-          split[0] +
-          "</span>";
+          `${elem.innerHTML.slice(i, index)} 
+           <span class="${SEARCH_FILTER_RESULTS}"> ${split[0]} </span>`;
         i = index + split[0].length;
         index = lower.indexOf(keys[0], i);
       }
@@ -411,4 +467,12 @@ export class Sampler {
 export namespace Sampler {
   export const NO_DIFF = -1;
   export const CHANGE_DIFF = 0;
+  export const PRESENT_DIFF = 1;
+}
+
+export enum SAMPLE_TYPE {
+  /* types of render callers */
+  DIFF,
+  ARTIFACT,
+  SEARCH
 }
