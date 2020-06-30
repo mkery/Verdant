@@ -6,7 +6,7 @@ import {
   NodeyCodeCell,
   NodeyMarkdown,
   SyntaxToken,
-  NodeyNotebook
+  NodeyNotebook,
 } from "./nodey";
 import { VerCell } from "../components/cell";
 import { History } from "./history";
@@ -17,8 +17,8 @@ import { log } from "../components/notebook";
 import * as levenshtein from "fast-levenshtein";
 
 /*
-* little wrapper class for pending changes with a star
-*/
+ * little wrapper class for pending changes with a star
+ */
 export class Star<T extends Nodey> {
   readonly value: T;
   cellId: string = "?";
@@ -41,6 +41,10 @@ export class Star<T extends Nodey> {
 
   get name(): string {
     return "*" + "." + this.value.typeChar + "." + this.value.id;
+  }
+
+  get typeChar(): string {
+    return this.value.typeChar;
   }
 }
 
@@ -173,8 +177,8 @@ export class HistoryStage {
   }
 
   /*
-  * should return if there is any changes to commit true/false
-  */
+   * should return if there is any changes to commit true/false
+   */
   public commit(checkpoint: Checkpoint, starCell?: Star<Nodey> | Nodey): Nodey {
     log("Trying to commit!", starCell);
     if (starCell) {
@@ -275,7 +279,7 @@ export class HistoryStage {
     // are discared too
     if (star.value instanceof NodeyCode) {
       if (star.value.content)
-        star.value.content.forEach(name => {
+        star.value.content.forEach((name) => {
           if (typeof name == "string") {
             let nodey = this.store.getLatestOf(name);
             if (nodey instanceof Star) this.discardStar(nodey);
@@ -294,10 +298,10 @@ export class HistoryStage {
       updatedNodey = this.deStar(nodey, eventId) as NodeyMarkdown;
     } else {
       /*
-      * if nothing was changed, nothing was changed
-      * this protects us against undo and changes that result
-      * in no real change to the text
-      */
+       * if nothing was changed, nothing was changed
+       * this protects us against undo and changes that result
+       * in no real change to the text
+       */
       updatedNodey = this.discardStar(star) as NodeyMarkdown;
     }
 
@@ -328,8 +332,8 @@ export class HistoryStage {
 
     if (nodey.value instanceof NodeyNotebook) {
       /* for a notebook just check if any of the cells have
-      * actually changed
-      */
+       * actually changed
+       */
       let cellCount =
         (lastSave as NodeyNotebook).cells.length !==
         (nodey.value as NodeyNotebook).cells.length;
@@ -341,8 +345,8 @@ export class HistoryStage {
       );
     } else {
       /*
-      * for most cells, check if the text content is different
-      */
+       * for most cells, check if the text content is different
+       */
       let priorText: string;
 
       if (lastSave instanceof NodeyMarkdown) priorText = lastSave.markdown;
@@ -367,8 +371,8 @@ export class HistoryStage {
       let output = cell.outputArea.model.toJSON();
 
       /*
-      * verify different
-      */
+       * verify different
+       */
       let same = false;
       let oldOutput;
       if (history) {
@@ -381,7 +385,7 @@ export class HistoryStage {
         var n = new NodeyOutput({
           raw: output,
           created: eventId,
-          parent: nodey.name
+          parent: nodey.name,
         });
         if (!history) this.history.store.store(n);
         else {
