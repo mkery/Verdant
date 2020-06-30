@@ -3,7 +3,6 @@ import {Ghost} from "../ghost-book/ghost";
 import {Checkpoint, CheckpointType} from "../../lilgit/model/checkpoint";
 import {NodeyCode} from "../../lilgit/model/nodey";
 import {History} from "../../lilgit/model/history";
-import {CELL_TYPE} from "../../lilgit/model/sampler";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
@@ -78,7 +77,6 @@ export type cellEffect =
 
 export type ghostCellState = {
   name: string;
-  type: CELL_TYPE;
   index: number;
   events: Checkpoint[];
   output: string;
@@ -228,7 +226,6 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   cells.forEach((cell, index) => {
     loadedCells.set(cell.cell, {
       name: cell.cell,
-      type: getCellType(cell.cell),
       index: index,
       events: cell.events,
       output: cell.output,
@@ -246,11 +243,4 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   });
 
   return [loadedCells, loadedOutput];
-}
-
-function getCellType(name: string): CELL_TYPE {
-  /* Computes cell type from a cell name */
-  if (name.includes("c")) return CELL_TYPE.CODE;
-  else if (name.includes("m")) return CELL_TYPE.MARKDOWN;
-  else return CELL_TYPE.OUTPUT;
 }

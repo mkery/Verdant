@@ -256,17 +256,16 @@ export class Sampler {
   public async renderArtifactCell(
     nodey: Nodey,
     elem: HTMLElement,
-    type: CELL_TYPE,
     newText?: string
   ) {
-    switch (type) {
-      case CELL_TYPE.CODE:
+    switch (nodey.typeChar) {
+      case "c":
         this.plainCode(elem, newText);
         break;
-      case CELL_TYPE.OUTPUT:
+      case "o":
         await this.renderOutput(nodey as NodeyOutput, elem);
         break;
-      case CELL_TYPE.MARKDOWN:
+      case "m":
         await this.renderBaby.renderMarkdown(elem, newText);
         break;
     }
@@ -276,18 +275,17 @@ export class Sampler {
   public async renderSearchCell(
     nodey: Nodey,
     elem: HTMLElement,
-    type: CELL_TYPE,
     textFocus?: string,
     newText?: string,
   ) {
-    switch (type) {
-      case CELL_TYPE.CODE:
+    switch (nodey.typeChar) {
+      case "c":
         this.plainCode(elem, newText);
         break;
-      case CELL_TYPE.OUTPUT:
+      case "o":
         await this.renderOutput(nodey as NodeyOutput, elem);
         break;
-      case CELL_TYPE.MARKDOWN:
+      case "m":
         await this.renderBaby.renderMarkdown(elem, newText);
         break;
     }
@@ -300,19 +298,18 @@ export class Sampler {
   public async renderDiffCell(
     nodey: Nodey,
     elem: HTMLElement,
-    type: CELL_TYPE,
     diffKind: number = Sampler.NO_DIFF,
     newText?: string,
     prior?: string
   ) {
-    switch (type) {
-      case CELL_TYPE.CODE:
+    switch (nodey.typeChar) {
+      case "c":
         this.diffCode(elem, newText, diffKind, prior);
         break;
-      case CELL_TYPE.OUTPUT:
+      case "o":
         await this.renderOutput(nodey as NodeyOutput, elem);
         break;
-      case CELL_TYPE.MARKDOWN:
+      case "m":
         await this.diffMarkdown(elem, diffKind, newText, prior);
         break;
     }
@@ -478,11 +475,4 @@ export enum SAMPLE_TYPE {
   DIFF,
   ARTIFACT,
   SEARCH
-}
-
-export enum CELL_TYPE {
-  /* types of cells being rendered */
-  CODE,
-  MARKDOWN,
-  OUTPUT,
 }

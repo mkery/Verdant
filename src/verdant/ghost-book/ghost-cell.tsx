@@ -1,7 +1,7 @@
 import * as React from "react";
 import {History} from "../../lilgit/model/history";
 import {NodeyCode} from "../../lilgit/model/nodey";
-import {CELL_TYPE, SAMPLE_TYPE, Sampler} from "../../lilgit/model/sampler";
+import {SAMPLE_TYPE, Sampler} from "../../lilgit/model/sampler";
 import {VersionSampler} from "../sampler/version-sampler";
 import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
@@ -19,9 +19,6 @@ const CELL_BAND = `${CELL}-band`;
 const CELL_CONTAINER = `${CELL}-container`;
 const CELL_CONTENT = `${CELL}-content`;
 
-const CODE_CELL = "code";
-const MARKDOWN_CELL = "markdown";
-
 // Enum for types of cells
 
 
@@ -32,8 +29,6 @@ export type GhostCell_Props = {
   history?: History;
   // String id of the cell
   name: string;
-  // Type of the cell
-  type: CELL_TYPE;
   // Name of the prior cell to diff against in diffPresent case
   prior: string;
   // Whether to display diffs with present cells or prior version
@@ -93,7 +88,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
             <GhostCellLabel name={this.props.name} events={this.props.events}/>
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
-                className={`${CELL} ${this.cellTypeCSS()}  ${active}`}
+                className={`${CELL} ${nodey.typeChar === "c" ? "code" : "markdown"}  ${active}`}
                 dangerouslySetInnerHTML={{__html: this.state.sample}}
               />
             </div>
@@ -141,19 +136,6 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       diff,
       this.props.prior
     );
-  }
-
-  private cellTypeCSS(): string {
-    /* Returns the CSS class for the cell type */
-    switch (this.props.type) {
-      case CELL_TYPE.CODE:
-        return CODE_CELL;
-      case CELL_TYPE.MARKDOWN:
-        return MARKDOWN_CELL;
-      case CELL_TYPE.OUTPUT:
-        console.log("Error: shouldn't render output cell in main cell");
-        return "";
-    }
   }
 
   private getVersion(): number {
