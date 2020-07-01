@@ -1,9 +1,6 @@
 import {Widget} from "@lumino/widgets";
-
 import {log} from "../components/notebook";
-
 import * as JSDiff from "diff";
-
 import {
   Nodey,
   NodeyCell,
@@ -13,21 +10,18 @@ import {
   NodeyOutput,
   SyntaxToken,
 } from "./nodey";
-
 import {Cell, CodeCell} from "@jupyterlab/cells";
-
 import {History} from "./history";
-
 import {ASTUtils} from "../analysis/ast-utils";
-
 import {RenderBaby} from "../jupyter-hooks/render-baby";
-
 import {Signal} from "@lumino/signaling";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
 const CHANGE_ADDED_CLASS = "v-Verdant-sampler-code-added";
 const CHANGE_REMOVED_CLASS = "v-Verdant-sampler-code-removed";
+
+const MAX_WORD_DIFFS = 4;
 
 export class Sampler {
   readonly history: History;
@@ -365,7 +359,7 @@ export class Sampler {
     let line = document.createElement("div");
     let innerHTML = "";
     let diff = JSDiff.diffWords(oldText, newText);
-    if (diff.length > 3)
+    if (diff.length > MAX_WORD_DIFFS)
       diff = JSDiff.diffLines(oldText, newText);
     diff.forEach((part) => {
       let partDiv = document.createElement("span");
