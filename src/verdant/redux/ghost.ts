@@ -198,10 +198,10 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     const prior = history.store.getNotebook(ver).cells;
     // Add prior value to each cell
     cells = cells.map(cell => {
-      const cell_id = cell.cell.substr(0, 3);
+      const cell_id = cell.cell.split('.').slice(0, 2).join('.');
 
       let priorCell = prior.find(name =>
-        name.substr(0, 3) === cell_id);
+        name.split('.').slice(0, 2).join('.') === cell_id);
 
       // Default to first instance of cell
       if (priorCell === undefined) priorCell = `${cell_id}.0`;
@@ -213,10 +213,11 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     // set prior to previous version of cell
     cells = cells.map(cell => {
       const prevCell = history.store.getPriorVersion(cell.cell);
-      if (prevCell === null)
-        cell.prior = `${cell.cell.substr(0, 3)}.0`;
-      else
+      if (prevCell === null) {
+        cell.prior = `${cell.cell.split('.').slice(0, 2).join('.')}.0`;
+      } else {
         cell.prior = prevCell.name;
+      }
       return cell;
     });
   }
