@@ -365,6 +365,8 @@ export class Sampler {
     let line = document.createElement("div");
     let innerHTML = "";
     let diff = JSDiff.diffWords(oldText, newText);
+    if (diff.length > 3)
+      diff = JSDiff.diffLines(oldText, newText);
     diff.forEach((part) => {
       let partDiv = document.createElement("span");
       //log("DIFF", part);
