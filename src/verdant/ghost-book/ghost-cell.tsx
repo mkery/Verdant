@@ -1,14 +1,14 @@
 import * as React from "react";
-import {History} from "../../lilgit/model/history";
-import {NodeyCode} from "../../lilgit/model/nodey";
-import {SAMPLE_TYPE, Sampler} from "../../lilgit/model/sampler";
-import {VersionSampler} from "../sampler/version-sampler";
+import { History } from "../../lilgit/history/";
+import { NodeyCode } from "../../lilgit/nodey/";
+import { SAMPLE_TYPE, Sampler } from "../../lilgit/sampler/";
+import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
-import {connect} from "react-redux";
-import {verdantState} from "../redux/index";
-import {focusCell} from "../redux/ghost";
-import {Checkpoint} from "../../lilgit/model/checkpoint";
+import { connect } from "react-redux";
+import { verdantState } from "../redux/index";
+import { focusCell } from "../redux/ghost";
+import { Checkpoint } from "../../lilgit/checkpoint/";
 
 /* CSS Constants */
 const CONTAINER = "v-Verdant-GhostBook-container";
@@ -20,7 +20,6 @@ const CELL_CONTAINER = `${CELL}-container`;
 const CELL_CONTENT = `${CELL}-content`;
 
 // Enum for types of cells
-
 
 export type GhostCell_Props = {
   // The index of the cell
@@ -41,11 +40,11 @@ export type GhostCell_Props = {
   clickEv?: () => void;
   // On-focus action
   hasFocus?: () => boolean;
-}
+};
 
 type GhostCell_State = {
   sample: string;
-}
+};
 
 class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
   constructor(props) {
@@ -55,7 +54,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     // Set state
     this.state = {
       sample: "",
-    }
+    };
   }
 
   render() {
@@ -75,29 +74,32 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     const displayOutput: boolean =
       nodey instanceof NodeyCode && // is a code cell
       nodey.output && // code cell has associated output
-      this.getVersion() > 0 // is not version 0 (brand new) code cell
+      this.getVersion() > 0; // is not version 0 (brand new) code cell
 
     return (
       <div
         className={`${CONTAINER} ${active}`}
         onClick={() => this.props.clickEv()}
       >
-        <div className={`${CELL_BAND} ${active}`}/>
+        <div className={`${CELL_BAND} ${active}`} />
         <div className={CONTAINER_STACK}>
           <div className={CELL_CONTAINER}>
-            <GhostCellLabel name={this.props.name} events={this.props.events}/>
+            <GhostCellLabel name={this.props.name} events={this.props.events} />
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
-                className={`${CELL} ${nodey.typeChar === "c" ? "code" : "markdown"}  ${active}`}
-                dangerouslySetInnerHTML={{__html: this.state.sample}}
+                className={`${CELL} ${
+                  nodey.typeChar === "c" ? "code" : "markdown"
+                }  ${active}`}
+                dangerouslySetInnerHTML={{ __html: this.state.sample }}
               />
             </div>
           </div>
-          {displayOutput ?
+          {displayOutput ? (
             <GhostCellOutput
               name={this.props.output}
               codeCell={this.props.name}
-            /> : null}
+            />
+          ) : null}
         </div>
       </div>
     );
@@ -107,7 +109,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     /* Update the sample HTML if it has changed */
     let newSample = await this.getSample();
     if (newSample.outerHTML != this.state.sample)
-      this.setState({sample: newSample.outerHTML});
+      this.setState({ sample: newSample.outerHTML });
   }
 
   private async getSample() {
@@ -123,7 +125,8 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       diff = Sampler.PRESENT_DIFF;
     } else if (this.props.events === undefined) {
       diff = Sampler.NO_DIFF;
-    } else if (this.props.events.length === 0) { // optimizing case
+    } else if (this.props.events.length === 0) {
+      // optimizing case
       diff = Sampler.NO_DIFF;
     } else {
       diff = Sampler.CHANGE_DIFF;
@@ -140,7 +143,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 
   private getVersion(): number {
     /* Returns the version of a cell */
-    const lastChar = this.props.name.charAt(this.props.name.length - 1)
+    const lastChar = this.props.name.charAt(this.props.name.length - 1);
     return parseInt(lastChar, 10);
   }
 }
@@ -149,7 +152,7 @@ const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
   return {
     history: state.getHistory(),
     diffPresent: state.diffPresent,
-    hasFocus: () => state.active_cell === ownProps.name
+    hasFocus: () => state.active_cell === ownProps.name,
   };
 };
 

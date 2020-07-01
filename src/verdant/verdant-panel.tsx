@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Widget } from "@lumino/widgets";
-import { Checkpoint } from "../lilgit/model/checkpoint";
-import { Nodey } from "../lilgit/model/nodey";
+import { Checkpoint } from "../lilgit/checkpoint";
+import { Nodey } from "../lilgit/nodey/";
 import { Store } from "redux";
 import { Provider } from "react-redux";
 import Panel from "./panel/panel";

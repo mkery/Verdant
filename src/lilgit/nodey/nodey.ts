@@ -34,6 +34,7 @@ export namespace Nodey {
   export interface SERIALIZE {
     parent?: string;
     start_checkpoint: number;
+    origin?: string; // only used if this nodey was derived from a prior seperate nodey
   }
 }
 

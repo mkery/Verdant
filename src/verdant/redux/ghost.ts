@@ -1,8 +1,8 @@
-import {verdantState} from "./index";
-import {Ghost} from "../ghost-book/ghost";
-import {Checkpoint, CheckpointType} from "../../lilgit/model/checkpoint";
-import {NodeyCode} from "../../lilgit/model/nodey";
-import {History} from "../../lilgit/model/history";
+import { verdantState } from "./index";
+import { Ghost } from "../ghost-book/ghost";
+import { Checkpoint, CheckpointType } from "../../lilgit/checkpoint";
+import { NodeyCode } from "../../lilgit/nodey";
+import { History } from "../../lilgit/history";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
@@ -91,27 +91,25 @@ export type ghostCellOutputState = {
 export const ghostReduce = (state: verdantState, action: any): ghostState => {
   switch (action.type) {
     case SET_GHOST_OPENER:
-      return {...state, openGhostBook: action.fun};
+      return { ...state, openGhostBook: action.fun };
     case INIT_GHOSTBOOK: {
-      let present = {...state};
+      let present = { ...state };
       for (let key in action.state) present[key] = action.state[key];
-      [present.ghostCells, present.ghostCellOutputs] =
-        loadCells(
-          state.getHistory(),
-          present.notebook_ver,
-          present.diffPresent
-        );
+      [present.ghostCells, present.ghostCellOutputs] = loadCells(
+        state.getHistory(),
+        present.notebook_ver,
+        present.diffPresent
+      );
       return present;
     }
     case TOGGLE_SHOW_CELLS: {
-      const present = {...state}
+      const present = { ...state };
       present.diffPresent = !state.diffPresent;
-      [present.ghostCells, present.ghostCellOutputs] =
-        loadCells(
-          state.getHistory(),
-          present.notebook_ver,
-          present.diffPresent
-        );
+      [present.ghostCells, present.ghostCellOutputs] = loadCells(
+        state.getHistory(),
+        present.notebook_ver,
+        present.diffPresent
+      );
       return present;
     }
     case SWITCH_CELL:
@@ -125,7 +123,6 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       return state;
   }
 };
-
 
 function loadCells(history: History, ver: number, diffPresent: boolean) {
   // TODO: Have method to display deleted cells when diffPresent
@@ -183,7 +180,7 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
     if (nodey instanceof NodeyCode && nodey.output) {
-      let out = {cell: nodey.output};
+      let out = { cell: nodey.output };
       output.push(out);
       cell.output = nodey.output;
     } else {
@@ -191,30 +188,32 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     }
   });
 
-  if (diffPresent) { // compute cell to diff against
+  if (diffPresent) {
+    // compute cell to diff against
     // set prior to matching cell in passed version
 
     // Get current version's cells
     const prior = history.store.getNotebook(ver).cells;
     // Add prior value to each cell
-    cells = cells.map(cell => {
-      const cell_id = cell.cell.split('.').slice(0, 2).join('.');
+    cells = cells.map((cell) => {
+      const cell_id = cell.cell.split(".").slice(0, 2).join(".");
 
-      let priorCell = prior.find(name =>
-        name.split('.').slice(0, 2).join('.') === cell_id);
+      let priorCell = prior.find(
+        (name) => name.split(".").slice(0, 2).join(".") === cell_id
+      );
 
       // Default to first instance of cell
       if (priorCell === undefined) priorCell = `${cell_id}.0`;
 
       cell.prior = priorCell;
       return cell;
-    })
+    });
   } else {
     // set prior to previous version of cell
-    cells = cells.map(cell => {
+    cells = cells.map((cell) => {
       const prevCell = history.store.getPriorVersion(cell.cell);
       if (prevCell === null) {
-        cell.prior = `${cell.cell.split('.').slice(0, 2).join('.')}.0`;
+        cell.prior = `${cell.cell.split(".").slice(0, 2).join(".")}.0`;
       } else {
         cell.prior = prevCell.name;
       }
@@ -230,8 +229,8 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
       index: index,
       events: cell.events,
       output: cell.output,
-      prior: cell.prior
-    })
+      prior: cell.prior,
+    });
   });
 
   // Add output to output map
@@ -240,7 +239,7 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     loadedOutput.set(cell.cell, {
       name: cell.cell,
       events: cell.events,
-    })
+    });
   });
 
   return [loadedCells, loadedOutput];

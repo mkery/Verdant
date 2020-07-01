@@ -1,18 +1,16 @@
 import * as React from "react";
-import {Sampler} from "../../lilgit/model/sampler";
-import {VersionSampler} from "../sampler/version-sampler";
-import {History} from "../../lilgit/model/history";
-import {NodeyOutput} from "../../lilgit/model/nodey";
+import { Sampler, SAMPLE_TYPE } from "../../lilgit/sampler";
+import { VersionSampler } from "../sampler/version-sampler";
+import { History } from "../../lilgit/history";
+import { NodeyOutput } from "../../lilgit/nodey";
 import GhostCellLabel from "./ghost-cell-label";
-import {connect} from "react-redux";
-import {verdantState} from "../redux/index";
-import {SAMPLE_TYPE} from "../../lilgit/model/sampler";
+import { connect } from "react-redux";
+import { verdantState } from "../redux/index";
 
 /* CSS CONSTANTS */
 const CELL = "v-Verdant-GhostBook-cell";
 const CELL_CONTAINER = `${CELL}-container`;
 const CELL_CONTENT = `${CELL}-content`;
-
 
 type GhostCellOutput_Props = {
   // Parent code cell id
@@ -21,25 +19,27 @@ type GhostCellOutput_Props = {
   name: string;
   // Entire state history. Used for VersionSampler
   history?: History;
-}
+};
 
 type GhostCellOutput_State = {
   sample: string;
-}
+};
 
-class GhostCellOutput extends React.Component<GhostCellOutput_Props,
-  GhostCellOutput_State> {
+class GhostCellOutput extends React.Component<
+  GhostCellOutput_Props,
+  GhostCellOutput_State
+> {
   /*
-  * Component to render output of a code ghost cell.
-  * */
+   * Component to render output of a code ghost cell.
+   * */
   constructor(props) {
     /* Explicit constructor to initialize state */
     // Required super call
     super(props);
     // Set state
     this.state = {
-      sample: ""
-    }
+      sample: "",
+    };
   }
 
   render() {
@@ -53,10 +53,10 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
 
     return (
       <div className={CELL_CONTAINER}>
-        <GhostCellLabel name={this.props.name}/>
+        <GhostCellLabel name={this.props.name} />
         <div className={CELL_CONTENT}>
           <div className={CELL}>
-            <div dangerouslySetInnerHTML={{__html: this.state.sample}}/>
+            <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
           </div>
         </div>
       </div>
@@ -68,16 +68,16 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
     let newSample = await this.getSample();
     if (
       newSample === undefined && // sample is undefined and
-      this.state.sample !== ""   // sample has not been reset
+      this.state.sample !== "" // sample has not been reset
     ) {
       // undefined samples are reset to blank
-      this.setState({sample: ""});
+      this.setState({ sample: "" });
     } else if (
-      newSample !== undefined &&                // sample is not undefined
+      newSample !== undefined && // sample is not undefined
       this.state.sample !== newSample.outerHTML // sample has not been updated
     ) {
       // new samples update state
-      this.setState({sample: newSample.outerHTML});
+      this.setState({ sample: newSample.outerHTML });
     }
   }
 
@@ -98,11 +98,9 @@ class GhostCellOutput extends React.Component<GhostCellOutput_Props,
   }
 }
 
-const mapStateToProps = (
-  state: verdantState
-) => {
+const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.getHistory()
+    history: state.getHistory(),
   };
 };
 

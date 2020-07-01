@@ -7,21 +7,15 @@ import {
   NodeyCell,
   NodeyNotebook,
   NodeyRawCell,
-} from "./nodey";
+} from "../nodey";
 
-import { VerNotebook } from "../components/notebook";
+import { VerNotebook } from "../notebook";
 
-import { History } from "./history";
-
-import { log } from "../components/notebook";
+import { log } from "../notebook";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 
-import { Star, UnsavedStar } from "./history-stage";
-
-const DEBUG = false;
-
-type jsn = { [id: string]: any };
+import { History, Star, UnsavedStar, NodeHistory } from ".";
 
 export class HistoryStore {
   readonly fileManager: FileManager;
@@ -299,7 +293,7 @@ export class HistoryStore {
     log(this._codeCellStore);
   }
 
-  public toJSON(): jsn {
+  public toJSON(): HistoryStore.SERIALIZE {
     return {
       notebook: this._notebookHistory.toJSON(),
       codeCells: this._codeCellStore.map((hist) => hist.toJSON()),
@@ -310,33 +304,43 @@ export class HistoryStore {
     };
   }
 
-  public fromJSON(data: jsn) {
-    this._codeCellStore = data.codeCells.map((item: jsn, id: number) => {
-      let hist = new NodeHistory<NodeyCodeCell>();
-      hist.fromJSON(item, NodeyCodeCell.fromJSON, id);
-      return hist;
-    });
-    this._markdownStore = data.markdownCells.map((item: jsn, id: number) => {
-      let hist = new NodeHistory<NodeyMarkdown>();
-      hist.fromJSON(item, NodeyMarkdown.fromJSON, id);
-      return hist;
-    });
-    if (data.rawCells)
-      this._rawCellStore = data.rawCells.map((item: jsn, id: number) => {
-        let hist = new NodeHistory<NodeyRawCell>();
-        hist.fromJSON(item, NodeyRawCell.fromJSON, id);
+  public fromJSON(data: HistoryStore.SERIALIZE) {
+    this._codeCellStore = data.codeCells.map(
+      (item: NodeHistory.SERIALIZE, id: number) => {
+        let hist = new NodeHistory<NodeyCodeCell>();
+        hist.fromJSON(item, NodeyCodeCell.fromJSON, id);
         return hist;
-      });
-    this._snippetStore = data.snippets.map((item: jsn, id: number) => {
-      let hist = new NodeHistory<NodeyCode>();
-      hist.fromJSON(item, NodeyCode.fromJSON, id);
-      return hist;
-    });
-    this._outputStore = data.output.map((item: jsn, id: number) => {
-      let hist = new NodeHistory<NodeyOutput>();
-      hist.fromJSON(item, NodeyOutput.fromJSON, id);
-      return hist;
-    });
+      }
+    );
+    this._markdownStore = data.markdownCells.map(
+      (item: NodeHistory.SERIALIZE, id: number) => {
+        let hist = new NodeHistory<NodeyMarkdown>();
+        hist.fromJSON(item, NodeyMarkdown.fromJSON, id);
+        return hist;
+      }
+    );
+    if (data.rawCells)
+      this._rawCellStore = data.rawCells.map(
+        (item: NodeHistory.SERIALIZE, id: number) => {
+          let hist = new NodeHistory<NodeyRawCell>();
+          hist.fromJSON(item, NodeyRawCell.fromJSON, id);
+          return hist;
+        }
+      );
+    this._snippetStore = data.snippets.map(
+      (item: NodeHistory.SERIALIZE, id: number) => {
+        let hist = new NodeHistory<NodeyCode>();
+        hist.fromJSON(item, NodeyCode.fromJSON, id);
+        return hist;
+      }
+    );
+    this._outputStore = data.output.map(
+      (item: NodeHistory.SERIALIZE, id: number) => {
+        let hist = new NodeHistory<NodeyOutput>();
+        hist.fromJSON(item, NodeyOutput.fromJSON, id);
+        return hist;
+      }
+    );
     this._notebookHistory.fromJSON(
       data.notebook,
       NodeyNotebook.fromJSON,
@@ -345,85 +349,13 @@ export class HistoryStore {
   }
 }
 
-/*
- * an Origin Pointer
- */
-export class OriginPointer {
-  public readonly origin: string;
-  constructor(originNode: Nodey | string) {
-    if (originNode instanceof Nodey) this.origin = originNode.name;
-    else this.origin = originNode;
-  }
-}
-
-/*
- * Just a container for a list of nodey versions
- */
-export class NodeHistory<T extends Nodey> {
-  versions: T[] = [];
-  originPointer: OriginPointer = null;
-  private unsavedEdits: Star<T> = null;
-
-  get latest() {
-    if (this.unsavedEdits) return this.unsavedEdits;
-    return this.versions[this.versions.length - 1];
-  }
-
-  get lastSaved(): Nodey {
-    return this.versions[this.versions.length - 1];
-  }
-
-  get length() {
-    return this.versions.length;
-  }
-
-  setLatestToStar(s: Star<T>): void {
-    this.unsavedEdits = s;
-  }
-
-  discardStar() {
-    this.unsavedEdits = null;
-    return this.versions[this.versions.length - 1];
-  }
-
-  deStar() {
-    let newNodey = this.unsavedEdits.value;
-    //newNodey.created = runId;
-    /*if (newNodey instanceof NodeyCode && output) {
-      output.forEach(out => (newNodey as NodeyCode).addOutput(out));
-    }*/
-    this.unsavedEdits = null;
-    this.versions.push(newNodey as T);
-    newNodey.version = this.versions.length - 1;
-    log("de-staring", newNodey, this);
-    return newNodey;
-  }
-
-  addOriginPointer(origin: Nodey) {
-    this.originPointer = new OriginPointer(origin);
-  }
-
-  toJSON() {
-    let data: jsn[] = this.versions.map((node) => node.toJSON());
-    if (this.originPointer)
-      data[data.length - 1].origin = this.originPointer.origin;
-    return data;
-  }
-
-  fromJSON(data: jsn, factory: (dat: jsn) => T, id?: number) {
-    if (DEBUG) log("FACTORY DATA", data);
-    let list = data;
-    if (!Array.isArray(data))
-      // TODO probably bug
-      list = data.vers;
-    this.versions = list.map((nodeDat: jsn, version: number) => {
-      if (nodeDat.origin)
-        this.originPointer = new OriginPointer(nodeDat.origin);
-      let nodey = factory(nodeDat);
-      nodey.id = id;
-      nodey.version = version;
-      //log("MADE NODEY FROM DATA", nodey, nodeDat);
-      return nodey;
-    });
+export namespace HistoryStore {
+  export interface SERIALIZE {
+    notebook: NodeHistory.SERIALIZE;
+    codeCells: NodeHistory.SERIALIZE[];
+    markdownCells: NodeHistory.SERIALIZE[];
+    rawCells: NodeHistory.SERIALIZE[];
+    snippets: NodeHistory.SERIALIZE[];
+    output: NodeHistory.SERIALIZE[];
   }
 }

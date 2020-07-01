@@ -1,12 +1,11 @@
 import { NotebookEvent } from ".";
 import { Cell } from "@jupyterlab/cells";
-import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
-import { VerCell } from "../components/cell";
-import { VerNotebook } from "../components/notebook";
-import { NodeyNotebook } from "../model/nodey";
-import { Star } from "../model/history-stage";
-import { log } from "../components/notebook";
-import { NodeyCell } from "../model/nodey";
+import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { VerCell } from "../cell";
+import { VerNotebook, log } from "../notebook";
+import { NodeyNotebook } from "../nodey/";
+import { Star } from "../history/";
+import { NodeyCell } from "../nodey/";
 
 export class CreateCell extends NotebookEvent {
   cell: Cell;

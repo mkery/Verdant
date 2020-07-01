@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { verdantState, artifactState } from "../../redux/index";
-import { History } from "../../../lilgit/model/history";
+import { History } from "../../../lilgit/history/";
 import { CellSampler } from "../../sampler/cell-sampler";
 
 const CELL = "v-VerdantPanel-Summary-cell";

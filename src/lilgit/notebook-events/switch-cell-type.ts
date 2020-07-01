@@ -1,11 +1,11 @@
 import { NotebookEvent } from ".";
 import { Cell } from "@jupyterlab/cells";
-import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
-import { VerNotebook } from "../components/notebook";
-import { NodeyNotebook } from "../model/nodey";
-import { Star } from "../model/history-stage";
-import { log } from "../components/notebook";
-import { NodeyCell } from "../model/nodey";
+import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { VerNotebook } from "../notebook";
+import { NodeyNotebook } from "../nodey/";
+import { Star } from "../history/";
+import { log } from "../notebook";
+import { NodeyCell } from "../nodey/";
 
 export class SwitchCellType extends NotebookEvent {
   cell: Cell;

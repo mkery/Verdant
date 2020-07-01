@@ -1,7 +1,7 @@
-import { Checkpoint } from "../model/checkpoint";
-import { History } from "../model/history";
-import { VerNotebook } from "../components/notebook";
-import { NodeyCell } from "../model/nodey";
+import { Checkpoint } from "../checkpoint";
+import { History } from "../history/";
+import { VerNotebook } from "../notebook";
+import { NodeyCell } from "../nodey/";
 
 // 1. event begins
 // 2. trigger update to history model

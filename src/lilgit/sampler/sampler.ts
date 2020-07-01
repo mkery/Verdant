@@ -1,5 +1,5 @@
-import {Widget} from "@lumino/widgets";
-import {log} from "../components/notebook";
+import { Widget } from "@lumino/widgets";
+import { log } from "../notebook";
 import * as JSDiff from "diff";
 import {
   Nodey,
@@ -9,12 +9,17 @@ import {
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
-} from "./nodey";
-import {Cell, CodeCell} from "@jupyterlab/cells";
-import {History} from "./history";
-import {ASTUtils} from "../analysis/ast-utils";
-import {RenderBaby} from "../jupyter-hooks/render-baby";
-import {Signal} from "@lumino/signaling";
+} from "../nodey";
+
+import { CodeCell, Cell } from "@jupyterlab/cells";
+
+import { History } from "../history";
+
+import { ASTUtils } from "../analysis/ast-utils";
+
+import { RenderBaby } from "../jupyter-hooks/render-baby";
+
+import { Signal } from "@lumino/signaling";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
@@ -127,7 +132,7 @@ export class Sampler {
       );
       endCh = Math.round(
         ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
-        lineText.length
+          lineText.length
       );
       endCh = Math.min(endCh, lineText.length - 1);
     }
@@ -135,8 +140,8 @@ export class Sampler {
     res = ASTUtils.findNodeAtRange(
       parent,
       {
-        start: {line: lineNum, ch: startCh},
-        end: {line: lineNum, ch: endCh},
+        start: { line: lineNum, ch: startCh },
+        end: { line: lineNum, ch: endCh },
       },
       this.history
     );
@@ -145,13 +150,13 @@ export class Sampler {
 
   private findAncestorByAttr(el: HTMLElement, attr: string) {
     if (el.hasAttribute(attr)) return el;
-    while ((el = el.parentElement) && !el.hasAttribute(attr)) ;
+    while ((el = el.parentElement) && !el.hasAttribute(attr));
     return el;
   }
 
   private findAncestor(el: HTMLElement, cls: string) {
     if (el.classList.contains(cls)) return el;
-    while ((el = el.parentElement) && !el.classList.contains(cls)) ;
+    while ((el = el.parentElement) && !el.classList.contains(cls));
     return el;
   }
 
@@ -270,7 +275,7 @@ export class Sampler {
     nodey: Nodey,
     elem: HTMLElement,
     textFocus?: string,
-    newText?: string,
+    newText?: string
   ) {
     switch (nodey.typeChar) {
       case "c":
@@ -315,7 +320,7 @@ export class Sampler {
     /* Inserts code data to elem */
 
     // Split new text into lines
-    newText.split("\n").forEach(line => {
+    newText.split("\n").forEach((line) => {
       // Append a div with line contents to elem
       let div = document.createElement("div");
       div.innerHTML = line;
@@ -359,8 +364,7 @@ export class Sampler {
     let line = document.createElement("div");
     let innerHTML = "";
     let diff = JSDiff.diffWords(oldText, newText);
-    if (diff.length > MAX_WORD_DIFFS)
-      diff = JSDiff.diffLines(oldText, newText);
+    if (diff.length > MAX_WORD_DIFFS) diff = JSDiff.diffLines(oldText, newText);
     diff.forEach((part) => {
       let partDiv = document.createElement("span");
       //log("DIFF", part);
@@ -446,8 +450,7 @@ export class Sampler {
       let index = lower.indexOf(keys[0], i);
       let html = "";
       while (index > -1) {
-        html +=
-          `${elem.innerHTML.slice(i, index)} 
+        html += `${elem.innerHTML.slice(i, index)} 
            <span class="${SEARCH_FILTER_RESULTS}"> ${split[0]} </span>`;
         i = index + split[0].length;
         index = lower.indexOf(keys[0], i);
@@ -470,5 +473,5 @@ export enum SAMPLE_TYPE {
   /* types of render callers */
   DIFF,
   ARTIFACT,
-  SEARCH
+  SEARCH,
 }

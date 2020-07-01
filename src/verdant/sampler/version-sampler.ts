@@ -3,17 +3,16 @@ import {
   NodeyCode,
   NodeyCodeCell,
   NodeyMarkdown,
-  NodeyOutput
-} from "../../lilgit/model/nodey";
-import {History} from "../../lilgit/model/history";
-import {SAMPLE_TYPE} from "../../lilgit/model/sampler";
+  NodeyOutput,
+} from "../../lilgit/nodey";
+import { History } from "../../lilgit/history";
+import { SAMPLE_TYPE } from "../../lilgit/sampler";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
 const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
-
   export async function sample(
     sampleType: SAMPLE_TYPE,
     history: History,
