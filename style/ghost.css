@@ -1,148 +1,178 @@
+/* Ghost Book CSS */
+
 .v-Verdant-GhostBook {
-  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAH0lEQVQoU2N8+v7/fwYiACNIoZQAYZWjCvGGEdHBAwB4nSe56wxe4gAAAABJRU5ErkJggg==)
-    repeat;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: auto;
-}
-
-.v-Verdant-GhostBook-icon {
-  background-image: var(--verdant-icon-ghostbook);
-}
-
-.v-Verdant-GhostBook-cell {
-  background: var(--jp-layout-color0);
-  color: var(--jp-content-font-color1);
-  font-family: var(--jp-content-font-family);
-  font-size: var(--jp-content-font-size1);
-  line-height: var(--jp-content-line-height);
-}
-.v-Verdant-GhostBook-cell.c {
-  font-family: var(--jp-code-font-family);
-  font-size: var(--jp-code-font-size);
-  padding: var(--jp-code-padding);
-  line-height: var(--jp-code-line-height);
-  background: var(--jp-cell-editor-background);
-  white-space: pre;
-  overflow-x: auto;
-}
-.v-Verdant-GhostBook-cell.c.active {
-  border: var(--jp-border-width) solid var(--jp-cell-editor-active-border-color);
-  box-shadow: var(--jp-input-box-shadow);
-  background-color: var(--jp-cell-editor-active-background);
-}
-
-.v-Verdant-GhostBook-cell.added {
-  border: var(--jp-border-width) solid lawngreen;
-}
-.v-Verdant-GhostBook-cell.removed {
-  border: var(--jp-border-width) solid red;
-}
-
-.v-Verdant-GhostBook-cell-area {
-  padding: var(--jp-notebook-padding);
-  outline: none;
-  overflow: auto;
-  background: var(--verdant-ghost-color1);
-  flex: 1 1 auto;
-}
-
-.v-Verdant-GhostBook-cell-selected {
-  border: var(--jp-border-width) solid var(--jp-content-font-color2);
-}
-
-.v-Verdant-GhostBook-cell-header {
-  min-width: var(--jp-cell-prompt-width);
-  max-width: var(--jp-cell-prompt-width);
-  background-color: ghostwhite;
-  box-sizing: border-box;
-  padding: var(--jp-cell-padding);
-  font-size: var(--jp-ui-font-size0);
-  font-family: var(--jp-ui-font-family);
-  color: var(--jp-content-link-color);
-  text-decoration: underline;
-  text-transform: uppercase;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.v-Verdant-GhostBook-container {
-  padding: var(--jp-cell-padding);
-  display: flex;
-  flex-direction: row;
-}
-
-.v-Verdant-GhostBook-container-stack {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.v-Verdant-GhostBook-cell-container {
-  display: flex;
-  flex-direction: row;
-}
-
-.v-Verdant-GhostBook-cell-content {
-  flex: 1 1 100%;
-  max-width: calc(100% - var(--jp-cell-prompt-width));
-  background: white;
-}
-.v-Verdant-GhostBook-cell-band {
-  flex: 1 1 var(--jp-cell-collapser-width);
-  padding: 0px;
-  margin: 0px;
-  border: none;
-  outline: none;
-  background: transparent;
-  border-radius: var(--jp-border-radius);
-  opacity: 1;
-  min-width: 8px;
-}
-.v-Verdant-GhostBook-cell-band.active {
-  background: var(--jp-brand-color1);
-}
-
-.v-Verdant-GhostBook-header {
-  font-size: var(--jp-content-font-size0);
-  font-family: var(--jp-content-font-family);
-  color: var(--jp-content-font-color0);
-  flex-direction: column;
-  position: sticky;
-  top: 0px;
-  height: 24px;
-  padding: 2px;
-}
-
-.v-Verdant-GhostBook-header-row {
-  flex: 1 1 100%;
-  min-width: 100%;
-  display: block;
-  color: var(--jp-content-font-color2);
-  margin-bottom: 0.25em;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  padding-top: 0.25em;
-  padding-left: 6px;
-}
-
-.v-Verdant-GhostBook-header-label {
-  display: inline-block;
-  height: 1.25em;
-  vertical-align: top;
-  padding-left: 0.5em;
-  padding-top: 0.25em;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAH0lEQVQoU2N8+v7/fwYiACNIoZQAYZWjCvGGEdHBAwB4nSe56wxe4gAAAABJRU5ErkJggg==) repeat;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
 }
 
 .v-Verdant-GhostBook-cellArea {
-  padding: var(--jp-notebook-padding);
+    padding: var(--jp-notebook-padding);
 }
 
-.tgl {
-  display: none;
+/* Ghost Toolbar CSS */
+
+.v-Verdant-GhostBook-header {
+    font-size: var(--jp-content-font-size0);
+    font-family: var(--jp-content-font-family);
+    color: var(--jp-content-font-color0);
+    flex-direction: column;
+    position: sticky;
+    top: 0px;
+    height: 24px;
+    padding: 2px;
 }
+
+.v-Verdant-GhostBook-header-row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--jp-content-font-color2);
+    margin-bottom: 0.25em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding-top: 0.25em;
+    padding-left: 6px;
+}
+
+.v-Verdant-GhostBook-header-toggle {
+    display: flex;
+}
+
+.v-Verdant-GhostBook-header-toggle-text {
+    margin-right: 5px;
+}
+
+.v-Verdant-GhostBook-header-toggle-button {
+    width: 1.3em;
+    margin-right: 1em;
+    background-image: var(--verdant-icon-ghostbook);
+}
+
+.v-Verdant-GhostBook-header-toggle-button:hover {
+    cursor: pointer;
+    background: var(--jp-layout-color2);
+}
+
+/* Ghost Cell CSS */
+
+.v-Verdant-GhostBook-container {
+    padding: var(--jp-cell-padding);
+    display: flex;
+    flex-direction: row;
+}
+
+.v-Verdant-GhostBook-container-stack {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.v-Verdant-GhostBook-cell {
+    background: var(--jp-layout-color0);
+    color: var(--jp-content-font-color1);
+    font-family: var(--jp-content-font-family);
+    font-size: var(--jp-content-font-size1);
+    line-height: var(--jp-content-line-height);
+}
+
+.v-Verdant-GhostBook-cell.code {
+    font-family: var(--jp-code-font-family);
+    font-size: var(--jp-code-font-size);
+    padding: var(--jp-code-padding);
+    line-height: var(--jp-code-line-height);
+    background: var(--jp-cell-editor-background);
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.v-Verdant-GhostBook-cell.code.active {
+    border: var(--jp-border-width) solid var(--jp-cell-editor-active-border-color);
+    box-shadow: var(--jp-input-box-shadow);
+    background-color: var(--jp-cell-editor-active-background);
+}
+
+.v-Verdant-GhostBook-cell.output {
+}
+
+.v-Verdant-GhostBook-cell.output.active {
+}
+
+.v-Verdant-GhostBook-cell.markdown {
+    height: 100%;
+}
+
+.v-Verdant-GhostBook-cell.markdown.active {
+}
+
+.v-Verdant-GhostBook-cell.added {
+    border: var(--jp-border-width) solid lawngreen;
+}
+
+.v-Verdant-GhostBook-cell.removed {
+    border: var(--jp-border-width) solid red;
+}
+
+
+.v-Verdant-GhostBook-cell-band {
+    flex: 1 1 var(--jp-cell-collapser-width);
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    outline: none;
+    background: transparent;
+    border-radius: var(--jp-border-radius);
+    opacity: 1;
+    min-width: 8px;
+}
+
+.v-Verdant-GhostBook-cell-band.active {
+    background: var(--jp-brand-color1);
+}
+
+.v-Verdant-GhostBook-cell-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.v-Verdant-GhostBook-cell-content {
+    flex: 1 1 100%;
+    max-width: calc(100% - var(--jp-cell-prompt-width));
+    background: white;
+}
+
+/* Ghost Output CSS */
+
+/* Ghost Label CSS */
+
+.v-Verdant-GhostBook-cell-header {
+    min-width: var(--jp-cell-prompt-width);
+    max-width: var(--jp-cell-prompt-width);
+    background-color: ghostwhite;
+    box-sizing: border-box;
+    padding: var(--jp-cell-padding);
+    font-size: var(--jp-ui-font-size0);
+    font-family: var(--jp-ui-font-family);
+    color: var(--jp-content-link-color);
+    text-decoration: underline;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ghost (ghost.ts) CSS */
+
+.v-Verdant-GhostBook-icon {
+    background-image: var(--verdant-icon-ghostbook);
+}
+
+/* Other */
+
+.tgl {
+}
+
 .tgl,
 .tgl:after,
 .tgl:before,
@@ -150,50 +180,57 @@
 .tgl .tgl-light:after,
 .tgl .tgl-light:before,
 .tgl + .tgl-btn {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .tgl-btn {
-  outline: 0;
-  display: block;
-  width: 3em;
-  height: 1.5em;
-  position: relative;
-  cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+    outline: 0;
+    display: block;
+    width: 3em;
+    height: 1.5em;
+    position: relative;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
+
 .tgl + .tgl-btn:after,
 .tgl + .tgl-btn:before {
-  position: relative;
-  display: block;
-  content: "";
-  width: 50%;
-  height: 100%;
+    position: relative;
+    display: block;
+    content: "";
+    width: 50%;
+    height: 100%;
 }
+
 .tgl + .tgl-btn:after {
-  left: 0;
+    left: 0;
 }
+
 .tgl + .tgl-btn:before {
-  display: none;
+    display: none;
 }
+
 .tgl.checked + .tgl-btn:after {
-  left: 50%;
+    left: 50%;
 }
+
 .tgl-light + .tgl-btn {
-  display: inline-block;
-  background: #f0f0f0;
-  border-radius: 2em;
-  padding: 2px;
-  transition: all 0.4s ease;
+    display: inline-block;
+    background: #f0f0f0;
+    border-radius: 2em;
+    padding: 2px;
+    transition: all 0.4s ease;
 }
+
 .tgl-light + .tgl-btn:after {
-  border-radius: 50%;
-  background: #fff;
-  transition: all 0.2s ease;
+    border-radius: 50%;
+    background: #fff;
+    transition: all 0.2s ease;
 }
+
 .tgl-light.checked + .tgl-btn {
-  background: #9fd6ae;
+    background: #9fd6ae;
 }

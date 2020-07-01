@@ -1,95 +1,149 @@
 import * as React from "react";
-import { CheckpointType, ChangeType } from "../../lilgit/checkpoint";
-import { History } from "../../lilgit/history/";
-import { Nodey, NodeyOutput } from "../../lilgit/nodey/";
+import {
+  ChangeType,
+  Checkpoint,
+  CheckpointType,
+} from "../../lilgit/checkpoint";
+import { History } from "../../lilgit/history";
+import { Nodey } from "../../lilgit/nodey";
 import { verdantState } from "../redux/index";
-import { ghostCellState } from "../redux/ghost";
 import { connect } from "react-redux";
 
-type GhostCellLabel_Props = {
-  id: number;
-  history?: History;
-  linkArtifact?: (name: string) => void;
-} & Partial<ghostCellState>; // loaded via redux
+/* CSS Constants */
+const LABEL = "v-Verdant-GhostBook-cell-header";
 
-class CellLabel extends React.Component<GhostCellLabel_Props, {}> {
+// Accumulator for computing labels based on events
+type eventTypesAcc = {
+  run: boolean;
+  changed: boolean;
+  newOutput: boolean;
+  added: boolean;
+  deleted: boolean;
+  moved: boolean;
+};
+
+type GhostCellLabel_Props = {
+  // String id of the cell
+  name: string;
+  // Checkpoints associated with the cell
+  events?: Checkpoint[];
+  // Entire state history. Used for VersionSampler
+  history?: History;
+  // Function to link element to artifact panel.
+  linkArtifact?: (name: string) => void;
+};
+
+class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
+  /* Component to render label for a ghost cell. */
   render() {
-    let text = this.describe();
     return (
       <div
-        className={"v-Verdant-GhostBook-cell-header"}
+        className={LABEL}
         onClick={() => this.props.linkArtifact(this.props.name)}
       >
-        {text}
+        {this.describe()}
       </div>
     );
   }
 
-  private describe() {
-    let text = "";
-    if (this.props.name.startsWith("o")) {
-      let output = this.props.history.store.get(this.props.name) as NodeyOutput;
-      text = "v" + output.version + " of " + this.describeCell(output);
-    } else text = this.describeEvents();
-    return text;
-  }
-
-  private describeEvents(): string {
+  private describe(): string {
+    /* Generates text label for label cell */
     let cell = this.props.history.store.get(this.props.name);
-    let text = "v" + cell.version + " of " + this.describeCell(cell);
-    if (this.props.events.length > 0) {
-      let run = false;
-      let changed = false;
-      let newOutput = false;
-      let added = false;
-      let deleted = false;
-      let moved = false;
+    let text = `v ${cell.version} of ${GhostCellLabel.describeCell(cell)}`;
 
-      this.props.events.forEach((ev) => {
-        if (ev.checkpointType === CheckpointType.ADD) added = true;
-        else if (ev.checkpointType === CheckpointType.DELETE) deleted = true;
-        else if (ev.checkpointType === CheckpointType.MOVED) moved = true;
-        else if (ev.checkpointType === CheckpointType.RUN) {
-          run = true;
-          let cell = ev.targetCells.find(
-            (cell) => cell.node === this.props.name
-          );
-          if (cell.changeType === ChangeType.CHANGED) changed = true;
-          if (cell.newOutput && cell.newOutput.length > 0) newOutput = true;
-        } else if (ev.checkpointType === CheckpointType.SAVE) {
-          let cell = ev.targetCells.find(
-            (cell) => cell.node === this.props.name
-          );
-          if (cell.changeType === ChangeType.CHANGED) changed = true;
-        }
-      });
-
-      text += " was ";
-      if (run) {
-        if (changed) {
-          text += "edited then run";
-          // ** TODO this.changed = true;
-        } else text += "run but not edited";
-        if (newOutput) text += " and produced new output";
-      } else if (changed) {
-        // changed not run
-        text += "edited";
-        // ** TODO this.changed = true;
-      }
-      if (added) {
-        text += "created";
-        // ** TODO this.cell.classList.add("added");
-      }
-      if (deleted) {
-        text += "deleted";
-        // ** TODO this.cell.classList.add("removed");
-      }
-      if (moved) text += "moved";
-    }
+    // If non-output cell with events, add to description
+    if (!this.props.name.startsWith("o") && this.props.events.length > 0)
+      text += GhostCellLabel.describeEvents(this.processEvents());
     return text;
   }
 
-  private describeCell(nodey: Nodey): string {
+  private processEvents(): eventTypesAcc {
+    /* Accumulates types of changes of events attached to cell.
+     * Helper method for describe. */
+
+    // Initialize return accumulator for reducing over events
+    const acc: eventTypesAcc = {
+      run: false,
+      changed: false,
+      newOutput: false,
+      added: false,
+      deleted: false,
+      moved: false,
+    };
+
+    // Reduce over events to update accumulator
+    this.props.events.reduce((acc, ev) => {
+      switch (ev.checkpointType) {
+        case CheckpointType.ADD:
+          return { ...acc, added: true };
+        case CheckpointType.DELETE:
+          return { ...acc, deleted: true };
+        case CheckpointType.MOVED:
+          return { ...acc, moved: true };
+        case CheckpointType.RUN: {
+          acc.moved = true;
+          let cell = ev.targetCells.find(
+            (cell) => cell.node === this.props.name
+          );
+          if (cell.changeType === ChangeType.CHANGED) acc.changed = true;
+          if (cell.newOutput && cell.newOutput.length > 0) acc.newOutput = true;
+          return acc;
+        }
+        case CheckpointType.SAVE: {
+          let cell = ev.targetCells.find(
+            (cell) => cell.node === this.props.name
+          );
+          if (cell.changeType === ChangeType.CHANGED) acc.changed = true;
+          return acc;
+        }
+      }
+    }, acc);
+
+    return acc;
+  }
+  private static describeEvents(acc: eventTypesAcc): string {
+    /* Computes label from accumulated event changes.
+     * Helper method for describe. */
+    // Initialize label
+    let text = " ";
+
+    // Compute label based on accumulator
+    if (acc.run) {
+      // if run
+      if (acc.changed) {
+        // if changed as well
+        text += "edited then run";
+      } else {
+        // if not changed
+        text += "run but not edited";
+      }
+      if (acc.newOutput) {
+        // new output was produced
+        text += " and produced new output";
+      }
+    } else if (acc.changed) {
+      // changed
+      text += "edited";
+    }
+    if (acc.added) {
+      // if cells added
+      text += "created";
+    }
+    if (acc.deleted) {
+      // if cells deleted
+      text += "deleted";
+    }
+    if (acc.moved) {
+      // if cells moved
+      text += "moved";
+    }
+
+    return text;
+  }
+
+  private static describeCell(nodey: Nodey): string {
+    /* Generate string label describing type of cell.
+     * Helper method for describe. */
     switch (nodey.typeChar) {
       case "c":
         return "Code cell " + nodey.id;
@@ -101,20 +155,11 @@ class CellLabel extends React.Component<GhostCellLabel_Props, {}> {
   }
 }
 
-const mapStateToProps = (
-  state: verdantState,
-  ownProps: GhostCellLabel_Props
-) => {
-  let cell = state.ghostCells[ownProps.id];
+const mapStateToProps = (state: verdantState) => {
   return {
-    ...ownProps,
-    name: cell.name,
-    events: cell.events,
     history: state.getHistory(),
     linkArtifact: state.link_artifact,
   };
 };
 
-const GhostCellLabel = connect(mapStateToProps)(CellLabel);
-
-export default GhostCellLabel;
+export default connect(mapStateToProps)(GhostCellLabel);

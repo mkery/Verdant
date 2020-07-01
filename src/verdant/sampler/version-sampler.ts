@@ -1,12 +1,12 @@
 import {
   Nodey,
-  NodeyMarkdown,
   NodeyCode,
-  NodeyOutput,
   NodeyCodeCell,
-} from "../../lilgit/nodey/";
-import { History } from "../../lilgit/history/";
-import { Sampler } from "../../lilgit/sampler/";
+  NodeyMarkdown,
+  NodeyOutput,
+} from "../../lilgit/nodey";
+import { History } from "../../lilgit/history";
+import { SAMPLE_TYPE } from "../../lilgit/sampler";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
@@ -14,12 +14,13 @@ const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
   export async function sample(
+    sampleType: SAMPLE_TYPE,
     history: History,
     nodey: Nodey,
     query?: string,
-    diff?: number
+    diff?: number,
+    prior?: string
   ) {
-    diff = Sampler.NO_DIFF; //DEBUG ONLY
     let inspector = history.inspector;
     let text = inspector.renderNode(nodey);
 
@@ -30,12 +31,24 @@ export namespace VersionSampler {
     content.classList.add(INSPECT_VERSION_CONTENT);
     sample.appendChild(content);
 
-    if (nodey instanceof NodeyCode)
-      await buildCode(inspector, nodey, text, content, query, diff);
-    else if (nodey instanceof NodeyMarkdown)
-      await buildMarkdown(inspector, nodey, text, content, query, diff);
-    else if (nodey instanceof NodeyOutput)
-      await buildOutput(inspector, nodey, content, query);
+    if (nodey.typeChar === "c") {
+      content.classList.add("code");
+    } else if (nodey.typeChar === "m") {
+      content.classList.add("markdown");
+      content.classList.add("jp-RenderedHTMLCommon");
+    }
+
+    switch (sampleType) {
+      case SAMPLE_TYPE.ARTIFACT:
+        await inspector.renderArtifactCell(nodey, content, text);
+        break;
+      case SAMPLE_TYPE.SEARCH:
+        await inspector.renderSearchCell(nodey, content, query, text);
+        break;
+      case SAMPLE_TYPE.DIFF:
+        await inspector.renderDiffCell(nodey, content, diff, text, prior);
+        break;
+    }
 
     return sample;
   }
@@ -52,55 +65,6 @@ export namespace VersionSampler {
         nodey.type + " " + nodey.id + " from " + nameNodey(history, cell);
     }
     return nodeyName;
-  }
-
-  async function buildCode(
-    inspector: Sampler,
-    nodeyVer: NodeyCode,
-    text: string,
-    content: HTMLElement,
-    query?: string,
-    diff?: number
-  ): Promise<HTMLElement> {
-    if (diff === undefined) diff = Sampler.CHANGE_DIFF;
-    content.classList.add("code");
-    await inspector.renderDiff(nodeyVer, content, {
-      newText: text,
-      diffKind: diff,
-      textFocus: query,
-    });
-
-    return content;
-  }
-
-  async function buildOutput(
-    inspector: Sampler,
-    nodeyVer: NodeyOutput,
-    content: HTMLElement,
-    query?: string
-  ): Promise<HTMLElement> {
-    await inspector.renderDiff(nodeyVer, content, { textFocus: query });
-    return content;
-  }
-
-  async function buildMarkdown(
-    inspector: Sampler,
-    nodeyVer: NodeyMarkdown,
-    text: string,
-    content: HTMLElement,
-    query?: string,
-    diff?: number
-  ): Promise<HTMLElement> {
-    if (diff === undefined) diff = Sampler.CHANGE_DIFF;
-    content.classList.add("markdown");
-    content.classList.add("jp-RenderedHTMLCommon");
-    await inspector.renderDiff(nodeyVer, content, {
-      newText: text,
-      diffKind: diff,
-      textFocus: query,
-    });
-
-    return content;
   }
 
   /*

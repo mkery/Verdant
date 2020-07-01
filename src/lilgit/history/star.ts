@@ -26,6 +26,10 @@ export class Star<T extends Nodey> {
   get name(): string {
     return "*" + "." + this.value.typeChar + "." + this.value.id;
   }
+
+  get typeChar(): string {
+    return this.value.typeChar;
+  }
 }
 
 export class UnsavedStar extends Star<NodeyCode> {

@@ -1,112 +1,165 @@
 import * as React from "react";
 import { History } from "../../lilgit/history/";
-import { Nodey, NodeyCode } from "../../lilgit/nodey/";
-import { Sampler } from "../../lilgit/sampler/";
+import { NodeyCode } from "../../lilgit/nodey/";
+import { SAMPLE_TYPE, Sampler } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
 import { verdantState } from "../redux/index";
-import { focusCell, ghostCellState } from "../redux/ghost";
+import { focusCell } from "../redux/ghost";
+import { Checkpoint } from "../../lilgit/checkpoint/";
 
-type GhostCell_Events = {
-  linkArtifact: (name: string) => void;
-  clickEv: () => void;
-  hasFocus: () => boolean;
-  setSample: (s: string) => void;
-};
+/* CSS Constants */
+const CONTAINER = "v-Verdant-GhostBook-container";
+const CONTAINER_STACK = `${CONTAINER}-stack`;
+
+const CELL = "v-Verdant-GhostBook-cell";
+const CELL_BAND = `${CELL}-band`;
+const CELL_CONTAINER = `${CELL}-container`;
+const CELL_CONTENT = `${CELL}-content`;
+
+// Enum for types of cells
 
 export type GhostCell_Props = {
-  id: number;
-  history?: History; // loaded via redux
-} & Partial<ghostCellState> & // loaded via redux
-  Partial<GhostCell_Events>; // loaded via redux
+  // The index of the cell
+  id?: number;
+  // Entire state history. Used for VersionSampler
+  history?: History;
+  // String id of the cell
+  name: string;
+  // Name of the prior cell to diff against in diffPresent case
+  prior: string;
+  // Whether to display diffs with present cells or prior version
+  diffPresent?: boolean;
+  // Index of the cell's output cell (for a code cell) in state.GhostCells
+  output?: string;
+  // Checkpoints associated with the cell
+  events?: Checkpoint[];
+  // On-click action
+  clickEv?: () => void;
+  // On-focus action
+  hasFocus?: () => boolean;
+};
 
-class Cell extends React.Component<GhostCell_Props, { sample: string }> {
-  constructor(props: GhostCell_Props) {
+type GhostCell_State = {
+  sample: string;
+};
+
+class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
+  constructor(props) {
+    /* Explicit constructor to initialize state */
+    // Required super call
     super(props);
-    this.state = { sample: "" };
-  }
-
-  componentDidMount() {
-    this.getSample(); // render the source code
+    // Set state
+    this.state = {
+      sample: "",
+    };
   }
 
   render() {
-    // TODO if (!this.props.showing) return null;
+    /* Render cell */
+
+    // Asynchronously update innerHTML if change has occurred
+    this.updateSample();
+
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
-      console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
+      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return null;
     }
     let active = this.props.hasFocus() ? "active" : "";
 
+    const displayOutput: boolean =
+      nodey instanceof NodeyCode && // is a code cell
+      nodey.output && // code cell has associated output
+      this.getVersion() > 0; // is not version 0 (brand new) code cell
+
     return (
       <div
-        className={`v-Verdant-GhostBook-container ${active}`}
+        className={`${CONTAINER} ${active}`}
         onClick={() => this.props.clickEv()}
       >
-        <div className={`v-Verdant-GhostBook-cell-band ${active}`} />
-        <div className="v-Verdant-GhostBook-container-stack">
-          <div className="v-Verdant-GhostBook-cell-container">
-            <GhostCellLabel id={this.props.id} />
-            <div className={`v-Verdant-GhostBook-cell-content ${active}`}>
+        <div className={`${CELL_BAND} ${active}`} />
+        <div className={CONTAINER_STACK}>
+          <div className={CELL_CONTAINER}>
+            <GhostCellLabel name={this.props.name} events={this.props.events} />
+            <div className={`${CELL_CONTENT} ${active}`}>
               <div
-                className={`v-Verdant-GhostBook-cell ${this.props.name.charAt(
-                  0
-                )}  ${active}`}
+                className={`${CELL} ${
+                  nodey.typeChar === "c" ? "code" : "markdown"
+                }  ${active}`}
                 dangerouslySetInnerHTML={{ __html: this.state.sample }}
-              ></div>
+              />
             </div>
           </div>
-          {this.showOutput(nodey)}
+          {displayOutput ? (
+            <GhostCellOutput
+              name={this.props.output}
+              codeCell={this.props.name}
+            />
+          ) : null}
         </div>
       </div>
     );
   }
 
+  private async updateSample() {
+    /* Update the sample HTML if it has changed */
+    let newSample = await this.getSample();
+    if (newSample.outerHTML != this.state.sample)
+      this.setState({ sample: newSample.outerHTML });
+  }
+
   private async getSample() {
+    /* Get the new sample HTML */
     let nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
-      console.error("ERROR: CAN'T FIND GHOST CELL", this.props.name);
-    } else {
-      let diff = this.props.events ? Sampler.CHANGE_DIFF : Sampler.NO_DIFF;
-      let sample = await VersionSampler.sample(
-        this.props.history,
-        nodey,
-        null,
-        diff
-      );
-      this.setState({ sample: sample.outerHTML });
+      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
+      return;
     }
+    let diff;
+    if (this.props.diffPresent) {
+      diff = Sampler.PRESENT_DIFF;
+    } else if (this.props.events === undefined) {
+      diff = Sampler.NO_DIFF;
+    } else if (this.props.events.length === 0) {
+      // optimizing case
+      diff = Sampler.NO_DIFF;
+    } else {
+      diff = Sampler.CHANGE_DIFF;
+    }
+    return VersionSampler.sample(
+      SAMPLE_TYPE.DIFF,
+      this.props.history,
+      nodey,
+      null,
+      diff,
+      this.props.prior
+    );
   }
 
-  private showOutput(nodey: Nodey) {
-    if (nodey instanceof NodeyCode && nodey.output)
-      return <GhostCellOutput id={this.props.output} />;
-    return null;
+  private getVersion(): number {
+    /* Returns the version of a cell */
+    const lastChar = this.props.name.charAt(this.props.name.length - 1);
+    return parseInt(lastChar, 10);
   }
 }
 
 const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
-  let cell = state.ghostCells[ownProps.id];
   return {
-    ...ownProps,
     history: state.getHistory(),
-    hasFocus: () => state.active_cell === cell.name,
-    linkArtifact: state.link_artifact,
-    ...cell,
+    diffPresent: state.diffPresent,
+    hasFocus: () => state.active_cell === ownProps.name,
   };
 };
 
 const mapDispatchToProps = (dispatch: any, ownProps: GhostCell_Props) => {
   return {
-    clickEv: () => dispatch(focusCell(ownProps.id)),
+    clickEv: () => dispatch(focusCell(ownProps.name)),
   };
 };
 
-const GhostCell = connect(mapStateToProps, mapDispatchToProps)(Cell);
-
-export default GhostCell;
+export default connect(mapStateToProps, mapDispatchToProps)(GhostCell);

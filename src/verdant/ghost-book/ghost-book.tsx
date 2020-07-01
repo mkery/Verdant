@@ -7,6 +7,10 @@ import { Store } from "redux";
 import { Provider } from "react-redux";
 import { verdantState } from "../redux";
 
+/* CSS Constants */
+const BOOK = "v-Verdant-GhostBook";
+const BOOK_CELLAREA = `${BOOK}-cellArea`;
+
 export interface GhostBook_Props {
   store: Store;
 }
@@ -21,29 +25,50 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
   }
 }
 
+export interface GhostCellContainer_Props {
+  cells: Map<string, ghostCellState>;
+  diffPresent: boolean;
+}
+
 /*
  * Make a sub class to contain cells to make updates work across notebooks better
  */
-class CellContainer extends React.Component<{ cells: ghostCellState[] }> {
+class CellContainer extends React.Component<GhostCellContainer_Props> {
   render() {
     return (
-      <div className="v-Verdant-GhostBook">
+      <div className={BOOK}>
         <GhostToolbar />
-        <div className="v-Verdant-GhostBook-cellArea">{this.showCells()}</div>
+        <div className={BOOK_CELLAREA}>{this.showCells()}</div>
       </div>
     );
   }
 
   private showCells() {
-    return this.props.cells.map((cell: ghostCellState, index: number) => {
-      return <GhostCell key={index} id={index} />;
-    });
+    /* Map cells to GhostCells */
+    // construct list from Map
+    let cellList = [...this.props.cells.entries()];
+    // sort list by index of cell
+    cellList.sort(
+      (a, b) =>
+        a[1].index - b[1].index
+    );
+    return cellList.map((cell, index: number) =>
+      <GhostCell
+        key={index}
+        name={cell[0]}
+        id={cell[1].index}
+        events={cell[1].events}
+        output={cell[1].output}
+        prior={cell[1].prior}
+      />
+    );
   }
 }
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    cells: state.ghostCells
+    cells: state.ghostCells,
+    diffPresent: state.diffPresent
   };
 };
 

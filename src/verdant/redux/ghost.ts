@@ -1,8 +1,8 @@
 import { verdantState } from "./index";
 import { Ghost } from "../ghost-book/ghost";
-import { CheckpointType, Checkpoint } from "../../lilgit/checkpoint";
-import { NodeyCode } from "../../lilgit/nodey/";
-import { History } from "../../lilgit/history/";
+import { Checkpoint, CheckpointType } from "../../lilgit/checkpoint";
+import { NodeyCode } from "../../lilgit/nodey";
+import { History } from "../../lilgit/history";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
@@ -37,33 +37,35 @@ export const toggleShowAllCells = () => {
   };
 };
 
-export const focusCell = (cell_index: number) => {
+export const focusCell = (cell_name: string) => {
   return {
     type: SWITCH_CELL,
-    cell_index,
-  };
-};
-
-export const ghostInitialState = (): ghostState => {
-  return {
-    openGhostBook: null,
-    notebook_ver: -1,
-    ghostCells: [],
-    active_cell: null,
-    show_all_cells: true,
-    link_artifact: null,
-    changeGhostTitle: null,
+    cell: cell_name,
   };
 };
 
 export type ghostState = {
   openGhostBook: (notebook: number) => Ghost;
   notebook_ver: number;
-  ghostCells: ghostCellState[];
+  ghostCells: Map<string, ghostCellState>;
+  ghostCellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
-  show_all_cells: boolean;
+  diffPresent: boolean;
   link_artifact: (n: string) => void;
   changeGhostTitle: (n: number) => void;
+};
+
+export const ghostInitialState = (): ghostState => {
+  return {
+    openGhostBook: null,
+    notebook_ver: -1,
+    ghostCells: new Map(),
+    ghostCellOutputs: new Map(),
+    active_cell: null,
+    diffPresent: false,
+    link_artifact: null,
+    changeGhostTitle: null,
+  };
 };
 
 export type cellEffect =
@@ -75,31 +77,46 @@ export type cellEffect =
 
 export type ghostCellState = {
   name: string;
-  output: number;
+  index: number;
   events: Checkpoint[];
-  effects: cellEffect[];
+  output: string;
+  prior: string;
+};
+
+export type ghostCellOutputState = {
+  name: string;
+  events: Checkpoint[];
 };
 
 export const ghostReduce = (state: verdantState, action: any): ghostState => {
   switch (action.type) {
     case SET_GHOST_OPENER:
       return { ...state, openGhostBook: action.fun };
-    case INIT_GHOSTBOOK:
+    case INIT_GHOSTBOOK: {
       let present = { ...state };
       for (let key in action.state) present[key] = action.state[key];
-      present.ghostCells = loadCells(state.getHistory(), present.notebook_ver);
+      [present.ghostCells, present.ghostCellOutputs] = loadCells(
+        state.getHistory(),
+        present.notebook_ver,
+        present.diffPresent
+      );
       return present;
-    case TOGGLE_SHOW_CELLS:
-      return {
-        ...state,
-        show_all_cells: !state.show_all_cells,
-      };
+    }
+    case TOGGLE_SHOW_CELLS: {
+      const present = { ...state };
+      present.diffPresent = !state.diffPresent;
+      [present.ghostCells, present.ghostCellOutputs] = loadCells(
+        state.getHistory(),
+        present.notebook_ver,
+        present.diffPresent
+      );
+      return present;
+    }
     case SWITCH_CELL:
-      let cell = state.ghostCells[action.cell_index].name;
-      if (state.active_cell != cell)
+      if (state.active_cell != action.cell)
         return {
           ...state,
-          active_cell: cell,
+          active_cell: action.cell,
         };
       else return state;
     default:
@@ -107,15 +124,25 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
   }
 };
 
-function loadCells(history: History, ver: number): ghostCellState[] {
-  let notebook = history.store.getNotebook(ver);
-  let events = history.checkpoints.getByNotebook(ver);
+function loadCells(history: History, ver: number, diffPresent: boolean) {
+  // TODO: Have method to display deleted cells when diffPresent
+  // Load notebook and events
+  let notebook, events;
+  if (diffPresent) {
+    notebook = history.store.currentNotebook;
+    events = [];
+  } else {
+    notebook = history.store.getNotebook(ver);
+    events = history.checkpoints.getByNotebook(ver);
+  }
 
+  // Type of cells after loading from notebook.cells
   type cellDat = {
     cell: string;
     index?: number;
     events?: Checkpoint[];
-    output?: number;
+    output?: string;
+    prior?: string;
   };
 
   let cells: cellDat[] = notebook.cells.map((item) => ({
@@ -124,43 +151,96 @@ function loadCells(history: History, ver: number): ghostCellState[] {
   }));
 
   let deletedCells: cellDat[] = [];
+
+  // For each event, update list of events matching target cells
   events.forEach((ev) => {
     ev.targetCells.forEach((cell) => {
       let index = notebook.cells.indexOf(cell.node);
       if (index < 0 && ev.checkpointType === CheckpointType.DELETE) {
+        // Add new deleted cell with the event.
+        // If a cell cannot be deleted multiple times per notebook version,
+        // it should be fine to simply add a new deleted cell each time.
         deletedCells.push({
           cell: cell.node,
           index: cell.index,
           events: [ev],
         });
-      } else cells[index].events.push(ev);
+      } else {
+        cells[index].events.push(ev);
+      }
     });
   });
-
-  // to not mess up the other indices
+  // Put deleted cells in the cells list with proper indexing
   deletedCells.forEach((item) => {
     cells.splice(item.index, 0, item);
   });
 
+  // Compute output cells
   let output: cellDat[] = [];
   cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
     if (nodey instanceof NodeyCode && nodey.output) {
       let out = { cell: nodey.output };
-      let index = output.length;
       output.push(out);
-      cell.output = index + cells.length;
+      cell.output = nodey.output;
+    } else {
+      cell.output = null;
     }
   });
-  cells = cells.concat(output);
 
-  return cells.map((cell) => {
-    return {
+  if (diffPresent) {
+    // compute cell to diff against
+    // set prior to matching cell in passed version
+
+    // Get current version's cells
+    const prior = history.store.getNotebook(ver).cells;
+    // Add prior value to each cell
+    cells = cells.map((cell) => {
+      const cell_id = cell.cell.split(".").slice(0, 2).join(".");
+
+      let priorCell = prior.find(
+        (name) => name.split(".").slice(0, 2).join(".") === cell_id
+      );
+
+      // Default to first instance of cell
+      if (priorCell === undefined) priorCell = `${cell_id}.0`;
+
+      cell.prior = priorCell;
+      return cell;
+    });
+  } else {
+    // set prior to previous version of cell
+    cells = cells.map((cell) => {
+      const prevCell = history.store.getPriorVersion(cell.cell);
+      if (prevCell === null) {
+        cell.prior = `${cell.cell.split(".").slice(0, 2).join(".")}.0`;
+      } else {
+        cell.prior = prevCell.name;
+      }
+      return cell;
+    });
+  }
+
+  // Add cells to cell map
+  const loadedCells = new Map();
+  cells.forEach((cell, index) => {
+    loadedCells.set(cell.cell, {
+      name: cell.cell,
+      index: index,
+      events: cell.events,
+      output: cell.output,
+      prior: cell.prior,
+    });
+  });
+
+  // Add output to output map
+  const loadedOutput = new Map();
+  output.forEach((cell, index) => {
+    loadedOutput.set(cell.cell, {
       name: cell.cell,
       events: cell.events,
-      effects: [],
-      sample: "",
-      output: cell.output,
-    };
+    });
   });
+
+  return [loadedCells, loadedOutput];
 }
