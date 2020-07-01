@@ -6,11 +6,10 @@ import { Sampler } from "../sampler/";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 
-import { SERIALIZE } from "./serialize-schema";
-
 import { HistoryStore, HistoryStage } from ".";
 
 import { HistoryCheckpoints } from "../checkpoint/checkpoint-history";
+import { Checkpoint } from "../checkpoint";
 
 export class History {
   public notebook: VerNotebook;
@@ -32,7 +31,7 @@ export class History {
     this.notebook = notebook;
     var data = await this.store.fileManager.loadFromFile(notebook);
     if (data) {
-      var history = JSON.parse(data) as SERIALIZE.NodeHistory;
+      var history = JSON.parse(data) as History.SERIALIZE;
       log("FOUND HISTORY", history);
       this.fromJSON(history);
       this._ready.resolve(undefined);
@@ -50,15 +49,14 @@ export class History {
     return this._inspector;
   }
 
-  private fromJSON(data: SERIALIZE.NodeHistory) {
+  private fromJSON(data: History.SERIALIZE) {
     this.checkpoints.fromJSON(data.runs);
     this.store.fromJSON(data);
   }
 
-  public toJSON() {
-    var jsn = this.store.toJSON();
-    jsn.runs = this.checkpoints.toJSON();
-    return jsn;
+  public toJSON(): History.SERIALIZE {
+    let store = this.store.toJSON();
+    return { runs: this.checkpoints.toJSON(), ...store };
   }
 
   public dump(): void {
@@ -66,4 +64,10 @@ export class History {
   }
 
   private _ready = new PromiseDelegate<void>();
+}
+
+export namespace History {
+  export type SERIALIZE = {
+    runs: Checkpoint.SERIALIZE[];
+  } & HistoryStore.SERIALIZE;
 }
