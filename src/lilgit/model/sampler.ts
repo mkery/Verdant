@@ -20,6 +20,7 @@ const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
 const CHANGE_ADDED_CLASS = "v-Verdant-sampler-code-added";
 const CHANGE_REMOVED_CLASS = "v-Verdant-sampler-code-removed";
+const MARKDOWN_LINEBREAK = "v-Verdant-sampler-markdown-linebreak";
 
 const MAX_WORD_DIFFS = 4;
 
@@ -398,19 +399,36 @@ export class Sampler {
       } else {
         let priorText = prior.markdown;
         let diff = JSDiff.diffWords(priorText, newText);
-        await diff.forEach(async (part) => {
-          let partDiv = document.createElement("div");
-          await this.renderBaby.renderMarkdown(partDiv, part.value);
-          partDiv.classList.add(CHANGE_NONE_CLASS);
+        if (diff.length > MAX_WORD_DIFFS) {
+          diff = JSDiff.diffLines(priorText, newText, {newlineIsToken: true});
+        }
+        const divs = diff.map(async part => {
+          let partDiv: HTMLElement;
+          if (part.value === "\n") {
+            partDiv = document.createElement("br");
+            partDiv.classList.add(MARKDOWN_LINEBREAK);
+          } else {
+            partDiv = document.createElement("span");
+            await this.renderBaby.renderMarkdown(partDiv, part.value);
 
-          if (part.added) {
-            partDiv.classList.add(CHANGE_ADDED_CLASS);
-          } else if (part.removed) {
-            partDiv.classList.add(CHANGE_REMOVED_CLASS);
+            partDiv.classList.add(CHANGE_NONE_CLASS);
+
+            if (part.added) {
+              partDiv.classList.add(CHANGE_ADDED_CLASS);
+            } else if (part.removed) {
+              partDiv.classList.add(CHANGE_REMOVED_CLASS);
+            }
           }
-
-          elem.appendChild(partDiv);
+          return partDiv;
         });
+
+        await Promise.all(divs)
+          .then(
+            elems => elems.forEach(
+              e => elem.appendChild(e)
+            )
+          );
+
       }
     }
 
