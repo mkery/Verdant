@@ -1,6 +1,6 @@
-import {History} from "../../lilgit/model/history";
+import { History } from "../../lilgit/history";
 
-import {NodeyCell, NodeyMarkdown, NodeyOutput} from "../../lilgit/model/nodey";
+import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../../lilgit/nodey";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 
@@ -18,7 +18,7 @@ export namespace CellSampler {
       await historyModel.inspector.renderArtifactCell(
         cell,
         sample,
-        (cell as NodeyMarkdown).markdown,
+        (cell as NodeyMarkdown).markdown
       );
     }
 
@@ -34,10 +34,7 @@ export namespace CellSampler {
   ): HTMLElement {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    historyModel.inspector.renderArtifactCell(
-      output,
-      sample,
-    );
+    historyModel.inspector.renderArtifactCell(output, sample);
     return sample;
   }
 }

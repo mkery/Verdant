@@ -1,9 +1,9 @@
 import { ICellModel } from "@jupyterlab/cells";
 import { NotebookEvent } from ".";
-import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
-import { VerNotebook } from "../components/notebook";
-import { log } from "../components/notebook";
-import { NodeyCell, NodeyCode } from "../model/nodey";
+import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { VerNotebook } from "../notebook";
+import { log } from "../notebook";
+import { NodeyCell, NodeyCode } from "../nodey/";
 
 export class RunCell extends NotebookEvent {
   cellModel: ICellModel;

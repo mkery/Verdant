@@ -1,8 +1,8 @@
 import { NotebookEvent } from ".";
-import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
-import { Star } from "../model/history-stage";
-import { log } from "../components/notebook";
-import { NodeyCell, NodeyCode } from "../model/nodey";
+import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { Star } from "../history/";
+import { log } from "../notebook";
+import { NodeyCell, NodeyCode } from "../nodey/";
 
 export class SaveNotebook extends NotebookEvent {
   createCheckpoint() {

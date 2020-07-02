@@ -4,12 +4,12 @@ import {
   NodeyCode,
   NodeyCodeCell,
   NodeyMarkdown,
-  NodeyOutput
-} from "../../../lilgit/model/nodey";
-import {History} from "../../../lilgit/model/history";
+  NodeyOutput,
+} from "../../../lilgit/nodey";
+import { History } from "../../../lilgit/history";
 import VersionHeader from "../../sampler/version-header";
-import {VersionSampler} from "../../sampler/version-sampler";
-import {SAMPLE_TYPE, Sampler} from "../../../lilgit/model/sampler";
+import { VersionSampler } from "../../sampler/version-sampler";
+import { SAMPLE_TYPE, Sampler } from "../../../lilgit/sampler";
 
 const HEADER = "v-VerdantPanel-crumbMenu";
 const CRUMB_MENU_CONTENT = "v-VerdantPanel-sampler-content";
@@ -34,7 +34,7 @@ export class Mixin extends React.Component<Mixin_Props, Mixin_State> {
     super(props);
     this.state = {
       target_name: Mixin.nameNodey(this.props.target),
-      samples: []
+      samples: [],
     };
   }
 
@@ -100,9 +100,20 @@ export class Mixin extends React.Component<Mixin_Props, Mixin_State> {
         let prior = this.props.history.store.getPriorVersion(nodeyVer);
         let s;
         if (prior != null) {
-          s = await VersionSampler.sample(SAMPLE_TYPE.DIFF, this.props.history, nodeyVer, null, Sampler.CHANGE_DIFF, prior.name);
+          s = await VersionSampler.sample(
+            SAMPLE_TYPE.DIFF,
+            this.props.history,
+            nodeyVer,
+            null,
+            Sampler.CHANGE_DIFF,
+            prior.name
+          );
         } else {
-          s = await VersionSampler.sample(SAMPLE_TYPE.ARTIFACT, this.props.history, nodeyVer);
+          s = await VersionSampler.sample(
+            SAMPLE_TYPE.ARTIFACT,
+            this.props.history,
+            nodeyVer
+          );
         }
         return s.outerHTML;
       })
@@ -126,7 +137,7 @@ export namespace Mixin {
           }}
         >{`cell ${cell.id}`}</div>,
         Mixin.addSeperator(),
-        Mixin.addItem(name)
+        Mixin.addItem(name),
       ];
     }
   }

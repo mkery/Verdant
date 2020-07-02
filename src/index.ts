@@ -37,7 +37,7 @@ import { AST } from "./lilgit/analysis/ast";
 
 import { VerdantNotebook } from "./verdant/verdant-notebook";
 
-import { History } from "./lilgit/model/history";
+import { History } from "./lilgit/history/";
 
 import { VerdantPanel } from "./verdant/verdant-panel";
 

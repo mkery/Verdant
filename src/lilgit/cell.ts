@@ -1,8 +1,8 @@
-import { NodeyCell, NodeyOutput, NodeyCodeCell } from "../model/nodey";
+import { NodeyCell, NodeyOutput, NodeyCodeCell } from "./nodey";
 import { VerNotebook } from "./notebook";
-import { Checkpoint } from "../model/checkpoint";
+import { Checkpoint } from "./checkpoint";
 import { Cell, CodeCell } from "@jupyterlab/cells";
-import { Star } from "../model/history-stage";
+import { Star } from "./history/";
 import { OutputArea } from "@jupyterlab/outputarea";
 
 /**
@@ -70,7 +70,7 @@ export class VerCell {
    * based on the order the cells appear on screen
    */
   public get currentIndex(): number {
-    return this.notebook.cells.findIndex(item => item === this);
+    return this.notebook.cells.findIndex((item) => item === this);
   }
 
   /**

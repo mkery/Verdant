@@ -1,12 +1,11 @@
 import { Notebook } from "@jupyterlab/notebook";
-import { Star } from "../model/history-stage";
+import { Star, History } from "../history/";
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
-import { Checkpoint, ChangeType, CellRunData } from "../model/checkpoint";
-import { NodeyNotebook, NodeyCode } from "../model/nodey";
+import { Checkpoint, ChangeType, CellRunData } from "../checkpoint";
+import { NodeyNotebook, NodeyCode } from "../nodey/";
 import { ASTRepair } from "./ast-repair";
 import { ASTCreate } from "./ast-create";
-import { History } from "../model/history";
-import { log } from "../components/notebook";
+import { log } from "../notebook";
 
 export class AST {
   readonly history: History;

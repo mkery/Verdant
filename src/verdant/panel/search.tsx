@@ -1,7 +1,7 @@
 import * as React from "react";
-import { History } from "../../lilgit/model/history";
+import { History } from "../../lilgit/history/";
 import VersionSearch from "../sampler/version-search";
-import { Nodey } from "../../lilgit/model/nodey";
+import { Nodey } from "../../lilgit/nodey/";
 import {
   searchForText,
   verdantState,

@@ -1,20 +1,13 @@
 const crypto = require("crypto");
-import {
-  Nodey,
-  NodeyCodeCell,
-  NodeyMarkdown,
-  NodeyNotebook
-} from "../model/nodey";
+import { Nodey, NodeyCodeCell, NodeyMarkdown, NodeyNotebook } from "../nodey/";
 
-import { log } from "../components/notebook";
+import { log } from "../notebook";
 
 import * as levenshtein from "fast-levenshtein";
 
-import { History } from "../model/history";
+import { History, Star } from "../history/";
 
-import { Star } from "../model/history-stage";
-
-import { jsn } from "../components/notebook";
+import { jsn } from "../notebook";
 
 import { ASTUtils } from "./ast-utils";
 

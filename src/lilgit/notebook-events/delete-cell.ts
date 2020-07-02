@@ -1,10 +1,9 @@
 import { NotebookEvent } from ".";
-import { ChangeType, CellRunData, CheckpointType } from "../model/checkpoint";
-import { VerNotebook } from "../components/notebook";
-import { NodeyNotebook } from "../model/nodey";
-import { Star } from "../model/history-stage";
-import { log } from "../components/notebook";
-import { NodeyCell } from "../model/nodey";
+import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { VerNotebook, log } from "../notebook";
+import { NodeyNotebook } from "../nodey/";
+import { Star } from "../history/";
+import { NodeyCell } from "../nodey/";
 
 export class DeleteCell extends NotebookEvent {
   cell_index: number;

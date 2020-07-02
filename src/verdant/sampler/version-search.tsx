@@ -1,10 +1,10 @@
 import * as React from "react";
-import {Nodey} from "../../lilgit/model/nodey";
-import {History} from "../../lilgit/model/history";
-import {VersionSampler} from "./version-sampler";
+import { Nodey } from "../../lilgit/nodey";
+import { History } from "../../lilgit/history";
+import { VersionSampler } from "./version-sampler";
 import VersionHeader from "./version-header";
-import {Sampler} from "../../lilgit/model/sampler";
-import {SAMPLE_TYPE} from "../../lilgit/model/sampler";
+import { Sampler } from "../../lilgit/sampler";
+import { SAMPLE_TYPE } from "../../lilgit/sampler";
 
 const SEARCH_SAMPLE = "v-VerdantPanel-search-version";
 const VERSION_HEADER = "v-VerdantPanel-sampler-version-header";
@@ -32,7 +32,7 @@ export default class VersionSearch extends React.Component<
     // load samples for all versions of these nodes
     this.props.history.ready.then(async () => {
       let samples = await Promise.all(
-        this.props.nodey.map(async item => {
+        this.props.nodey.map(async (item) => {
           let div = await VersionSampler.sample(
             SAMPLE_TYPE.SEARCH,
             this.props.history,

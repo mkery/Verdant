@@ -2,12 +2,12 @@ import * as React from "react";
 import {
   ChangeType,
   Checkpoint,
-  CheckpointType
-} from "../../lilgit/model/checkpoint";
-import {History} from "../../lilgit/model/history";
-import {Nodey} from "../../lilgit/model/nodey";
-import {verdantState} from "../redux/index";
-import {connect} from "react-redux";
+  CheckpointType,
+} from "../../lilgit/checkpoint";
+import { History } from "../../lilgit/history";
+import { Nodey } from "../../lilgit/nodey";
+import { verdantState } from "../redux/index";
+import { connect } from "react-redux";
 
 /* CSS Constants */
 const LABEL = "v-Verdant-GhostBook-cell-header";
@@ -20,7 +20,7 @@ type eventTypesAcc = {
   added: boolean;
   deleted: boolean;
   moved: boolean;
-}
+};
 
 type GhostCellLabel_Props = {
   // String id of the cell
@@ -46,7 +46,6 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
     );
   }
 
-
   private describe(): string {
     /* Generates text label for label cell */
     let cell = this.props.history.store.get(this.props.name);
@@ -60,7 +59,7 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
 
   private processEvents(): eventTypesAcc {
     /* Accumulates types of changes of events attached to cell.
-    * Helper method for describe. */
+     * Helper method for describe. */
 
     // Initialize return accumulator for reducing over events
     const acc: eventTypesAcc = {
@@ -69,18 +68,18 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
       newOutput: false,
       added: false,
       deleted: false,
-      moved: false
-    }
+      moved: false,
+    };
 
     // Reduce over events to update accumulator
     this.props.events.reduce((acc, ev) => {
       switch (ev.checkpointType) {
         case CheckpointType.ADD:
-          return {...acc, added: true};
+          return { ...acc, added: true };
         case CheckpointType.DELETE:
-          return {...acc, deleted: true};
+          return { ...acc, deleted: true };
         case CheckpointType.MOVED:
-          return {...acc, moved: true};
+          return { ...acc, moved: true };
         case CheckpointType.RUN: {
           acc.moved = true;
           let cell = ev.targetCells.find(
@@ -102,32 +101,40 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
 
     return acc;
   }
-   private static describeEvents(acc: eventTypesAcc): string {
+  private static describeEvents(acc: eventTypesAcc): string {
     /* Computes label from accumulated event changes.
-    * Helper method for describe. */
+     * Helper method for describe. */
     // Initialize label
     let text = " ";
 
     // Compute label based on accumulator
-    if (acc.run) { // if run
-      if (acc.changed) { // if changed as well
+    if (acc.run) {
+      // if run
+      if (acc.changed) {
+        // if changed as well
         text += "edited then run";
-      } else { // if not changed
+      } else {
+        // if not changed
         text += "run but not edited";
       }
-      if (acc.newOutput) { // new output was produced
+      if (acc.newOutput) {
+        // new output was produced
         text += " and produced new output";
       }
-    } else if (acc.changed) { // changed
+    } else if (acc.changed) {
+      // changed
       text += "edited";
     }
-    if (acc.added) { // if cells added
+    if (acc.added) {
+      // if cells added
       text += "created";
     }
-    if (acc.deleted) { // if cells deleted
+    if (acc.deleted) {
+      // if cells deleted
       text += "deleted";
     }
-    if (acc.moved) { // if cells moved
+    if (acc.moved) {
+      // if cells moved
       text += "moved";
     }
 
@@ -136,7 +143,7 @@ class GhostCellLabel extends React.Component<GhostCellLabel_Props> {
 
   private static describeCell(nodey: Nodey): string {
     /* Generate string label describing type of cell.
-    * Helper method for describe. */
+     * Helper method for describe. */
     switch (nodey.typeChar) {
       case "c":
         return "Code cell " + nodey.id;

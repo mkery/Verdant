@@ -1,9 +1,9 @@
 import * as React from "react";
-import {connect} from "react-redux";
-import {History} from "../../lilgit/model/history";
-import {Checkpoint} from "../../lilgit/model/checkpoint";
-import {verdantState} from "../redux/index";
-import {toggleShowAllCells} from "../redux/ghost";
+import { connect } from "react-redux";
+import { History } from "../../lilgit/history";
+import { Checkpoint } from "../../lilgit/checkpoint";
+import { verdantState } from "../redux/index";
+import { toggleShowAllCells } from "../redux/ghost";
 
 /* CSS Constants */
 const JP_TOOLBAR = "jp-Toolbar";
@@ -14,7 +14,6 @@ const HEADER_TOGGLE = `${HEADER}-toggle`;
 const HEADER_TOGGLE_TEXT = `${HEADER_TOGGLE}-text`;
 const HEADER_TOGGLE_BUTTON = `${HEADER_TOGGLE}-button`;
 
-
 interface GhostToolbar_Props {
   history: History;
   name: number;
@@ -22,14 +21,9 @@ interface GhostToolbar_Props {
   toggleShow: () => void;
 }
 
-
 class Toolbar extends React.Component<GhostToolbar_Props> {
   public render() {
-    return (
-      <div className={`${HEADER} ${JP_TOOLBAR}`}>
-        {this.showLabel()}
-      </div>
-    );
+    return <div className={`${HEADER} ${JP_TOOLBAR}`}>{this.showLabel()}</div>;
   }
 
   private showLabel() {
@@ -46,14 +40,19 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
 
     return (
       <div className={HEADER_ROW}>
-        <div> Viewing version # {this.props.name + 1} of
-          notebook {time ? "from " + time : ""} </div>
+        <div>
+          {" "}
+          Viewing version # {this.props.name + 1} of notebook{" "}
+          {time ? "from " + time : ""}{" "}
+        </div>
         <div className={HEADER_TOGGLE}>
           <div className={HEADER_TOGGLE_TEXT}>
-          {this.props.diffPresent ? "Checked" : "Unchecked"}
+            {this.props.diffPresent ? "Checked" : "Unchecked"}
           </div>
-          <div className={HEADER_TOGGLE_BUTTON}
-               onClick={this.props.toggleShow}/>
+          <div
+            className={HEADER_TOGGLE_BUTTON}
+            onClick={this.props.toggleShow}
+          />
         </div>
       </div>
     );

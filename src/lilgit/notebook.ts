@@ -1,14 +1,14 @@
 import { PathExt } from "@jupyterlab/coreutils";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
-import { NotebookListen } from "../jupyter-hooks/notebook-listen";
+import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 import { Cell, ICellModel, CodeCell } from "@jupyterlab/cells";
-import { History } from "../model/history";
-import { Star } from "../model/history-stage";
-import { AST } from "../analysis/ast";
+import { History } from "./history/";
+import { Star } from "./history/";
+import { AST } from "./analysis/ast";
 import { VerCell } from "./cell";
-import { NodeyNotebook, NodeyCell, NodeyCode } from "../model/nodey";
-import { NotebookEvent, LoadNotebook } from "../notebook-events";
+import { NodeyNotebook, NodeyCell, NodeyCode } from "./nodey";
+import { NotebookEvent, LoadNotebook } from "./notebook-events";
 
 const DEBUG = true;
 

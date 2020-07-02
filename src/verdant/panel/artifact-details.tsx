@@ -1,13 +1,13 @@
 import * as React from "react";
 import InspectorButton from "./summary/inspector-button";
-import { History } from "../../lilgit/model/history";
+import { History } from "../../lilgit/history/";
 import { Mixin } from "./details/mixin";
 import {
   Nodey,
   NodeyCode,
   NodeyMarkdown,
   NodeyOutput,
-} from "../../lilgit/model/nodey";
+} from "../../lilgit/nodey/";
 import { verdantState, ActiveTab, switchTab } from "../redux/index";
 import { connect } from "react-redux";
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { verdantState } from "../../redux/index";
-import { Checkpoint, CheckpointType } from "../../../lilgit/model/checkpoint/";
+import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
 import {
   dateOpen,
   dateClose,
