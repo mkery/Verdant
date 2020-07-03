@@ -1,4 +1,4 @@
-import { Nodey } from "../nodey";
+import { Nodey } from "../../nodey";
 
 /*
  * an Origin Pointer

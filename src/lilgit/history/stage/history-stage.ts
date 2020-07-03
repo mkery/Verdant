@@ -7,12 +7,12 @@ import {
   NodeyMarkdown,
   SyntaxToken,
   NodeyNotebook,
-} from "../nodey";
-import { VerCell } from "../cell";
-import { History } from ".";
-import { Checkpoint } from "../checkpoint";
+} from "../../nodey";
+import { VerCell } from "../../cell";
+import { History } from "..";
+import { Checkpoint } from "../../checkpoint";
 import { Star, UnsavedStar } from "./star";
-import { log } from "../notebook";
+import { log } from "../../notebook";
 
 import * as levenshtein from "fast-levenshtein";
 
@@ -347,7 +347,7 @@ export class HistoryStage {
         });
         if (!history) this.history.store.store(n);
         else {
-          let ver = history.versions.push(n) - 1;
+          let ver = history.addVersion(n) - 1;
           n.version = ver;
           n.id = oldOutput.id;
         }

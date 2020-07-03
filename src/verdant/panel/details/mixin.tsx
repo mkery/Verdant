@@ -66,8 +66,8 @@ export class Mixin extends React.Component<Mixin_Props, Mixin_State> {
     let history = this.props.history.store.getHistoryOf(target);
 
     let details = [];
-    for (let i = history.versions.length - 1; i > -1; i--) {
-      let nodeyVer = history.versions[i];
+    for (let i = history.length - 1; i > -1; i--) {
+      let nodeyVer = history.getVersion(i);
       let header = (
         <VersionHeader
           history={this.props.history}
@@ -96,7 +96,7 @@ export class Mixin extends React.Component<Mixin_Props, Mixin_State> {
   async getSamples() {
     let history = this.props.history.store.getHistoryOf(this.props.target);
     let samples = await Promise.all(
-      history.versions.map(async (nodeyVer, index) => {
+      history.map(async (nodeyVer, index) => {
         let prior = this.props.history.store.getPriorVersion(nodeyVer);
         let s;
         if (prior != null) {

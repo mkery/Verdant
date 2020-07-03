@@ -80,12 +80,62 @@ export class FileManager {
         });
     });
   }
+
+  public writeOutput(filename: string, data: string) {
+    this.makeOutputFolder();
+    var path = "./output/" + filename;
+    var saveModel = new HistorySaveModel(
+      filename,
+      path,
+      "today",
+      "today",
+      data
+    );
+    let contents = new ContentsManager();
+    this.makeOutputFolder().then(() => contents.save(path, saveModel));
+  }
+
+  public makeOutputFolder() {
+    let contents = new ContentsManager();
+    return contents.save("./output", {
+      path: "./output",
+      name: "output",
+      type: "directory",
+    });
+  }
 }
 
 export class HistorySaveModel implements Contents.IModel {
   readonly type: Contents.ContentType = "file";
   readonly writable: boolean = true;
   readonly mimetype: string = "application/json";
+  readonly format: Contents.FileFormat = "text";
+
+  readonly name: string;
+  readonly path: string;
+  readonly created: string;
+  readonly last_modified: string;
+  readonly content: any;
+
+  constructor(
+    name: string,
+    path: string,
+    createDate: string,
+    modDate: string,
+    content: any
+  ) {
+    this.name = name;
+    this.path = path;
+    this.created = createDate;
+    this.last_modified = modDate;
+    this.content = content;
+  }
+}
+
+export class OutputSaveModel implements Contents.IModel {
+  readonly type: Contents.ContentType = "file";
+  readonly writable: boolean = true;
+  readonly mimetype: string = null;
   readonly format: Contents.FileFormat = "text";
 
   readonly name: string;
