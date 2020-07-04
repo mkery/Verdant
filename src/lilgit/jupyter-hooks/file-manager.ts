@@ -6,7 +6,9 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { History } from "../history/";
+import { History, OutputHistory } from "../history/";
+
+import * as nbformat from "@jupyterlab/nbformat";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
@@ -79,6 +81,17 @@ export class FileManager {
           accept(null);
         });
     });
+  }
+
+  public async getOutput(
+    output: OutputHistory.Offsite
+  ): Promise<nbformat.IOutput> {
+    var path = "./output/" + output.offsite;
+    let contents = new ContentsManager();
+    let fileDat = await contents.get(path);
+    let retrieved = { output_type: "display_data", data: {} };
+    retrieved.data[`image/${output.fileType}`] = fileDat.content + "";
+    return retrieved as nbformat.IDisplayData;
   }
 
   public writeOutput(filename: string, data: string) {

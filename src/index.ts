@@ -67,7 +67,12 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Set up singletons accessed by all instances
     fileManager = new FileManager(docManager);
-    renderBaby = new RenderBaby(rendermime, latexTypesetter, linkHandler);
+    renderBaby = new RenderBaby(
+      rendermime,
+      latexTypesetter,
+      linkHandler,
+      fileManager
+    );
     sidePanel = new StackedPanel();
     openGhostBook = __openGhostBook.bind(this, app);
     updateVerdantView = __layoutChange.bind(this, app);

@@ -12,8 +12,6 @@ import { FileManager } from "../../jupyter-hooks/file-manager";
  * in order to store images and charts externally.
  */
 
-type OFFSITE = { filename: string };
-
 export class OutputHistory extends NodeHistory<NodeyOutput> {
   readonly fileManager: FileManager; // needed to read/write output files
 
@@ -36,12 +34,24 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
     return ver;
   }
 
-  sendImageToFile(ver: number, index: number, out, imageTag: string): OFFSITE {
+  sendImageToFile(
+    ver: number,
+    index: number,
+    out,
+    imageTag: string
+  ): OutputHistory.Offsite {
     let fileType = imageTag.split("/")[1]; // e.g. png
     let data = out.data[imageTag];
     let filename = `output_${this.versions[0].id}_${ver}_${index}.${fileType}`;
     this.fileManager.writeOutput(filename, data);
-    return { filename };
+    return { offsite: filename, fileType };
+  }
+}
+
+export namespace OutputHistory {
+  export interface Offsite {
+    offsite: string;
+    fileType: string;
   }
 }
 
