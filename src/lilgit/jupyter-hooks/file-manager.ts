@@ -6,23 +6,25 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { History, OutputHistory } from "../history/";
+import { OutputHistory } from "../history/";
 
 import * as nbformat from "@jupyterlab/nbformat";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
+  private _activeNotebook: VerNotebook;
 
   constructor(docManager: IDocumentManager) {
     this.docManager = docManager;
   }
 
-  public writeToFile(
-    historyModel: History,
-    notebook: VerNotebook
-  ): Promise<void> {
+  public set activeNotebook(notebook: VerNotebook) {
+    this._activeNotebook = notebook;
+  }
+
+  public writeToFile(): Promise<void> {
     return new Promise((accept, reject) => {
-      var notebookPath = notebook.path;
+      var notebookPath = this._activeNotebook.path;
       //log("notebook path is", notebookPath)
       var name = PathExt.basename(notebookPath);
       name = name.substring(0, name.indexOf(".")) + ".ipyhistory";
@@ -38,7 +40,7 @@ export class FileManager {
         path,
         "today",
         "today",
-        JSON.stringify(historyModel.toJSON(), null, 1)
+        JSON.stringify(this._activeNotebook.history.toJSON(), null, 1)
       );
       //log("Model to save is", saveModel)
 
@@ -86,7 +88,7 @@ export class FileManager {
   public async getOutput(
     output: OutputHistory.Offsite
   ): Promise<nbformat.IOutput> {
-    var path = "./output/" + output.offsite;
+    var path = this.getOutputPath() + "/" + output.offsite;
     let contents = new ContentsManager();
     let fileDat = await contents.get(path);
     let retrieved = { output_type: "display_data", data: {} };
@@ -96,7 +98,7 @@ export class FileManager {
 
   public writeOutput(filename: string, data: string) {
     this.makeOutputFolder();
-    var path = "./output/" + filename;
+    var path = this.getOutputPath() + "/" + filename;
     var saveModel = new HistorySaveModel(
       filename,
       path,
@@ -108,11 +110,18 @@ export class FileManager {
     this.makeOutputFolder().then(() => contents.save(path, saveModel));
   }
 
-  public makeOutputFolder() {
+  private getOutputPath() {
+    let name = this._activeNotebook.name;
+    return "./" + name.substring(0, name.indexOf(".")) + "_output";
+  }
+
+  private makeOutputFolder() {
+    let path = this.getOutputPath();
+    let name = path.substring(2);
     let contents = new ContentsManager();
-    return contents.save("./output", {
-      path: "./output",
-      name: "output",
+    return contents.save(path, {
+      path,
+      name,
       type: "directory",
     });
   }

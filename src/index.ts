@@ -136,38 +136,34 @@ function __layoutChange(app: JupyterFrontEnd) {
   if (widget instanceof NotebookPanel) {
     // open Verdant for this current notebook
     let verInst = getInstance(widget);
-    verInst.logger.log(
-      "Jupyter Lab switching Notebook to " + verInst.notebook.name
-    );
-
-    // check if we need to switch Verdant from a prior notebook
-    if (!activeInstance || activeInstance !== verInst) {
-      if (activeInstance) activeInstance.ui.hide();
-      activeInstance = verInst;
-    }
-    // make sure Verdant UI is showing for the current notebook
-    activeInstance.ui.show();
-    landingPage.hide();
+    switchNotebook(verInst);
   } else {
     // hide Verdant content if notebook is not showing
     if (activeInstance) activeInstance.ui.hide();
     landingPage.show();
   }
 
-  // Log: what is showing?
-  instances.map((ver) => {
-    // start logging once there is an active instance
-    let showing = {
-      ghost: ghostWidget
-        ? ghostWidget.isVisible && ghostWidget.getFile() === ver.notebook.path
-        : false,
-      sideBar: sidePanel
-        ? sidePanel.isVisible && ver === activeInstance
-        : false,
-      notebook: ver.panel ? ver.panel.isVisible : false,
-    };
-    ver.logger.log("Jupyter Lab layout change:", JSON.stringify(showing));
-  });
+  // log new layout
+  logCurrentLayout();
+}
+
+/*
+ * Switch Verdant instance
+ */
+function switchNotebook(verInst: VerdantInstance) {
+  // check if we need to switch Verdant from a prior notebook
+  if (!activeInstance || activeInstance !== verInst) {
+    verInst.logger.log(
+      "Jupyter Lab switching Notebook to " + verInst.notebook.name
+    );
+    if (activeInstance) activeInstance.ui.hide();
+    fileManager.activeNotebook = verInst.notebook;
+    activeInstance = verInst;
+  }
+
+  // make sure Verdant UI is showing for the current notebook
+  activeInstance.ui.show();
+  landingPage.hide();
 }
 
 /*
@@ -273,6 +269,26 @@ function __openGhostBook(app: JupyterFrontEnd, store: Store, ver: number) {
  */
 function loadLandingPage(widget: Widget) {
   ReactDOM.render(React.createElement(VerdantLanding), widget.node);
+}
+
+/*
+ * Log which system features are showing on layout change
+ */
+function logCurrentLayout() {
+  // Log: what is showing?
+  instances.map((ver) => {
+    // start logging once there is an active instance
+    let showing = {
+      ghost: ghostWidget
+        ? ghostWidget.isVisible && ghostWidget.getFile() === ver.notebook.path
+        : false,
+      sideBar: sidePanel
+        ? sidePanel.isVisible && ver === activeInstance
+        : false,
+      notebook: ver.panel ? ver.panel.isVisible : false,
+    };
+    ver.logger.log("Jupyter Lab layout change:", JSON.stringify(showing));
+  });
 }
 
 export default extension;

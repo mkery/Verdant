@@ -9,7 +9,7 @@ import {
   NodeyRawCell,
 } from "../../nodey";
 
-import { VerNotebook, log } from "../../notebook";
+import { log } from "../../notebook";
 
 import { FileManager } from "../../jupyter-hooks/file-manager";
 
@@ -282,8 +282,8 @@ export class HistoryStore {
       return this.getCellParent(this.getLatestOf(relativeTo.parent));
   }
 
-  public writeToFile(notebook: VerNotebook, history: History): void {
-    this.fileManager.writeToFile(history, notebook);
+  public writeToFile(): void {
+    this.fileManager.writeToFile();
   }
 
   public dump() {
