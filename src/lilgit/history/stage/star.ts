@@ -1,4 +1,4 @@
-import { Nodey, NodeyCode } from "../nodey";
+import { Nodey, NodeyCode } from "../../nodey";
 
 /*
  * little wrapper class for pending changes with a star

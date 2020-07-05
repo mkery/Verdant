@@ -124,7 +124,7 @@ export class VerCell {
   public commit(checkpoint: Checkpoint): [NodeyCell, boolean] {
     let nodey = this.model;
     let history = this.notebook.history.store.getHistoryOf(nodey.name);
-    let version = history.versions.length - 1;
+    let version = history.length - 1;
 
     // commit the cell if it has changed
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
@@ -134,7 +134,7 @@ export class VerCell {
     // output count can increment without the code ver incrementing
     if (newNodey instanceof NodeyCodeCell) {
       let verOut = this.notebook.history.store.getHistoryOf(newNodey.output)
-        .versions.length;
+        .length;
       same = same && newNodey.outputVer === verOut;
     }
 

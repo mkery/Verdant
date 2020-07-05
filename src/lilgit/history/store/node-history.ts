@@ -1,7 +1,7 @@
-import { Nodey } from "../nodey";
+import { Nodey } from "../../nodey";
 import { OriginPointer } from "./origin-pointer";
-import { Star } from "./star";
-import { log } from "../notebook";
+import { Star } from "..";
+import { log } from "../../notebook";
 
 const DEBUG = false;
 
@@ -9,9 +9,29 @@ const DEBUG = false;
  * Just a container for a list of nodey versions
  */
 export class NodeHistory<T extends Nodey> {
-  versions: T[] = [];
   originPointer: OriginPointer = null;
   private unsavedEdits: Star<T> = null;
+  protected versions: T[] = [];
+
+  addVersion(nodey: T) {
+    return this.versions.push(nodey);
+  }
+
+  getVersion(ver: number) {
+    return this.versions[ver];
+  }
+
+  // wrap to allow override implementation of filter
+  filter(callbackfn: (value: T, index: number, array: T[]) => unknown): T[] {
+    return this.versions.filter(callbackfn);
+  }
+
+  // wrap to allow override implementation of map
+  map(
+    callbackfn: (value: Nodey, index: number, array: Nodey[]) => Promise<any>
+  ): Promise<any>[] {
+    return this.versions.map(callbackfn);
+  }
 
   get latest() {
     if (this.unsavedEdits) return this.unsavedEdits;

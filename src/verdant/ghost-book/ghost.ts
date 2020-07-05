@@ -51,9 +51,4 @@ export class Ghost extends Widget {
       this.node
     );
   }
-
-  close() {
-    super.close();
-    super.dispose();
-  }
 }
