@@ -212,7 +212,7 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     // set prior to previous version of cell
     cells = cells.map((cell) => {
       const prevCell = history.store.getPriorVersion(cell.cell);
-      if (prevCell === null) {
+      if (!prevCell) {
         cell.prior = `${cell.cell.split(".").slice(0, 2).join(".")}.0`;
       } else {
         cell.prior = prevCell.name;
