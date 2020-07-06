@@ -79,7 +79,7 @@ export class VerNotebook {
 
   public saveToFile() {
     // save the data to file
-    this.history.store.writeToFile(this, this.history);
+    this.history.store.writeToFile();
   }
 
   public getCell(cell: ICellModel): VerCell {

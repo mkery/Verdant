@@ -223,11 +223,10 @@ function reducer_initEventMap(state: verdantState) {
 function cellReducer(history: History): artifactState[] {
   return history.notebook.cells.map((cell: VerCell) => {
     let name = cell.model.name;
-    let output = null;
     let outputVer = 0;
     if (cell.output) {
-      output = cell.output.name;
-      outputVer = parseInt(output[2]);
+      let latestOut = history.store.getLatestOf(cell.output);
+      outputVer = parseInt(latestOut.version) + 1;
     }
     let ver = cell.model.version + 1;
 

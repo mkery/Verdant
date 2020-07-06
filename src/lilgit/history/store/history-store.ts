@@ -7,15 +7,13 @@ import {
   NodeyCell,
   NodeyNotebook,
   NodeyRawCell,
-} from "../nodey";
+} from "../../nodey";
 
-import { VerNotebook } from "../notebook";
+import { log } from "../../notebook";
 
-import { log } from "../notebook";
+import { FileManager } from "../../jupyter-hooks/file-manager";
 
-import { FileManager } from "../jupyter-hooks/file-manager";
-
-import { History, Star, UnsavedStar, NodeHistory } from ".";
+import { History, Star, UnsavedStar, NodeHistory, OutputHistory } from "..";
 
 export class HistoryStore {
   readonly fileManager: FileManager;
@@ -25,7 +23,7 @@ export class HistoryStore {
   private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
   private _markdownStore: NodeHistory<NodeyMarkdown>[] = [];
   private _rawCellStore: NodeHistory<NodeyRawCell>[] = [];
-  private _outputStore: NodeHistory<NodeyOutput>[] = [];
+  private _outputStore: OutputHistory[] = [];
   private _snippetStore: NodeHistory<NodeyCode>[] = [];
 
   // this is a store for temporary nodes, stored by cell and cleaned out
@@ -47,7 +45,7 @@ export class HistoryStore {
   }
 
   public getNotebook(ver: number): NodeyNotebook {
-    return this._notebookHistory.versions[ver];
+    return this._notebookHistory.getVersion(ver);
   }
 
   get cells(): NodeyCell[] {
@@ -112,7 +110,7 @@ export class HistoryStore {
       ver = parseInt(verVal) - 1;
     }
     let nodeHist = this.getHistoryOf(name);
-    if (ver > -1) return nodeHist.versions[ver];
+    if (ver > -1) return nodeHist.getVersion(ver);
     else return null;
   }
 
@@ -127,7 +125,7 @@ export class HistoryStore {
     } else {
       let ver = parseInt(verVal);
       let nodeHist = this.getHistoryOf(name);
-      return nodeHist.versions[ver];
+      return nodeHist.getVersion(ver);
     }
   }
 
@@ -135,14 +133,14 @@ export class HistoryStore {
     if (nodey instanceof NodeyNotebook) {
       let id = 0;
       nodey.id = id;
-      let ver = this._notebookHistory.versions.push(nodey) - 1;
+      let ver = this._notebookHistory.addVersion(nodey) - 1;
       nodey.version = ver;
     } else {
       let store = this._getStoreFor(nodey);
       let history = this._makeHistoryFor(nodey);
       let id = store.push(history) - 1;
       nodey.id = id;
-      let version = store[nodey.id].versions.push(nodey) - 1;
+      let version = store[nodey.id].addVersion(nodey) - 1;
       nodey.version = version;
     }
   }
@@ -184,7 +182,7 @@ export class HistoryStore {
     let results: NodeyMarkdown[][] = [];
     let text = query.toLowerCase();
     this._markdownStore.forEach((history) => {
-      let match = history.versions.filter((item) => {
+      let match = history.filter((item) => {
         if (!item.markdown) return false;
         let matchesText = item.markdown.toLowerCase().indexOf(text) > -1;
         if (filter) return matchesText && filter(item);
@@ -206,7 +204,7 @@ export class HistoryStore {
     let results: NodeyCode[][] = [];
     let text = query.toLowerCase();
     this._codeCellStore.forEach((history) => {
-      let matches = history.versions.filter((cell) => {
+      let matches = history.filter((cell) => {
         let sourceText = this.history.inspector.renderNode(cell) || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
           if (filter) return filter(cell);
@@ -230,7 +228,7 @@ export class HistoryStore {
     let results: NodeyOutput[][] = [];
     let text = query.toLowerCase();
     this._outputStore.forEach((history) => {
-      let matches = history.versions.filter((output) => {
+      let matches = history.filter((output) => {
         let sourceText = this.history.inspector.renderNode(output) || "";
         if (sourceText.toLowerCase().indexOf(text) > -1) {
           if (filter) return filter(output);
@@ -259,14 +257,14 @@ export class HistoryStore {
     )
       return new NodeHistory<NodeyCell>();
     else if (nodey instanceof NodeyOutput)
-      return new NodeHistory<NodeyOutput>();
+      return new OutputHistory(this.fileManager);
     else if (nodey instanceof NodeyCode) return new NodeHistory<NodeyCode>();
   }
 
   public registerTiedNodey(nodey: NodeyCell, forceTie: string): void {
     let oldNodey = this.get(forceTie) as NodeyCell;
     let history = this.getHistoryOf(oldNodey);
-    let version = history.versions.push(nodey) - 1;
+    let version = history.addVersion(nodey) - 1;
     nodey.id = oldNodey.id;
     nodey.version = version;
     return;
@@ -284,8 +282,8 @@ export class HistoryStore {
       return this.getCellParent(this.getLatestOf(relativeTo.parent));
   }
 
-  public writeToFile(notebook: VerNotebook, history: History): void {
-    this.fileManager.writeToFile(history, notebook);
+  public writeToFile(): void {
+    this.fileManager.writeToFile();
   }
 
   public dump() {
@@ -336,7 +334,7 @@ export class HistoryStore {
     );
     this._outputStore = data.output.map(
       (item: NodeHistory.SERIALIZE, id: number) => {
-        let hist = new NodeHistory<NodeyOutput>();
+        let hist = new OutputHistory(this.fileManager);
         hist.fromJSON(item, NodeyOutput.fromJSON, id);
         return hist;
       }
