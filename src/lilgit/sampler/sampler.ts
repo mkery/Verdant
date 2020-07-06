@@ -281,6 +281,7 @@ export class Sampler {
     switch (nodey.typeChar) {
       case "c":
         this.plainCode(elem, newText);
+        elem.classList.remove("code");
         break;
       case "o":
         await this.renderOutput(nodey as NodeyOutput, elem);
