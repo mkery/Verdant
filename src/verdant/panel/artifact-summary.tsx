@@ -1,5 +1,5 @@
 import * as React from "react";
-import Summary from "./summary/summary";
+import SummaryTable from "./summary/summary-table";
 import InspectorButton from "./summary/inspector-button";
 import {
   ActiveTab,
@@ -30,7 +30,7 @@ class ArtifactSummary extends React.Component<ArtifactSummaryPane_Props> {
             <i>artifact revisions:</i>
           </span>
         </div>
-        <Summary />
+        <SummaryTable />
         <InspectorButton />
       </div>
     );

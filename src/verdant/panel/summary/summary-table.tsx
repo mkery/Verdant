@@ -1,6 +1,6 @@
 import * as React from "react";
-import { History } from "../../../lilgit/history/";
-import { Nodey } from "../../../lilgit/nodey/";
+import { History } from "../../../lilgit/history";
+import { Nodey } from "../../../lilgit/nodey";
 import { connect } from "react-redux";
 import {
   verdantState,
@@ -19,7 +19,7 @@ export type Summary_Props = {
   artifact_count: number;
 };
 
-class Summary extends React.Component<Summary_Props> {
+class SummaryTable extends React.Component<Summary_Props> {
   render() {
     return (
       <div className="v-VerdantPanel-content">
@@ -74,4 +74,4 @@ const mapStateToProps = (state: verdantState) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Summary);
+export default connect(mapStateToProps, mapDispatchToProps)(SummaryTable);

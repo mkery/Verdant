@@ -55,27 +55,39 @@
 }
 
 .v-VerdantPanel-inspectorButton {
-  display: inline-block;
-  vertical-align: text-bottom;
-  background-image: var(--verdant-icon-timeinspect);
-  min-width: 1.75em;
-  min-height: 2em;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 1.5em;
-  /* border-left: 1px solid var(--jp-border-color0); */
-  padding: 5px;
+  position: sticky;
+  width: 100%;
+  bottom: 0px;
+  background: var(--jp-layout-color0);
+  border-top: 1px solid var(--jp-border-color0);
+  box-shadow: 0px 0px 4px var(--jp-inverse-layout-color4);
 }
 .v-VerdantPanel-inspectorButton:hover {
-  background-image: var(--verdant-icon-timeinspect-active);
-  background-color: var(--jp-cell-editor-active-border-color);
+  background: var(--jp-layout-color2);
 }
 .v-VerdantPanel-inspectorButton.active {
-  background-image: var(--verdant-icon-timeinspect-active);
   background-color: var(--jp-cell-editor-active-border-color);
+  color: white;
 }
 .v-VerdantPanel-inspectorButton.active:hover {
   background-color: var(--jp-brand-color0);
+}
+
+.v-VerdantPanel-inspectorButton-label {
+  display: inline-block;
+  width: calc(100% - 16px);
+  text-align: center;
+  padding: 8px;
+}
+
+.v-VerdantPanel-inspectorButton-icon {
+  width: 20px;
+  vertical-align: middle;
+  fill: var(--jp-layout-color4);
+  margin-left: 1em;
+}
+.v-VerdantPanel-inspectorButton.active .v-VerdantPanel-inspectorButton-icon {
+  fill: white;
 }
 
 .v-VerdantPanel-crumbMenu {
