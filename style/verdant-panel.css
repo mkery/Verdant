@@ -55,27 +55,39 @@
 }
 
 .v-VerdantPanel-inspectorButton {
-  display: inline-block;
-  vertical-align: text-bottom;
-  background-image: var(--verdant-icon-timeinspect);
-  min-width: 1.75em;
-  min-height: 2em;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 1.5em;
-  /* border-left: 1px solid var(--jp-border-color0); */
-  padding: 5px;
+  position: sticky;
+  width: 100%;
+  bottom: 0px;
+  background: var(--jp-layout-color0);
+  border-top: 1px solid var(--jp-border-color0);
+  box-shadow: 0px 0px 4px var(--jp-inverse-layout-color4);
 }
 .v-VerdantPanel-inspectorButton:hover {
-  background-image: var(--verdant-icon-timeinspect-active);
-  background-color: var(--jp-cell-editor-active-border-color);
+  background: var(--jp-layout-color2);
 }
 .v-VerdantPanel-inspectorButton.active {
-  background-image: var(--verdant-icon-timeinspect-active);
   background-color: var(--jp-cell-editor-active-border-color);
+  color: white;
 }
 .v-VerdantPanel-inspectorButton.active:hover {
   background-color: var(--jp-brand-color0);
+}
+
+.v-VerdantPanel-inspectorButton-label {
+  display: inline-block;
+  width: calc(100% - 16px);
+  text-align: center;
+  padding: 8px;
+}
+
+.v-VerdantPanel-inspectorButton-icon {
+  width: 20px;
+  vertical-align: middle;
+  fill: var(--jp-layout-color4);
+  margin-left: 1em;
+}
+.v-VerdantPanel-inspectorButton.active .v-VerdantPanel-inspectorButton-icon {
+  fill: white;
 }
 
 .v-VerdantPanel-crumbMenu {
@@ -129,105 +141,6 @@
   background-image: var(--verdant-icon-wisk-highlight);
 }
 
-.v-VerdantPanel-Summary {
-  display: inline-flex;
-  flex-direction: row;
-  width: 100%;
-}
-.v-VerdantPanel-Summary-column {
-  display: inline-block;
-  overflow: hidden;
-  text-align: center;
-  flex: 1 1 2.5em;
-  min-width: calc(var(--jp-code-padding) * 2 + 1em);
-}
-.v-VerdantPanel-Summary-column.artifactCol {
-  border-right: 1px solid var(--jp-border-color2);
-  text-align: left;
-  flex: 2 2 100%;
-}
-.v-VerdantPanel-Summary-cell {
-  display: block;
-  border-bottom: 1px solid var(--jp-border-color2);
-  width: 100%;
-  height: calc(2em + var(--jp-code-padding) * 2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  position: relative;
-}
-.v-VerdantPanel-Summary-cell.selected,
-.v-VerdantPanel-Summary-cell:hover {
-  background-color: var(--jp-rendermime-table-row-hover-background);
-}
-
-.v-VerdantPanel-Summary-cell.ver {
-  width: unset;
-  padding: var(--jp-code-padding);
-  height: 2em;
-}
-.v-VerdantPanel-Summary-cell.highlight {
-  border-left: var(--jp-cell-collapser-width) solid var(--jp-brand-color1);
-}
-
-.v-VerdantPanel-Summary-notebook-label {
-  padding: var(--jp-cell-padding);
-}
-
-.v-VerdantPanel-Summary-notebook-icon {
-  width: 14px;
-  height: 24px;
-  background-position: left center;
-  background-repeat: no-repeat;
-  margin-right: 4px;
-  display: inline-block;
-}
-
-.v-VerdantPanel-Summary-notebook-title {
-  display: inline-block;
-  line-height: 24px;
-  vertical-align: top;
-}
-
-.v-VerdantPanel-Summary-header {
-  display: inline-block;
-  width: calc(100% - 10px);
-  padding: 5px;
-  border-bottom: 1px solid var(--jp-border-color2);
-  padding-bottom: 2px;
-  margin: 0px;
-  color: var(--jp-content-font-color2);
-  font-style: italic;
-}
-.v-VerdantPanel-Summary-header-aLabel {
-  display: inline-block;
-  float: left;
-}
-.v-VerdantPanel-Summary-header-vLabel {
-  display: inline-block;
-  float: right;
-}
-
-.v-VerdantPanel-Summary-code-vLabel {
-  font-size: var(--jp-content-font-size0);
-  margin-left: -1em;
-}
-
-.v-VerdantPanel-Summary-out-vLabel {
-  font-size: var(--jp-content-font-size0);
-  margin-left: 1em;
-  color: var(--jp-content-font-color2);
-}
-
-.v-VerdantPanel-Summary-code-vLabel-border {
-  border-top: 1px solid var(--jp-border-color3);
-  transform-origin: center;
-  transform: rotate(-45deg);
-  width: calc(100% + 2 * var(--jp-code-padding));
-  position: absolute;
-  top: 50%;
-  right: calc(var(--jp-code-padding) * -1);
-}
-
 .VerdantPanel-search-results-message {
   text-align: center;
   padding: var(--jp-cell-padding);
@@ -262,7 +175,7 @@
 .v-VerdantPanel-tab-header {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid;
+  border-bottom: 1px solid var(--jp-border-color3);
   position: sticky;
   top: 0px;
   background: var(--jp-layout-color0);

@@ -22,19 +22,19 @@ export namespace CellSampler {
       );
     }
 
-    sample.addEventListener("click", () => {
+    /*sample.addEventListener("click", () => {
       //TODO Try to get notebook to scroll to the cell clicked on
-    });
+    });*/
     return sample;
   }
 
-  export function sampleOutput(
+  export async function sampleOutput(
     historyModel: History,
     output: NodeyOutput
-  ): HTMLElement {
+  ) {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
-    historyModel.inspector.renderArtifactCell(output, sample);
+    await historyModel.inspector.renderArtifactCell(output, sample);
     return sample;
   }
 }

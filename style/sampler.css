@@ -5,7 +5,8 @@
   text-overflow: ellipsis;
   margin: 0px;
   overflow: hidden;
-  height: calc(2em + var(--jp-code-padding));
+  /*height: calc(2em + var(--jp-code-padding));*/
+  min-height: 1em;
 }
 
 .v-VerdantPanel-cellList-sample.highlight {

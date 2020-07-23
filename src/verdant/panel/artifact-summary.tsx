@@ -1,35 +1,37 @@
 import * as React from "react";
-import Summary from "./summary/summary";
+import SummaryTable from "./summary/summary-table";
 import InspectorButton from "./summary/inspector-button";
-import { ActiveTab, switchTab } from "../redux/index";
+import {
+  ActiveTab,
+  switchTab,
+  verdantState,
+  artifactState,
+} from "../redux/index";
 import { connect } from "react-redux";
 
 const PANEL = "v-VerdantPanel-content";
-const CRUMB_MENU = "v-VerdantPanel-crumbMenu";
-const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
 const HEADER = "v-VerdantPanel-tab-header";
+const SUMMARY_TITLE = "v-VerdantPanel-Summary-title";
 
-export type CrumbBox_Props = {
+export type ArtifactSummaryPane_Props = {
   showDetail: () => void;
+  notebook: artifactState;
 };
 
-class ArtifactSummary extends React.Component<CrumbBox_Props> {
+class ArtifactSummary extends React.Component<ArtifactSummaryPane_Props> {
   render() {
     return (
       <div className={PANEL}>
         <div className={HEADER}>
-          <div className={CRUMB_MENU}>{this.buildCrumbMenu()}</div>
-          <InspectorButton />
+          <span className={SUMMARY_TITLE}>
+            {this.props.notebook.file}
+            <b>{` v${this.props.notebook.ver}`}</b>
+            {" by "}
+            <i>artifact revisions:</i>
+          </span>
         </div>
-        <Summary />
-      </div>
-    );
-  }
-
-  buildCrumbMenu() {
-    return (
-      <div>
-        <div className={CRUMB_MENU_ITEM}>Notebook</div>
+        <SummaryTable />
+        <InspectorButton />
       </div>
     );
   }
@@ -43,4 +45,10 @@ const mapDispatchToProps = (dispatch: any) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(ArtifactSummary);
+const mapStateToProps = (state: verdantState) => {
+  return {
+    notebook: state.notebookArtifact,
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ArtifactSummary);
