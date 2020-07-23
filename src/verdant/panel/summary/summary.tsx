@@ -1,7 +1,6 @@
 import * as React from "react";
 import { History } from "../../../lilgit/history/";
 import { Nodey } from "../../../lilgit/nodey/";
-import { CellVersions, CellArtifact } from "./summary-cell";
 import { connect } from "react-redux";
 import {
   verdantState,
@@ -10,11 +9,7 @@ import {
   ActiveTab,
   artifactState,
 } from "../../redux/index";
-
-const CELL = "v-VerdantPanel-Summary-cell";
-const NOTEBOOK_ICON = "v-VerdantPanel-Summary-notebook-icon";
-const NOTEBOOK_LABEL = "v-VerdantPanel-Summary-notebook-label";
-const NOTEBOOK_TITLE = "v-VerdantPanel-Summary-notebook-title";
+import { SummaryRow } from "./summary-row";
 
 export type Summary_Props = {
   history: History;
@@ -28,63 +23,34 @@ class Summary extends React.Component<Summary_Props> {
   render() {
     return (
       <div className="v-VerdantPanel-content">
-        <div className="v-VerdantPanel-Summary-header">
-          <div className="v-VerdantPanel-Summary-header-aLabel">artifact</div>
-          <div className="v-VerdantPanel-Summary-header-vLabel">versions</div>
+        {this.showHeader()}
+        <div className="v-VerdantPanel-Summary-table">{this.showTable()}</div>
+      </div>
+    );
+  }
+
+  private showHeader() {
+    return (
+      <div className="v-VerdantPanel-Summary-header">
+        <div className="v-VerdantPanel-Summary-header-label cell">cell</div>
+        <div className="v-VerdantPanel-Summary-header-label r">
+          <b>r</b>
         </div>
-        <div className="v-VerdantPanel-Summary">
-          <div className="v-VerdantPanel-Summary-column artifactCol">
-            {this.showNotebookArtifact()}
-            {this.showCellArtifacts()}
-          </div>
-          <div className="v-VerdantPanel-Summary-column versionCol">
-            {this.showNotebookVersion()}
-            {this.showCellVersions()}
-          </div>
+        <div className="v-VerdantPanel-Summary-header-label preview">
+          preview
         </div>
       </div>
     );
   }
 
-  private showNotebookArtifact() {
-    if (this.props.notebook)
-      return (
-        <div className={CELL}>
-          <div className={NOTEBOOK_LABEL}>
-            <div className={`${NOTEBOOK_ICON} jp-NotebookIcon`} />
-            <div className={NOTEBOOK_TITLE}>{this.props.notebook.file}</div>
-          </div>
-        </div>
-      );
-    return null;
-  }
-
-  private showCellArtifacts() {
+  private showTable() {
     return this.props.cells.map((c: artifactState, index: number) => {
-      let ev = () =>
-        this.props.showDetails(this.props.history.store.get(c.name));
       return (
-        <div onClick={ev} key={c.name + "a" + index}>
-          <CellArtifact artifact_id={index} />
-        </div>
-      );
-    });
-  }
-
-  private showNotebookVersion() {
-    if (this.props.notebook)
-      return <CellVersions version={this.props.notebook.ver} />;
-    return null;
-  }
-
-  private showCellVersions() {
-    return this.props.cells.map((c: artifactState, index: number) => {
-      let ev = () =>
-        this.props.showDetails(this.props.history.store.get(c.name));
-      return (
-        <div onClick={ev} key={c.name + "v" + index}>
-          <CellVersions version={c.ver} outVersion={c.outputVer} />
-        </div>
+        <SummaryRow
+          cell_index={index}
+          showDetails={this.props.showDetails}
+          key={c.name + "_" + index}
+        />
       );
     });
   }

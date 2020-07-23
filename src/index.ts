@@ -31,6 +31,7 @@ import "../style/ghost.css";
 import "../style/sampler.css";
 import "../style/activity.css";
 import "../style/verdant-panel.css";
+import "../style/summary.css";
 import "../style/landing.css";
 
 import { AST } from "./lilgit/analysis/ast";
