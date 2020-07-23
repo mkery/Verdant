@@ -83,7 +83,7 @@
 .v-VerdantPanel-inspectorButton-icon {
   width: 20px;
   vertical-align: middle;
-  fill: var(--jp-layout-color4);
+  fill: var(--jp-content-font-color2);
   margin-left: 1em;
 }
 .v-VerdantPanel-inspectorButton.active .v-VerdantPanel-inspectorButton-icon {
