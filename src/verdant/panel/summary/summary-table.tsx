@@ -17,6 +17,7 @@ export type Summary_Props = {
   cells: artifactState[];
   notebook: artifactState;
   artifact_count: number;
+  focused_cell: number;
 };
 
 class SummaryTable extends React.Component<Summary_Props> {
@@ -48,6 +49,7 @@ class SummaryTable extends React.Component<Summary_Props> {
       return (
         <SummaryRow
           cell_index={index}
+          focused={this.props.focused_cell === index}
           showDetails={this.props.showDetails}
           key={c.name + "_" + index}
         />
@@ -71,6 +73,7 @@ const mapStateToProps = (state: verdantState) => {
     cells: state.cellArtifacts,
     notebook: state.notebookArtifact,
     artifact_count: state.cellArtifacts.length,
+    focused_cell: state.focusedCell,
   };
 };
 

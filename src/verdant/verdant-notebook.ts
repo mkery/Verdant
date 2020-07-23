@@ -7,6 +7,7 @@ import { VerCell } from "../lilgit/cell";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { inspectNode, switchTab, ActiveTab } from "./redux/index";
 import { updateCheckpoint } from "./redux/events";
+import { focusCell } from "./redux";
 import { Nodey } from "../lilgit/nodey/";
 import { VerdantLog } from "./logger";
 import { NotebookEvent } from "../lilgit/notebook-events";
@@ -48,8 +49,8 @@ export class VerdantNotebook extends VerNotebook {
     let verCell = super.focusCell(cell);
     verCell.then((cell) => {
       if (cell) {
-        // TODO let index = this.cells.indexOf(verCell);
-        // TODO this.panel.highlightCell(index);
+        let index = this.cells.indexOf(cell);
+        this.store.dispatch(focusCell(index));
       }
     });
     return verCell;

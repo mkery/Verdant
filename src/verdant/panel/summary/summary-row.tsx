@@ -16,6 +16,7 @@ type SummaryRow_Props = {
   cell: NodeyCell;
   output: NodeyOutput;
   showDetails: (n: Nodey) => void;
+  focused: boolean;
 };
 
 export class Row extends React.Component<
@@ -48,7 +49,9 @@ export class Row extends React.Component<
     return (
       <div>
         <div
-          className={`v-VerdantPanel-Summary-table-row ${this.props.cell.typeChar}`}
+          className={`v-VerdantPanel-Summary-table-row ${
+            this.props.cell.typeChar
+          } ${this.props.focused ? "focused" : ""}`}
           onClick={() => this.props.showDetails(this.props.cell)}
         >
           <div className="v-VerdantPanel-Summary-table-row-name">{`${this.props.cell.typeChar.toUpperCase()} ${
@@ -71,7 +74,9 @@ export class Row extends React.Component<
     if (this.props.output) {
       return (
         <div
-          className="v-VerdantPanel-Summary-table-row o"
+          className={`v-VerdantPanel-Summary-table-row o ${
+            this.props.focused ? "focused" : ""
+          }`}
           onClick={() => this.props.showDetails(this.props.output)}
         >
           <div className="v-VerdantPanel-Summary-table-row-name o">

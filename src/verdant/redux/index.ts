@@ -6,10 +6,25 @@ import { eventMapState, eventReducer, eventsInitialState } from "./events";
 import { Wishbone } from "../panel/details/wishbone";
 
 const SWITCH_TAB = "SWITCH_TAB";
+const FOCUS_CELL = "FOCUS_CELL";
 const INSPECT_TARGET = "INSPECT_TARGET";
 const SEARCH_FOR = "SEARCH_FOR";
 const INSPECT_ON = "INSPECT_ON";
 const INSPECT_OFF = "INSPECT_OFF";
+
+export const switchTab = (name: ActiveTab) => {
+  return {
+    type: SWITCH_TAB,
+    tab: name,
+  };
+};
+
+export const focusCell = (cell_index: number) => {
+  return {
+    type: FOCUS_CELL,
+    cell_index,
+  };
+};
 
 export const inspectNode = (target: Nodey) => {
   return {
@@ -27,13 +42,6 @@ export const inspectOn = () => {
 export const inspectOff = () => {
   return {
     type: INSPECT_OFF,
-  };
-};
-
-export const switchTab = (name: ActiveTab) => {
-  return {
-    type: SWITCH_TAB,
-    tab: name,
   };
 };
 
@@ -62,6 +70,7 @@ export type verdantState = {
   getHistory: () => History;
   currentEvent: Checkpoint;
   activeTab: ActiveTab;
+  focusedCell: number;
   inspectOn: boolean;
   searchQuery: string;
   inspectTarget: Nodey;
@@ -75,6 +84,7 @@ export const createInitialState = (getHistory: () => History): verdantState => {
     getHistory: getHistory,
     currentEvent: null,
     activeTab: ActiveTab.Events,
+    focusedCell: null,
     inspectOn: false,
     searchQuery: null,
     inspectTarget: null,
@@ -90,6 +100,8 @@ export const verdantReducer = (state: verdantState, action: any) => {
     case SWITCH_TAB:
       if (state.inspectOn) Wishbone.endWishbone(state.getHistory().notebook);
       return { ...state, activeTab: action.tab, inspectOn: false };
+    case FOCUS_CELL:
+      return { ...state, focusedCell: action.cell_index };
     case INSPECT_TARGET:
       return { ...state, inspectTarget: action.target };
     case INSPECT_ON:
