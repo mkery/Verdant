@@ -23,6 +23,7 @@ export class ChevronDownIcon extends React.Component {
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 10 16"
         aria-labelledby="title"
+        className="verdant-icon-chevron"
       >
         <title id="title">Chevron Down Icon</title>
         <path
@@ -39,11 +40,12 @@ export class ChevronRightIcon extends React.Component {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 8 16"
+        viewBox="0 -3 7 16"
         aria-labelledby="title"
+        className="verdant-icon-chevron"
       >
         <title id="title">Chevron Right Icon</title>
-        <path d="M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3l5 5z" />
+        <path d="M6.5 5l-5 5L0 8.5 3.75 5 0 1.5 1.5 0z" />
       </svg>
     );
   }
@@ -54,8 +56,9 @@ export class ChevronLeftIcon extends React.Component {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 7 10"
+        viewBox="0 -3 7 16"
         aria-labelledby="title"
+        className="verdant-icon-chevron"
       >
         <title id="title">Chevron Left Icon</title>
         <path d="M.5 5l5 5L7 8.5 3.25 5 7 1.5 5.5 0z" />

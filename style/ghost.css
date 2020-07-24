@@ -43,6 +43,11 @@
   padding-left: 6px;
 }
 
+.v-Verdant-GhostBook-versionSwitch-label {
+  display: inline-block;
+  margin: 0px 1em;
+}
+
 /* Ghost Cell CSS */
 
 .v-Verdant-GhostBook-container {

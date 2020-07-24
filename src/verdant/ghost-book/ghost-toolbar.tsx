@@ -4,6 +4,7 @@ import { History } from "../../lilgit/history";
 import { Checkpoint } from "../../lilgit/checkpoint";
 import { verdantState } from "../redux/index";
 import { toggleShowAllCells } from "../redux/ghost";
+import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 
 /* CSS Constants */
 const JP_TOOLBAR = "jp-Toolbar";
@@ -19,7 +20,20 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
   public render() {
     return (
       <div className={`v-Verdant-GhostBook-header ${JP_TOOLBAR}`}>
-        {this.showLabel()}
+        <div className="v-Verdant-GhostBook-header-row">
+          {this.showVersionSwitch()}
+          {this.showLabel()}
+        </div>
+      </div>
+    );
+  }
+
+  private showVersionSwitch() {
+    return (
+      <div className="v-Verdant-GhostBook-versionSwitch">
+        <ChevronLeftIcon />
+        <span className="v-Verdant-GhostBook-versionSwitch-label">{`v${this.props.name}`}</span>
+        <ChevronRightIcon />
       </div>
     );
   }
@@ -36,11 +50,7 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
         " " +
         Checkpoint.formatTime(created.timestamp);
 
-    return (
-      <div className="v-Verdant-GhostBook-header-row">
-        <div>{time ? time : ""}</div>
-      </div>
-    );
+    return <div>{time ? time : ""}</div>;
   }
 }
 

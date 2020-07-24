@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="8" height="16" viewBox="0 0 8 16"><path fill-rule="evenodd" d="M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3l5 5z"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="7px" height="10px" viewBox="0 0 7 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>chevron-right@3x</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="chevron-right" fill="#000000" fill-rule="nonzero">
+            <polygon id="Path" points="6.5 5 1.5 10 0 8.5 3.75 5 0 1.5 1.5 0"></polygon>
+        </g>
+    </g>
+</svg>
