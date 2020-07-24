@@ -64,6 +64,7 @@
 }
 
 .v-VerdantPanel-sampler-version {
+  display: flex;
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
   letter-spacing: var(--jp-cell-prompt-letter-spacing);

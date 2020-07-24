@@ -55,7 +55,7 @@
   display: flex;
   position: relative;
   flex-direction: column;
-  width: 100%;
+  width: calc(100% - 8px);
 }
 
 .v-Verdant-GhostBook-cell {
