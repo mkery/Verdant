@@ -43,25 +43,6 @@
   padding-left: 6px;
 }
 
-.v-Verdant-GhostBook-header-toggle {
-  display: flex;
-}
-
-.v-Verdant-GhostBook-header-toggle-text {
-  margin-right: 5px;
-}
-
-.v-Verdant-GhostBook-header-toggle-button {
-  width: 1.3em;
-  margin-right: 1em;
-  background-image: var(--verdant-icon-ghostbook);
-}
-
-.v-Verdant-GhostBook-header-toggle-button:hover {
-  cursor: pointer;
-  background: var(--jp-layout-color2);
-}
-
 /* Ghost Cell CSS */
 
 .v-Verdant-GhostBook-container {
@@ -72,6 +53,7 @@
 
 .v-Verdant-GhostBook-container-stack {
   display: flex;
+  position: relative;
   flex-direction: column;
   width: 100%;
 }
@@ -82,35 +64,27 @@
   font-family: var(--jp-content-font-family);
   font-size: var(--jp-content-font-size1);
   line-height: var(--jp-content-line-height);
+  min-height: 2em;
 }
 
 .v-Verdant-GhostBook-cell.code {
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
-  padding: var(--jp-code-padding);
   line-height: var(--jp-code-line-height);
   background: var(--jp-cell-editor-background);
-  white-space: pre;
   overflow-x: auto;
+  border: var(--jp-border-width) solid var(--jp-cell-editor-border-color);
+  white-space: pre;
 }
 
 .v-Verdant-GhostBook-cell.code.active {
-  border: var(--jp-border-width) solid var(--jp-cell-editor-active-border-color);
   box-shadow: var(--jp-input-box-shadow);
   background-color: var(--jp-cell-editor-active-background);
-}
-
-.v-Verdant-GhostBook-cell.output {
-}
-
-.v-Verdant-GhostBook-cell.output.active {
+  border-color: var(--jp-cell-editor-active-border-color);
 }
 
 .v-Verdant-GhostBook-cell.markdown {
   height: 100%;
-}
-
-.v-Verdant-GhostBook-cell.markdown.active {
 }
 
 .v-Verdant-GhostBook-cell.added {
@@ -140,13 +114,19 @@
 .v-Verdant-GhostBook-cell-container {
   display: flex;
   flex-direction: row;
-  background-color: var(--jp-layout-color0);
+  position: relative;
+}
+
+.v-Verdant-GhostBook-cell-container.output {
+  padding-top: 5px;
 }
 
 .v-Verdant-GhostBook-cell-content {
   flex: 1 1 100%;
   max-width: calc(100% - var(--jp-cell-prompt-width));
   background: var(--jp-cell-editor-background);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Ghost Output CSS */
@@ -156,87 +136,30 @@
 .v-Verdant-GhostBook-cell-header {
   min-width: var(--jp-cell-prompt-width);
   max-width: var(--jp-cell-prompt-width);
-  background-color: var(--verdant-ghost-color1);
+  background-color: var(--jp-layout-color0);
+  opacity: 0.8;
   box-sizing: border-box;
   padding: var(--jp-cell-padding);
+}
+
+.v-Verdant-GhostBook-cell-label {
+  position: absolute;
+  z-index: 3;
+  top: calc(1px - var(--jp-cell-padding));
+  left: calc(-1px - var(--jp-notebook-padding) - var(--jp-cell-padding));
+  background-color: var(--jp-layout-color0);
+  border: 1px solid var(--jp-border-color0);
+  padding: 4px 8px;
+  text-align: center;
   font-size: var(--jp-ui-font-size0);
   font-family: var(--jp-ui-font-family);
   color: var(--jp-content-link-color);
   text-decoration: underline;
   text-transform: uppercase;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Ghost (ghost.ts) CSS */
 
 .v-Verdant-GhostBook-icon {
   background-image: var(--verdant-icon-ghostbook);
-}
-
-/* Other */
-
-.tgl {
-}
-
-.tgl,
-.tgl:after,
-.tgl:before,
-.tgl .tgl-light,
-.tgl .tgl-light:after,
-.tgl .tgl-light:before,
-.tgl + .tgl-btn {
-  box-sizing: border-box;
-}
-
-.tgl-btn {
-  outline: 0;
-  display: block;
-  width: 3em;
-  height: 1.5em;
-  position: relative;
-  cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.tgl + .tgl-btn:after,
-.tgl + .tgl-btn:before {
-  position: relative;
-  display: block;
-  content: "";
-  width: 50%;
-  height: 100%;
-}
-
-.tgl + .tgl-btn:after {
-  left: 0;
-}
-
-.tgl + .tgl-btn:before {
-  display: none;
-}
-
-.tgl.checked + .tgl-btn:after {
-  left: 50%;
-}
-
-.tgl-light + .tgl-btn {
-  display: inline-block;
-  background: #f0f0f0;
-  border-radius: 2em;
-  padding: 2px;
-  transition: all 0.4s ease;
-}
-
-.tgl-light + .tgl-btn:after {
-  border-radius: 50%;
-  background: #fff;
-  transition: all 0.2s ease;
-}
-
-.tgl-light.checked + .tgl-btn {
-  background: #9fd6ae;
 }

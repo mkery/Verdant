@@ -8,12 +8,6 @@ import { toggleShowAllCells } from "../redux/ghost";
 /* CSS Constants */
 const JP_TOOLBAR = "jp-Toolbar";
 
-const HEADER = "v-Verdant-GhostBook-header";
-const HEADER_ROW = `${HEADER}-row`;
-const HEADER_TOGGLE = `${HEADER}-toggle`;
-const HEADER_TOGGLE_TEXT = `${HEADER_TOGGLE}-text`;
-const HEADER_TOGGLE_BUTTON = `${HEADER_TOGGLE}-button`;
-
 interface GhostToolbar_Props {
   history: History;
   name: number;
@@ -23,7 +17,11 @@ interface GhostToolbar_Props {
 
 class Toolbar extends React.Component<GhostToolbar_Props> {
   public render() {
-    return <div className={`${HEADER} ${JP_TOOLBAR}`}>{this.showLabel()}</div>;
+    return (
+      <div className={`v-Verdant-GhostBook-header ${JP_TOOLBAR}`}>
+        {this.showLabel()}
+      </div>
+    );
   }
 
   private showLabel() {
@@ -39,21 +37,8 @@ class Toolbar extends React.Component<GhostToolbar_Props> {
         Checkpoint.formatTime(created.timestamp);
 
     return (
-      <div className={HEADER_ROW}>
-        <div>
-          {" "}
-          Viewing version # {this.props.name + 1} of notebook{" "}
-          {time ? "from " + time : ""}{" "}
-        </div>
-        <div className={HEADER_TOGGLE}>
-          <div className={HEADER_TOGGLE_TEXT}>
-            {this.props.diffPresent ? "Checked" : "Unchecked"}
-          </div>
-          <div
-            className={HEADER_TOGGLE_BUTTON}
-            onClick={this.props.toggleShow}
-          />
-        </div>
+      <div className="v-Verdant-GhostBook-header-row">
+        <div>{time ? time : ""}</div>
       </div>
     );
   }

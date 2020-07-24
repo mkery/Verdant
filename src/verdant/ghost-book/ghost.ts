@@ -22,7 +22,7 @@ export class Ghost extends Widget {
 
   public initStore(store: Store, ver: number) {
     let changeTitle = (ver: number) => {
-      this.title.label = "#" + (ver + 1) + " of " + this.getFile();
+      this.title.label = "v" + (ver + 1) + " of " + this.getFile();
     };
 
     const initialState: Partial<ghostState> = {
