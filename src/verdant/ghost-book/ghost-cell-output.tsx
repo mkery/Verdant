@@ -3,14 +3,8 @@ import { Sampler, SAMPLE_TYPE } from "../../lilgit/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
 import { NodeyOutput } from "../../lilgit/nodey";
-import GhostCellLabel from "./ghost-cell-label";
 import { connect } from "react-redux";
 import { verdantState } from "../redux/index";
-
-/* CSS CONSTANTS */
-const CELL = "v-Verdant-GhostBook-cell";
-const CELL_CONTAINER = `${CELL}-container`;
-const CELL_CONTENT = `${CELL}-content`;
 
 type GhostCellOutput_Props = {
   // Parent code cell id
@@ -52,10 +46,11 @@ class GhostCellOutput extends React.Component<
     if (this.state.sample.length === 0) return null;
 
     return (
-      <div className={CELL_CONTAINER}>
-        <GhostCellLabel name={this.props.name} />
-        <div className={CELL_CONTENT}>
-          <div className={CELL}>
+      <div className="v-Verdant-GhostBook-cell-container output">
+        <div className="v-Verdant-GhostBook-cell-label">{this.props.name}</div>{" "}
+        <div className="v-Verdant-GhostBook-cell-header" />
+        <div className="v-Verdant-GhostBook-cell-content">
+          <div className="v-Verdant-GhostBook-cell">
             <div dangerouslySetInnerHTML={{ __html: this.state.sample }} />
           </div>
         </div>

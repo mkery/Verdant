@@ -3,7 +3,6 @@ import { History } from "../../lilgit/history/";
 import { NodeyCode } from "../../lilgit/nodey/";
 import { SAMPLE_TYPE, Sampler } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
-import GhostCellLabel from "./ghost-cell-label";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
 import { verdantState } from "../redux/index";
@@ -83,8 +82,11 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       >
         <div className={`${CELL_BAND} ${active}`} />
         <div className={CONTAINER_STACK}>
+          <div className="v-Verdant-GhostBook-cell-label">
+            {this.props.name}
+          </div>
           <div className={CELL_CONTAINER}>
-            <GhostCellLabel name={this.props.name} events={this.props.events} />
+            <div className="v-Verdant-GhostBook-cell-header" />
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
                 className={`${CELL} ${

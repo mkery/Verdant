@@ -60,9 +60,11 @@
 .v-VerdantPanel-sampler-version-content.code {
   white-space: pre-wrap;
   font-family: var(--jp-code-font-family);
+  padding: var(--jp-code-padding);
 }
 
 .v-VerdantPanel-sampler-version {
+  display: flex;
   font-size: var(--jp-code-font-size);
   line-height: var(--jp-code-line-height);
   letter-spacing: var(--jp-cell-prompt-letter-spacing);
