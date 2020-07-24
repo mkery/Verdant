@@ -30,18 +30,9 @@
 
 .v-VerdantPanel-searchIcon {
   display: inline-block;
-  background-image: var(--verdant-icon-search);
-  width: 1.5em;
-  height: 2em;
+  width: 14px;
   margin-right: 4px;
-  background-size: 20px 18px;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-.v-VerdantPanel-searchIcon.header {
-  height: 100%;
-  background-size: contain;
-  width: 100%;
+  fill: var(--jp-content-font-color2);
 }
 
 .v-VerdantPanel-searchText {
@@ -119,26 +110,6 @@
   display: inline-block;
   color: var(--jp-ui-font-color3);
   margin-right: 4px;
-}
-
-.v-VerdantPanel-mixin-mixButton {
-  display: inline-block;
-  vertical-align: text-bottom;
-  background-image: var(--verdant-icon-wisk);
-  width: 1.5em;
-  height: 0.75em;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 1.5em;
-  border-left: 1px solid var(--jp-border-color0);
-  padding: 6px;
-  float: right;
-  padding-right: 10px;
-}
-
-.v-VerdantPanel-mixin-mixButton:hover {
-  background-color: var(--jp-inverse-layout-color2);
-  background-image: var(--verdant-icon-wisk-highlight);
 }
 
 .VerdantPanel-search-results-message {
@@ -341,16 +312,4 @@
 .v-VerdantPanel-filter-tag.disabled {
   background-color: var(--jp-layout-color2);
   color: var(--jp-content-font-color3);
-}
-
-.v-VerdantPanel-filterButton {
-  display: inline-block;
-  height: 100%;
-  width: 1em;
-  float: left;
-  background-size: 1em;
-  background-repeat: no-repeat;
-  background-image: var(--verdant-icon-extra-filters);
-  background-color: var(--jp-layout-color0);
-  background-position-y: center;
 }
