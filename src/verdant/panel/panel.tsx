@@ -4,12 +4,12 @@ import ArtifactSummary from "./artifact-summary";
 import EventMap from "./event-column";
 import Search from "./search";
 import { ActiveTab, switchTab, verdantState } from "../redux/index";
+import { SearchIcon } from "../icons/";
 import { connect } from "react-redux";
 
 const PANEL_CONTAINER = "v-VerdantPanel-content-container";
 const TAB_CONTAINER = "v-VerdantPanel-tabContainer";
 const TAB = "v-VerdantPanel-tab";
-const SEARCH_ICON = "v-VerdantPanel-searchIcon";
 
 type Panel_Props = {
   activeTab: ActiveTab;
@@ -48,7 +48,7 @@ class PanelContainer extends React.Component<Partial<Panel_Props>> {
           onClick={() => this.props.setActiveTab(ActiveTab.Search)}
           style={{ borderRightWidth: "0px" }}
         >
-          <div className={`${SEARCH_ICON} header`}></div>
+          <SearchIcon />
         </div>
       </div>
     );

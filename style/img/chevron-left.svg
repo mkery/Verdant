@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="7px" height="10px" viewBox="0 0 7 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>chevron-right</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="chevron-right" transform="translate(3.500000, 5.000000) scale(-1, 1) translate(-3.500000, -5.000000) " fill="#000000" fill-rule="nonzero">
+            <polygon id="Path" points="6.5 5 1.5 10 0 8.5 3.75 5 0 1.5 1.5 0"></polygon>
+        </g>
+    </g>
+</svg>
