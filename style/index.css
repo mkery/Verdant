@@ -32,6 +32,13 @@
   background: var(--verdant-icon-logo);
 }
 
+.verdant-icon-chevron {
+  height: 16px;
+  width: auto;
+  vertical-align: middle;
+  fill: var(--jp-ui-font-color1);
+}
+
 #v-VerdantPanel,
 #v-VerdantPanel-tabs {
   display: inline-block;
