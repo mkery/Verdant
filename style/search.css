@@ -8,14 +8,14 @@
   display: flex;
   flex-direction: row;
   vertical-align: text-bottom;
-  padding: 3px 12px;
-  padding-top: 18px;
+  padding: 18px 12px;
   background: var(--jp-layout-color0);
 }
 
 .v-VerdantPanel-searchIcon {
   display: inline-block;
   width: 14px;
+  flex: 0 0 auto; /* prevents icon shrinking in flex context */
   margin-right: 4px;
   fill: var(--jp-content-font-color2);
 }
@@ -32,7 +32,11 @@
   height: 1.75em;
   vertical-align: text-bottom;
   outline: transparent;
+  color: var(--jp-ui-font-color0);
+  background: var(--jp-layout-color0);
   padding-left: 5px;
+  border: 1px solid var(--jp-layout-color4);
+  border-radius: var(--jp-border-radius);
 }
 
 .v-VerdantPanel-searchContent {
@@ -48,24 +52,24 @@
 }
 
 .VerdantPanel-search-results-header {
-  padding: var(--jp-cell-padding);
-  border-bottom: 1px solid var(--jp-border-color1);
-  position: sticky;
-  top: 37px;
+  display: flex;
+  padding: 14px 10px;
   background: var(--jp-layout-color0);
-  z-index: 1;
-  box-shadow: var(--jp-toolbar-box-shadow);
-  color: var(--jp-content-font-color2);
+  color: var(--jp-ui-font-color1);
+}
+
+.VerdantPanel-search-results-header-title {
+  margin-left: 2em;
+}
+
+.VerdantPanel-search-results-category {
+  border-bottom: 2px solid var(--jp-layout-color3);
 }
 
 .VerdantPanel-search-results-category-content {
   border: 4px solid var(--jp-layout-color0);
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-}
-
-.VerdantPanel-search-results-category {
-  border-bottom: 1px solid var(--jp-layout-color4);
 }
 
 .VerdantPanel-search-results-category-footer {

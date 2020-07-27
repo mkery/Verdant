@@ -9,6 +9,7 @@ import {
   ActiveTab,
 } from "../../redux/index";
 import { connect } from "react-redux";
+import { ChevronRightIcon } from "../../icons/";
 
 type ResultsSection_Props = {
   results: Nodey[][];
@@ -39,35 +40,40 @@ class ResultsSection extends React.Component<
     return (
       <div className="VerdantPanel-search-results-category">
         <div className="VerdantPanel-search-results-header">
-          <span>{`${this.props.title}: (${this.state.totalResults} match${
-            this.state.totalResults === 1 ? "" : "es"
-          })`}</span>
+          <ChevronRightIcon />
+          <div className="VerdantPanel-search-results-header-title">{`${
+            this.state.totalResults
+          } result${this.state.totalResults === 1 ? "" : "s"} from ${
+            this.props.title
+          }`}</div>
         </div>
-        <div className="VerdantPanel-search-results-category-content">
-          {this.showResults()}
-        </div>
+        {this.showResults()}
       </div>
     );
   }
 
   showResults() {
     if (this.state.sectionOpen)
-      return this.props.results.map((item, index) => {
-        let callback = () => {
-          this.props.openNodeDetails(item[0]);
-        };
-        return (
-          <div key={index}>
-            <VersionSearch
-              history={this.props.history}
-              nodey={item}
-              query={this.props.search_query}
-              callback={callback}
-              notebookLink={this.props.openGhostBook}
-            />
-          </div>
-        );
-      });
+      return (
+        <div className="VerdantPanel-search-results-category-content">
+          {this.props.results.map((item, index) => {
+            let callback = () => {
+              this.props.openNodeDetails(item[0]);
+            };
+            return (
+              <div key={index}>
+                <VersionSearch
+                  history={this.props.history}
+                  nodey={item}
+                  query={this.props.search_query}
+                  callback={callback}
+                  notebookLink={this.props.openGhostBook}
+                />
+              </div>
+            );
+          })}
+        </div>
+      );
     return null;
   }
 }

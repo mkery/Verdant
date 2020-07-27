@@ -51,7 +51,7 @@ class Search extends React.Component<Search_Props, Search_State> {
       // finally set search results
       this.setState({
         search_results: [code, markdown, output],
-        result_labels: ["code", "markdown", "output"],
+        result_labels: ["code history", "markdown history", "output history"],
       });
     }
   }

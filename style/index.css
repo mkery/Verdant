@@ -34,7 +34,7 @@
 
 .verdant-icon-chevron {
   height: 16px;
-  width: auto;
+  flex: 0 0 auto; /* prevents icon shrinking in flex context */
   vertical-align: middle;
   fill: var(--jp-ui-font-color1);
 }
