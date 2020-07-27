@@ -14,6 +14,8 @@ type Search_Props = {
 type Search_State = {
   search_results: Nodey[][][];
   result_labels: string[];
+  results_counts: number[];
+  results_sectionOpen: number;
 };
 
 class Search extends React.Component<Search_Props, Search_State> {
@@ -22,6 +24,8 @@ class Search extends React.Component<Search_Props, Search_State> {
     this.state = {
       search_results: [],
       result_labels: [],
+      results_counts: [],
+      results_sectionOpen: null,
     };
   }
 
@@ -44,13 +48,14 @@ class Search extends React.Component<Search_Props, Search_State> {
   search() {
     let query = this.props.search_query;
     if (query && query.length > 0) {
-      let markdown = this.props.history.store.findMarkdown(query);
-      let code = this.props.history.store.findCode(query);
-      let output = this.props.history.store.findOutput(query);
+      let [markdown, mCount] = this.props.history.store.findMarkdown(query);
+      let [code, cCount] = this.props.history.store.findCode(query);
+      let [output, oCount] = this.props.history.store.findOutput(query);
 
       // finally set search results
       this.setState({
         search_results: [code, markdown, output],
+        results_counts: [cCount, mCount, oCount],
         result_labels: ["code history", "markdown history", "output history"],
       });
     }
@@ -60,12 +65,18 @@ class Search extends React.Component<Search_Props, Search_State> {
     if (this.state.search_results.length > 0) {
       return this.state.result_labels.map((label, index) => {
         return (
-          <div key={index}>
-            <ResultsSection
-              results={this.state.search_results[index]}
-              title={label}
-            />
-          </div>
+          <ResultsSection
+            key={index}
+            results={this.state.search_results[index]}
+            totalResults={this.state.results_counts[index]}
+            openSection={() => {
+              if (this.state.results_sectionOpen !== index)
+                this.setState({ results_sectionOpen: index });
+              else this.setState({ results_sectionOpen: null });
+            }}
+            sectionOpen={this.state.results_sectionOpen === index}
+            title={label}
+          />
         );
       });
     }

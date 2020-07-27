@@ -9,41 +9,38 @@ import {
   ActiveTab,
 } from "../../redux/index";
 import { connect } from "react-redux";
-import { ChevronRightIcon } from "../../icons/";
+import { ChevronRightIcon, ChevronDownIcon } from "../../icons/";
 
 type ResultsSection_Props = {
   results: Nodey[][];
+  totalResults: number;
+  sectionOpen: boolean;
   title: string;
+  openSection: () => void;
   openNodeDetails: (n: Nodey) => void;
   openGhostBook: (n: number) => void;
   search_query: string;
   history: History;
 };
 
-type ResultsSection_State = { totalResults: number; sectionOpen: boolean };
-
-class ResultsSection extends React.Component<
-  ResultsSection_Props,
-  ResultsSection_State
-> {
-  constructor(props: ResultsSection_Props) {
-    super(props);
-    let totalResults = 0;
-    this.props.results.map((item) => (totalResults += item.length));
-    this.state = {
-      totalResults,
-      sectionOpen: false,
-    };
-  }
-
+class ResultsSection extends React.Component<ResultsSection_Props, {}> {
   render() {
     return (
-      <div className="VerdantPanel-search-results-category">
-        <div className="VerdantPanel-search-results-header">
-          <ChevronRightIcon />
+      <div
+        className={`VerdantPanel-search-results-category${
+          this.props.sectionOpen ? " open" : ""
+        }`}
+      >
+        <div
+          className={`VerdantPanel-search-results-header${
+            this.props.sectionOpen ? " open" : ""
+          }`}
+          onClick={this.props.openSection}
+        >
+          {this.showIcon()}
           <div className="VerdantPanel-search-results-header-title">{`${
-            this.state.totalResults
-          } result${this.state.totalResults === 1 ? "" : "s"} from ${
+            this.props.totalResults
+          } result${this.props.totalResults === 1 ? "" : "s"} from ${
             this.props.title
           }`}</div>
         </div>
@@ -52,8 +49,13 @@ class ResultsSection extends React.Component<
     );
   }
 
+  showIcon() {
+    if (this.props.sectionOpen) return <ChevronDownIcon />;
+    else return <ChevronRightIcon />;
+  }
+
   showResults() {
-    if (this.state.sectionOpen)
+    if (this.props.sectionOpen)
       return (
         <div className="VerdantPanel-search-results-category-content">
           {this.props.results.map((item, index) => {
