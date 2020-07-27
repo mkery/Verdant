@@ -33,6 +33,7 @@ import "../style/activity.css";
 import "../style/verdant-panel.css";
 import "../style/summary.css";
 import "../style/landing.css";
+import "../style/search.css";
 
 import { AST } from "./lilgit/analysis/ast";
 
