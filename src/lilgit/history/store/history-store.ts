@@ -295,6 +295,20 @@ export class HistoryStore {
       return this.getCellParent(this.getLatestOf(relativeTo.parent));
   }
 
+  public getNotebookOf(relativeTo: Nodey | Star<Nodey>): NodeyNotebook {
+    let val: Nodey;
+    if (relativeTo instanceof Star) val = relativeTo.value;
+    else val = relativeTo;
+
+    let created = val.created;
+    if (created !== undefined) {
+      let event = this.history.checkpoints.get(created);
+      let notebook_id = event.notebook;
+      if (notebook_id !== undefined) return this.getNotebook(notebook_id);
+    }
+    return undefined;
+  }
+
   public writeToFile(): void {
     this.fileManager.writeToFile();
   }

@@ -99,6 +99,23 @@
   background: var(--jp-rendermime-table-row-background);
 }
 
+.VerdantPanel-search-results-artifact-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 10px;
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.VerdantPanel-search-results-artifact-cell-title svg {
+  margin-right: 1em;
+}
+
+.VerdantPanel-search-results-artifact {
+  border-bottom: 1px solid var(--jp-border-color3);
+  padding-bottom: 10px;
+}
+
 .VerdantPanel-search-results-header-button {
   padding-top: 2px;
   width: 12px;

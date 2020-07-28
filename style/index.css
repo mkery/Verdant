@@ -39,6 +39,11 @@
   fill: var(--jp-ui-font-color1);
 }
 
+.verdant-link {
+  text-decoration: underline;
+  color: var(--jp-content-link-color);
+}
+
 #v-VerdantPanel,
 #v-VerdantPanel-tabs {
   display: inline-block;

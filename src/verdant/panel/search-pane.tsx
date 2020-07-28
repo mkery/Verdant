@@ -2,7 +2,7 @@ import * as React from "react";
 import { History } from "../../lilgit/history";
 import { Nodey } from "../../lilgit/nodey";
 import SearchBar from "./search/search-bar";
-import ResultsSection from "./search/search-results-section";
+import ResultsSection from "./search/results-section";
 import { verdantState } from "../redux/index";
 import { connect } from "react-redux";
 
