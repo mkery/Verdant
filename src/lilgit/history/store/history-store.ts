@@ -178,8 +178,9 @@ export class HistoryStore {
   public findMarkdown(
     query: string,
     filter?: (n: Nodey) => boolean
-  ): NodeyMarkdown[][] {
+  ): [NodeyMarkdown[][], number] {
     let results: NodeyMarkdown[][] = [];
+    let resultCount = 0;
     let text = query.toLowerCase();
     this._markdownStore.forEach((history) => {
       let match = history.filter((item) => {
@@ -188,9 +189,12 @@ export class HistoryStore {
         if (filter) return matchesText && filter(item);
         else return matchesText;
       });
-      if (match.length > 0) results.push(match);
+      if (match.length > 0) {
+        results.push(match);
+        resultCount += match.length;
+      }
     });
-    return results;
+    return [results, resultCount];
   }
 
   /*
@@ -200,8 +204,9 @@ export class HistoryStore {
   public findCode(
     query: string,
     filter?: (n: Nodey) => boolean
-  ): NodeyCode[][] {
+  ): [NodeyCode[][], number] {
     let results: NodeyCode[][] = [];
+    let resultCount = 0;
     let text = query.toLowerCase();
     this._codeCellStore.forEach((history) => {
       let matches = history.filter((cell) => {
@@ -212,9 +217,12 @@ export class HistoryStore {
         }
         return false;
       });
-      if (matches.length > 0) results.push(matches);
+      if (matches.length > 0) {
+        results.push(matches);
+        resultCount += matches.length;
+      }
     });
-    return results;
+    return [results, resultCount];
   }
 
   /*
@@ -224,8 +232,10 @@ export class HistoryStore {
   public findOutput(
     query: string,
     filter?: (n: Nodey) => boolean
-  ): NodeyOutput[][] {
+  ): [NodeyOutput[][], number] {
     let results: NodeyOutput[][] = [];
+    let resultCount = 0;
+
     let text = query.toLowerCase();
     this._outputStore.forEach((history) => {
       let matches = history.filter((output) => {
@@ -236,9 +246,12 @@ export class HistoryStore {
         }
         return false;
       });
-      if (matches.length > 0) results.push(matches);
+      if (matches.length > 0) {
+        results.push(matches);
+        resultCount += matches.length;
+      }
     });
-    return results;
+    return [results, resultCount];
   }
 
   private _getStoreFor(nodey: Nodey): NodeHistory<Nodey>[] {
@@ -280,6 +293,20 @@ export class HistoryStore {
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
       return this.getCellParent(this.getLatestOf(relativeTo.parent));
+  }
+
+  public getNotebookOf(relativeTo: Nodey | Star<Nodey>): NodeyNotebook {
+    let val: Nodey;
+    if (relativeTo instanceof Star) val = relativeTo.value;
+    else val = relativeTo;
+
+    let created = val.created;
+    if (created !== undefined) {
+      let event = this.history.checkpoints.get(created);
+      let notebook_id = event.notebook;
+      if (notebook_id !== undefined) return this.getNotebook(notebook_id);
+    }
+    return undefined;
   }
 
   public writeToFile(): void {
