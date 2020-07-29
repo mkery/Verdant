@@ -5,6 +5,7 @@ import { switchTab, inspectNode, ActiveTab } from "../redux/index";
 import { ghostState, initGhostBook } from "../redux/ghost";
 import { Widget } from "@lumino/widgets";
 import { GhostBook } from "./ghost-book";
+import { Namer } from "../../lilgit/sampler/";
 
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";
 
@@ -22,7 +23,8 @@ export class Ghost extends Widget {
 
   public initStore(store: Store, ver: number) {
     let changeTitle = (ver: number) => {
-      this.title.label = "v" + (ver + 1) + " of " + this.getFile();
+      this.title.label =
+        "v" + Namer.getVersionNumberLabel(ver) + " of " + this.getFile();
     };
 
     const initialState: Partial<ghostState> = {

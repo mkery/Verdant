@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Sampler, SAMPLE_TYPE } from "../../lilgit/sampler";
+import { Sampler, SAMPLE_TYPE, Namer } from "../../lilgit/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
 import { NodeyOutput } from "../../lilgit/nodey";
@@ -45,9 +45,13 @@ class GhostCellOutput extends React.Component<
     // If output is empty, return nothing
     if (this.state.sample.length === 0) return null;
 
+    let output = this.props.history.store.get(this.props.name) as NodeyOutput;
+
     return (
       <div className="v-Verdant-GhostBook-cell-container output">
-        <div className="v-Verdant-GhostBook-cell-label">{this.props.name}</div>{" "}
+        <div className="v-Verdant-GhostBook-cell-label">
+          {Namer.getOutputVersionTitle(output, this.props.history)}
+        </div>{" "}
         <div className="v-Verdant-GhostBook-cell-header" />
         <div className="v-Verdant-GhostBook-cell-content">
           <div className="v-Verdant-GhostBook-cell">

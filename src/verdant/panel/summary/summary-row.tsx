@@ -9,6 +9,7 @@ import {
   NodeyCode,
   NodeyOutput,
 } from "../../../lilgit/nodey";
+import { Namer } from "../../../lilgit/sampler";
 
 type SummaryRow_Props = {
   history: History;
@@ -54,11 +55,11 @@ export class Row extends React.Component<
           } ${this.props.focused ? "focused" : ""}`}
           onClick={() => this.props.showDetails(this.props.cell)}
         >
-          <div className="v-VerdantPanel-Summary-table-row-name">{`${this.props.cell.typeChar.toUpperCase()} ${
-            this.props.cell.id
-          }`}</div>
+          <div className="v-VerdantPanel-Summary-table-row-name">
+            {Namer.getCellShortTitle(this.props.cell)}
+          </div>
           <div className="v-VerdantPanel-Summary-table-row-version">
-            {this.props.cell.version}
+            {Namer.getVersionNumberLabel(this.props.cell.version)}
           </div>
           <div
             className="v-VerdantPanel-Summary-table-row-sample"
@@ -85,7 +86,7 @@ export class Row extends React.Component<
             </div>
           </div>
           <div className="v-VerdantPanel-Summary-table-row-version">
-            {this.props.output.version}
+            {Namer.getVersionNumberLabel(this.props.output.version)}
           </div>
           <div
             className="v-VerdantPanel-Summary-table-row-sample"

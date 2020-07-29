@@ -1,7 +1,7 @@
 import * as React from "react";
 import { History } from "../../lilgit/history/";
 import { NodeyCode } from "../../lilgit/nodey/";
-import { SAMPLE_TYPE, Sampler } from "../../lilgit/sampler/";
+import { SAMPLE_TYPE, Sampler, Namer } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
@@ -83,7 +83,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         <div className={`${CELL_BAND} ${active}`} />
         <div className={CONTAINER_STACK}>
           <div className="v-Verdant-GhostBook-cell-label">
-            {this.props.name}
+            {Namer.getCellVersionTitle(nodey)}
           </div>
           <div className={CELL_CONTAINER}>
             <div className="v-Verdant-GhostBook-cell-header" />

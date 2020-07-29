@@ -6,6 +6,8 @@ import { bundleClose, bundleOpen, eventState } from "../../redux/events";
 import NotebookEventLabel from "./event-label";
 import { Checkpoint } from "../../../lilgit/checkpoint";
 import NotebookEventMap from "./event-map";
+import { Namer } from "../../../lilgit/sampler";
+import { History } from "../../../lilgit/history/";
 
 /* CSS Constants */
 const BUNDLE = "Verdant-events-bundle";
@@ -35,6 +37,7 @@ type DateBundle_Props = {
   open: (d: number, b: number) => void;
   close: (d: number, b: number) => void;
   checkpoints: Checkpoint[];
+  history: History;
 };
 
 class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
@@ -105,6 +108,12 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
     /* Render the header for a closed bundle of events */
     const lastEvent = this.props.events[0];
     const firstEvent = this.props.events[this.props.events.length - 1];
+    const firstNotebook = this.props.history.store.getNotebook(
+      this.props.event_states[firstEvent].notebook
+    );
+    const lastNotebook = this.props.history.store.getNotebook(
+      this.props.event_states[lastEvent].notebook
+    );
 
     return (
       <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}>
@@ -117,8 +126,8 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
         </div>
         <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}>
           <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_INDEX}>
-            {`# ${this.props.event_states[firstEvent].notebook + 1} - 
-              ${this.props.event_states[lastEvent].notebook + 1}`}
+            {`${Namer.getNotebookVersionLabel(firstNotebook)} - 
+              ${Namer.getNotebookVersionLabel(lastNotebook)}`}
           </div>
           <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_MAP}>
             <NotebookEventMap checkpoints={this.props.checkpoints} />
@@ -132,11 +141,17 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
     /* Render the header for an open bundle of events */
     const lastEvent = this.props.events[0];
     const firstEvent = this.props.events[this.props.events.length - 1];
+    const firstNotebook = this.props.history.store.getNotebook(
+      this.props.event_states[firstEvent].notebook
+    );
+    const lastNotebook = this.props.history.store.getNotebook(
+      this.props.event_states[lastEvent].notebook
+    );
 
     return (
       <div className={BUNDLE_MULTI_HEADER_CONTAINER_OPEN}>
-        {`# ${this.props.event_states[firstEvent].notebook + 1} - 
-              ${this.props.event_states[lastEvent].notebook + 1}`}
+        {`${Namer.getNotebookVersionLabel(firstNotebook)} - 
+              ${Namer.getNotebookVersionLabel(lastNotebook)}`}
       </div>
     );
   }
@@ -187,6 +202,7 @@ const mapStateToProps = (
     isOpen:
       state.dates[ownProps.date_id].bundleStates[ownProps.bundle_id].isOpen,
     checkpoints: checkpoints,
+    history: state.getHistory(),
   };
 };
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import InspectorButton from "./summary/inspector-button";
+import InspectorButton from "./inspector-button";
 import { History } from "../../lilgit/history/";
 import { Mixin } from "./details/mixin";
 import {

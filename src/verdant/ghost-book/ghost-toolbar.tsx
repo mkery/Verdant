@@ -5,13 +5,14 @@ import { Checkpoint } from "../../lilgit/checkpoint";
 import { verdantState } from "../redux/index";
 import { toggleShowAllCells } from "../redux/ghost";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "../icons";
+import { Namer } from "../../lilgit/sampler/";
 
 /* CSS Constants */
 const JP_TOOLBAR = "jp-Toolbar";
 
 interface GhostToolbar_Props {
   history: History;
-  name: number;
+  ver: number;
   diffPresent: boolean;
   toggleShow: () => void;
 }
@@ -41,14 +42,16 @@ class Toolbar extends React.Component<
     return (
       <div className="v-Verdant-GhostBook-versionSwitch">
         <ChevronLeftIcon />
-        <span className="v-Verdant-GhostBook-versionSwitch-label">{`v${this.props.name}`}</span>
+        <span className="v-Verdant-GhostBook-versionSwitch-label">{`v${Namer.getVersionNumberLabel(
+          this.props.ver
+        )}`}</span>
         <ChevronRightIcon />
       </div>
     );
   }
 
   private showTimestamp() {
-    let notebook = this.props.history.store.getNotebook(this.props.name);
+    let notebook = this.props.history.store.getNotebook(this.props.ver);
     let created = this.props.history.checkpoints.get(notebook.created);
 
     let time;
@@ -107,7 +110,7 @@ class Toolbar extends React.Component<
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
-    name: state.notebook_ver,
+    ver: state.notebook_ver,
     diffPresent: state.diffPresent,
   };
 };

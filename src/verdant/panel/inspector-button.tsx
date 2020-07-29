@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { inspectOff, inspectOn, verdantState } from "../../redux/index";
-import { InspectIcon } from "../../icons/";
+import { inspectOff, inspectOn, verdantState } from "../redux/index";
+import { InspectIcon } from "../icons/";
 
 class InspectButton extends React.Component<{
   active: boolean;

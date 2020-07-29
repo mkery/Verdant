@@ -226,9 +226,9 @@ function cellReducer(history: History): artifactState[] {
     let outputVer = 0;
     if (cell.output) {
       let latestOut = history.store.getLatestOf(cell.output);
-      outputVer = parseInt(latestOut.version) + 1;
+      outputVer = parseInt(latestOut.version);
     }
-    let ver = cell.model.version + 1;
+    let ver = cell.model.version;
 
     return { name, ver, outputVer };
   });
@@ -236,7 +236,7 @@ function cellReducer(history: History): artifactState[] {
 
 function notebookReducer(history: History): artifactState {
   let i = history.notebook.model.version;
-  let version = parseInt(i) + 1;
+  let version = parseInt(i);
   return { name: "", ver: version, file: history.notebook.name };
 }
 
