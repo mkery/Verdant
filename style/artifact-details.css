@@ -23,3 +23,26 @@
   color: var(--jp-ui-font-color3);
   margin-right: 4px;
 }
+
+.v-VerdantPanel-details-version-header {
+  padding: 6px;
+  padding-top: 12px;
+  padding-bottom: 8px;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  border-top: 1px solid var(--jp-border-color2);
+}
+
+.v-VerdantPanel-details-version-header b {
+  color: var(--jp-ui-font-color0);
+}
+
+.v-VerdantPanel-details-version-header i {
+  margin: 0px 0.25em;
+}
+
+.v-VerdantPanel-details-version-header-labelRow.date {
+  font-size: smaller;
+  line-height: 1.5em;
+}

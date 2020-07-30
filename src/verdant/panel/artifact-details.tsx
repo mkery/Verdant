@@ -1,9 +1,9 @@
 import * as React from "react";
 import InspectorButton from "./inspector-button";
 import { History } from "../../lilgit/history/";
-import { Mixin } from "./details/mixin";
+import VersionDetail from "./details/version-detail";
 import CrumbMenu from "./details/crumbMenu";
-import { Nodey, NodeyCode } from "../../lilgit/nodey/";
+import { Nodey } from "../../lilgit/nodey/";
 import { verdantState } from "../redux/index";
 import { connect } from "react-redux";
 
@@ -23,13 +23,22 @@ class ArtifactDetails extends React.Component<Details_Props> {
         <div className={HEADER}>
           <CrumbMenu />
         </div>
-        <div className={PANEL}>{this.buildMixins(this.props.target)}</div>
+        <div className={PANEL}>{this.showVersions()}</div>
         <InspectorButton />
       </div>
     );
   }
 
-  buildMixins(target: Nodey): JSX.Element[] {
+  showVersions() {
+    let elems = [];
+    let versions = this.props.history.store.getHistoryOf(this.props.target);
+    for (let i = versions.length - 1; i >= 0; i--) {
+      elems.push(<VersionDetail key={i} nodey={versions.getVersion(i)} />);
+    }
+    return elems;
+  }
+
+  /*buildMixins(target: Nodey): JSX.Element[] {
     let notebookLink = this.props.openGhostBook;
     let elems: JSX.Element[] = [];
     elems.push(
@@ -71,7 +80,7 @@ class ArtifactDetails extends React.Component<Details_Props> {
       return elems;
     }
     return [];
-  }
+  }*/
 }
 
 const mapStateToProps = (state: verdantState) => {

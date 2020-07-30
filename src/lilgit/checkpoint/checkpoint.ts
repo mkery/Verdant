@@ -104,6 +104,32 @@ export namespace Checkpoint {
     return dateDesc;
   }
 
+  export function formatShortDate(date: Date | number): string {
+    if (typeof date == "number") date = new Date(date);
+    var monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "June",
+      "July",
+      "Aug",
+      "Sept",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    return (
+      monthNames[date.getMonth()] +
+      " " +
+      date.getDate() +
+      ", " +
+      date.getFullYear()
+    );
+  }
+
   export function sameDay(d1: Date | number, d2: Date | number) {
     if (typeof d1 == "number") d1 = new Date(d1);
     if (typeof d2 == "number") d2 = new Date(d2);

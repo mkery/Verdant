@@ -114,7 +114,6 @@ const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     target: state.inspectTarget,
-    showingDetail: state.activeTab === ActiveTab.Artifact_Details,
   };
 };
 
