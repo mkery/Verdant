@@ -2,24 +2,17 @@ import * as React from "react";
 import InspectorButton from "./inspector-button";
 import { History } from "../../lilgit/history/";
 import { Mixin } from "./details/mixin";
-import {
-  Nodey,
-  NodeyCode,
-  NodeyMarkdown,
-  NodeyOutput,
-} from "../../lilgit/nodey/";
-import { verdantState, ActiveTab, switchTab } from "../redux/index";
+import CrumbMenu from "./details/crumbMenu";
+import { Nodey, NodeyCode } from "../../lilgit/nodey/";
+import { verdantState } from "../redux/index";
 import { connect } from "react-redux";
 
 const PANEL = "v-VerdantPanel-content";
-const CRUMB_MENU = "v-VerdantPanel-crumbMenu";
-const CRUMB_MENU_ITEM = "v-VerdantPanel-crumbMenu-item";
 const HEADER = "v-VerdantPanel-tab-header";
 
 export type Details_Props = {
   history: History;
   openGhostBook: (node: number) => void;
-  showSummary: () => void;
   target: Nodey;
 };
 
@@ -28,40 +21,12 @@ class ArtifactDetails extends React.Component<Details_Props> {
     return (
       <div className={PANEL}>
         <div className={HEADER}>
-          <div className={CRUMB_MENU}>{this.buildCrumbMenu()}</div>
-          <InspectorButton />
+          <CrumbMenu />
         </div>
-        {this.buildMixins(this.props.target)}
+        <div className={PANEL}>{this.buildMixins(this.props.target)}</div>
+        <InspectorButton />
       </div>
     );
-  }
-
-  closeDetails() {
-    this.props.showSummary();
-  }
-
-  buildCrumbMenu() {
-    return (
-      <div>
-        <div className={CRUMB_MENU_ITEM} onClick={() => this.closeDetails()}>
-          Notebook
-        </div>
-        {Mixin.addSeperator()}
-        {this.buildLabels()}
-      </div>
-    );
-  }
-
-  buildLabels() {
-    if (this.props.target) {
-      if (this.props.target instanceof NodeyCode)
-        return Mixin.labelNodeyCode(this.props.target, this.props.history);
-      else if (this.props.target instanceof NodeyMarkdown)
-        return Mixin.addItem("markdown " + this.props.target.id);
-      else if (this.props.target instanceof NodeyOutput)
-        return Mixin.addItem("output " + this.props.target.id);
-    }
-    return null;
   }
 
   buildMixins(target: Nodey): JSX.Element[] {
@@ -109,21 +74,12 @@ class ArtifactDetails extends React.Component<Details_Props> {
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => {
-  return {
-    showSummary: () => {
-      dispatch(switchTab(ActiveTab.Artifacts));
-    },
-  };
-};
-
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     openGhostBook: state.openGhostBook,
     target: state.inspectTarget,
-    showingDetail: state.activeTab === ActiveTab.Artifact_Details,
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ArtifactDetails);
+export default connect(mapStateToProps, null)(ArtifactDetails);

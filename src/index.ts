@@ -34,6 +34,7 @@ import "../style/verdant-panel.css";
 import "../style/summary.css";
 import "../style/landing.css";
 import "../style/search.css";
+import "../style/artifact-details.css";
 
 import { AST } from "./lilgit/analysis/ast";
 

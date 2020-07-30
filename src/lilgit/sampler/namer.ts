@@ -3,6 +3,7 @@ import {
   NodeyCell,
   NodeyMarkdown,
   NodeyCodeCell,
+  NodeyCode,
   NodeyNotebook,
   NodeyOutput,
   NodeyRawCell,
@@ -42,7 +43,11 @@ export namespace Namer {
 
   export function getOutputVersionTitle(n: NodeyOutput, history: History) {
     let cell = history.store.get(n.parent);
-    return `${Namer.getCellVersionTitle(cell)}.o${n.version}`;
+    return `${Namer.getCellVersionTitle(cell)}.o${n.version + 1}`;
+  }
+
+  export function getCodeSnippetTitle(n: NodeyCode) {
+    return `${n.type.toUpperCase} ${n.version + 1}`;
   }
 
   export function getNotebookTitle(n: NodeyNotebook) {

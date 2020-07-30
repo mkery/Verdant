@@ -1,0 +1,25 @@
+.v-VerdantPanel-crumbMenu {
+  flex: 1 1 auto;
+  padding: 2px;
+  padding-left: 0.5em;
+  text-overflow: ellipsis;
+}
+
+.v-VerdantPanel-crumbMenu-item {
+  display: inline-block;
+  font-size: var(--jp-ui-font-size0);
+  text-transform: uppercase;
+  margin-right: 5px;
+  color: var(--jp-ui-font-color2);
+  vertical-align: middle;
+}
+.v-VerdantPanel-crumbMenu-item:hover {
+  text-decoration: underline;
+  color: var(--jp-content-link-color);
+}
+
+.v-VerdantPanel-crumbMenu-seperator {
+  display: inline-block;
+  color: var(--jp-ui-font-color3);
+  margin-right: 4px;
+}

@@ -38,7 +38,12 @@ class PanelContainer extends React.Component<Partial<Panel_Props>> {
           Activity
         </div>
         <div
-          className={`${TAB} ${active === ActiveTab.Artifacts ? "active" : ""}`}
+          className={`${TAB} ${
+            active === ActiveTab.Artifacts ||
+            active === ActiveTab.Artifact_Details
+              ? "active"
+              : ""
+          }`}
           onClick={() => this.props.setActiveTab(ActiveTab.Artifacts)}
         >
           Artifacts
@@ -58,9 +63,7 @@ class PanelContainer extends React.Component<Partial<Panel_Props>> {
     let active = this.props.activeTab;
     if (active === ActiveTab.Events) return <EventMap />;
     if (active === ActiveTab.Artifacts) return <ArtifactSummary />;
-    if (active === ActiveTab.Artifact_Details)
-      // TODO split CrumbBox into 2 views
-      return <ArtifactDetails />;
+    if (active === ActiveTab.Artifact_Details) return <ArtifactDetails />;
     if (active === ActiveTab.Search) return <Search />;
     return null;
   }
