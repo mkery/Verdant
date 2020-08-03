@@ -3,73 +3,70 @@ import InspectorButton from "./inspector-button";
 import { History } from "../../lilgit/history/";
 import VersionDetail from "./details/version-detail";
 import CrumbMenu from "./details/crumbMenu";
-import { Nodey } from "../../lilgit/nodey/";
-import { verdantState } from "../redux/index";
+import { Nodey, NodeyCode } from "../../lilgit/nodey/";
+import { verdantState, inspectNode } from "../redux/index";
 import { connect } from "react-redux";
-
-const PANEL = "v-VerdantPanel-content";
-const HEADER = "v-VerdantPanel-tab-header";
 
 export type Details_Props = {
   history: History;
   openGhostBook: (node: number) => void;
+  showDetails: (n: Nodey) => void;
   target: Nodey;
 };
 
 class ArtifactDetails extends React.Component<Details_Props> {
   render() {
     return (
-      <div className={PANEL}>
-        <div className={HEADER}>
+      <div className="v-VerdantPanel-content">
+        <div className="v-VerdantPanel-tab-header">
           <CrumbMenu />
+          {this.showOutputLink()}
         </div>
-        <div className={PANEL}>{this.showVersions()}</div>
+        <div className="v-VerdantPanel-content">{this.showVersions()}</div>
         <InspectorButton />
       </div>
     );
+  }
+
+  showOutputLink() {
+    if (this.props.target instanceof NodeyCode) {
+      let out = this.props.target.output;
+      if (out) {
+        let outputHist = this.props.history.store.getHistoryOf(out);
+        return (
+          <span
+            className="v-VerdantPanel-tab-header-outLink verdant-link"
+            onClick={() => this.props.showDetails(outputHist.lastSaved)}
+          >
+            show all output
+          </span>
+        );
+      }
+    }
+    return null;
   }
 
   showVersions() {
     let elems = [];
     let versions = this.props.history.store.getHistoryOf(this.props.target);
     for (let i = versions.length - 1; i >= 0; i--) {
-      elems.push(<VersionDetail key={i} nodey={versions.getVersion(i)} />);
+      let nodey = versions.getVersion(i);
+      elems.push(<VersionDetail key={i} nodey={nodey} />);
     }
     return elems;
   }
 
-  /*buildMixins(target: Nodey): JSX.Element[] {
-    let notebookLink = this.props.openGhostBook;
-    let elems: JSX.Element[] = [];
-    elems.push(
-      <Mixin
-        key={"nodey" + target.id}
-        history={this.props.history}
-        target={this.props.target}
-        headerShowing={false}
-        notebookLink={notebookLink}
-      />
-    );
+  // version pair <Version Singleton > < Version List >
+  // version pair <Version Singleton > (closed right side)
+  // version pair <Version List > (closed right side)
+  // version pair <Version Singleton > (has no right side)
+  /*
+  * steps: 1) figure out what L side and R side are
+  * 2) version pair instantiates L and R as Version Singletons or Version List
+  * 3) version pair manages the open/closed state of L side and R side
+  * /
 
-    if (target instanceof NodeyCode) {
-      let output = this.props.history.store.get(target.output);
-      if (output) {
-        elems.push(
-          <Mixin
-            key={"output" + output.id}
-            history={this.props.history}
-            target={output}
-            headerShowing={true}
-            notebookLink={notebookLink}
-          />
-        );
-      }
-    }
-
-    elems = elems.concat(this.buildOrigins(target));
-    return elems;
-  }
-
+  /* TODO
   buildOrigins(nodey: Nodey): JSX.Element[] {
     let hist = this.props.history.store.getHistoryOf(nodey);
     if (hist.originPointer) {
@@ -83,6 +80,14 @@ class ArtifactDetails extends React.Component<Details_Props> {
   }*/
 }
 
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    showDetails: (n: Nodey) => {
+      dispatch(inspectNode(n));
+    },
+  };
+};
+
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
@@ -91,4 +96,4 @@ const mapStateToProps = (state: verdantState) => {
   };
 };
 
-export default connect(mapStateToProps, null)(ArtifactDetails);
+export default connect(mapStateToProps, mapDispatchToProps)(ArtifactDetails);
