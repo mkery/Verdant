@@ -8,13 +8,13 @@ import {
   SyntaxToken,
   NodeyNotebook,
 } from "../../nodey";
-import { VerCell } from "../../cell";
 import { History } from "..";
 import { Checkpoint } from "../../checkpoint";
 import { Star, UnsavedStar } from "./star";
 import { log } from "../../notebook";
 
 import * as levenshtein from "fast-levenshtein";
+import { CodeHistory } from "../store";
 
 export class HistoryStage {
   readonly history: History;
@@ -161,7 +161,7 @@ export class HistoryStage {
 
     // update code nodes and output
     if (cell instanceof NodeyCodeCell) {
-      this.commitCode(cell, checkpoint.id, cell.output);
+      this.commitCode(cell, checkpoint.id);
       this.store.cleanOutStars(cell);
     }
 
@@ -198,10 +198,8 @@ export class HistoryStage {
 
       // update code nodes and output
       log("Cell to commit is " + cell.name, cell, eventId);
-      let output = this.commitOutput(cell, eventId);
-      cell.outputVer = output.version;
-      log("Output committed", output);
-      this.commitCode(cell, eventId, output.name);
+      this.commitCode(cell, eventId);
+      this.commitOutput(cell, eventId);
       this.store.cleanOutStars(cell);
     } else {
       // if nothing was changed, nothing was changed
@@ -319,56 +317,56 @@ export class HistoryStage {
     }
   }
 
-  public commitOutput(nodey: NodeyCodeCell, eventId: number, cell?: VerCell) {
-    if (!cell) cell = this.history.notebook.getCellByNode(nodey);
-    let newOutput: NodeyOutput;
+  public commitOutput(nodeyCodeCell: NodeyCodeCell, eventId: number): void {
+    const cell = this.history.notebook.getCellByNode(nodeyCodeCell);
     if (cell.outputArea) {
-      let history = this.history.store.getHistoryOf(
-        NodeyOutput.typeChar + "." + nodey.outputId
-      );
-      let output = cell.outputArea.model.toJSON();
+      let history = this.history.store.getOutput(nodeyCodeCell);
+      console.log("DOES THIS CELL HAVE OUTPUT?", nodeyCodeCell, history);
+      let raw = cell.outputArea.model.toJSON();
 
-      /*
-       * verify different
-       */
-      let same = false;
-      let oldOutput;
-      if (history) {
-        oldOutput = history.lastSaved as NodeyOutput;
-        same = NodeyOutput.equals(output, oldOutput.raw);
-        log("SAME OUTPUT?", same, output, oldOutput.raw);
-      }
-      if (!same) {
-        // make a new output
-        var n = new NodeyOutput({
-          raw: output,
-          created: eventId,
-          parent: nodey.name,
-        });
-        if (!history) this.history.store.store(n);
-        else {
-          let ver = history.addVersion(n) - 1;
-          n.version = ver;
-          n.id = oldOutput.id;
+      // don't commit output that's empty unless the output before wasn't empty
+      if (history || raw.length > 0) {
+        /*
+         * verify different
+         */
+        let same = false;
+        let oldOutput;
+        if (history) {
+          oldOutput = history.lastSaved as NodeyOutput;
+          same = NodeyOutput.equals(raw, oldOutput.raw);
+          log("SAME OUTPUT?", same, raw, oldOutput.raw);
         }
-        newOutput = n;
-      } else {
-        newOutput = oldOutput;
+        if (!same) {
+          // make a new output
+          var n = new NodeyOutput({
+            raw: raw,
+            created: eventId,
+            parent: nodeyCodeCell.name,
+          });
+          if (!history) {
+            // create a new output store since this cell doesn't have one
+            this.history.store.store(n);
+            // finally record the new output with the code cell
+            let cellHistory = this.store.getHistoryOf(
+              nodeyCodeCell
+            ) as CodeHistory;
+            cellHistory.addOutput(nodeyCodeCell.version, n);
+          } else {
+            // or add output to existing cell output history
+            let ver = history.addVersion(n) - 1;
+            n.version = ver;
+            n.id = oldOutput.id;
+          }
+
+          log("Commiting output", n);
+        }
       }
     }
-    log(
-      "OUTPUT HISTORY FOR",
-      nodey,
-      newOutput,
-      this.history.store.getHistoryOf(newOutput)
-    );
-    return newOutput;
   }
 
   private commitCode(
     parentNodey: NodeyCode,
     eventId: number,
-    newOutput: string,
     prior: NodeyCode = null
   ) {
     if (prior) prior.right = parentNodey.name;
@@ -381,12 +379,11 @@ export class HistoryStage {
             let nodeChild = this.store.getLatestOf(child);
             if (nodeChild instanceof Star) {
               let newChild = this.deStar(nodeChild, eventId) as NodeyCode;
-              newChild.output = newOutput;
               newChild.created = eventId;
 
               parentNodey.content[index] = newChild.name;
               newChild.parent = parentNodey.name;
-              this.commitCode(newChild, eventId, newOutput, prior);
+              this.commitCode(newChild, eventId, prior);
               prior = newChild;
               return newChild.name;
             }

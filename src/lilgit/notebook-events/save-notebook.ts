@@ -48,8 +48,12 @@ export class SaveNotebook extends NotebookEvent {
     let cellDat = changedCells.map((cell) => {
       let newOutput: string[] = [];
       if (cell instanceof NodeyCode) {
-        let output = this.history.store.get(cell.output);
-        if (output.created === this.checkpoint.id) newOutput.push(output.name);
+        let output = this.history.store.getOutput(cell);
+        if (output) {
+          let latestOut = output.lastSaved;
+          if (latestOut.created === this.checkpoint.id)
+            newOutput.push(latestOut.name);
+        }
       }
       let cellSaved = {
         node: cell.name,

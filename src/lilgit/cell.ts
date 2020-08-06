@@ -2,7 +2,7 @@ import { NodeyCell, NodeyOutput, NodeyCodeCell } from "./nodey";
 import { VerNotebook } from "./notebook";
 import { Checkpoint } from "./checkpoint";
 import { Cell, CodeCell } from "@jupyterlab/cells";
-import { Star } from "./history/";
+import { Star, CodeHistory } from "./history/";
 import { OutputArea } from "@jupyterlab/outputarea";
 
 /**
@@ -77,8 +77,10 @@ export class VerCell {
    * Ges output if the cell has it
    */
   public get output(): NodeyOutput {
-    var output = (this.model as NodeyCodeCell).output;
-    if (output) return this.notebook.history.store.get(output) as NodeyOutput;
+    if (this.lastSavedModel instanceof NodeyCodeCell) {
+      let output = this.notebook.history.store.getOutput(this.lastSavedModel);
+      if (output) return output.lastSaved as NodeyOutput;
+    }
   }
 
   /**
@@ -125,6 +127,14 @@ export class VerCell {
     let nodey = this.model;
     let history = this.notebook.history.store.getHistoryOf(nodey.name);
     let version = history.length - 1;
+    let oldOut = "";
+    let outputCount = 0;
+    if (nodey instanceof NodeyCodeCell) {
+      oldOut = (history as CodeHistory).getOutput(nodey.version);
+      if (oldOut)
+        outputCount =
+          this.notebook.history.store.getHistoryOf(oldOut).length + 0;
+    }
 
     // commit the cell if it has changed
     let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
@@ -132,10 +142,14 @@ export class VerCell {
     let same = newNodey.version === version;
 
     // output count can increment without the code ver incrementing
-    if (newNodey instanceof NodeyCodeCell) {
-      let verOut = this.notebook.history.store.getHistoryOf(newNodey.output)
-        .length;
-      same = same && newNodey.outputVer === verOut;
+    if (same && newNodey instanceof NodeyCodeCell) {
+      let newOut = (history as CodeHistory).getOutput(newNodey.version);
+      if (newOut && newOut !== oldOut) {
+        same = false;
+      } else if (newOut && newOut === oldOut) {
+        let newCount = this.notebook.history.store.getHistoryOf(oldOut).length;
+        same = newCount === outputCount;
+      }
     }
 
     return [newNodey, same];

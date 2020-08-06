@@ -1,5 +1,4 @@
 import { Nodey } from "./nodey";
-import { NodeyOutput } from "./nodey-output";
 
 /*
  * Code holds AST details
@@ -12,9 +11,6 @@ export class NodeyCode extends Nodey {
   literal: any;
   right: string; // lookup id for the next Nodey to the right of this one
   pendingUpdate: string;
-  // output
-  outputId: number;
-  outputVer: any;
 
   constructor(options: NodeyCode.Options) {
     super(options);
@@ -32,8 +28,6 @@ export class NodeyCode extends Nodey {
         else return new SyntaxToken(item); // fresh from a JSON file
       });
     }
-    if (options.outputId !== undefined) this.outputId = options.outputId;
-    if (options.outputVer !== undefined) this.outputVer = options.outputVer;
     this.literal = options.literal;
     this.start = options.start;
     this.end = options.end;
@@ -43,7 +37,6 @@ export class NodeyCode extends Nodey {
   public toJSON(): NodeyCode.SERIALIZE {
     let jsn = super.toJSON() as NodeyCode.SERIALIZE;
     // jsn.type = this.type;
-    jsn.output = "o." + this.outputId + "." + this.outputVer;
     // if (this.content) jsn.content = this.content;
     if (this.literal) jsn.literal = this.literal;
     jsn.start = this.start;
@@ -53,19 +46,6 @@ export class NodeyCode extends Nodey {
 
   get typeChar() {
     return "s";
-  }
-
-  get output(): string {
-    if (this.outputVer !== undefined)
-      // may be 0
-      return NodeyOutput.typeChar + "." + this.outputId + "." + this.outputVer;
-    else return null;
-  }
-
-  set output(name: string) {
-    let parts = name.split(".");
-    this.outputId = parseInt(parts[1]);
-    this.outputVer = parts[2];
   }
 
   positionRelativeTo(target: NodeyCode) {
@@ -106,8 +86,6 @@ export namespace NodeyCode {
 
   export type Options = {
     type?: string;
-    outputId?: number;
-    outputVer?: any;
     content?: (SyntaxToken | string)[];
     start?: Pos;
     end?: Pos;
@@ -115,14 +93,8 @@ export namespace NodeyCode {
     literal?: any;
   } & Nodey.Options;
 
-  export type OutputPointer = {
-    outputId: number;
-    outputVer: string;
-  };
-
   export interface SERIALIZE extends Nodey.SERIALIZE {
     type?: string;
-    output: string;
     content?: any[];
     literal: string;
     start?: Pos;
@@ -130,7 +102,6 @@ export namespace NodeyCode {
   }
 
   export function fromJSON(dat: NodeyCode.SERIALIZE): NodeyCode {
-    let output = parseOutputPointer(dat);
     return new NodeyCode({
       parent: dat.parent,
       created: dat.start_checkpoint,
@@ -139,18 +110,7 @@ export namespace NodeyCode {
       literal: dat.literal,
       start: dat.start,
       end: dat.end,
-      ...output,
     });
-  }
-
-  export function parseOutputPointer(dat: any): OutputPointer {
-    try {
-      let rawOut = dat.output.split(".");
-      return { outputId: parseInt(rawOut[1]), outputVer: rawOut[2] };
-    } catch (error) {
-      // for older log format
-      return { outputId: dat["outputId"], outputVer: dat["outputVer"] };
-    }
   }
 }
 

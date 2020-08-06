@@ -13,14 +13,21 @@ import { log } from "../../notebook";
 
 import { FileManager } from "../../jupyter-hooks/file-manager";
 
-import { History, Star, UnsavedStar, NodeHistory, OutputHistory } from "..";
+import {
+  History,
+  Star,
+  UnsavedStar,
+  NodeHistory,
+  OutputHistory,
+  CodeHistory,
+} from "..";
 
 export class HistoryStore {
   readonly fileManager: FileManager;
   readonly history: History;
 
   private _notebookHistory: NodeHistory<NodeyNotebook>;
-  private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
+  private _codeCellStore: CodeHistory[] = [];
   private _markdownStore: NodeHistory<NodeyMarkdown>[] = [];
   private _rawCellStore: NodeHistory<NodeyRawCell>[] = [];
   private _outputStore: OutputHistory[] = [];
@@ -33,7 +40,6 @@ export class HistoryStore {
   constructor(history: History, fileManager: FileManager) {
     this.history = history;
     this.fileManager = fileManager;
-    this._notebookHistory = new NodeHistory<NodeyNotebook>();
   }
 
   get currentNotebook(): NodeyNotebook | Star<NodeyNotebook> {
@@ -129,10 +135,32 @@ export class HistoryStore {
     }
   }
 
+  getOutput(nodey: NodeyCode): OutputHistory {
+    let cell: NodeyCodeCell;
+    if (nodey instanceof NodeyCodeCell) cell = nodey;
+    else cell = this.getCellParent(nodey);
+    let cellHistory = this.getHistoryOf(cell) as CodeHistory;
+    let outName = cellHistory.getOutput(cell.version);
+    if (outName) return this.getHistoryOf(outName) as OutputHistory;
+    return null;
+  }
+
+  getAllOutput(nodey: NodeyCode): OutputHistory[] {
+    let cell: NodeyCodeCell;
+    if (nodey instanceof NodeyCodeCell) cell = nodey;
+    else cell = this.getCellParent(nodey);
+    let cellHistory = this.getHistoryOf(cell) as CodeHistory;
+    let outNames = cellHistory.allOutput;
+    return outNames.map((name) => this.getHistoryOf(name) as OutputHistory);
+  }
+
   public store(nodey: Nodey): void {
     if (nodey instanceof NodeyNotebook) {
       let id = 0;
       nodey.id = id;
+      // if this is the first version
+      if (!this._notebookHistory)
+        this._notebookHistory = new NodeHistory<NodeyNotebook>();
       let ver = this._notebookHistory.addVersion(nodey) - 1;
       nodey.version = ver;
     } else {
@@ -263,12 +291,9 @@ export class HistoryStore {
   }
 
   private _makeHistoryFor(nodey: Nodey) {
-    if (
-      nodey instanceof NodeyCodeCell ||
-      nodey instanceof NodeyMarkdown ||
-      nodey instanceof NodeyRawCell
-    )
+    if (nodey instanceof NodeyMarkdown || nodey instanceof NodeyRawCell)
       return new NodeHistory<NodeyCell>();
+    else if (nodey instanceof NodeyCodeCell) return new CodeHistory();
     else if (nodey instanceof NodeyOutput)
       return new OutputHistory(this.fileManager);
     else if (nodey instanceof NodeyCode) return new NodeHistory<NodeyCode>();
@@ -331,8 +356,8 @@ export class HistoryStore {
 
   public fromJSON(data: HistoryStore.SERIALIZE) {
     this._codeCellStore = data.codeCells.map(
-      (item: NodeHistory.SERIALIZE, id: number) => {
-        let hist = new NodeHistory<NodeyCodeCell>();
+      (item: CodeHistory.SERIALIZE, id: number) => {
+        let hist = new CodeHistory();
         hist.fromJSON(item, NodeyCodeCell.fromJSON, id);
         return hist;
       }

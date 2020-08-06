@@ -72,7 +72,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 
     const displayOutput: boolean =
       nodey instanceof NodeyCode && // is a code cell
-      nodey.output && // code cell has associated output
+      this.props.output && // code cell has associated output
       this.getVersion() > 0; // is not version 0 (brand new) code cell
 
     return (

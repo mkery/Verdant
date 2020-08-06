@@ -100,7 +100,10 @@ export class AST {
             let nodey = await this.create.fromCell(c, checkpoint);
             updatedNotebook.value.cells.push(nodey.name);
             let newOutput;
-            if (nodey instanceof NodeyCode) newOutput = [nodey.output];
+            if (nodey instanceof NodeyCode) {
+              let out = this.history.store.getOutput(nodey);
+              if (out) newOutput = out.lastSaved.name;
+            }
             changedCells.push({
               node: nodey.name,
               changeType: ChangeType.ADDED,

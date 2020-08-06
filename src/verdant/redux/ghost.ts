@@ -179,10 +179,19 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   let output: cellDat[] = [];
   cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
-    if (nodey instanceof NodeyCode && nodey.output) {
-      let out = { cell: nodey.output };
-      output.push(out);
-      cell.output = nodey.output;
+    if (nodey instanceof NodeyCode) {
+      let outHist = history.store.getOutput(nodey);
+      if (outHist) {
+        let out_nodey = outHist.filter((n) => {
+          let notebook = history.store.getNotebookOf(n);
+          return notebook.version <= ver;
+        });
+        if (out_nodey.length > 0) {
+          let out = out_nodey[out_nodey.length - 1].name;
+          output.push({ cell: out });
+          cell.output = out;
+        }
+      }
     } else {
       cell.output = null;
     }

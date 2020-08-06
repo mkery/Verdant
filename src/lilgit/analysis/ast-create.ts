@@ -1,5 +1,5 @@
 import { jsn } from "../notebook";
-import { History } from "../history/";
+import { History, CodeHistory } from "../history/";
 import { CodeCell, MarkdownCell, Cell, RawCell } from "@jupyterlab/cells";
 import { ASTUtils } from "./ast-utils";
 import { Checkpoint } from "../checkpoint";
@@ -54,7 +54,8 @@ export class ASTCreate {
   public createOutput(options: NodeyOutput.Options, parent: NodeyCodeCell) {
     let output = new NodeyOutput(options);
     this.history.store.store(output);
-    parent.output = output.name;
+    let cell_history = this.history.store.getHistoryOf(parent) as CodeHistory;
+    cell_history.addOutput(parent.version, output);
     return output;
   }
 
@@ -79,16 +80,18 @@ export class ASTCreate {
           created: checkpoint.id,
         });
       }
-      // Next, create output
+      // Next, create output if there is output
       let output_raw = cell.outputArea.model.toJSON();
-      this.createOutput(
-        {
-          raw: output_raw,
-          created: checkpoint.id,
-          parent: nodey.name,
-        },
-        nodey as NodeyCodeCell
-      );
+      if (output_raw.length > 0) {
+        this.createOutput(
+          {
+            raw: output_raw,
+            created: checkpoint.id,
+            parent: nodey.name,
+          },
+          nodey as NodeyCodeCell
+        );
+      }
     } else if (cell instanceof MarkdownCell) {
       // create markdown cell from text
       let text = cell.model.value.text;

@@ -42,8 +42,12 @@ export class RunCell extends NotebookEvent {
     let cellRun = changedCells[0];
     let newOutput: string[] = [];
     if (cellRun instanceof NodeyCode) {
-      let output = this.history.store.get(cellRun.output);
-      if (output.created === this.checkpoint.id) newOutput.push(output.name);
+      let output = this.history.store.getOutput(cellRun);
+      if (output) {
+        let latestOut = output.lastSaved;
+        if (latestOut.created === this.checkpoint.id)
+          newOutput.push(latestOut.name);
+      }
     }
 
     let cellChange; // "changed" marker if there is edited text or new output

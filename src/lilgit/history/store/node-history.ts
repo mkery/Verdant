@@ -33,6 +33,11 @@ export class NodeHistory<T extends Nodey> {
     return this.versions.map(callbackfn);
   }
 
+  get name() {
+    let latest = this.versions[this.versions.length - 1];
+    if (latest) return latest.typeChar + "." + latest.id;
+  }
+
   get latest() {
     if (this.unsavedEdits) return this.unsavedEdits;
     return this.versions[this.versions.length - 1];
@@ -57,10 +62,6 @@ export class NodeHistory<T extends Nodey> {
 
   deStar() {
     let newNodey = this.unsavedEdits.value;
-    //newNodey.created = runId;
-    /*if (newNodey instanceof NodeyCode && output) {
-        output.forEach(out => (newNodey as NodeyCode).addOutput(out));
-      }*/
     this.unsavedEdits = null;
     this.versions.push(newNodey as T);
     newNodey.version = this.versions.length - 1;
@@ -73,32 +74,35 @@ export class NodeHistory<T extends Nodey> {
   }
 
   toJSON(): NodeHistory.SERIALIZE {
-    let data: NodeHistory.SERIALIZE = this.versions.map((node) =>
-      node.toJSON()
-    );
+    let data: Nodey.SERIALIZE[] = this.versions.map((node) => node.toJSON());
     if (this.originPointer)
       data[data.length - 1].origin = this.originPointer.origin;
-    return data;
+    return { artifact_name: this.name, versions: data };
   }
 
   fromJSON(
-    data: NodeHistory.SERIALIZE,
+    jsn: NodeHistory.SERIALIZE,
     factory: (dat: Nodey.SERIALIZE) => T,
     id?: number
   ) {
-    if (DEBUG) log("FACTORY DATA", data);
-    this.versions = data.map((nodeDat: Nodey.SERIALIZE, version: number) => {
-      if (nodeDat.origin)
-        this.originPointer = new OriginPointer(nodeDat.origin);
-      let nodey = factory(nodeDat);
-      nodey.id = id;
-      nodey.version = version;
-      //log("MADE NODEY FROM DATA", nodey, nodeDat);
-      return nodey;
-    });
+    if (DEBUG) log("FACTORY DATA", jsn);
+    this.versions = jsn.versions.map(
+      (nodeDat: Nodey.SERIALIZE, version: number) => {
+        if (nodeDat.origin)
+          this.originPointer = new OriginPointer(nodeDat.origin);
+        let nodey = factory(nodeDat);
+        nodey.id = id;
+        nodey.version = version;
+        //log("MADE NODEY FROM DATA", nodey, nodeDat);
+        return nodey;
+      }
+    );
   }
 }
 
 export namespace NodeHistory {
-  export type SERIALIZE = Nodey.SERIALIZE[];
+  export type SERIALIZE = {
+    artifact_name: string;
+    versions: Nodey.SERIALIZE[];
+  };
 }

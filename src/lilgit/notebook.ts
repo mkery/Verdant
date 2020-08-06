@@ -120,7 +120,7 @@ export class VerNotebook {
           cell instanceof CodeCell &&
           this.isDescendant(cell.outputArea.node, target)
         ) {
-          copied = this.history.store.get((node as NodeyCode).output);
+          copied = this.history.store.getOutput(node as NodeyCode).lastSaved;
         } // otherwise main cell
         else copied = this.history.inspector.figureOutTarget(node, cell, text);
 

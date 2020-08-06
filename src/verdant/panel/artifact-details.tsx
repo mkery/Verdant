@@ -30,13 +30,12 @@ class ArtifactDetails extends React.Component<Details_Props> {
 
   showOutputLink() {
     if (this.props.target instanceof NodeyCode) {
-      let out = this.props.target.output;
+      let out = this.props.history.store.getOutput(this.props.target);
       if (out) {
-        let outputHist = this.props.history.store.getHistoryOf(out);
         return (
           <span
             className="v-VerdantPanel-tab-header-outLink verdant-link"
-            onClick={() => this.props.showDetails(outputHist.lastSaved)}
+            onClick={() => this.props.showDetails(out.lastSaved)}
           >
             show all output
           </span>
