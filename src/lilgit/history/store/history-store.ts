@@ -391,6 +391,7 @@ export class HistoryStore {
         return hist;
       }
     );
+    this._notebookHistory = new NodeHistory<NodeyNotebook>();
     this._notebookHistory.fromJSON(
       data.notebook,
       NodeyNotebook.fromJSON,

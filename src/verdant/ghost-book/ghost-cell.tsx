@@ -69,11 +69,8 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       return null;
     }
     let active = this.props.hasFocus() ? "active" : "";
-
     const displayOutput: boolean =
-      nodey instanceof NodeyCode && // is a code cell
-      this.props.output && // code cell has associated output
-      this.getVersion() > 0; // is not version 0 (brand new) code cell
+      nodey instanceof NodeyCode && this.props.output !== undefined; // is a code cell & has associated output
 
     return (
       <div
@@ -141,12 +138,6 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       diff,
       this.props.prior
     );
-  }
-
-  private getVersion(): number {
-    /* Returns the version of a cell */
-    const lastChar = this.props.name.charAt(this.props.name.length - 1);
-    return parseInt(lastChar, 10);
   }
 }
 
