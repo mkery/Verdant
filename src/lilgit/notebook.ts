@@ -4,7 +4,6 @@ import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 import { Cell, ICellModel, CodeCell } from "@jupyterlab/cells";
 import { History } from "./history/";
-import { Star } from "./history/";
 import { AST } from "./analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell, NodeyCode } from "./nodey";
@@ -61,7 +60,7 @@ export class VerNotebook {
     return ev;
   }
 
-  get model(): NodeyNotebook | Star<NodeyNotebook> {
+  get model(): NodeyNotebook {
     return this.history.store.currentNotebook;
   }
 
@@ -88,7 +87,7 @@ export class VerNotebook {
     });
   }
 
-  public getCellByNode(cell: NodeyCell | Star<NodeyCell>): VerCell {
+  public getCellByNode(cell: NodeyCell): VerCell {
     return this.cells.find((item) => cell.name === item.model.name);
   }
 
@@ -112,7 +111,7 @@ export class VerNotebook {
 
       // figure out which nodey this is by the text(?)
       if (verCell) {
-        let node = verCell.lastSavedModel;
+        let node = verCell.model;
         let copied;
 
         // check to see if it's output
@@ -120,7 +119,7 @@ export class VerNotebook {
           cell instanceof CodeCell &&
           this.isDescendant(cell.outputArea.node, target)
         ) {
-          copied = this.history.store.getOutput(node as NodeyCode).lastSaved;
+          copied = this.history.store.getOutput(node as NodeyCode).latest;
         } // otherwise main cell
         else copied = this.history.inspector.figureOutTarget(node, cell, text);
 

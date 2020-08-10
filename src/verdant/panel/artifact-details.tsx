@@ -35,7 +35,7 @@ class ArtifactDetails extends React.Component<Details_Props> {
         return (
           <span
             className="v-VerdantPanel-tab-header-outLink verdant-link"
-            onClick={() => this.props.showDetails(out[0].lastSaved)} //TODO!
+            onClick={() => this.props.showDetails(out[0].latest)} //TODO!
           >
             show all output
           </span>

@@ -109,7 +109,7 @@ const mapStateToProps = (
   let output;
   if (cell instanceof NodeyCode) {
     let outputHist = history.store.getOutput(cell);
-    if (outputHist) output = outputHist.lastSaved;
+    if (outputHist) output = outputHist.latest;
   }
   return {
     history,

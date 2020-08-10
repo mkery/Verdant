@@ -49,7 +49,7 @@ export class Sampler {
       if (this.notebook.view.activeCell) {
         this._target = this.notebook.getCell(
           this.notebook.view.activeCell.model
-        ).lastSavedModel;
+        ).model;
       }
     }
     return this._target;
@@ -404,9 +404,9 @@ export class Sampler {
         let priorText = prior.markdown;
         let diff = JSDiff.diffWords(priorText, newText);
         if (diff.length > MAX_WORD_DIFFS) {
-          diff = JSDiff.diffLines(priorText, newText, {newlineIsToken: true});
+          diff = JSDiff.diffLines(priorText, newText, { newlineIsToken: true });
         }
-        const divs = diff.map(async part => {
+        const divs = diff.map(async (part) => {
           let partDiv: HTMLElement;
           if (part.value === "\n") {
             partDiv = document.createElement("br");
@@ -426,13 +426,9 @@ export class Sampler {
           return partDiv;
         });
 
-        await Promise.all(divs)
-          .then(
-            elems => elems.forEach(
-              e => elem.appendChild(e)
-            )
-          );
-
+        await Promise.all(divs).then((elems) =>
+          elems.forEach((e) => elem.appendChild(e))
+        );
       }
     }
 

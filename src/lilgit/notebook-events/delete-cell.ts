@@ -1,8 +1,6 @@
 import { NotebookEvent } from ".";
 import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
 import { VerNotebook, log } from "../notebook";
-import { NodeyNotebook } from "../nodey/";
-import { Star } from "../history/";
 import { NodeyCell } from "../nodey/";
 
 export class DeleteCell extends NotebookEvent {
@@ -22,23 +20,8 @@ export class DeleteCell extends NotebookEvent {
   async modelUpdate(): Promise<NodeyCell[]> {
     let oldCell = this.notebook.cells.splice(this.cell_index, 1)[0];
 
-    // commit the final version of this cell
-    await oldCell.repair();
-    let nodeyCellEdit = this.history.stage.markAsEdited(oldCell.model);
-    log("MARKED", oldCell, nodeyCellEdit);
-    this.history.stage.commitDeletedCell(this.checkpoint, nodeyCellEdit);
-
-    // make sure cell is removed from model
-    let model = this.history.stage.markAsEdited(this.notebook.model) as Star<
-      NodeyNotebook
-    >;
-    model.value.cells.splice(this.cell_index, 1);
-
-    // commit the notebook if the cell has changed
-    let notebook = this.history.stage.commit(
-      this.checkpoint,
-      this.notebook.model
-    );
+    this.history.stage.markCellAsDeleted(oldCell.model);
+    let notebook = this.history.stage.commit(this.checkpoint);
     log("notebook commited", notebook, this.notebook.model);
 
     return [oldCell.model as NodeyCell];

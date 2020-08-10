@@ -1,6 +1,5 @@
 import { Nodey } from "../../nodey";
 import { OriginPointer } from "./origin-pointer";
-import { Star } from "..";
 import { log } from "../../notebook";
 
 const DEBUG = false;
@@ -10,11 +9,11 @@ const DEBUG = false;
  */
 export class NodeHistory<T extends Nodey> {
   originPointer: OriginPointer = null;
-  private unsavedEdits: Star<T> = null;
   protected versions: T[] = [];
 
-  addVersion(nodey: T) {
-    return this.versions.push(nodey);
+  addVersion(nodey: T): void {
+    let ver = this.versions.push(nodey);
+    nodey.version = ver - 1;
   }
 
   getVersion(ver: number) {
@@ -38,35 +37,12 @@ export class NodeHistory<T extends Nodey> {
     if (latest) return latest.typeChar + "." + latest.id;
   }
 
-  get latest() {
-    if (this.unsavedEdits) return this.unsavedEdits;
-    return this.versions[this.versions.length - 1];
-  }
-
-  get lastSaved(): Nodey {
+  get latest(): T {
     return this.versions[this.versions.length - 1];
   }
 
   get length() {
     return this.versions.length;
-  }
-
-  setLatestToStar(s: Star<T>): void {
-    this.unsavedEdits = s;
-  }
-
-  discardStar() {
-    this.unsavedEdits = null;
-    return this.versions[this.versions.length - 1];
-  }
-
-  deStar() {
-    let newNodey = this.unsavedEdits.value;
-    this.unsavedEdits = null;
-    this.versions.push(newNodey as T);
-    newNodey.version = this.versions.length - 1;
-    log("de-staring", newNodey, this);
-    return newNodey;
   }
 
   addOriginPointer(origin: Nodey) {

@@ -23,19 +23,13 @@ export class RunCell extends NotebookEvent {
   async modelUpdate(): Promise<NodeyCell[]> {
     // now repair the cell against the prior version
     let cell = this.notebook.getCell(this.cellModel);
-    log("LOOKING FOR CELL", this.cellModel, this.notebook.cells);
-    let [newNodey, same] = await cell.repairAndCommit(this.checkpoint);
-    log("SAME?", same);
-    this.cellSame = same;
 
     // commit the notebook if the cell has changed
-    let notebook = this.history.stage.commit(
-      this.checkpoint,
-      this.notebook.model
-    );
-    log("notebook commited", notebook, this.notebook.model);
+    this.history.stage.markAsEdited(cell.model);
+    let newNodey = this.history.stage.commit(this.checkpoint);
+    log("notebook commited", newNodey, this.notebook.model);
 
-    return [newNodey];
+    return newNodey;
   }
 
   recordCheckpoint(changedCells: NodeyCell[]) {
@@ -44,7 +38,7 @@ export class RunCell extends NotebookEvent {
     if (cellRun instanceof NodeyCode) {
       let output = this.history.store.getOutput(cellRun);
       if (output) {
-        let latestOut = output.lastSaved;
+        let latestOut = output.latest;
         if (latestOut.created === this.checkpoint.id)
           newOutput.push(latestOut.name);
       }
