@@ -118,6 +118,8 @@ export class HistoryStage {
       // now add any cells staged for addition
       cells = newNotebook.cells;
       this.added_cells.forEach((a) => {
+        // make sure new cell's parent is this newNotebook
+        a.addedCell.parent = newNotebook.name;
         let name = a.addedCell.name;
         changedNodey.push(a.addedCell);
         cells.splice(a.index, 0, name);
@@ -127,6 +129,8 @@ export class HistoryStage {
       // switch cells who's type changed
       cells = newNotebook.cells;
       this.type_changed_cells.forEach((a) => {
+        // make sure new cell's parent is this newNotebook
+        a.newCell.parent = newNotebook.name;
         let oldName = a.oldCell.name;
         let newName = a.newCell.name;
         changedNodey.push(a.newCell);
@@ -356,28 +360,31 @@ export class HistoryStage {
     // now check if there is output to build
     if (instructions["output"]) {
       // see if we already have an output history to add to
-      let newOut;
       let oldOutputHist = this.history.store.getOutput(newNodey);
       if (oldOutputHist) {
         let oldOut = oldOutputHist.latest;
-        newOut = new NodeyOutput({
+        let newOut = new NodeyOutput({
           id: oldOut.id,
           created: checkpoint.id,
           parent: newNodey.name,
-          raw: instructions["output"].raw,
+          raw: instructions["output"],
         });
         oldOutputHist.addVersion(newOut);
+        newOtherNodey.push(newOut);
       } else {
         // if there is no output history, create a new one
-        newOut = new NodeyOutput({
-          created: checkpoint.id,
-          parent: newNodey.name,
-          raw: instructions["output"].raw,
-        });
-        this.history.store.store(newOut);
-        nodeyHistory.addOutput(newNodey.version, newOut);
+        // but only if raw is not empty
+        if (instructions["output"].length > 0) {
+          let newOut = new NodeyOutput({
+            created: checkpoint.id,
+            parent: newNodey.name,
+            raw: instructions["output"],
+          });
+          this.history.store.store(newOut);
+          nodeyHistory.addOutput(newNodey.version, newOut);
+          newOtherNodey.push(newOut);
+        }
       }
-      newOtherNodey.push(newOut);
     }
 
     return [newNodey, newOtherNodey];

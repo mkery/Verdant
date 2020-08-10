@@ -29,11 +29,13 @@ export class RunCell extends NotebookEvent {
     let newNodey = this.history.stage.commit(this.checkpoint);
     log("notebook commited", newNodey, this.notebook.model);
 
+    this.cellSame = newNodey.indexOf(cell.model) < 0;
     return newNodey;
   }
 
-  recordCheckpoint(changedCells: NodeyCell[]) {
-    let cellRun = changedCells[0];
+  recordCheckpoint(_: NodeyCell[]) {
+    let cellRun = this.notebook.getCell(this.cellModel).model;
+
     let newOutput: string[] = [];
     if (cellRun instanceof NodeyCode) {
       let output = this.history.store.getOutput(cellRun);
