@@ -1,11 +1,9 @@
 import { Checkpoint } from "../checkpoint";
 import { History } from "../history/";
 import { VerNotebook } from "../notebook";
-import { NodeyCell } from "../nodey/";
 
 // 1. event begins
 // 2. trigger update to history model
-// 3. record details of the event as a checkpoint
 // 4. event ends
 
 export abstract class NotebookEvent {
@@ -24,10 +22,7 @@ export abstract class NotebookEvent {
       this.createCheckpoint();
 
       // evaluate what updates are needed to the model caused by this event
-      let changedCells = await this.modelUpdate();
-
-      // record the checkpoint based on model updates we did
-      this.recordCheckpoint(changedCells);
+      await this.modelUpdate();
 
       // any wrap-up steps specific to this event
       this.endEvent();
@@ -38,11 +33,9 @@ export abstract class NotebookEvent {
     return ev;
   }
 
-  abstract async modelUpdate(): Promise<NodeyCell[]>;
+  abstract async modelUpdate();
 
   abstract createCheckpoint(): void;
-
-  abstract recordCheckpoint(changedCells: NodeyCell[]): void;
 
   endEvent(): void {}
 }

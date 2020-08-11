@@ -25,7 +25,7 @@ export class AST {
   public async coldStartNotebook(
     notebook_view: Notebook,
     checkpoint: Checkpoint
-  ): Promise<[NodeyNotebook, CellRunData[]]> {
+  ): Promise<NodeyNotebook> {
     let changedCells: CellRunData[] = [];
     // create a new notebook
     let notebook = this.create.createNotebook({
@@ -49,14 +49,18 @@ export class AST {
       })
     );
 
-    return [notebook, changedCells];
+    // update checkpoint
+    checkpoint.notebook = notebook.version;
+    checkpoint.targetCells.push(...changedCells);
+
+    return notebook;
   }
 
   public async hotStartNotebook(
     notebook: NodeyNotebook,
     notebook_view: Notebook,
     checkpoint: Checkpoint
-  ): Promise<[NodeyNotebook, CellRunData[]]> {
+  ): Promise<NodeyNotebook> {
     // TODO
     /*
     // get cells for the purpose of matching
@@ -73,6 +77,10 @@ export class AST {
     console.log(notebook_view, notebook, checkpoint);
 
     // TODO TODO TODO
-    return [notebook, []];
+
+    // update checkpoint
+    checkpoint.notebook = notebook.version;
+
+    return notebook;
   }
 }

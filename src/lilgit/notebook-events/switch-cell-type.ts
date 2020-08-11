@@ -1,9 +1,7 @@
 import { NotebookEvent } from ".";
 import { Cell } from "@jupyterlab/cells";
-import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { CheckpointType } from "../checkpoint";
 import { VerNotebook } from "../notebook";
-import { log } from "../notebook";
-import { NodeyCell } from "../nodey/";
 
 export class SwitchCellType extends NotebookEvent {
   cell: Cell;
@@ -22,7 +20,7 @@ export class SwitchCellType extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<NodeyCell[]> {
+  async modelUpdate() {
     // this is going to create and store the new nodey
     let newNodey = await this.notebook.ast.create.fromCell(
       this.cell,
@@ -37,20 +35,10 @@ export class SwitchCellType extends NotebookEvent {
     verCell.view = this.cell;
 
     // make sure cell is added to notebook model
-    this.history.stage.markCellTypeAsChanged(oldNodey, newNodey);
-    // commit the notebook
-    let notebook = this.history.stage.commit(this.checkpoint);
-    log("notebook commited", notebook, this.notebook.model, verCell);
-
-    return [newNodey];
-  }
-
-  recordCheckpoint(changedCells: NodeyCell[]) {
-    let cellDat = {
-      node: changedCells[0].name,
-      changeType: ChangeType.TYPE_CHANGED,
-    } as CellRunData;
-
-    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [cellDat]);
+    this.history.stage.commitCellTypeChanged(
+      oldNodey,
+      newNodey,
+      this.checkpoint
+    );
   }
 }

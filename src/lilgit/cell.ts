@@ -94,16 +94,17 @@ export class VerCell {
    * Listen to events emitted by Jupyter Cell
    */
   private listen() {
-    this.view.model.contentChanged.connect(() => {
+    // TODO add back as an optimization for checking changes on save
+    /*this.view.model.contentChanged.connect(() => {
       /*
        * set model of this cell to star state, although we
        * don't know for sure yet, because of possible undo,
        * if anything has truly changed yet
        */
-      if (this.view.inputArea) {
+    /*if (this.view.inputArea) {
         this.lastSeenText = this.view.editor.model.value.text;
       }
       this.notebook.history.stage.markAsEdited(this.model);
-    });
+    });*/
   }
 }

@@ -27,7 +27,7 @@ export class ASTRepair {
     );
     if (text !== textOrig) {
       // some text has changed for sure
-      this.history.stage.markAsEdited(nodey);
+
       var updateID = crypto.randomBytes(20).toString("hex");
       nodey.pendingUpdate = updateID;
 
