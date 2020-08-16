@@ -258,7 +258,7 @@ export class HistoryStore {
   }
 
   public getCellParent(relativeTo: Nodey): NodeyCodeCell {
-    log("get cell parent of ", relativeTo);
+    //log("get cell parent of ", relativeTo);
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
       return this.getCellParent(this.getLatestOf(relativeTo.parent));

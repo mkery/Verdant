@@ -79,3 +79,35 @@ export class SearchIcon extends React.Component {
     );
   }
 }
+
+export class BigChevronRightIcon extends React.Component {
+  render() {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        aria-labelledby="title"
+        className="verdant-icon-big-chevron"
+        viewBox="0 0 9 16"
+      >
+        <title id="title">Large Chevron Right Icon</title>
+        <path fill="none" strokeWidth="2" d="M1.375 1l6 7-6 7" />
+      </svg>
+    );
+  }
+}
+
+export class BigChevronLeftIcon extends React.Component {
+  render() {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        aria-labelledby="title"
+        className="verdant-icon-big-chevron"
+        viewBox="0 0 9 16"
+      >
+        <title id="title">Large Chevron Left Icon</title>
+        <path fill="none" strokeWidth="2" d="M7.625 1l-6 7 6 7" />
+      </svg>
+    );
+  }
+}

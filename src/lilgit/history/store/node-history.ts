@@ -11,6 +11,10 @@ export class NodeHistory<T extends Nodey> {
   originPointer: OriginPointer = null;
   protected versions: T[] = [];
 
+  getAllVersions(): T[] {
+    return this.versions.slice(0);
+  }
+
   addVersion(nodey: T): void {
     let ver = this.versions.push(nodey);
     nodey.version = ver - 1;
@@ -26,9 +30,7 @@ export class NodeHistory<T extends Nodey> {
   }
 
   // wrap to allow override implementation of map
-  map(
-    callbackfn: (value: Nodey, index: number, array: Nodey[]) => Promise<any>
-  ): Promise<any>[] {
+  map(callbackfn: (value: T, index?: number, array?: T[]) => any): any[] {
     return this.versions.map(callbackfn);
   }
 
