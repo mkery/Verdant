@@ -1,12 +1,7 @@
 import * as React from "react";
 import SummaryTable from "./summary/summary-table";
 import InspectorButton from "./inspector-button";
-import {
-  ActiveTab,
-  switchTab,
-  verdantState,
-  artifactState,
-} from "../redux/index";
+import { ActiveTab, switchTab, verdantState, artifactState } from "../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../lilgit/sampler/";
 import { History } from "../../lilgit/history";

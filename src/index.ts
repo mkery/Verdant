@@ -9,8 +9,11 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { createStore, applyMiddleware, Store } from "redux";
 import { VerdantLog } from "./verdant/logger";
-import { verdantReducer, createInitialState } from "./verdant/redux/index";
-import { setGhostOpener } from "./verdant/redux/ghost";
+import {
+  verdantReducer,
+  createInitialState,
+  setGhostOpener,
+} from "./verdant/redux/";
 
 import { Ghost } from "./verdant/ghost-book/ghost";
 

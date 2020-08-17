@@ -3,7 +3,7 @@ import { History } from "../../lilgit/history";
 import { Nodey } from "../../lilgit/nodey";
 import SearchBar from "./search/search-bar";
 import ResultsSection from "./search/results-section";
-import { verdantState } from "../redux/index";
+import { verdantState } from "../redux/";
 import { connect } from "react-redux";
 
 type Search_Props = {

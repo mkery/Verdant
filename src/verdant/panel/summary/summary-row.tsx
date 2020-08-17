@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
+import { verdantState } from "../../redux/";
 import { History } from "../../../lilgit/history/";
 import { CellSampler } from "../../sampler/cell-sampler";
 import {

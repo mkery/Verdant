@@ -1,12 +1,7 @@
 import * as React from "react";
 import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
-import {
-  verdantState,
-  inspectNode,
-  switchTab,
-  ActiveTab,
-} from "../../redux/index";
+import { verdantState, inspectNode, switchTab, ActiveTab } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer, Sampler, SAMPLE_TYPE } from "../../../lilgit/sampler/";
 import { VersionSampler } from "../../sampler/version-sampler";

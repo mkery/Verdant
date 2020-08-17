@@ -5,8 +5,7 @@ import { SAMPLE_TYPE, Sampler, Namer } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
-import { verdantState } from "../redux/index";
-import { focusCell } from "../redux/ghost";
+import { verdantState, focusGhostCell } from "../redux/";
 import { Checkpoint } from "../../lilgit/checkpoint/";
 
 /* CSS Constants */
@@ -160,7 +159,7 @@ const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
 
 const mapDispatchToProps = (dispatch: any, ownProps: GhostCell_Props) => {
   return {
-    clickEv: () => dispatch(focusCell(ownProps.name)),
+    clickEv: () => dispatch(focusGhostCell(ownProps.name)),
   };
 };
 

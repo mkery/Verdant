@@ -8,7 +8,7 @@ import {
   switchTab,
   ActiveTab,
   artifactState,
-} from "../../redux/index";
+} from "../../redux/";
 import { SummaryRow } from "./summary-row";
 
 export type Summary_Props = {

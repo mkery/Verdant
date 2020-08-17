@@ -2,7 +2,7 @@ import * as React from "react";
 import { Nodey } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
 import { Checkpoint } from "../../../lilgit/checkpoint";
-import { verdantState, inspectNode } from "../../redux/index";
+import { verdantState, inspectNode } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler";
 

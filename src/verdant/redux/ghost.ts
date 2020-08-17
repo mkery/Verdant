@@ -1,4 +1,4 @@
-import { verdantState } from "./index";
+import { verdantState } from "./state";
 import { Ghost } from "../ghost-book/ghost";
 import { Checkpoint, CheckpointType } from "../../lilgit/checkpoint";
 import { NodeyCode } from "../../lilgit/nodey";
@@ -6,9 +6,8 @@ import { History } from "../../lilgit/history";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
-const SWITCH_NOTEBOOK = "SWITCH_NOTEBOOK";
 const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
-const SWITCH_CELL = "SWITCH_CELL";
+const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";
 
 export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
   return {
@@ -24,22 +23,15 @@ export const initGhostBook = (state: Partial<ghostState>) => {
   };
 };
 
-export const closeGhostBook = () => {
-  return {
-    type: SWITCH_NOTEBOOK,
-    ver: null as string,
-  };
-};
-
 export const toggleShowAllCells = () => {
   return {
     type: TOGGLE_SHOW_CELLS,
   };
 };
 
-export const focusCell = (cell_name: string) => {
+export const focusGhostCell = (cell_name: string) => {
   return {
-    type: SWITCH_CELL,
+    type: SWITCH_GHOST_CELL,
     cell: cell_name,
   };
 };
@@ -88,7 +80,7 @@ export type ghostCellOutputState = {
   events: Checkpoint[];
 };
 
-export const ghostReduce = (state: verdantState, action: any): ghostState => {
+export const ghostReduce = (state: verdantState, action: any): verdantState => {
   switch (action.type) {
     case SET_GHOST_OPENER:
       return { ...state, openGhostBook: action.fun };
@@ -112,7 +104,7 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       );
       return present;
     }
-    case SWITCH_CELL:
+    case SWITCH_GHOST_CELL:
       if (state.active_cell != action.cell)
         return {
           ...state,

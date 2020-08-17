@@ -4,7 +4,7 @@ import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
 import { NodeyOutput } from "../../lilgit/nodey";
 import { connect } from "react-redux";
-import { verdantState } from "../redux/index";
+import { verdantState } from "../redux/";
 
 type GhostCellOutput_Props = {
   // Parent code cell id

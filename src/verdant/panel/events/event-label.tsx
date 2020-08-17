@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
 import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
+import { verdantState } from "../../redux/";
 
 const LABEL = "Verdant-events-label";
 

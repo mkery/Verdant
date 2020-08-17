@@ -1,6 +1,6 @@
 import * as React from "react";
 import { SearchIcon } from "../../icons";
-import { searchForText } from "../../redux/index";
+import { searchForText } from "../../redux/";
 import { connect } from "react-redux";
 
 type SearchBar_Props = {

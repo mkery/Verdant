@@ -4,7 +4,7 @@ import { History } from "../../../lilgit/history/";
 import { VersionSampler } from "../../sampler/version-sampler";
 import { SAMPLE_TYPE, Sampler } from "../../../lilgit/sampler";
 import VersionHeader from "./version-header";
-import { verdantState } from "../../redux/index";
+import { verdantState } from "../../redux/";
 import { connect } from "react-redux";
 
 export type Version_Props = {

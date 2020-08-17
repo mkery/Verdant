@@ -4,7 +4,7 @@ import { History } from "../../lilgit/history/";
 import VersionDetail from "./details/version-detail";
 import CrumbMenu from "./details/crumbMenu";
 import { Nodey, NodeyCode } from "../../lilgit/nodey/";
-import { verdantState, inspectNode } from "../redux/index";
+import { verdantState, inspectNode } from "../redux/";
 import { connect } from "react-redux";
 
 export type Details_Props = {

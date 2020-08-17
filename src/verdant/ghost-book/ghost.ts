@@ -1,8 +1,13 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Store } from "redux";
-import { switchTab, inspectNode, ActiveTab } from "../redux/index";
-import { ghostState, initGhostBook } from "../redux/ghost";
+import {
+  switchTab,
+  inspectNode,
+  ActiveTab,
+  ghostState,
+  initGhostBook,
+} from "../redux/";
 import { Widget } from "@lumino/widgets";
 import { GhostBook } from "./ghost-book";
 import { Namer } from "../../lilgit/sampler/";

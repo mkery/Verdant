@@ -1,9 +1,8 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
 import NotebookEventLabel from "./event-label";
 import NotebookEventMap from "./event-map";
-import { eventState } from "../../redux/events";
+import { eventState, verdantState } from "../../redux/";
 import { NodeyNotebook } from "../../../lilgit/nodey";
 import { Namer } from "../../../lilgit/sampler/";
 

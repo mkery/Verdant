@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ChangeType, Checkpoint } from "../../../lilgit/checkpoint";
 import { History } from "../../../lilgit/history/";
-import { verdantState } from "../../redux";
+import { verdantState } from "../../redux/";
 import { connect } from "react-redux";
 
 interface EventMap_Props {

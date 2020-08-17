@@ -3,8 +3,7 @@ import { History } from "../../lilgit/history/";
 import { Checkpoint } from "../../lilgit/checkpoint";
 import NotebookEventDate from "./events/event-date";
 import { connect } from "react-redux";
-import { initEventMap, dateState } from "../redux/events";
-import { verdantState } from "../redux/index";
+import { verdantState, initEventMap, dateState } from "../redux/";
 
 const PANEL = "v-VerdantPanel-content";
 

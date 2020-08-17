@@ -1,6 +1,7 @@
 import { History } from "../../lilgit/history/";
 import { Checkpoint } from "../../lilgit/checkpoint";
-import { verdantState, artifactState } from "./index";
+import { verdantState } from "./state";
+import { artifactState } from "./notebook";
 import { VerCell } from "../../lilgit/cell";
 
 const ADD_EVENT = "ADD_EVENT";
@@ -85,12 +86,14 @@ export type dateState = {
   bundleStates: bundleState[];
 };
 
+/* main state */
 export type eventMapState = {
   dates: dateState[];
+  currentEvent: Checkpoint;
 };
 
 export const eventsInitialState = (): eventMapState => {
-  return { dates: [] as dateState[] };
+  return { dates: [] as dateState[], currentEvent: null };
 };
 
 export const eventReducer = (
@@ -104,6 +107,7 @@ export const eventReducer = (
           ...state,
           dates: reducer_initEventMap(state),
           currentEvent: getInitialEvent(state.getHistory()),
+
           cellArtifacts: cellReducer(state.getHistory()),
           notebookArtifact: notebookReducer(state.getHistory()),
         };

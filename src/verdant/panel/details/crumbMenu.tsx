@@ -7,12 +7,7 @@ import {
   NodeyCodeCell,
 } from "../../../lilgit/nodey/";
 import { History } from "../../../lilgit/history/";
-import {
-  verdantState,
-  ActiveTab,
-  switchTab,
-  inspectNode,
-} from "../../redux/index";
+import { verdantState, ActiveTab, switchTab, inspectNode } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler";
 

@@ -1,8 +1,12 @@
 import * as React from "react";
 import NotebookEvent from "./event";
-import { verdantState } from "../../redux";
 import { connect } from "react-redux";
-import { bundleClose, bundleOpen, eventState } from "../../redux/events";
+import {
+  verdantState,
+  bundleClose,
+  bundleOpen,
+  eventState,
+} from "../../redux/";
 import NotebookEventLabel from "./event-label";
 import { Checkpoint } from "../../../lilgit/checkpoint";
 import NotebookEventMap from "./event-map";

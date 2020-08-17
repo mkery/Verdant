@@ -2,8 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { History } from "../../lilgit/history";
 import { Checkpoint } from "../../lilgit/checkpoint";
-import { verdantState } from "../redux/index";
-import { toggleShowAllCells } from "../redux/ghost";
+import { verdantState, toggleShowAllCells } from "../redux/";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "../icons";
 import { Namer } from "../../lilgit/sampler/";
 

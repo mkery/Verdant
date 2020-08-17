@@ -3,7 +3,7 @@ import ArtifactDetails from "./artifact-details";
 import ArtifactSummary from "./artifact-summary";
 import EventMap from "./event-column";
 import Search from "./search-pane";
-import { ActiveTab, switchTab, verdantState } from "../redux/index";
+import { ActiveTab, switchTab, verdantState } from "../redux/";
 import { SearchIcon } from "../icons/";
 import { connect } from "react-redux";
 
