@@ -5,7 +5,7 @@ import { log } from "../notebook";
  * Output holds raw output
  */
 export class NodeyOutput extends Nodey {
-  raw: { [i: string]: any };
+  raw: { [i: string]: any }[];
 
   constructor(options: NodeyOutput.Options) {
     super(options);
@@ -29,16 +29,16 @@ export class NodeyOutput extends Nodey {
 }
 
 export namespace NodeyOutput {
-  export const EMPTY = () => new NodeyOutput({ raw: {} });
+  export const EMPTY = () => new NodeyOutput({ raw: [] });
 
   export const typeChar = "o";
 
   export type Options = {
-    raw: { [i: string]: any };
+    raw: { [i: string]: any }[];
   } & Nodey.Options;
 
   export interface SERIALIZE extends Nodey.SERIALIZE {
-    raw: { [key: string]: any };
+    raw: { [key: string]: any }[];
   }
 
   export function fromJSON(dat: NodeyOutput.SERIALIZE): NodeyOutput {

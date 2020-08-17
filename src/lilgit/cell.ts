@@ -1,8 +1,6 @@
 import { NodeyCell, NodeyOutput, NodeyCodeCell } from "./nodey";
 import { VerNotebook } from "./notebook";
-import { Checkpoint } from "./checkpoint";
 import { Cell, CodeCell } from "@jupyterlab/cells";
-import { Star } from "./history/";
 import { OutputArea } from "@jupyterlab/outputarea";
 
 /**
@@ -44,7 +42,7 @@ export class VerCell {
   /**
    * Gets the Nodey representation of this cell
    */
-  public get model(): NodeyCell | Star<NodeyCell> {
+  public get model(): NodeyCell {
     return this.notebook.history.store.getLatestOf(this.modelName);
   }
 
@@ -54,15 +52,6 @@ export class VerCell {
    */
   public setModel(name: string) {
     this.modelName = name;
-  }
-
-  /**
-   * Gets the latest saved Nodey representation of this cell, but never
-   * returns a Star, which is a still unsaved version of this cell
-   */
-  public get lastSavedModel(): NodeyCell {
-    let history = this.notebook.history.store.getHistoryOf(this.modelName);
-    return history.lastSaved;
   }
 
   /**
@@ -77,8 +66,10 @@ export class VerCell {
    * Ges output if the cell has it
    */
   public get output(): NodeyOutput {
-    var output = (this.model as NodeyCodeCell).output;
-    if (output) return this.notebook.history.store.get(output) as NodeyOutput;
+    if (this.model instanceof NodeyCodeCell) {
+      let output = this.notebook.history.store.getOutput(this.model);
+      if (output) return output.latest as NodeyOutput;
+    }
   }
 
   /**
@@ -89,72 +80,31 @@ export class VerCell {
       return (this.view as CodeCell).outputArea;
   }
 
-  /**
-   * Takes current on-screen text of the cell and starts the
-   * AST module creating a match between the last recorded version
-   * of this cell to this current text.
-   */
-  public async repair() {
+  public getText(): string {
     let text: string = this.lastSeenText;
 
     // check cell wasn't just deleted
     if (this.view.inputArea) {
       text = this.view.editor.model.value.text;
     }
-
-    await this.notebook.ast.repair.repair(this.model, text);
-  }
-
-  /**
-   * Repair then commit this cell
-   */
-  public async repairAndCommit(
-    checkpoint: Checkpoint
-  ): Promise<[NodeyCell, boolean]> {
-    // repair the cell against the prior version
-    await this.repair();
-    return this.commit(checkpoint);
-  }
-
-  /**
-   * Commit this cell, permanently recording it to history. Each
-   * commit requires a checkpoint that caused this commit to be
-   * triggered.
-   */
-  public commit(checkpoint: Checkpoint): [NodeyCell, boolean] {
-    let nodey = this.model;
-    let history = this.notebook.history.store.getHistoryOf(nodey.name);
-    let version = history.length - 1;
-
-    // commit the cell if it has changed
-    let newNodey = this.notebook.history.stage.commit(checkpoint, nodey);
-
-    let same = newNodey.version === version;
-
-    // output count can increment without the code ver incrementing
-    if (newNodey instanceof NodeyCodeCell) {
-      let verOut = this.notebook.history.store.getHistoryOf(newNodey.output)
-        .length;
-      same = same && newNodey.outputVer === verOut;
-    }
-
-    return [newNodey, same];
+    return text;
   }
 
   /**
    * Listen to events emitted by Jupyter Cell
    */
   private listen() {
-    this.view.model.contentChanged.connect(() => {
+    // TODO add back as an optimization for checking changes on save
+    /*this.view.model.contentChanged.connect(() => {
       /*
        * set model of this cell to star state, although we
        * don't know for sure yet, because of possible undo,
        * if anything has truly changed yet
        */
-      if (this.view.inputArea) {
+    /*if (this.view.inputArea) {
         this.lastSeenText = this.view.editor.model.value.text;
       }
       this.notebook.history.stage.markAsEdited(this.model);
-    });
+    });*/
   }
 }

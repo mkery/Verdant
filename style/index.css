@@ -39,6 +39,17 @@
   fill: var(--jp-ui-font-color1);
 }
 
+.verdant-icon-big-chevron {
+  height: 16px;
+  flex: 0 0 auto; /* prevents icon shrinking in flex context */
+  vertical-align: middle;
+  stroke: var(--jp-ui-font-color2);
+  margin: 0px 6px;
+}
+.verdant-icon-big-chevron:hover {
+  stroke: var(--jp-ui-font-color1);
+}
+
 .verdant-link {
   text-decoration: underline;
   color: var(--jp-content-link-color);

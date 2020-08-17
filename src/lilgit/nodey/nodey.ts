@@ -14,6 +14,10 @@ export abstract class Nodey {
     return this.typeChar + "." + this.id + "." + this.version;
   }
 
+  get artifactName(): string {
+    return this.typeChar + "." + this.id;
+  }
+
   public updateState(_: Nodey.Options) {}
 
   public toJSON(): Nodey.SERIALIZE {

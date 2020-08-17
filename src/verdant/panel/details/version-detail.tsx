@@ -10,6 +10,7 @@ import { connect } from "react-redux";
 export type Version_Props = {
   history: History;
   nodey: Nodey;
+  no_header: boolean;
 };
 
 class VersionDetail extends React.Component<Version_Props, { sample: string }> {
@@ -24,16 +25,26 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
     this.getSample();
   }
 
+  componentDidUpdate(prevProps: Version_Props) {
+    if (this.props.nodey.name != prevProps.nodey.name) this.getSample();
+  }
+
   render() {
     return (
       <div className="v-VerdantPanel-details-version">
-        <VersionHeader nodey={this.props.nodey} />
+        {this.showHeader()}
         <div
           className="v-VerdantPanel-details-version-sample"
           dangerouslySetInnerHTML={{ __html: this.state.sample }}
         ></div>
       </div>
     );
+  }
+
+  showHeader() {
+    if (!this.props.no_header)
+      return <VersionHeader nodey={this.props.nodey} />;
+    return null;
   }
 
   async getSample() {
@@ -60,9 +71,13 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   }
 }
 
-const mapStateToProps = (state: verdantState) => {
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<Version_Props>
+) => {
   return {
     history: state.getHistory(),
+    no_header: ownProps.no_header,
   };
 };
 
