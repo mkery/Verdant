@@ -4,7 +4,7 @@ import { History } from "../../lilgit/history/";
 import VersionDetail from "./details/version-detail";
 import CrumbMenu from "./details/crumbMenu";
 import { Nodey, NodeyCode } from "../../lilgit/nodey/";
-import { verdantState, inspectNode } from "../redux/";
+import { verdantState, showDetailOfNode } from "../redux/";
 import { connect } from "react-redux";
 
 export type Details_Props = {
@@ -83,7 +83,7 @@ class ArtifactDetails extends React.Component<Details_Props> {
 const mapDispatchToProps = (dispatch: any) => {
   return {
     showDetails: (n: Nodey) => {
-      dispatch(inspectNode(n));
+      dispatch(showDetailOfNode(n));
     },
   };
 };
@@ -92,7 +92,7 @@ const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     openGhostBook: state.openGhostBook,
-    target: state.inspectTarget,
+    target: state.artifactView.inspectTarget,
   };
 };
 

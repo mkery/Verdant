@@ -1,7 +1,7 @@
 import * as React from "react";
 import SummaryTable from "./summary/summary-table";
 import InspectorButton from "./inspector-button";
-import { ActiveTab, switchTab, verdantState, artifactState } from "../redux/";
+import { verdantState, artifactState } from "../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../lilgit/sampler/";
 import { History } from "../../lilgit/history";
@@ -11,7 +11,6 @@ const HEADER = "v-VerdantPanel-tab-header";
 const SUMMARY_TITLE = "v-VerdantPanel-Summary-title";
 
 export type ArtifactSummaryPane_Props = {
-  showDetail: () => void;
   notebook: artifactState;
   history: History;
 };
@@ -38,14 +37,6 @@ class ArtifactSummary extends React.Component<ArtifactSummaryPane_Props> {
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => {
-  return {
-    showDetail: () => {
-      dispatch(switchTab(ActiveTab.Artifact_Details));
-    },
-  };
-};
-
 const mapStateToProps = (state: verdantState) => {
   return {
     notebook: state.notebookArtifact,
@@ -53,4 +44,4 @@ const mapStateToProps = (state: verdantState) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ArtifactSummary);
+export default connect(mapStateToProps, null)(ArtifactSummary);

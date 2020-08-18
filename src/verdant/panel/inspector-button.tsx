@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    active: state.inspectOn,
+    active: state.artifactView.inspectOn,
   };
 };
 

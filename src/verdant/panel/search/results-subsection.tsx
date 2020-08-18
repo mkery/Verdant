@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
-import { verdantState, inspectNode, switchTab, ActiveTab } from "../../redux/";
+import { verdantState, showDetailOfNode } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer, Sampler, SAMPLE_TYPE } from "../../../lilgit/sampler/";
 import { VersionSampler } from "../../sampler/version-sampler";
@@ -132,8 +132,7 @@ class ResultsSubSection extends React.Component<
 const mapDispatchToProps = (dispatch: any) => {
   return {
     openNodeDetails: (inspectTarget?: Nodey) => {
-      dispatch(inspectNode(inspectTarget));
-      dispatch(switchTab(ActiveTab.Artifact_Details));
+      dispatch(showDetailOfNode(inspectTarget));
     },
   };
 };

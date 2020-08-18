@@ -1,18 +1,9 @@
-import { ActiveTab } from "../state";
 import { Nodey } from "../../../lilgit/nodey/";
 import { verdantState } from "../state";
 import { Wishbone } from "../../panel/details/wishbone";
 
-const INSPECT_TARGET = "INSPECT_TARGET";
 const INSPECT_ON = "INSPECT_ON";
 const INSPECT_OFF = "INSPECT_OFF";
-
-export const inspectNode = (target: Nodey) => {
-  return {
-    type: INSPECT_TARGET,
-    target,
-  };
-};
 
 export const inspectOn = () => {
   return {
@@ -27,14 +18,14 @@ export const inspectOff = () => {
 };
 
 export type artifactPaneState = {
-  activeView: ActiveTab.Artifact_Details | ActiveTab.Artifacts;
+  showingDetail: boolean;
   inspectOn: boolean;
   inspectTarget: Nodey;
 };
 
 export const artifactPaneInitialState = (): artifactPaneState => {
   return {
-    activeView: ActiveTab.Artifacts,
+    showingDetail: false,
     inspectOn: false,
     inspectTarget: null,
   };
@@ -43,19 +34,19 @@ export const artifactPaneInitialState = (): artifactPaneState => {
 export const artifactReducer = (
   state: verdantState,
   action: any
-): verdantState => {
+): artifactPaneState => {
+  const artifactState = state.artifactView;
   switch (action.type) {
-    case INSPECT_TARGET:
-      return { ...state, inspectTarget: action.target };
     case INSPECT_ON:
-      if (!state.inspectOn) {
+      if (!artifactState.inspectOn) {
         Wishbone.startWishbone(state.getHistory());
       }
-      return { ...state, inspectOn: true };
+      return { ...artifactState, inspectOn: true };
     case INSPECT_OFF:
-      if (state.inspectOn) Wishbone.endWishbone(state.getHistory().notebook);
-      return { ...state, inspectOn: false };
+      if (artifactState.inspectOn)
+        Wishbone.endWishbone(state.getHistory().notebook);
+      return { ...artifactState, inspectOn: false };
     default:
-      return state;
+      return artifactState;
   }
 };

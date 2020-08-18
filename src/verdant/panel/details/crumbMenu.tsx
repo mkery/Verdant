@@ -7,7 +7,12 @@ import {
   NodeyCodeCell,
 } from "../../../lilgit/nodey/";
 import { History } from "../../../lilgit/history/";
-import { verdantState, ActiveTab, switchTab, inspectNode } from "../../redux/";
+import {
+  verdantState,
+  ActiveTab,
+  switchTab,
+  showDetailOfNode,
+} from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler";
 
@@ -100,7 +105,7 @@ const mapDispatchToProps = (dispatch: any) => {
       dispatch(switchTab(ActiveTab.Artifacts));
     },
     showDetails: (n: Nodey) => {
-      dispatch(inspectNode(n));
+      dispatch(showDetailOfNode(n));
     },
   };
 };
@@ -108,7 +113,7 @@ const mapDispatchToProps = (dispatch: any) => {
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
-    target: state.inspectTarget,
+    target: state.artifactView.inspectTarget,
   };
 };
 

@@ -2,7 +2,7 @@ import * as React from "react";
 import { Nodey } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
 import { Checkpoint } from "../../../lilgit/checkpoint";
-import { verdantState, inspectNode } from "../../redux/";
+import { verdantState, showDetailOfNode } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler";
 
@@ -50,7 +50,7 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
 const mapDispatchToProps = (dispatch: any) => {
   return {
     showDetails: (n: Nodey) => {
-      dispatch(inspectNode(n));
+      dispatch(showDetailOfNode(n));
     },
   };
 };

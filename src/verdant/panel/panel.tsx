@@ -13,6 +13,7 @@ const TAB = "v-VerdantPanel-tab";
 
 type Panel_Props = {
   activeTab: ActiveTab;
+  showingDetail: boolean;
   setActiveTab: (n: ActiveTab) => void;
   openGhostBook: (n: number) => void;
 };
@@ -44,7 +45,13 @@ class PanelContainer extends React.Component<Partial<Panel_Props>> {
               ? "active"
               : ""
           }`}
-          onClick={() => this.props.setActiveTab(ActiveTab.Artifacts)}
+          onClick={() =>
+            this.props.setActiveTab(
+              this.props.showingDetail
+                ? ActiveTab.Artifact_Details
+                : ActiveTab.Artifacts
+            )
+          }
         >
           Artifacts
         </div>
@@ -73,6 +80,7 @@ const mapStateToProps = (state: verdantState) => {
   return {
     activeTab: state.activeTab,
     openGhostBook: state.openGhostBook,
+    showingDetail: state.artifactView.showingDetail,
   };
 };
 

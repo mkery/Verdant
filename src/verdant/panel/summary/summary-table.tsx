@@ -2,13 +2,7 @@ import * as React from "react";
 import { History } from "../../../lilgit/history";
 import { Nodey } from "../../../lilgit/nodey";
 import { connect } from "react-redux";
-import {
-  verdantState,
-  inspectNode,
-  switchTab,
-  ActiveTab,
-  artifactState,
-} from "../../redux/";
+import { verdantState, showDetailOfNode, artifactState } from "../../redux/";
 import { SummaryRow } from "./summary-row";
 
 export type Summary_Props = {
@@ -61,8 +55,7 @@ class SummaryTable extends React.Component<Summary_Props> {
 const mapDispatchToProps = (dispatch: any) => {
   return {
     showDetails: (n: Nodey) => {
-      dispatch(inspectNode(n));
-      dispatch(switchTab(ActiveTab.Artifact_Details));
+      dispatch(showDetailOfNode(n));
     },
   };
 };

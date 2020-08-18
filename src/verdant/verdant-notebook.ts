@@ -5,7 +5,7 @@ import { History } from "../lilgit/history/";
 import { VerNotebook } from "../lilgit/notebook";
 import { VerCell } from "../lilgit/cell";
 import { NotebookPanel } from "@jupyterlab/notebook";
-import { inspectNode, switchTab, ActiveTab, focusCell } from "./redux/";
+import { showDetailOfNode, focusCell } from "./redux/";
 import { updateCheckpoint } from "./redux/events";
 import { Nodey } from "../lilgit/nodey/";
 import { VerdantLog } from "./logger";
@@ -30,8 +30,7 @@ export class VerdantNotebook extends VerNotebook {
     // connect to keep inspect up to date in model and UI side
     history.ready.then(() => {
       history.inspector.targetChanged.connect((_: any, nodey: Nodey) => {
-        this.store.dispatch(inspectNode(nodey));
-        this.store.dispatch(switchTab(ActiveTab.Artifact_Details));
+        this.store.dispatch(showDetailOfNode(nodey));
       });
     });
   }

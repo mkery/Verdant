@@ -1,13 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Store } from "redux";
-import {
-  switchTab,
-  inspectNode,
-  ActiveTab,
-  ghostState,
-  initGhostBook,
-} from "../redux/";
+import { showDetailOfNode, ghostState, initGhostBook } from "../redux/";
 import { Widget } from "@lumino/widgets";
 import { GhostBook } from "./ghost-book";
 import { Namer } from "../../lilgit/sampler/";
@@ -39,8 +33,7 @@ export class Ghost extends Widget {
       link_artifact: (name: string) => {
         let history = store.getState().getHistory();
         let nodey = history.store.get(name);
-        store.dispatch(inspectNode(nodey));
-        store.dispatch(switchTab(ActiveTab.Artifact_Details));
+        store.dispatch(showDetailOfNode(nodey));
       },
     };
 
