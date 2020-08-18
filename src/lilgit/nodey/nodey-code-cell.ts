@@ -12,7 +12,6 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
   // Note this is simplified from Nodey Code
   public toJSON(): NodeyCode.SERIALIZE {
     let jsn = super.toJSON() as NodeyCode.SERIALIZE;
-    jsn.output = "o." + this.outputId + "." + this.outputVer;
     if (this.literal) jsn.literal = this.literal;
     jsn.start = this.start;
     jsn.end = this.end;
@@ -22,8 +21,6 @@ export class NodeyCodeCell extends NodeyCode implements NodeyCell {
 
 export namespace NodeyCodeCell {
   export function fromJSON(dat: NodeyCode.SERIALIZE): NodeyCodeCell {
-    let output = NodeyCode.parseOutputPointer(dat);
-
     return new NodeyCodeCell({
       parent: dat.parent,
       created: dat.start_checkpoint,
@@ -32,7 +29,6 @@ export namespace NodeyCodeCell {
       literal: dat.literal,
       start: dat.start,
       end: dat.end,
-      ...output,
     });
   }
 }

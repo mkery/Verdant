@@ -107,8 +107,10 @@ const mapStateToProps = (
   const cellDat = state.cellArtifacts[ownProps.cell_index];
   const cell = history.store.get(cellDat.name);
   let output;
-  if (cell instanceof NodeyCode && cell.output)
-    output = history.store.get(cell.output) as NodeyOutput;
+  if (cell instanceof NodeyCode) {
+    let outputHist = history.store.getOutput(cell);
+    if (outputHist) output = outputHist.latest;
+  }
   return {
     history,
     cell,

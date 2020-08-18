@@ -22,7 +22,8 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
 
   // send large/image output to external folder
   addVersion(nodey: NodeyOutput) {
-    let ver = super.addVersion(nodey);
+    super.addVersion(nodey);
+    let ver = nodey.version;
     let fixedRaw = nodey.raw.map((out, index) => {
       let imageTag = findImageTag(out);
       if (imageTag) console.log("ITS AN IMAGE");
@@ -30,7 +31,7 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
       if (imageTag) return this.sendImageToFile(ver, index, out, imageTag);
       return out;
     });
-    this.versions[ver - 1].raw = fixedRaw;
+    this.versions[ver].raw = fixedRaw;
     return ver;
   }
 

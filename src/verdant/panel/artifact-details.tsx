@@ -1,8 +1,9 @@
 import * as React from "react";
 import InspectorButton from "./inspector-button";
 import { History } from "../../lilgit/history/";
-import VersionDetail from "./details/version-detail";
 import CrumbMenu from "./details/crumbMenu";
+import Artifact from "./details/artifact";
+import ArtifactOrigin from "./details/artifact-origin";
 import { Nodey, NodeyCode } from "../../lilgit/nodey/";
 import { verdantState, showDetailOfNode } from "../redux/";
 import { connect } from "react-redux";
@@ -12,6 +13,7 @@ export type Details_Props = {
   openGhostBook: (node: number) => void;
   showDetails: (n: Nodey) => void;
   target: Nodey;
+  origins: Nodey[];
 };
 
 class ArtifactDetails extends React.Component<Details_Props> {
@@ -22,7 +24,10 @@ class ArtifactDetails extends React.Component<Details_Props> {
           <CrumbMenu />
           {this.showOutputLink()}
         </div>
-        <div className="v-VerdantPanel-content">{this.showVersions()}</div>
+        <div className="v-VerdantPanel-content">
+          <Artifact nodey={this.props.target} />
+          {this.showOrigins()}
+        </div>
         <InspectorButton />
       </div>
     );
@@ -30,13 +35,12 @@ class ArtifactDetails extends React.Component<Details_Props> {
 
   showOutputLink() {
     if (this.props.target instanceof NodeyCode) {
-      let out = this.props.target.output;
-      if (out) {
-        let outputHist = this.props.history.store.getHistoryOf(out);
+      let out = this.props.history.store.getAllOutput(this.props.target);
+      if (out && out.length > 0) {
         return (
           <span
             className="v-VerdantPanel-tab-header-outLink verdant-link"
-            onClick={() => this.props.showDetails(outputHist.lastSaved)}
+            onClick={() => this.props.showDetails(out[0].latest)} //TODO!
           >
             show all output
           </span>
@@ -46,14 +50,13 @@ class ArtifactDetails extends React.Component<Details_Props> {
     return null;
   }
 
-  showVersions() {
-    let elems = [];
-    let versions = this.props.history.store.getHistoryOf(this.props.target);
-    for (let i = versions.length - 1; i >= 0; i--) {
-      let nodey = versions.getVersion(i);
-      elems.push(<VersionDetail key={i} nodey={nodey} />);
-    }
-    return elems;
+  showOrigins() {
+    let prior: Nodey = this.props.target;
+    return this.props.origins.map((nodey, i) => {
+      let origin = <ArtifactOrigin key={i} derived={prior} nodey={nodey} />;
+      prior = nodey;
+      return origin;
+    });
   }
 
   // version pair <Version Singleton > < Version List >
@@ -61,23 +64,23 @@ class ArtifactDetails extends React.Component<Details_Props> {
   // version pair <Version List > (closed right side)
   // version pair <Version Singleton > (has no right side)
   /*
-  * steps: 1) figure out what L side and R side are
-  * 2) version pair instantiates L and R as Version Singletons or Version List
-  * 3) version pair manages the open/closed state of L side and R side
-  * /
+   * steps: 1) figure out what L side and R side are
+   * 2) version pair instantiates L and R as Version Singletons or Version List
+   * 3) version pair manages the open/closed state of L side and R side
+   */
+}
 
-  /* TODO
-  buildOrigins(nodey: Nodey): JSX.Element[] {
-    let hist = this.props.history.store.getHistoryOf(nodey);
-    if (hist.originPointer) {
-      let label = Mixin.labelOrigin(nodey);
-      let origin = this.props.history.store.get(hist.originPointer.origin);
-      let elems = this.buildMixins(origin);
-      elems.unshift(label);
-      return elems;
-    }
-    return [];
-  }*/
+function findOrigins(nodey: Nodey, history: History): Nodey[] {
+  let origins: Nodey[] = [];
+
+  let versions = history.store.getHistoryOf(nodey);
+  while (versions.originPointer) {
+    let o = history.store.get(versions.originPointer.origin);
+    origins.push(o);
+    versions = history.store.getHistoryOf(o);
+  }
+
+  return origins;
 }
 
 const mapDispatchToProps = (dispatch: any) => {
@@ -89,10 +92,14 @@ const mapDispatchToProps = (dispatch: any) => {
 };
 
 const mapStateToProps = (state: verdantState) => {
+  let history = state.getHistory();
+  let target = state.artifactView.inspectTarget;
+  let origins = findOrigins(target, history);
   return {
-    history: state.getHistory(),
+    history,
     openGhostBook: state.openGhostBook,
-    target: state.artifactView.inspectTarget,
+    target,
+    origins,
   };
 };
 

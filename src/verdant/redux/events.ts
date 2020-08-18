@@ -107,7 +107,6 @@ export const eventReducer = (
           ...state,
           dates: reducer_initEventMap(state),
           currentEvent: getInitialEvent(state.getHistory()),
-
           cellArtifacts: cellReducer(state.getHistory()),
           notebookArtifact: notebookReducer(state.getHistory()),
         };

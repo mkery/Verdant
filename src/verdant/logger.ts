@@ -93,6 +93,11 @@ export class VerdantLog {
 
 /* Function for redux middleware */
 const verLogger = (log: VerdantLog, store: Store) => (next) => (action) => {
+  console.log(
+    "REDUX",
+    action.type,
+    JSON.parse(JSON.stringify(store.getState()))
+  );
   log.recordAction(action, store);
   let result = next(action);
   return result;

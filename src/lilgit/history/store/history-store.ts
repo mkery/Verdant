@@ -13,35 +13,26 @@ import { log } from "../../notebook";
 
 import { FileManager } from "../../jupyter-hooks/file-manager";
 
-import { History, Star, UnsavedStar, NodeHistory, OutputHistory } from "..";
+import { History, NodeHistory, OutputHistory, CodeHistory } from "..";
 
 export class HistoryStore {
   readonly fileManager: FileManager;
   readonly history: History;
 
   private _notebookHistory: NodeHistory<NodeyNotebook>;
-  private _codeCellStore: NodeHistory<NodeyCodeCell>[] = [];
+  private _codeCellStore: CodeHistory[] = [];
   private _markdownStore: NodeHistory<NodeyMarkdown>[] = [];
   private _rawCellStore: NodeHistory<NodeyRawCell>[] = [];
   private _outputStore: OutputHistory[] = [];
   private _snippetStore: NodeHistory<NodeyCode>[] = [];
 
-  // this is a store for temporary nodes, stored by cell and cleaned out
-  // every time a save or run event occurs
-  private _starStore: { [id: string]: UnsavedStar[] } = {};
-
   constructor(history: History, fileManager: FileManager) {
     this.history = history;
     this.fileManager = fileManager;
-    this._notebookHistory = new NodeHistory<NodeyNotebook>();
   }
 
-  get currentNotebook(): NodeyNotebook | Star<NodeyNotebook> {
+  get currentNotebook(): NodeyNotebook {
     return this._notebookHistory.latest;
-  }
-
-  get lastSavedNotebook(): NodeyNotebook {
-    return this._notebookHistory.lastSaved as NodeyNotebook;
   }
 
   public getNotebook(ver: number): NodeyNotebook {
@@ -50,22 +41,19 @@ export class HistoryStore {
 
   get cells(): NodeyCell[] {
     let notebook = this.currentNotebook;
-    if (notebook instanceof Star) notebook = notebook.value;
     return notebook.cells.map((name) => this.get(name) as NodeyCell);
   }
 
   public getHistoryOf(name: string | Nodey): NodeHistory<Nodey> {
     let typeChar: string;
     let id: number;
-    let ver: string;
     if (typeof name === "string") {
       var idVal;
-      [typeChar, idVal, ver] = name.split(".");
+      [typeChar, idVal] = name.split(".");
       id = parseInt(idVal);
     } else if (name instanceof Nodey) {
       typeChar = name.typeChar;
       id = name.id;
-      ver = name.version;
     }
 
     switch (typeChar) {
@@ -81,24 +69,16 @@ export class HistoryStore {
         return this._markdownStore[id];
       case "r":
         return this._rawCellStore[id];
-      case "*": // a star node
-        return this.getHistoryOf(idVal + "." + ver);
-      case "TEMP": // an unsaved star node
-        return undefined;
       default:
         throw new Error("nodey type not found" + name + " " + typeof name);
     }
   }
 
-  getLatestOf(name: string | Nodey): Nodey | Star<Nodey> | UnsavedStar {
+  getLatestOf(name: string | Nodey): Nodey {
     let nodeHist = this.getHistoryOf(name);
-    if (nodeHist === undefined && typeof name == "string") {
-      log("possible error ", name);
-      // check if unsaved star
-      let [typeChar, cellId, id] = name.split(".");
-      if (typeChar === "TEMP") return this._starStore[cellId][parseInt(id)];
-    }
-    return nodeHist.latest;
+    if (nodeHist === undefined)
+      throw new Error("No history found for " + name + " " + typeof name);
+    else return nodeHist.latest;
   }
 
   getPriorVersion(name: string | Nodey): Nodey {
@@ -117,31 +97,45 @@ export class HistoryStore {
   get(name: string): Nodey {
     if (!name) return null;
     //log("attempting to find", name);
-    let [ch, , verVal] = name.split(".");
-    if (ch === "*") {
-      // THIS OCCURS IN A BUG
-      let nodeHist = this.getHistoryOf(name);
-      return nodeHist.lastSaved;
-    } else {
-      let ver = parseInt(verVal);
-      let nodeHist = this.getHistoryOf(name);
-      return nodeHist.getVersion(ver);
-    }
+    let [, , verVal] = name.split(".");
+    let ver = parseInt(verVal);
+    let nodeHist = this.getHistoryOf(name);
+    return nodeHist.getVersion(ver);
+  }
+
+  getOutput(nodey: NodeyCode): OutputHistory {
+    let cell: NodeyCodeCell;
+    if (nodey instanceof NodeyCodeCell) cell = nodey;
+    else cell = this.getCellParent(nodey);
+    let cellHistory = this.getHistoryOf(cell) as CodeHistory;
+    let outName = cellHistory.getOutput(cell.version);
+    if (outName) return this.getHistoryOf(outName) as OutputHistory;
+    return null;
+  }
+
+  getAllOutput(nodey: NodeyCode): OutputHistory[] {
+    let cell: NodeyCodeCell;
+    if (nodey instanceof NodeyCodeCell) cell = nodey;
+    else cell = this.getCellParent(nodey);
+    let cellHistory = this.getHistoryOf(cell) as CodeHistory;
+    let outNames = cellHistory.allOutput;
+    return outNames.map((name) => this.getHistoryOf(name) as OutputHistory);
   }
 
   public store(nodey: Nodey): void {
     if (nodey instanceof NodeyNotebook) {
       let id = 0;
       nodey.id = id;
-      let ver = this._notebookHistory.addVersion(nodey) - 1;
-      nodey.version = ver;
+      // if this is the first version
+      if (!this._notebookHistory)
+        this._notebookHistory = new NodeHistory<NodeyNotebook>();
+      this._notebookHistory.addVersion(nodey);
     } else {
       let store = this._getStoreFor(nodey);
       let history = this._makeHistoryFor(nodey);
       let id = store.push(history) - 1;
       nodey.id = id;
-      let version = store[nodey.id].addVersion(nodey) - 1;
-      nodey.version = version;
+      store[nodey.id].addVersion(nodey);
     }
   }
 
@@ -153,22 +147,6 @@ export class HistoryStore {
   public linkBackHistories(newNodey: Nodey, oldNodey: Nodey): void {
     let history = this.getHistoryOf(newNodey);
     history.addOriginPointer(oldNodey);
-  }
-
-  public storeUnsavedStar(
-    star: UnsavedStar,
-    parent: NodeyCode | Star<NodeyCode>
-  ) {
-    // store in temp star store not in permanent storage
-    let cell = this.getCellParent(parent);
-    if (!this._starStore[cell.id]) this._starStore[cell.id] = [];
-    let id = this._starStore[cell.id].push(star) - 1;
-    star.cellId = cell.id + "";
-    star.value.id = id;
-  }
-
-  public cleanOutStars(nodey: NodeyCell): void {
-    this._starStore[nodey.id] = [];
   }
 
   /*
@@ -263,12 +241,9 @@ export class HistoryStore {
   }
 
   private _makeHistoryFor(nodey: Nodey) {
-    if (
-      nodey instanceof NodeyCodeCell ||
-      nodey instanceof NodeyMarkdown ||
-      nodey instanceof NodeyRawCell
-    )
+    if (nodey instanceof NodeyMarkdown || nodey instanceof NodeyRawCell)
       return new NodeHistory<NodeyCell>();
+    else if (nodey instanceof NodeyCodeCell) return new CodeHistory();
     else if (nodey instanceof NodeyOutput)
       return new OutputHistory(this.fileManager);
     else if (nodey instanceof NodeyCode) return new NodeHistory<NodeyCode>();
@@ -277,28 +252,20 @@ export class HistoryStore {
   public registerTiedNodey(nodey: NodeyCell, forceTie: string): void {
     let oldNodey = this.get(forceTie) as NodeyCell;
     let history = this.getHistoryOf(oldNodey);
-    let version = history.addVersion(nodey) - 1;
+    history.addVersion(nodey);
     nodey.id = oldNodey.id;
-    nodey.version = version;
     return;
   }
 
-  public getCellParent(relativeTo: Nodey | Star<Nodey>): NodeyCodeCell {
-    log("get cell parent of ", relativeTo);
-    if (relativeTo instanceof Star) {
-      let val = relativeTo.value;
-      if (val instanceof NodeyCodeCell) return val;
-      else return this.getCellParent(this.getLatestOf(val.parent));
-    }
+  public getCellParent(relativeTo: Nodey): NodeyCodeCell {
+    //log("get cell parent of ", relativeTo);
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
     else if (relativeTo.parent)
       return this.getCellParent(this.getLatestOf(relativeTo.parent));
   }
 
-  public getNotebookOf(relativeTo: Nodey | Star<Nodey>): NodeyNotebook {
-    let val: Nodey;
-    if (relativeTo instanceof Star) val = relativeTo.value;
-    else val = relativeTo;
+  public getNotebookOf(relativeTo: Nodey): NodeyNotebook {
+    let val: Nodey = relativeTo;
 
     let created = val.created;
     if (created !== undefined) {
@@ -331,8 +298,8 @@ export class HistoryStore {
 
   public fromJSON(data: HistoryStore.SERIALIZE) {
     this._codeCellStore = data.codeCells.map(
-      (item: NodeHistory.SERIALIZE, id: number) => {
-        let hist = new NodeHistory<NodeyCodeCell>();
+      (item: CodeHistory.SERIALIZE, id: number) => {
+        let hist = new CodeHistory();
         hist.fromJSON(item, NodeyCodeCell.fromJSON, id);
         return hist;
       }
@@ -366,6 +333,7 @@ export class HistoryStore {
         return hist;
       }
     );
+    this._notebookHistory = new NodeHistory<NodeyNotebook>();
     this._notebookHistory.fromJSON(
       data.notebook,
       NodeyNotebook.fromJSON,

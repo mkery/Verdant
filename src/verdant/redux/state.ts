@@ -130,6 +130,6 @@ export const verdantReducer = (state: verdantState, action: any) => {
       let state_ev2 = eventReducer(state_ev, action);
       let state_ev3 = searchReducer(state_ev2, action);
       let state_ev4 = ghostReduce(state_ev3, action);
-      return { ...state, artifactView: artifactReducer(state_ev4, action) };
+      return { ...state_ev4, artifactView: artifactReducer(state_ev4, action) };
   }
 };

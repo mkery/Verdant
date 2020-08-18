@@ -1,11 +1,8 @@
 import { NotebookEvent } from ".";
 import { Cell } from "@jupyterlab/cells";
-import { ChangeType, CellRunData, CheckpointType } from "../checkpoint";
+import { CheckpointType } from "../checkpoint";
 import { VerCell } from "../cell";
 import { VerNotebook, log } from "../notebook";
-import { NodeyNotebook } from "../nodey/";
-import { Star } from "../history/";
-import { NodeyCell } from "../nodey/";
 
 export class CreateCell extends NotebookEvent {
   cell: Cell;
@@ -30,7 +27,7 @@ export class CreateCell extends NotebookEvent {
     );
   }
 
-  async modelUpdate(): Promise<NodeyCell[]> {
+  async modelUpdate() {
     // create the representation of the new cell
     let nodey = await this.notebook.ast.create.fromCell(
       this.cell,
@@ -40,25 +37,7 @@ export class CreateCell extends NotebookEvent {
     this.notebook.cells.splice(this.cell_index, 0, newCell);
 
     // update the notebook nodey
-    let model = this.history.stage.markAsEdited(this.notebook.model) as Star<
-      NodeyNotebook
-    >;
-    model.value.cells.splice(this.cell_index, 0, newCell.model.name);
-    newCell.model.parent = this.notebook.model.name;
-    log("CELL CREATED", model, newCell, this.notebook.cells);
-
-    // commit the notebook
-    let updatedNotebook = this.history.stage.commit(this.checkpoint, model);
-    log("notebook commited", updatedNotebook, this.notebook.model);
-
-    return [newCell.model as NodeyCell];
-  }
-
-  recordCheckpoint(changedCells: NodeyCell[]) {
-    let cellDat = {
-      node: changedCells[0].name,
-      changeType: ChangeType.ADDED,
-    } as CellRunData;
-    this.history.checkpoints.resolveCheckpoint(this.checkpoint.id, [cellDat]);
+    this.history.stage.commitCellAdded(nodey, this.cell_index, this.checkpoint);
+    log("CELL CREATED", newCell, this.notebook.cells);
   }
 }

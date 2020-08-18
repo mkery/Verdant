@@ -1,8 +1,8 @@
-import { NodeyCode, NodeyCodeCell, SyntaxToken } from "../nodey/";
+import { NodeyCode, NodeyCodeCell } from "../nodey/";
 import { ServerConnection } from "@jupyterlab/services";
 import { URLExt } from "@jupyterlab/coreutils";
 import { jsn } from "../notebook";
-import { Star, History } from "../history/";
+import { History } from "../history/";
 import { log } from "../notebook";
 
 type Range = { start: Pos; end: Pos };
@@ -184,90 +184,5 @@ namespace Private {
       return match; //TODO
     }
     return null;
-  }
-}
-
-export type $NodeyCode$ = NodeyCode | Star<NodeyCode>;
-export type $NodeyCodeCell$ = NodeyCodeCell | Star<NodeyCodeCell>;
-
-export namespace $NodeyCode$ {
-  /*
-   * Helper functions for matching
-   */
-  export function getType(nodey: NodeyCode | Star<NodeyCode>): string {
-    if (nodey instanceof NodeyCode) return nodey.type;
-    return nodey.value.type;
-  }
-
-  export function setRight(nodey: NodeyCode | Star<NodeyCode>, right: string) {
-    if (nodey instanceof NodeyCode) nodey.right = right;
-    else nodey.value.right = right;
-  }
-
-  export function pendingUpdate(nodey: NodeyCode | Star<NodeyCode>): string {
-    if (nodey instanceof NodeyCode) return nodey.pendingUpdate;
-    return nodey.value.pendingUpdate;
-  }
-
-  export function setPendingUpdate(
-    nodey: NodeyCode | Star<NodeyCode>,
-    value: string
-  ): void {
-    if (nodey instanceof NodeyCode) nodey.pendingUpdate = value;
-    else nodey.value.pendingUpdate = value;
-  }
-
-  export function getEnd(nodey: NodeyCode | Star<NodeyCode>): Pos {
-    if (nodey instanceof NodeyCode) return nodey.end;
-    return nodey.value.end;
-  }
-
-  export function setEnd(nodey: NodeyCode | Star<NodeyCode>, end: Pos) {
-    if (nodey instanceof NodeyCode) nodey.end = end;
-    else nodey.value.end = end;
-  }
-
-  export function getStart(nodey: NodeyCode | Star<NodeyCode>): Pos {
-    if (nodey instanceof NodeyCode) return nodey.start;
-    return nodey.value.start;
-  }
-
-  export function setStart(nodey: NodeyCode | Star<NodeyCode>, start: Pos) {
-    if (nodey instanceof NodeyCode) nodey.start = start;
-    else nodey.value.start = start;
-  }
-
-  export function getParent(nodey: NodeyCode | Star<NodeyCode>): string {
-    if (nodey instanceof NodeyCode) return nodey.parent;
-    return nodey.value.parent;
-  }
-
-  export function positionRelativeTo(
-    nodey: NodeyCode | Star<NodeyCode>,
-    relativeTo: NodeyCode | Star<NodeyCode>
-  ) {
-    let target: NodeyCode;
-    if (relativeTo instanceof Star) target = relativeTo.value;
-    else target = relativeTo;
-    if (nodey instanceof NodeyCode) nodey.positionRelativeTo(target);
-    else nodey.value.positionRelativeTo(target);
-  }
-
-  export function getContent(nodey: NodeyCode | Star<NodeyCode>) {
-    if (nodey instanceof NodeyCode) return nodey.content;
-    else return nodey.value.content;
-  }
-
-  export function setContent(
-    nodey: NodeyCode | Star<NodeyCode>,
-    content: (string | SyntaxToken)[]
-  ) {
-    if (nodey instanceof NodeyCode) nodey.content = content;
-    else nodey.value.content = content;
-  }
-
-  export function getLiteral(nodey: NodeyCode | Star<NodeyCode>) {
-    if (nodey instanceof NodeyCode) return nodey.literal;
-    else return nodey.value.literal;
   }
 }
