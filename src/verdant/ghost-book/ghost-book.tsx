@@ -63,8 +63,8 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    cells: state.ghostCells,
-    diffPresent: state.diffPresent,
+    cells: state.ghostBook.cells,
+    diffPresent: state.ghostBook.diffPresent,
   };
 };
 

@@ -162,7 +162,7 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<NotebookDate_Props>
 ) => {
-  let dateState = state.dates[ownProps.date_id];
+  let dateState = state.eventView.dates[ownProps.date_id];
   return {
     date: dateState.date,
     events: dateState.events,

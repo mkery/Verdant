@@ -139,7 +139,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    search_query: state.searchQuery,
+    search_query: state.search.searchQuery,
     history: state.getHistory(),
     openGhostBook: state.openGhostBook,
   };

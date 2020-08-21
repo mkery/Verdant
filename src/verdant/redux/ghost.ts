@@ -1,20 +1,11 @@
 import { verdantState } from "./state";
-import { Ghost } from "../ghost-book/ghost";
 import { Checkpoint, CheckpointType } from "../../lilgit/checkpoint";
 import { NodeyCode } from "../../lilgit/nodey";
 import { History } from "../../lilgit/history";
 
-const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
 const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
 const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";
-
-export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
-  return {
-    type: SET_GHOST_OPENER,
-    fun,
-  };
-};
 
 export const initGhostBook = (state: Partial<ghostState>) => {
   return {
@@ -37,10 +28,9 @@ export const focusGhostCell = (cell_name: string) => {
 };
 
 export type ghostState = {
-  openGhostBook: (notebook: number) => Ghost;
   notebook_ver: number;
-  ghostCells: Map<string, ghostCellState>;
-  ghostCellOutputs: Map<string, ghostCellOutputState>;
+  cells: Map<string, ghostCellState>;
+  cellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
   diffPresent: boolean;
   link_artifact: (n: string) => void;
@@ -49,10 +39,9 @@ export type ghostState = {
 
 export const ghostInitialState = (): ghostState => {
   return {
-    openGhostBook: null,
     notebook_ver: -1,
-    ghostCells: new Map(),
-    ghostCellOutputs: new Map(),
+    cells: new Map(),
+    cellOutputs: new Map(),
     active_cell: null,
     diffPresent: false,
     link_artifact: null,
@@ -80,14 +69,13 @@ export type ghostCellOutputState = {
   events: Checkpoint[];
 };
 
-export const ghostReduce = (state: verdantState, action: any): verdantState => {
+export const ghostReduce = (state: verdantState, action: any): ghostState => {
+  const ghost = state.ghostBook;
   switch (action.type) {
-    case SET_GHOST_OPENER:
-      return { ...state, openGhostBook: action.fun };
     case INIT_GHOSTBOOK: {
-      let present = { ...state };
+      let present = { ...ghost };
       for (let key in action.state) present[key] = action.state[key];
-      [present.ghostCells, present.ghostCellOutputs] = loadCells(
+      [present.cells, present.cellOutputs] = loadCells(
         state.getHistory(),
         present.notebook_ver,
         present.diffPresent
@@ -95,9 +83,9 @@ export const ghostReduce = (state: verdantState, action: any): verdantState => {
       return present;
     }
     case TOGGLE_SHOW_CELLS: {
-      const present = { ...state };
-      present.diffPresent = !state.diffPresent;
-      [present.ghostCells, present.ghostCellOutputs] = loadCells(
+      const present = { ...ghost };
+      present.diffPresent = !state.ghostBook.diffPresent;
+      [present.cells, present.cellOutputs] = loadCells(
         state.getHistory(),
         present.notebook_ver,
         present.diffPresent
@@ -105,14 +93,14 @@ export const ghostReduce = (state: verdantState, action: any): verdantState => {
       return present;
     }
     case SWITCH_GHOST_CELL:
-      if (state.active_cell != action.cell)
+      if (ghost.active_cell != action.cell)
         return {
-          ...state,
+          ...ghost,
           active_cell: action.cell,
         };
-      else return state;
+      else return ghost;
     default:
-      return state;
+      return ghost;
   }
 };
 

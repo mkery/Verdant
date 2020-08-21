@@ -1,7 +1,14 @@
 import { History } from "../../lilgit/history";
 import { Nodey } from "../../lilgit/nodey/";
+import { Ghost } from "../ghost-book/ghost";
 import { ghostState, ghostReduce, ghostInitialState } from "./ghost";
-import { eventMapState, eventReducer, eventsInitialState } from "./events";
+import {
+  eventMapState,
+  eventReducer,
+  eventsInitialState,
+  INIT_EVENT_MAP,
+  UPDATE_CHECKPOINT,
+} from "./events";
 import {
   notebookState,
   notebookReducer,
@@ -19,8 +26,16 @@ import {
 } from "./viewStates/search";
 import { Wishbone } from "../panel/details/wishbone";
 
+const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const SWITCH_TAB = "SWITCH_TAB";
 const INSPECT_TARGET = "INSPECT_TARGET";
+
+export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
+  return {
+    type: SET_GHOST_OPENER,
+    fun,
+  };
+};
 
 export const switchTab = (name: ActiveTab) => {
   return {
@@ -45,27 +60,31 @@ export enum ActiveTab {
 
 export type verdantState = {
   getHistory: () => History;
+  openGhostBook: (notebook: number) => Ghost;
+  eventView: eventMapState;
   activeTab: ActiveTab;
   artifactView: artifactPaneState;
-} & notebookState &
-  ghostState &
-  eventMapState &
-  searchState;
+  search: searchState;
+  ghostBook: ghostState;
+} & notebookState;
 
 export const createInitialState = (getHistory: () => History): verdantState => {
   return {
     getHistory: getHistory,
+    openGhostBook: null,
+    eventView: eventsInitialState(),
     activeTab: ActiveTab.Events,
     artifactView: artifactPaneInitialState(),
+    search: searchInitialState(),
+    ghostBook: ghostInitialState(),
     ...notebookStateInitialState(),
-    ...eventsInitialState(),
-    ...ghostInitialState(),
-    ...searchInitialState(),
   };
 };
 
 export const verdantReducer = (state: verdantState, action: any) => {
   switch (action.type) {
+    case SET_GHOST_OPENER:
+      return { ...state, openGhostBook: action.fun };
     case SWITCH_TAB:
       // ensure inspect interaction is turned off when switching tab
       if (state.artifactView.inspectOn)
@@ -125,11 +144,26 @@ export const verdantReducer = (state: verdantState, action: any) => {
           },
         };
       }
+    case INIT_EVENT_MAP:
+      return {
+        ...notebookReducer(state, action),
+        eventView: eventReducer(state, action),
+      };
+    case UPDATE_CHECKPOINT:
+      // both of these cases require an update of notebook as well as event view
+      let state_1 = notebookReducer(state, action);
+      return {
+        ...state_1,
+        eventView: eventReducer(state_1, action),
+      };
     default:
       let state_ev = notebookReducer(state, action);
-      let state_ev2 = eventReducer(state_ev, action);
-      let state_ev3 = searchReducer(state_ev2, action);
-      let state_ev4 = ghostReduce(state_ev3, action);
-      return { ...state_ev4, artifactView: artifactReducer(state_ev4, action) };
+      return {
+        ...state_ev,
+        eventView: eventReducer(state_ev, action),
+        search: searchReducer(state_ev, action),
+        artifactView: artifactReducer(state_ev, action),
+        ghostState: ghostReduce(state_ev, action),
+      };
   }
 };

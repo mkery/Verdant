@@ -143,8 +143,8 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
   return {
     history: state.getHistory(),
-    diffPresent: state.diffPresent,
-    hasFocus: () => state.active_cell === ownProps.name,
+    diffPresent: state.ghostBook.diffPresent,
+    hasFocus: () => state.ghostBook.active_cell === ownProps.name,
   };
 };
 

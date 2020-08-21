@@ -109,8 +109,8 @@ class Toolbar extends React.Component<
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
-    ver: state.notebook_ver,
-    diffPresent: state.diffPresent,
+    ver: state.ghostBook.notebook_ver,
+    diffPresent: state.ghostBook.diffPresent,
   };
 };
 

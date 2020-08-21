@@ -181,7 +181,8 @@ const mapStateToProps = (
 ) => {
   if (ownProps.event_id !== null) {
     // regular case
-    let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
+    let eventList =
+      state.eventView.dates[ownProps.date_id].events[ownProps.event_id];
     return {
       events: eventList.events,
       eventCount: eventList.events.length,

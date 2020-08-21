@@ -22,11 +22,11 @@ export const searchInitialState = (): searchState => {
 export const searchReducer = (
   state: verdantState,
   action: any
-): verdantState => {
+): searchState => {
   switch (action.type) {
     case SEARCH_FOR:
-      return { ...state, searchQuery: action.query };
+      return { ...state.search, searchQuery: action.query };
     default:
-      return state;
+      return state.search;
   }
 };

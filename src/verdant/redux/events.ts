@@ -1,12 +1,10 @@
 import { History } from "../../lilgit/history/";
 import { Checkpoint } from "../../lilgit/checkpoint";
 import { verdantState } from "./state";
-import { artifactState } from "./notebook";
-import { VerCell } from "../../lilgit/cell";
 
+export const INIT_EVENT_MAP = "INIT_EVENT_MAP";
+export const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
 const ADD_EVENT = "ADD_EVENT";
-const INIT_EVENT_MAP = "INIT_EVENT_MAP";
-const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
 const DATE_EXPAND = "DATE_EXPAND";
 const SAVE_BUNDLES = "SAVE_BUNDLES";
 const BUNDLE_EXPAND = "BUNDLE_EXPAND";
@@ -88,88 +86,86 @@ export type dateState = {
 
 /* main state */
 export type eventMapState = {
+  ready: boolean;
   dates: dateState[];
   currentEvent: Checkpoint;
 };
 
 export const eventsInitialState = (): eventMapState => {
-  return { dates: [] as dateState[], currentEvent: null };
+  return { ready: false, dates: [] as dateState[], currentEvent: null };
 };
 
 export const eventReducer = (
   state: verdantState,
   action: any
-): verdantState => {
+): eventMapState => {
+  const eventView = state.eventView;
   switch (action.type) {
     case INIT_EVENT_MAP:
-      if (state.dates.length < 2)
+      if (eventView.dates.length < 2)
         return {
-          ...state,
           dates: reducer_initEventMap(state),
           currentEvent: getInitialEvent(state.getHistory()),
-          cellArtifacts: cellReducer(state.getHistory()),
-          notebookArtifact: notebookReducer(state.getHistory()),
+          ready: true,
         };
-      else return state;
+      else return eventView;
     case UPDATE_CHECKPOINT:
-      if (action.currentEvent != state.currentEvent) {
+      if (action.currentEvent != eventView.currentEvent) {
         return {
           // update both event map and current event with new event
-          ...state,
+          ...eventView,
           currentEvent: action.currentEvent,
-          cellArtifacts: cellReducer(state.getHistory()),
-          notebookArtifact: notebookReducer(state.getHistory()),
-          dates: reducer_addEvent(action.currentEvent, state.dates),
+          dates: reducer_addEvent(action.currentEvent, eventView.dates),
         };
-      } else return state;
+      } else return eventView;
     case ADD_EVENT:
       return {
-        ...state,
-        dates: reducer_addEvent(action.ev, [...state.dates]),
+        ...eventView,
+        dates: reducer_addEvent(action.ev, [...eventView.dates]),
       };
     case DATE_EXPAND:
       const updatedElement = {
-        ...state.dates[action.date],
+        ...eventView.dates[action.date],
         isOpen: action.status,
       };
       return {
-        ...state,
+        ...eventView,
         dates: [
-          ...state.dates.slice(0, action.date),
+          ...eventView.dates.slice(0, action.date),
           updatedElement,
-          ...state.dates.slice(action.date + 1),
+          ...eventView.dates.slice(action.date + 1),
         ],
       };
     case SAVE_BUNDLES:
       const updatedBundles = {
-        ...state.dates[action.date],
+        ...eventView.dates[action.date],
         bundles: action.bundles,
       };
       return {
-        ...state,
+        ...eventView,
         dates: [
-          ...state.dates.slice(0, action.date),
+          ...eventView.dates.slice(0, action.date),
           updatedBundles,
-          ...state.dates.slice(action.date + 1),
+          ...eventView.dates.slice(action.date + 1),
         ],
       };
     case BUNDLE_EXPAND:
-      const bundleStates = state.dates[action.date].bundleStates;
+      const bundleStates = eventView.dates[action.date].bundleStates;
       bundleStates[action.bundle_id].isOpen = action.status;
       const updatedBundleDate = {
-        ...state.dates[action.date],
+        ...eventView.dates[action.date],
         bundleStates: bundleStates,
       };
       return {
-        ...state,
+        ...eventView,
         dates: [
-          ...state.dates.slice(0, action.date),
+          ...eventView.dates.slice(0, action.date),
           updatedBundleDate,
-          ...state.dates.slice(action.date + 1),
+          ...eventView.dates.slice(action.date + 1),
         ],
       };
     default:
-      return state;
+      return eventView;
   }
 };
 
@@ -221,26 +217,6 @@ function reducer_initEventMap(state: verdantState) {
     x.bundleStates.map((b) => (b.isOpen = false));
     return { ...x, isOpen: i == dates.length - 1 };
   });
-}
-
-function cellReducer(history: History): artifactState[] {
-  return history.notebook.cells.map((cell: VerCell) => {
-    let name = cell.model.name;
-    let outputVer = 0;
-    if (cell.output) {
-      let latestOut = history.store.getLatestOf(cell.output);
-      outputVer = parseInt(latestOut.version);
-    }
-    let ver = cell.model.version;
-
-    return { name, ver, outputVer };
-  });
-}
-
-function notebookReducer(history: History): artifactState {
-  let i = history.notebook.model.version;
-  let version = parseInt(i);
-  return { name: "", ver: version, file: history.notebook.name };
 }
 
 function getInitialEvent(history: History): Checkpoint {

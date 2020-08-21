@@ -86,7 +86,7 @@ class Search extends React.Component<Search_Props, Search_State> {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    search_query: state.searchQuery,
+    search_query: state.search.searchQuery,
     history: state.getHistory(),
   };
 };

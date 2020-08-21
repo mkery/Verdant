@@ -199,12 +199,13 @@ const mapStateToProps = (
   ownProps: Partial<DateBundle_Props>
 ) => {
   const checkpoints = ownProps.events
-    .map((e) => state.dates[ownProps.date_id].events[e].events)
+    .map((e) => state.eventView.dates[ownProps.date_id].events[e].events)
     .reduceRight((acc, current) => acc.concat(current), []);
   return {
-    event_states: state.dates[ownProps.date_id].events,
+    event_states: state.eventView.dates[ownProps.date_id].events,
     isOpen:
-      state.dates[ownProps.date_id].bundleStates[ownProps.bundle_id].isOpen,
+      state.eventView.dates[ownProps.date_id].bundleStates[ownProps.bundle_id]
+        .isOpen,
     checkpoints: checkpoints,
     history: state.getHistory(),
   };
