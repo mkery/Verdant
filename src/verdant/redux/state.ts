@@ -86,23 +86,27 @@ export const verdantReducer = (state: verdantState, action: any) => {
     case SET_GHOST_OPENER:
       return { ...state, openGhostBook: action.fun };
     case SWITCH_TAB:
+      let artifact_state = { ...state.artifactView };
+
       // ensure inspect interaction is turned off when switching tab
-      if (state.artifactView.inspectOn)
+      if (state.artifactView.inspectOn) {
         Wishbone.endWishbone(state.getHistory().notebook);
+        artifact_state.inspectOn = false;
+      }
 
       // if transitioning from detail to summary, cancel the current inspect target
-      let showingDetail = state.artifactView.showingDetail;
-      let inspectTarget = state.artifactView.inspectTarget;
       if (
         state.activeTab === ActiveTab.Artifact_Details &&
         action.tab === ActiveTab.Artifacts
       ) {
-        showingDetail = false;
-        inspectTarget = null;
+        artifact_state = artifactPaneInitialState();
       }
 
       // if transitioning to detail view, double-check there's a valid target
-      if (action.tab === ActiveTab.Artifact_Details && !inspectTarget) {
+      if (
+        action.tab === ActiveTab.Artifact_Details &&
+        !artifact_state.inspectTarget
+      ) {
         action.tab = state.activeTab;
         if (state.activeTab === ActiveTab.Artifact_Details)
           action.tab = ActiveTab.Artifacts;
@@ -111,12 +115,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
       return {
         ...state,
         activeTab: action.tab,
-        artifactView: {
-          ...state.artifactView,
-          inspectOn: false,
-          showingDetail,
-          inspectTarget,
-        },
+        artifactView: artifact_state,
       };
     case INSPECT_TARGET:
       // showing details of a target will open the artifact detail view

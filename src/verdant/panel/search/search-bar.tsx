@@ -1,10 +1,11 @@
 import * as React from "react";
 import { SearchIcon } from "../../icons";
-import { searchForText } from "../../redux/";
+import { searchForText, verdantState } from "../../redux/";
 import { connect } from "react-redux";
 
 type SearchBar_Props = {
   searchFor: (string) => void;
+  searchQuery: string;
 };
 
 type SearchBar_State = {
@@ -15,7 +16,7 @@ class SearchBar extends React.Component<SearchBar_Props, SearchBar_State> {
   constructor(props: SearchBar_Props) {
     super(props);
     this.state = {
-      searchbox_text: "",
+      searchbox_text: props.searchQuery ? props.searchQuery : "",
     };
   }
 
@@ -50,4 +51,10 @@ const mapDispatchToProps = (dispatch: any) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(SearchBar);
+const mapStateToProps = (state: verdantState) => {
+  return {
+    searchQuery: state.search.searchQuery,
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(SearchBar);

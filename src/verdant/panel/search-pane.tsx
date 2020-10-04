@@ -1,37 +1,22 @@
 import * as React from "react";
 import { History } from "../../lilgit/history";
-import { Nodey } from "../../lilgit/nodey";
 import SearchBar from "./search/search-bar";
 import ResultsSection from "./search/results-section";
-import { verdantState } from "../redux/";
+import { verdantState, searchResults, setResults } from "../redux/";
 import { connect } from "react-redux";
 
 type Search_Props = {
   history: History;
   search_query: string;
+  results: searchResults;
+  openResults: string[];
+  set_results: (results: searchResults) => void;
 };
 
-type Search_State = {
-  search_results: Nodey[][][];
-  result_labels: string[];
-  results_counts: number[];
-  results_sectionOpen: number;
-};
-
-class Search extends React.Component<Search_Props, Search_State> {
-  constructor(props: Search_Props) {
-    super(props);
-    this.state = {
-      search_results: [],
-      result_labels: [],
-      results_counts: [],
-      results_sectionOpen: null,
-    };
-  }
-
+class Search extends React.Component<Search_Props> {
   componentDidUpdate(priorProps: Search_Props) {
     if (priorProps.search_query !== this.props.search_query) {
-      this.setState({ search_results: [], result_labels: [] });
+      this.props.set_results([]);
       this.search();
     }
   }
@@ -53,29 +38,23 @@ class Search extends React.Component<Search_Props, Search_State> {
       let [output, oCount] = this.props.history.store.findOutput(query);
 
       // finally set search results
-      this.setState({
-        search_results: [code, markdown, output],
-        results_counts: [cCount, mCount, oCount],
-        result_labels: ["code history", "markdown history", "output history"],
-      });
+      this.props.set_results([
+        { label: "code history", count: cCount, results: code },
+        { label: "markdown history", count: mCount, results: markdown },
+        { label: "output history", count: oCount, results: output },
+      ]);
     }
   }
 
   showResults() {
-    if (this.state.search_results.length > 0) {
-      return this.state.result_labels.map((label, index) => {
+    if (this.props.results.length > 0) {
+      return this.props.results.map((results, index) => {
         return (
           <ResultsSection
             key={index}
-            results={this.state.search_results[index]}
-            totalResults={this.state.results_counts[index]}
-            openSection={() => {
-              if (this.state.results_sectionOpen !== index)
-                this.setState({ results_sectionOpen: index });
-              else this.setState({ results_sectionOpen: null });
-            }}
-            sectionOpen={this.state.results_sectionOpen === index}
-            title={label}
+            results={results.results}
+            totalResults={results.count}
+            title={results.label}
           />
         );
       });
@@ -84,11 +63,21 @@ class Search extends React.Component<Search_Props, Search_State> {
   }
 }
 
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    set_results: (results: searchResults) => {
+      dispatch(setResults(results));
+    },
+  };
+};
+
 const mapStateToProps = (state: verdantState) => {
   return {
     search_query: state.search.searchQuery,
     history: state.getHistory(),
+    openResults: state.search.openResults,
+    results: state.search.searchResults,
   };
 };
 
-export default connect(mapStateToProps, null)(Search);
+export default connect(mapStateToProps, mapDispatchToProps)(Search);

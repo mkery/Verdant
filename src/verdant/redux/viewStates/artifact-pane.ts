@@ -4,6 +4,8 @@ import { Wishbone } from "../../panel/details/wishbone";
 
 const INSPECT_ON = "INSPECT_ON";
 const INSPECT_OFF = "INSPECT_OFF";
+const OPEN_PAIR = "OPEN_PAIR";
+const CLOSE_PAIR = "CLOSE_PAIR";
 
 export const inspectOn = () => {
   return {
@@ -17,10 +19,25 @@ export const inspectOff = () => {
   };
 };
 
+export const openPair = (primaryNode) => {
+  return {
+    type: OPEN_PAIR,
+    primaryNode,
+  };
+};
+
+export const closePair = (primaryNode) => {
+  return {
+    type: CLOSE_PAIR,
+    primaryNode,
+  };
+};
+
 export type artifactPaneState = {
   showingDetail: boolean;
   inspectOn: boolean;
   inspectTarget: Nodey;
+  openDetailPairs: string[];
 };
 
 export const artifactPaneInitialState = (): artifactPaneState => {
@@ -28,6 +45,7 @@ export const artifactPaneInitialState = (): artifactPaneState => {
     showingDetail: false,
     inspectOn: false,
     inspectTarget: null,
+    openDetailPairs: [],
   };
 };
 
@@ -46,6 +64,16 @@ export const artifactReducer = (
       if (artifactState.inspectOn)
         Wishbone.endWishbone(state.getHistory().notebook);
       return { ...artifactState, inspectOn: false };
+    case OPEN_PAIR:
+      let openDetailPairs = state.artifactView.openDetailPairs;
+      openDetailPairs.push(action.primaryNode);
+      return { ...artifactState, openDetailPairs };
+    case CLOSE_PAIR:
+      let closeDetailPairs = state.artifactView.openDetailPairs;
+      closeDetailPairs = closeDetailPairs.filter(
+        (item) => item !== action.primaryNode
+      );
+      return { ...artifactState, openDetailPairs: closeDetailPairs };
     default:
       return artifactState;
   }
