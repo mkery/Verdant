@@ -50,6 +50,13 @@
   stroke: var(--jp-ui-font-color1);
 }
 
+.verdant-icon-x {
+  fill: var(--jp-ui-font-color1);
+  height: 16px;
+  flex: 0 0 auto; /* prevents icon shrinking in flex context */
+  vertical-align: middle;
+}
+
 .verdant-link {
   text-decoration: underline;
   color: var(--jp-content-link-color);

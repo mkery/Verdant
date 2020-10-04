@@ -5,6 +5,7 @@ const SEARCH_FOR = "SEARCH_FOR";
 const SET_RESULTS = "SET_RESULTS";
 const OPEN_RESULTS = "OPEN_RESULTS";
 const CLOSE_RESULTS = "CLOSE_RESULTS";
+const CLOSE_ALL_RESULTS = "CLOSE_ALL_RESULTS";
 
 export type searchResults = {
   label: string;
@@ -29,6 +30,10 @@ export const openResults = (label: string) => {
 
 export const closeResults = (label: string) => {
   return { type: CLOSE_RESULTS, label };
+};
+
+export const closeAll = () => {
+  return { type: CLOSE_ALL_RESULTS };
 };
 
 export type searchState = {
@@ -66,6 +71,8 @@ export const searchReducer = (
       let closeLabels = search_state.openResults;
       closeLabels = closeLabels.filter((l) => l != action.label);
       return { ...search_state, openResults: closeLabels };
+    case CLOSE_ALL_RESULTS:
+      return { ...search_state, openResults: [] };
     default:
       return state.search;
   }

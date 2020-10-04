@@ -6,6 +6,7 @@
 
 .v-VerdantPanel-searchContainer {
   display: flex;
+  position: relative;
   flex-direction: row;
   vertical-align: text-bottom;
   padding: 18px 12px;
@@ -24,6 +25,15 @@
   width: calc(1.75em - 2px);
   fill: var(--jp-layout-color4);
   margin-right: 1em;
+}
+
+.v-VerdantPanel-searchContainer .verdant-icon-x {
+  margin-top: 3px;
+  z-index: 2;
+  fill: var(--jp-ui-font-color2);
+  padding: 3px;
+  border-radius: 5px;
+  background: var(--verdant-ghost-color1);
 }
 
 .v-VerdantPanel-searchText {

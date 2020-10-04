@@ -1,5 +1,5 @@
 import * as React from "react";
-import { SearchIcon } from "../../icons";
+import { SearchIcon, XIcon } from "../../icons";
 import { searchForText, verdantState } from "../../redux/";
 import { connect } from "react-redux";
 
@@ -10,6 +10,7 @@ type SearchBar_Props = {
 
 type SearchBar_State = {
   searchbox_text: string;
+  show_x: boolean;
 };
 
 class SearchBar extends React.Component<SearchBar_Props, SearchBar_State> {
@@ -17,12 +18,17 @@ class SearchBar extends React.Component<SearchBar_Props, SearchBar_State> {
     super(props);
     this.state = {
       searchbox_text: props.searchQuery ? props.searchQuery : "",
+      show_x: false,
     };
   }
 
   render() {
     return (
-      <div className="v-VerdantPanel-searchContainer">
+      <div
+        className="v-VerdantPanel-searchContainer"
+        onMouseEnter={() => this.setState({ show_x: true })}
+        onMouseLeave={() => this.setState({ show_x: false })}
+      >
         <SearchIcon />
         <input
           className="v-VerdantPanel-searchText"
@@ -40,6 +46,19 @@ class SearchBar extends React.Component<SearchBar_Props, SearchBar_State> {
             }
           }}
         ></input>
+        <div
+          style={{
+            position: "absolute",
+            right: "16px",
+            display: this.state.show_x ? "" : "none",
+          }}
+          onClick={() => {
+            this.setState({ searchbox_text: "" });
+            this.props.searchFor(null);
+          }}
+        >
+          <XIcon />
+        </div>
       </div>
     );
   }

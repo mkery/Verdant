@@ -2,7 +2,7 @@ import * as React from "react";
 import { History } from "../../lilgit/history";
 import SearchBar from "./search/search-bar";
 import ResultsSection from "./search/results-section";
-import { verdantState, searchResults, setResults } from "../redux/";
+import { verdantState, searchResults, setResults, closeAll } from "../redux/";
 import { connect } from "react-redux";
 
 type Search_Props = {
@@ -11,12 +11,14 @@ type Search_Props = {
   results: searchResults;
   openResults: string[];
   set_results: (results: searchResults) => void;
+  close_all: () => void;
 };
 
 class Search extends React.Component<Search_Props> {
   componentDidUpdate(priorProps: Search_Props) {
     if (priorProps.search_query !== this.props.search_query) {
       this.props.set_results([]);
+      this.props.close_all();
       this.search();
     }
   }
@@ -68,6 +70,7 @@ const mapDispatchToProps = (dispatch: any) => {
     set_results: (results: searchResults) => {
       dispatch(setResults(results));
     },
+    close_all: () => dispatch(closeAll()),
   };
 };
 
