@@ -4,7 +4,12 @@ import VersionDetail from "./version-detail";
 import VersionHeader from "./version-header";
 import { Namer } from "../../../lilgit/sampler";
 import { History } from "../../../lilgit/history";
-import { verdantState, inspectNode } from "../../redux/index";
+import {
+  verdantState,
+  showDetailOfNode,
+  openPair,
+  closePair,
+} from "../../redux/index";
 import { connect } from "react-redux";
 import { BigChevronRightIcon, BigChevronLeftIcon } from "../../icons/";
 
@@ -13,27 +18,36 @@ export type VersionPair_Props = {
   showDetails: (n: Nodey) => void;
   dependent: Nodey | Nodey[];
   nodey: Nodey | Nodey[];
+  open: boolean;
+  openVersionPair: () => void;
+  closeVersionPair: () => void;
 };
 
-class VersionPair extends React.Component<
-  VersionPair_Props,
-  { open: boolean }
-> {
-  constructor(props: VersionPair_Props) {
-    super(props);
-    this.state = { open: false };
-  }
+class VersionPair extends React.Component<VersionPair_Props> {
+  /*componentDidUpdate(prevProps: VersionPair_Props) {
+    // if the data we're looking at changes, reset the view open/close state
+    let nameA;
+    if (Array.isArray(prevProps.nodey)) nameA = prevProps.nodey[0].artifactName;
+    else nameA = prevProps.nodey.artifactName;
+
+    let nameB;
+    if (Array.isArray(this.props.nodey))
+      nameB = this.props.nodey[0].artifactName;
+    else nameB = this.props.nodey.artifactName;
+
+    if (nameA && nameB && nameA != nameB) this.setState({ open: false });
+  }/*/
 
   render() {
     return (
       <div
         className={`v-VerdantPanel-details-versionPair${
-          this.state.open ? " open" : ""
+          this.props.open ? " open" : ""
         }`}
       >
         <div
           className={`v-VerdantPanel-details-versionPair-col left${
-            this.state.open ? " open" : ""
+            this.props.open ? " open" : ""
           }`}
         >
           {this.showLeft()}
@@ -44,12 +58,12 @@ class VersionPair extends React.Component<
   }
 
   showLeft() {
-    if (this.state.open) return this.showLeftOpen();
+    if (this.props.open) return this.showLeftOpen();
     return this.showLeftClosed();
   }
 
   showRight() {
-    if (this.state.open) return this.showRightOpen();
+    if (this.props.open) return this.showRightOpen();
     return null;
   }
 
@@ -62,11 +76,11 @@ class VersionPair extends React.Component<
     return (
       <div
         className={`v-VerdantPanel-details-versionPair-col right${
-          this.state.open ? " open" : ""
+          this.props.open ? " open" : ""
         }`}
       >
         <div className="v-VerdantPanel-details-version-header dependent open">
-          <div onClick={() => this.setState({ open: false })}>
+          <div onClick={() => this.props.closeVersionPair()}>
             <BigChevronLeftIcon />
           </div>
         </div>
@@ -114,7 +128,7 @@ class VersionPair extends React.Component<
       <div className="v-VerdantPanel-details-version-header dependent closed">
         <div className="v-VerdantPanel-details-version-header-labelRow dependent">
           {this.describeDependent(vers)}
-          <div onClick={() => this.setState({ open: true })}>
+          <div onClick={() => this.props.openVersionPair()}>
             <BigChevronRightIcon />
           </div>
         </div>
@@ -165,17 +179,37 @@ class VersionPair extends React.Component<
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => {
+const mapDispatchToProps = (
+  dispatch: any,
+  ownProps: Partial<VersionPair_Props>
+) => {
+  let nodey;
+  if (Array.isArray(ownProps.nodey)) nodey = ownProps.nodey[0];
+  else nodey = ownProps.nodey;
   return {
     showDetails: (n: Nodey) => {
-      dispatch(inspectNode(n));
+      dispatch(showDetailOfNode(n));
+    },
+    openVersionPair: () => {
+      dispatch(openPair(nodey.name));
+    },
+    closeVersionPair: () => {
+      dispatch(closePair(nodey.name));
     },
   };
 };
 
-const mapStateToProps = (state: verdantState) => {
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<VersionPair_Props>
+) => {
+  let nodey;
+  if (Array.isArray(ownProps.nodey)) nodey = ownProps.nodey[0];
+  else nodey = ownProps.nodey;
+  const open = state.artifactView.openDetailPairs.includes(nodey.name);
   return {
     history: state.getHistory(),
+    open,
   };
 };
 

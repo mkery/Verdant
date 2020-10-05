@@ -3,50 +3,39 @@ import { History } from "../../lilgit/history/";
 import { Checkpoint } from "../../lilgit/checkpoint";
 import NotebookEventDate from "./events/event-date";
 import { connect } from "react-redux";
-import { initEventMap, dateState } from "../redux/events";
-import { verdantState } from "../redux/index";
+import { verdantState, dateState } from "../redux/";
 
 const PANEL = "v-VerdantPanel-content";
 
 type EventColumn_Props = {
+  ready: boolean;
   history: History;
   currentEvent: Checkpoint;
-  initEventMap: () => void;
   dates: dateState[];
 };
 
 class EventColumn extends React.Component<EventColumn_Props> {
-  componentDidMount() {
-    this.props.history.ready.then(async () => {
-      await this.props.history.notebook.ready;
-      this.props.initEventMap();
-    });
-  }
-
   render() {
-    return (
-      <div className={PANEL}>
-        {this.props.dates.map((_, index) => {
-          let reverse = this.props.dates.length - 1 - index;
-          return <NotebookEventDate key={reverse} date_id={reverse} />;
-        })}
-      </div>
-    );
+    if (this.props.ready) {
+      return (
+        <div className={PANEL}>
+          {this.props.dates.map((_, index) => {
+            let reverse = this.props.dates.length - 1 - index;
+            return <NotebookEventDate key={reverse} date_id={reverse} />;
+          })}
+        </div>
+      );
+    } else return null; //TODO
   }
 }
-
-const mapDispatchToProps = (dispatch: any) => {
-  return {
-    initEventMap: () => dispatch(initEventMap()),
-  };
-};
 
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
-    dates: state.dates,
-    currentEvent: state.currentEvent,
+    ready: state.eventView.ready,
+    dates: state.eventView.dates,
+    currentEvent: state.eventView.currentEvent,
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(EventColumn);
+export default connect(mapStateToProps, null)(EventColumn);

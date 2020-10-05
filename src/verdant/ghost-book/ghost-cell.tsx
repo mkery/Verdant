@@ -1,12 +1,11 @@
 import * as React from "react";
 import { History } from "../../lilgit/history/";
-import { NodeyCode } from "../../lilgit/nodey/";
+import { NodeyCode, Nodey } from "../../lilgit/nodey/";
 import { SAMPLE_TYPE, Sampler, Namer } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
-import { verdantState } from "../redux/index";
-import { focusCell } from "../redux/ghost";
+import { verdantState, focusGhostCell, showDetailOfNode } from "../redux/";
 import { Checkpoint } from "../../lilgit/checkpoint/";
 
 /* CSS Constants */
@@ -39,6 +38,8 @@ export type GhostCell_Props = {
   clickEv?: () => void;
   // On-focus action
   hasFocus?: () => boolean;
+  // open up detail of nodey
+  showDetail: (n: Nodey) => void;
 };
 
 type GhostCell_State = {
@@ -79,7 +80,10 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       >
         <div className={`${CELL_BAND} ${active}`} />
         <div className={CONTAINER_STACK}>
-          <div className="v-Verdant-GhostBook-cell-label">
+          <div
+            className="v-Verdant-GhostBook-cell-label"
+            onClick={() => this.props.showDetail(nodey)}
+          >
             {Namer.getCellVersionTitle(nodey)}
           </div>
           <div className={CELL_CONTAINER}>
@@ -141,17 +145,24 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
   }
 }
 
-const mapStateToProps = (state: verdantState, ownProps: GhostCell_Props) => {
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<GhostCell_Props>
+) => {
   return {
     history: state.getHistory(),
-    diffPresent: state.diffPresent,
-    hasFocus: () => state.active_cell === ownProps.name,
+    diffPresent: state.ghostBook.diffPresent,
+    hasFocus: () => state.ghostBook.active_cell === ownProps.name,
   };
 };
 
-const mapDispatchToProps = (dispatch: any, ownProps: GhostCell_Props) => {
+const mapDispatchToProps = (
+  dispatch: any,
+  ownProps: Partial<GhostCell_Props>
+) => {
   return {
-    clickEv: () => dispatch(focusCell(ownProps.name)),
+    clickEv: () => dispatch(focusGhostCell(ownProps.name)),
+    showDetail: (n: Nodey) => dispatch(showDetailOfNode(n)),
   };
 };
 

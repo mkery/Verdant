@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { inspectOff, inspectOn, verdantState } from "../redux/index";
+import { inspectOff, inspectOn, verdantState } from "../redux/";
 import { InspectIcon } from "../icons/";
 
 class InspectButton extends React.Component<{
@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    active: state.inspectOn,
+    active: state.artifactView.inspectOn,
   };
 };
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
 import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
+import { verdantState } from "../../redux/";
 
 const LABEL = "Verdant-events-label";
 
@@ -181,7 +181,8 @@ const mapStateToProps = (
 ) => {
   if (ownProps.event_id !== null) {
     // regular case
-    let eventList = state.dates[ownProps.date_id].events[ownProps.event_id];
+    let eventList =
+      state.eventView.dates[ownProps.date_id].events[ownProps.event_id];
     return {
       events: eventList.events,
       eventCount: eventList.events.length,

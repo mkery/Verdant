@@ -3,10 +3,10 @@ import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
 import {
   verdantState,
-  inspectNode,
-  switchTab,
-  ActiveTab,
-} from "../../redux/index";
+  showDetailOfNode,
+  openResults,
+  closeResults,
+} from "../../redux/";
 import { connect } from "react-redux";
 import { Namer, Sampler, SAMPLE_TYPE } from "../../../lilgit/sampler/";
 import { VersionSampler } from "../../sampler/version-sampler";
@@ -19,16 +19,19 @@ type SubSection_Props = {
   search_query: string;
   openNodeDetails: (n: Nodey) => void;
   openGhostBook: (n: number) => void;
+  sectionOpen: boolean;
+  openSection: () => void;
+  closeSection: () => void;
   history: History;
 };
 
 class ResultsSubSection extends React.Component<
   SubSection_Props,
-  { sample: string; sectionOpen: boolean }
+  { sample: string }
 > {
   constructor(props: SubSection_Props) {
     super(props);
-    this.state = { sample: null, sectionOpen: false };
+    this.state = { sample: null };
   }
 
   componentDidMount() {
@@ -95,11 +98,12 @@ class ResultsSubSection extends React.Component<
       <div className="VerdantPanel-search-results-artifact">
         <div
           className={`VerdantPanel-search-results-artifact-header${
-            this.state.sectionOpen ? " open-artifact" : ""
+            this.props.sectionOpen ? " open-artifact" : ""
           }`}
-          onClick={() =>
-            this.setState({ sectionOpen: !this.state.sectionOpen })
-          }
+          onClick={() => {
+            if (this.props.sectionOpen) this.props.closeSection();
+            else this.props.openSection();
+          }}
         >
           <div className="VerdantPanel-search-results-artifact-cell-title verdant-link">
             {this.showCaret()}
@@ -115,7 +119,7 @@ class ResultsSubSection extends React.Component<
   }
 
   showCaret() {
-    if (this.state.sectionOpen) return <ChevronDownIcon />;
+    if (this.props.sectionOpen) return <ChevronDownIcon />;
     else return <ChevronRightIcon />;
   }
 
@@ -126,7 +130,7 @@ class ResultsSubSection extends React.Component<
   }
 
   showFullResults() {
-    if (this.state.sectionOpen) {
+    if (this.props.sectionOpen) {
       return this.props.results.map((r, index) => (
         <Result key={index} result={r} />
       ));
@@ -134,20 +138,33 @@ class ResultsSubSection extends React.Component<
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => {
+const mapDispatchToProps = (
+  dispatch: any,
+  ownProps: Partial<SubSection_Props>
+) => {
   return {
     openNodeDetails: (inspectTarget?: Nodey) => {
-      dispatch(inspectNode(inspectTarget));
-      dispatch(switchTab(ActiveTab.Artifact_Details));
+      dispatch(showDetailOfNode(inspectTarget));
+    },
+    openSection: () => {
+      dispatch(openResults(ownProps.nodey.artifactName));
+    },
+    closeSection: () => {
+      dispatch(closeResults(ownProps.nodey.artifactName));
     },
   };
 };
 
-const mapStateToProps = (state: verdantState) => {
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<SubSection_Props>
+) => {
   return {
-    search_query: state.searchQuery,
+    search_query: state.search.searchQuery,
     history: state.getHistory(),
     openGhostBook: state.openGhostBook,
+    sectionOpen:
+      state.search.openResults.indexOf(ownProps.nodey.artifactName) > -1,
   };
 };
 

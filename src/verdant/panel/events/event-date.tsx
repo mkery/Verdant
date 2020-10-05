@@ -1,13 +1,13 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { verdantState } from "../../redux/index";
 import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
 import {
+  verdantState,
   dateOpen,
   dateClose,
   saveBundles,
   eventState,
-} from "../../redux/events";
+} from "../../redux/";
 import NotebookEventDateBundle from "./event-date-bundle";
 
 /* CSS Constants */
@@ -162,7 +162,7 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<NotebookDate_Props>
 ) => {
-  let dateState = state.dates[ownProps.date_id];
+  let dateState = state.eventView.dates[ownProps.date_id];
   return {
     date: dateState.date,
     events: dateState.events,

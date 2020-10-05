@@ -24,7 +24,7 @@
     "url": "hhttps://github.com/mkery/Verdant.git"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && jupyter lab build",
     "start": "jupyter labextension install . && jupyter lab .",
     "clean": "rimraf lib & jupyter lab clean",
     "watch": "jupyter lab --watch .",

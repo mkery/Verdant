@@ -1,11 +1,10 @@
 import * as React from "react";
 import GhostCell from "./ghost-cell";
 import GhostToolbar from "./ghost-toolbar";
-import { ghostCellState } from "../redux/ghost";
 import { connect } from "react-redux";
 import { Store } from "redux";
 import { Provider } from "react-redux";
-import { verdantState } from "../redux";
+import { verdantState, ghostCellState } from "../redux/";
 
 /* CSS Constants */
 const BOOK = "v-Verdant-GhostBook";
@@ -48,11 +47,8 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
     // construct list from Map
     let cellList = [...this.props.cells.entries()];
     // sort list by index of cell
-    cellList.sort(
-      (a, b) =>
-        a[1].index - b[1].index
-    );
-    return cellList.map((cell, index: number) =>
+    cellList.sort((a, b) => a[1].index - b[1].index);
+    return cellList.map((cell, index: number) => (
       <GhostCell
         key={index}
         name={cell[0]}
@@ -61,14 +57,14 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
         output={cell[1].output}
         prior={cell[1].prior}
       />
-    );
+    ));
   }
 }
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    cells: state.ghostCells,
-    diffPresent: state.diffPresent
+    cells: state.ghostBook.cells,
+    diffPresent: state.ghostBook.diffPresent,
   };
 };
 

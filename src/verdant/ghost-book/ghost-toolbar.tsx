@@ -2,8 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { History } from "../../lilgit/history";
 import { Checkpoint } from "../../lilgit/checkpoint";
-import { verdantState } from "../redux/index";
-import { toggleShowAllCells } from "../redux/ghost";
+import { verdantState, toggleShowAllCells, showEvent } from "../redux/";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "../icons";
 import { Namer } from "../../lilgit/sampler/";
 
@@ -15,6 +14,8 @@ interface GhostToolbar_Props {
   ver: number;
   diffPresent: boolean;
   toggleShow: () => void;
+  openGhostBook: (n: number) => void;
+  openEvent: (c: Checkpoint) => void;
 }
 
 class Toolbar extends React.Component<
@@ -41,11 +42,15 @@ class Toolbar extends React.Component<
   private showVersionSwitch() {
     return (
       <div className="v-Verdant-GhostBook-versionSwitch">
-        <ChevronLeftIcon />
+        <span onClick={() => this.props.openGhostBook(this.props.ver - 1)}>
+          <ChevronLeftIcon />
+        </span>
         <span className="v-Verdant-GhostBook-versionSwitch-label">{`v${Namer.getVersionNumberLabel(
           this.props.ver
         )}`}</span>
-        <ChevronRightIcon />
+        <span onClick={() => this.props.openGhostBook(this.props.ver + 1)}>
+          <ChevronRightIcon />
+        </span>
       </div>
     );
   }
@@ -63,7 +68,10 @@ class Toolbar extends React.Component<
         Checkpoint.formatTime(created.timestamp);
 
     return (
-      <div className="v-Verdant-GhostBook-header-timestamp">
+      <div
+        className="v-Verdant-GhostBook-header-timestamp"
+        onClick={() => this.props.openEvent(created)}
+      >
         {time ? time : ""}
       </div>
     );
@@ -110,14 +118,16 @@ class Toolbar extends React.Component<
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
-    ver: state.notebook_ver,
-    diffPresent: state.diffPresent,
+    ver: state.ghostBook.notebook_ver,
+    diffPresent: state.ghostBook.diffPresent,
+    openGhostBook: state.openGhostBook,
   };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
     toggleShow: () => dispatch(toggleShowAllCells()),
+    openEvent: (c: Checkpoint) => dispatch(showEvent(c)),
   };
 };
 

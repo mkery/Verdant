@@ -5,7 +5,7 @@ import CrumbMenu from "./details/crumbMenu";
 import Artifact from "./details/artifact";
 import ArtifactOrigin from "./details/artifact-origin";
 import { Nodey, NodeyCode } from "../../lilgit/nodey/";
-import { verdantState, inspectNode } from "../redux/index";
+import { verdantState, showDetailOfNode } from "../redux/";
 import { connect } from "react-redux";
 
 export type Details_Props = {
@@ -86,14 +86,14 @@ function findOrigins(nodey: Nodey, history: History): Nodey[] {
 const mapDispatchToProps = (dispatch: any) => {
   return {
     showDetails: (n: Nodey) => {
-      dispatch(inspectNode(n));
+      dispatch(showDetailOfNode(n));
     },
   };
 };
 
 const mapStateToProps = (state: verdantState) => {
   let history = state.getHistory();
-  let target = state.inspectTarget;
+  let target = state.artifactView.inspectTarget;
   let origins = findOrigins(target, history);
   return {
     history,
