@@ -1,6 +1,7 @@
 /* Date CSS */
 
-.Verdant-events-date {}
+.Verdant-events-date {
+}
 
 .Verdant-events-date-header {
   padding: var(--jp-cell-padding);
@@ -27,36 +28,11 @@
   text-align: center;
 }
 
-.Verdant-events-date-header-collapse-count {
-}
-
-.Verdant-events-date-header-collapse-count.hidden {
-  display: none;
-}
-
-.Verdant-events-date-header-collapse-arrow {
-  display: inline-block;
-  vertical-align: text-bottom;
-  background-image: var(--verdant-icon-datearrow-open);
-  width: 1.3em;
-  background-position: top;
-  background-repeat: no-repeat;
-  padding: 5px;
-}
-
-.Verdant-events-date-header-collapse-arrow.closed {
-  background-image: var(--verdant-icon-datearrow-closed);
-}
-
 /* Bundle CSS */
 
-.Verdant-events-bundle {}
-
 .Verdant-events-bundle-single {
-  width: 90%;
+  margin-right: 4px;
 }
-
-.Verdant-events-bundle-multi {}
 
 .Verdant-events-bundle-multi-header {
   display: flex;
@@ -64,53 +40,45 @@
 }
 
 .Verdant-events-bundle-multi-header-arrow {
-  width: 10%;
-  display: flex;
-  flex-direction: row;
-  text-align: center;
+  margin-right: 0.5em;
+  padding-left: var(--jp-cell-padding);
+  padding-top: calc(1em - 8px);
 }
 
-.Verdant-events-bundle-multi-header-arrow-image {
-  display: inline-block;
-  vertical-align: text-top;
-  background-image: var(--verdant-icon-datearrow-open);
-  width: 1.3em;
-  background-position: top;
-  background-repeat: no-repeat;
-  padding: 5px;
-}
-
-.Verdant-events-bundle-multi-header-arrow-image.closed {
-  background-image: var(--verdant-icon-datearrow-closed);
+.Verdant-events-bundle-multi-header-arrow.open {
+  margin-right: 0.5em;
+  padding-left: var(--jp-cell-padding);
+  padding-top: 0px;
 }
 
 .Verdant-events-bundle-multi-header-container {
-  width: 90%;
-  min-height: 1.5em;
+  flex: 1 1 auto;
+  margin-right: 4px;
 }
 
-.Verdant-events-bundle-multi-header-container-open {
+.Verdant-events-bundle-multi-header-container.open {
   display: flex;
   align-items: center;
+  font-weight: bold;
 }
 
-.Verdant-events-bundle-multi-header-container-open::before {
-  content: '';
+.Verdant-events-bundle-multi-header-container.open::before {
+  content: "";
   flex: 1;
   border-bottom: 1px solid;
-  margin-right: .25em;
+  margin-right: 0.25em;
 }
 
-.Verdant-events-bundle-multi-header-container-open::after {
-  content: '';
+.Verdant-events-bundle-multi-header-container.open::after {
+  content: "";
   flex: 1;
   border-bottom: 1px solid;
-  margin-left: .25em;
+  margin-left: 0.25em;
 }
 
 .Verdant-events-bundle-multi-body {
-  background-color: #F6F6F6;
-  width: 90%;
+  background-color: #f6f6f6;
+  margin-right: 4px;
 }
 
 .Verdant-events-bundle-multi-footer {
@@ -118,24 +86,26 @@
 }
 
 .Verdant-events-bundle-multi-footer-line {
-  content: '';
-  width: 90%;
+  content: "";
+  margin-right: 4px;
   border-bottom: 1px solid;
 }
 
 .Verdant-events-bundle-multi-footer-spacer {
-  content: '';
+  content: "";
   width: 10%;
 }
 
 /* Event CSS */
 
 .Verdant-events-event {
-  padding: var(--jp-cell-padding);
   display: flex;
   flex-direction: row;
-  padding-right: 0;
-  vertical-align: center;
+  padding-left: calc(var(--jp-cell-padding) + 0.5em + 7px);
+}
+
+.Verdant-events-event.bundle {
+  padding-left: 0px;
 }
 
 .Verdant-events-event:hover {
@@ -143,21 +113,19 @@
 }
 
 .Verdant-events-event-stamp {
-  width: 33.3%;
-  min-width: 4em; /* to prevent weird date text cropping */
-}
-
-.Verdant-events-event-row {
-  width: 66.7%;
-  display: flex;
+  flex: 0 0 5em; /* to prevent weird date text cropping */
 }
 
 .Verdant-events-event-row-index {
-  width: 33.3%;
+  flex: 0 0 5em;
+  font-weight: bold;
+  text-align: center;
+  padding-top: 0.5em;
 }
 
 .Verdant-events-event-row-map {
-  width: 66.7%;
+  flex: 1 1 auto;
+  padding-top: 0.5em;
 }
 
 /* Event Label CSS */
@@ -168,6 +136,7 @@
   color: var(--jp-content-font-color2);
   padding: var(--jp-cell-padding);
   padding-left: 0px;
+  max-width: calc(100% - 2 * var(--jp-cell-padding));
 }
 
 /* Event Map CSS */

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
+import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import {
   verdantState,
   dateOpen,
@@ -11,12 +12,9 @@ import {
 import NotebookEventDateBundle from "./event-date-bundle";
 
 /* CSS Constants */
-const DATE = "Verdant-events-date";
-const DATE_HEADER = `${DATE}-header`;
+const DATE_HEADER = `Verdant-events-date-header`;
 const DATE_HEADER_LABEL = `${DATE_HEADER}-label`;
 const DATE_HEADER_COLLAPSE = `${DATE_HEADER}-collapse`;
-const DATE_HEADER_COLLAPSE_COUNT = `${DATE_HEADER_COLLAPSE}-count`;
-const DATE_HEADER_COLLAPSE_ARROW = `${DATE_HEADER_COLLAPSE}-arrow`;
 
 const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
 
@@ -40,7 +38,7 @@ type NotebookDate_Props = {
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
   render() {
     return (
-      <div className={DATE}>
+      <div>
         <div
           className={DATE_HEADER}
           onClick={() => {
@@ -48,25 +46,24 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
             else this.props.open(this.props.date_id);
           }}
         >
+          {this.showArrow()}
           <div className={DATE_HEADER_LABEL}>
             {Checkpoint.formatDate(this.props.date)}
           </div>
           <div className={DATE_HEADER_COLLAPSE}>
-            <div
-              className={`${DATE_HEADER_COLLAPSE_COUNT} 
-              ${this.props.isOpen ? "hidden" : ""}`}
-            >
+            <div style={{ display: this.props.isOpen ? "none" : "" }}>
               ({this.props.events.length})
             </div>
-            <div
-              className={`${DATE_HEADER_COLLAPSE_ARROW} 
-              ${this.props.isOpen ? "" : "closed"}`}
-            ></div>
           </div>
         </div>
         <div>{this.props.isOpen ? this.makeBundles() : null}</div>
       </div>
     );
+  }
+
+  private showArrow() {
+    if (this.props.isOpen) return <ChevronDownIcon />;
+    return <ChevronRightIcon />;
   }
 
   private makeBundles() {

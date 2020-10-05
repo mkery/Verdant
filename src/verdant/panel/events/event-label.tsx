@@ -55,61 +55,14 @@ class NotebookEventLabel extends React.Component<
     }
   }
 
-  // Create label for timestamp
-  makeLabel() {
-    const counts: eventCounts = {
-      added: 0,
-      deleted: 0,
-      moved: 0,
-      load: 0,
-      run: 0,
-      save: 0,
-    };
-
-    this.state.times.forEach((t) => {
-      counts.added += t.eventCounts.added;
-      counts.deleted += t.eventCounts.deleted;
-      counts.moved += t.eventCounts.moved;
-      counts.load += t.eventCounts.load;
-      counts.run += t.eventCounts.run;
-      counts.save += t.eventCounts.save;
-    });
-
-    let label = "";
-
-    if (counts.added === 1) label += "Cell added, ";
-    else if (counts.added > 1) label += `${counts.added} Cells added, `;
-
-    if (counts.deleted === 1) label += "Cell removed, ";
-    else if (counts.deleted > 1) label += `${counts.deleted} Cells removed, `;
-
-    if (counts.moved === 1) label += "Cell moved, ";
-    else if (counts.moved > 1) label += `${counts.moved} Cells moved, `;
-
-    if (counts.run === 1) label += "Run, ";
-    else if (counts.run > 1) label += `Runs, `;
-
-    if (counts.load === 1) label += "Load, ";
-    else if (counts.load > 1) label += `Loads, `;
-
-    if (counts.save === 1) label += "Save, ";
-    else if (counts.save > 1) label += `Saves, `;
-
-    return label.slice(0, -2);
-  }
-
   // Create timestamp element
   makeTimestamp() {
     const times = this.state.times;
     if (times.length == 1) {
-      return <div> {`${times[0].time} ${this.makeLabel()}`} </div>;
+      return <div> {times[0].time} </div>;
     } else {
       let firstTime = times[0].time;
-      let lastTime = times[times.length - 1].time;
-      if (firstTime.slice(-2) == lastTime.slice(-2)) {
-        firstTime = firstTime.slice(0, -2);
-      }
-      return <div>{`${firstTime}-${lastTime} ${this.makeLabel()}`}</div>;
+      return <div>{`${firstTime}...`}</div>;
     }
   }
 

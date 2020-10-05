@@ -12,23 +12,11 @@ import { Checkpoint } from "../../../lilgit/checkpoint";
 import NotebookEventMap from "./event-map";
 import { Namer } from "../../../lilgit/sampler";
 import { History } from "../../../lilgit/history/";
+import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 
 /* CSS Constants */
-const BUNDLE = "Verdant-events-bundle";
-const BUNDLE_SINGLE = `${BUNDLE}-single`;
-const BUNDLE_MULTI = `${BUNDLE}-multi`;
-const BUNDLE_MULTI_HEADER = `${BUNDLE_MULTI}-header`;
-const BUNDLE_MULTI_HEADER_ARROW = `${BUNDLE_MULTI_HEADER}-arrow`;
-const BUNDLE_MULTI_HEADER_ARROW_IMAGE = `${BUNDLE_MULTI_HEADER_ARROW}-image`;
-const BUNDLE_MULTI_HEADER_CONTAINER = `${BUNDLE_MULTI_HEADER}-container`;
-const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED = `Verdant-events-event`;
-const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_STAMP = `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}-stamp`;
-const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW = `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}-row`;
-const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_INDEX = `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}-index`;
-const BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_MAP = `${BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}-map`;
-const BUNDLE_MULTI_HEADER_CONTAINER_OPEN = `${BUNDLE_MULTI_HEADER_CONTAINER}-open`;
-const BUNDLE_MULTI_BODY = `${BUNDLE_MULTI}-body`;
-const BUNDLE_MULTI_FOOTER = `${BUNDLE_MULTI}-footer`;
+const BUNDLE_MULTI_BODY = `Verdant-events-bundle-multi-body`;
+const BUNDLE_MULTI_FOOTER = `Verdant-events-bundle-multi-footer`;
 const BUNDLE_MULTI_FOOTER_LINE = `${BUNDLE_MULTI_FOOTER}-line`;
 const BUNDLE_MULTI_FOOTER_SPACER = `${BUNDLE_MULTI_FOOTER}-spacer`;
 
@@ -46,19 +34,14 @@ type DateBundle_Props = {
 
 class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
   render() {
-    return (
-      <div className={BUNDLE}>
-        {this.props.events.length === 1
-          ? this.renderSingle()
-          : this.renderBundle()}
-      </div>
-    );
+    if (this.props.events.length === 1) return this.renderSingle();
+    return this.renderBundle();
   }
 
   renderSingle() {
     /* Render a single event (no bundle) */
     return (
-      <div className={BUNDLE_SINGLE}>
+      <div className="Verdant-events-bundle-single">
         <NotebookEvent
           date_id={this.props.date_id}
           event_id={this.props.events[0]}
@@ -78,32 +61,46 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
       this.props.open(this.props.date_id, this.props.bundle_id);
 
     return (
-      <div className={BUNDLE_MULTI}>
+      <div>
         {this.props.isOpen ? (
           <>
-            <div className={BUNDLE_MULTI_HEADER} onClick={() => close()}>
-              <div className={BUNDLE_MULTI_HEADER_CONTAINER}>
+            <div
+              className="Verdant-events-bundle-multi-header"
+              onClick={() => close()}
+            >
+              {this.showArrow()}
+              <div className="Verdant-events-bundle-multi-header-container">
                 {this.renderBundleHeaderOpen()}
-              </div>
-              <div className={BUNDLE_MULTI_HEADER_ARROW}>
-                <div className={BUNDLE_MULTI_HEADER_ARROW_IMAGE}></div>
               </div>
             </div>
             {this.renderBundleBody()}
             {this.renderBundleFooter()}
           </>
         ) : (
-          <div className={BUNDLE_MULTI_HEADER} onClick={() => open()}>
-            <div className={BUNDLE_MULTI_HEADER_CONTAINER}>
+          <div
+            className="Verdant-events-bundle-multi-header"
+            onClick={() => open()}
+          >
+            {this.showArrow()}
+            <div className="Verdant-events-bundle-multi-header-container">
               {this.renderBundleHeaderClosed()}
-            </div>
-            <div className={BUNDLE_MULTI_HEADER_ARROW}>
-              <div
-                className={`${BUNDLE_MULTI_HEADER_ARROW_IMAGE} closed`}
-              ></div>
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  private showArrow() {
+    if (this.props.isOpen)
+      return (
+        <div className="Verdant-events-bundle-multi-header-arrow open">
+          <ChevronDownIcon />
+        </div>
+      );
+    return (
+      <div className="Verdant-events-bundle-multi-header-arrow">
+        <ChevronRightIcon />
       </div>
     );
   }
@@ -120,22 +117,20 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
     );
 
     return (
-      <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED}>
-        <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_STAMP}>
+      <div className="Verdant-events-event bundle">
+        <div className="Verdant-events-event-stamp">
           <NotebookEventLabel
             date_id={this.props.date_id}
             event_id={null}
             events={this.props.checkpoints}
           />
         </div>
-        <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW}>
-          <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_INDEX}>
-            {`${Namer.getNotebookVersionLabel(firstNotebook)} - 
+        <div className="Verdant-events-event-row-index">
+          {`${Namer.getNotebookVersionLabel(firstNotebook)} - 
               ${Namer.getNotebookVersionLabel(lastNotebook)}`}
-          </div>
-          <div className={BUNDLE_MULTI_HEADER_CONTAINER_CLOSED_ROW_MAP}>
-            <NotebookEventMap checkpoints={this.props.checkpoints} />
-          </div>
+        </div>
+        <div className="Verdant-events-event-row-map">
+          <NotebookEventMap checkpoints={this.props.checkpoints} />
         </div>
       </div>
     );
@@ -153,7 +148,7 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
     );
 
     return (
-      <div className={BUNDLE_MULTI_HEADER_CONTAINER_OPEN}>
+      <div className="Verdant-events-bundle-multi-header-container open">
         {`${Namer.getNotebookVersionLabel(firstNotebook)} - 
               ${Namer.getNotebookVersionLabel(lastNotebook)}`}
       </div>
