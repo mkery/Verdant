@@ -2,9 +2,9 @@ import * as React from "react";
 import { Sampler, SAMPLE_TYPE, Namer } from "../../lilgit/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
-import { NodeyOutput } from "../../lilgit/nodey";
+import { NodeyOutput, Nodey } from "../../lilgit/nodey";
 import { connect } from "react-redux";
-import { verdantState } from "../redux/";
+import { verdantState, showDetailOfNode } from "../redux/";
 
 type GhostCellOutput_Props = {
   // Parent code cell id
@@ -13,6 +13,8 @@ type GhostCellOutput_Props = {
   name: string;
   // Entire state history. Used for VersionSampler
   history?: History;
+  // open up detail of nodey
+  showDetail: (n: Nodey) => void;
 };
 
 type GhostCellOutput_State = {
@@ -49,7 +51,10 @@ class GhostCellOutput extends React.Component<
 
     return (
       <div className="v-Verdant-GhostBook-cell-container output">
-        <div className="v-Verdant-GhostBook-cell-label">
+        <div
+          className="v-Verdant-GhostBook-cell-label"
+          onClick={() => this.props.showDetail(output)}
+        >
           {Namer.getOutputVersionTitle(output, this.props.history)}
         </div>{" "}
         <div className="v-Verdant-GhostBook-cell-header" />
@@ -103,4 +108,10 @@ const mapStateToProps = (state: verdantState) => {
   };
 };
 
-export default connect(mapStateToProps)(GhostCellOutput);
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    showDetail: (n: Nodey) => dispatch(showDetailOfNode(n)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(GhostCellOutput);

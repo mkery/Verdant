@@ -73,8 +73,7 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
   const ghost = state.ghostBook;
   switch (action.type) {
     case INIT_GHOSTBOOK: {
-      let present = { ...ghost };
-      for (let key in action.state) present[key] = action.state[key];
+      let present = { ...ghost, ...action.state };
       [present.cells, present.cellOutputs] = loadCells(
         state.getHistory(),
         present.notebook_ver,
@@ -83,7 +82,7 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       return present;
     }
     case TOGGLE_SHOW_CELLS: {
-      const present = { ...ghost };
+      let present = { ...ghost };
       present.diffPresent = !state.ghostBook.diffPresent;
       [present.cells, present.cellOutputs] = loadCells(
         state.getHistory(),

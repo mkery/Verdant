@@ -2,7 +2,7 @@ import * as React from "react";
 import { Nodey } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
 import { Checkpoint } from "../../../lilgit/checkpoint";
-import { verdantState, showDetailOfNode } from "../../redux/";
+import { verdantState, showDetailOfNode, showEvent } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler";
 
@@ -12,6 +12,7 @@ export type VersionHeader_Props = {
   openGhostBook: (notebookVer: number) => void;
   nodey: Nodey;
   isTarget: boolean;
+  openEvent: (c: Checkpoint) => void;
 };
 
 class VersionHeader extends React.Component<VersionHeader_Props> {
@@ -33,7 +34,10 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
             {Namer.getNotebookTitle(origin_notebook)}
           </span>
         </div>
-        <div className="v-VerdantPanel-details-version-header-labelRow date">
+        <div
+          className="v-VerdantPanel-details-version-header-labelRow date"
+          onClick={() => this.props.openEvent(created)}
+        >
           <span className="verdant-link">{`${Checkpoint.formatTime(
             created.timestamp
           )} ${Checkpoint.formatShortDate(created.timestamp)}`}</span>
@@ -74,6 +78,7 @@ const mapDispatchToProps = (dispatch: any) => {
     showDetails: (n: Nodey) => {
       dispatch(showDetailOfNode(n));
     },
+    openEvent: (c: Checkpoint) => dispatch(showEvent(c)),
   };
 };
 

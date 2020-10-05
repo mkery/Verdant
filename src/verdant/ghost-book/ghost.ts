@@ -1,7 +1,12 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Store } from "redux";
-import { showDetailOfNode, ghostState, initGhostBook } from "../redux/";
+import {
+  showDetailOfNode,
+  ghostState,
+  initGhostBook,
+  verdantState,
+} from "../redux/";
 import { Widget } from "@lumino/widgets";
 import { GhostBook } from "./ghost-book";
 import { Namer } from "../../lilgit/sampler/";
@@ -21,6 +26,11 @@ export class Ghost extends Widget {
   }
 
   public initStore(store: Store, ver: number) {
+    // first, make sure ver is in range of available notebook versions
+    ver = Math.max(0, ver);
+    let max = (store.getState() as verdantState).notebookArtifact.ver;
+    ver = Math.min(max, ver);
+
     let changeTitle = (ver: number) => {
       this.title.label =
         "v" + Namer.getVersionNumberLabel(ver) + " of " + this.getFile();

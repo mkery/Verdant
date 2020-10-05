@@ -25,10 +25,12 @@ import {
   searchReducer,
 } from "./viewStates/search";
 import { Wishbone } from "../panel/details/wishbone";
+import { Checkpoint } from "src/lilgit/checkpoint";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const SWITCH_TAB = "SWITCH_TAB";
 const INSPECT_TARGET = "INSPECT_TARGET";
+const GOTO_EVENT = "GOTO_EVENT";
 
 export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
   return {
@@ -49,6 +51,10 @@ export const showDetailOfNode = (target: Nodey) => {
     type: INSPECT_TARGET,
     target,
   };
+};
+
+export const showEvent = (event: Checkpoint) => {
+  return { type: GOTO_EVENT, event };
 };
 
 export enum ActiveTab {
@@ -155,6 +161,12 @@ export const verdantReducer = (state: verdantState, action: any) => {
         ...state_1,
         eventView: eventReducer(state_1, action),
       };
+    case GOTO_EVENT:
+      let tab = ActiveTab.Events;
+      return {
+        ...state,
+        activeTab: tab,
+      };
     default:
       let state_ev = notebookReducer(state, action);
       return {
@@ -162,7 +174,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
         eventView: eventReducer(state_ev, action),
         search: searchReducer(state_ev, action),
         artifactView: artifactReducer(state_ev, action),
-        ghostState: ghostReduce(state_ev, action),
+        ghostBook: ghostReduce(state_ev, action),
       };
   }
 };

@@ -80,7 +80,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
         }`}
       >
         <div className="v-VerdantPanel-details-version-header dependent open">
-          <div onClick={() => this.setState({ open: false })}>
+          <div onClick={() => this.props.closeVersionPair()}>
             <BigChevronLeftIcon />
           </div>
         </div>
