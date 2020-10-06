@@ -27,7 +27,9 @@ class ArtifactSummary extends React.Component<ArtifactSummaryPane_Props> {
             {this.props.notebook.file}
             <b>{` ${Namer.getNotebookVersionLabel(notebookNodey)}`}</b>
             {" by "}
-            <i>artifact revisions:</i>
+            <i>{"artifact revisions "}</i>
+            <b>{"(r)"}</b>
+            {":"}
           </span>
         </div>
         <SummaryTable />

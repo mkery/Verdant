@@ -6,11 +6,18 @@ import { History } from "../../lilgit/history";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
 const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
 const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";
+const CLOSE_GHOSTBOOK = "CLOSE_GHOSTBOOK";
 
 export const initGhostBook = (state: Partial<ghostState>) => {
   return {
     type: INIT_GHOSTBOOK,
     state,
+  };
+};
+
+export const closeGhostBook = () => {
+  return {
+    type: CLOSE_GHOSTBOOK,
   };
 };
 
@@ -81,6 +88,8 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       );
       return present;
     }
+    case CLOSE_GHOSTBOOK:
+      return { ...ghost, notebook_ver: -1 };
     case TOGGLE_SHOW_CELLS: {
       let present = { ...ghost };
       present.diffPresent = !state.ghostBook.diffPresent;

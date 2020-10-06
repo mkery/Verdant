@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Nodey } from "../../../lilgit/nodey";
+import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
 import { Checkpoint } from "../../../lilgit/checkpoint";
 import { verdantState, showDetailOfNode, showEvent } from "../../redux/";
@@ -48,6 +48,8 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
 
   showNodeyName() {
     let name = Namer.getVersionTitle(this.props.nodey);
+    if (this.props.nodey instanceof NodeyOutput)
+      name = Namer.getOutputVersionTitle(this.props.nodey, this.props.history);
     let split = name.lastIndexOf(".");
     let root = name.substring(0, split + 1);
     let ver = name.substring(split + 1);

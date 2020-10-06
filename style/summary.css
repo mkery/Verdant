@@ -39,6 +39,10 @@
   width: 100%;
   border-bottom: 1px solid var(--jp-border-color2);
 }
+.v-VerdantPanel-Summary-table-row:hover,
+.v-VerdantPanel-Summary-table-row.c:hover {
+  background-color: var(--verdant-ghost-color0);
+}
 .v-VerdantPanel-Summary-table-row.c {
   background-color: var(--jp-cell-editor-background);
 }

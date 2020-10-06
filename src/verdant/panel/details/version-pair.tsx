@@ -84,7 +84,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
             <BigChevronLeftIcon />
           </div>
         </div>
-        {vers.map((v, i) => (
+        {vers.reverse().map((v, i) => (
           <VersionDetail key={i} nodey={v} />
         ))}
       </div>
@@ -97,7 +97,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
     if (Array.isArray(this.props.nodey)) vers = this.props.nodey;
     else vers.push(this.props.nodey);
 
-    return vers.map((v, i) => <VersionDetail key={i} nodey={v} />);
+    return vers.reverse().map((v, i) => <VersionDetail key={i} nodey={v} />);
   }
 
   showLeftClosed() {
@@ -106,7 +106,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
     if (Array.isArray(this.props.nodey)) vers = this.props.nodey;
     else vers.push(this.props.nodey);
 
-    return vers.map((v, i) => {
+    return vers.reverse().map((v, i) => {
       return (
         <div key={i}>
           <div className="v-VerdantPanel-details-versionPair-header">

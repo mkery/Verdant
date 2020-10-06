@@ -108,8 +108,8 @@
   padding-left: 0px;
 }
 
-.Verdant-events-event:hover {
-  background: var(--jp-rendermime-table-row-hover-background);
+.Verdant-events-event.ghostOpen {
+  background: var(--verdant-ghost-color0);
 }
 
 .Verdant-events-event-stamp {

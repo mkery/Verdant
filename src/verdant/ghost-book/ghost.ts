@@ -6,15 +6,18 @@ import {
   ghostState,
   initGhostBook,
   verdantState,
+  closeGhostBook,
 } from "../redux/";
 import { Widget } from "@lumino/widgets";
 import { GhostBook } from "./ghost-book";
 import { Namer } from "../../lilgit/sampler/";
+import { Message } from "@lumino/messaging";
 
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";
 
 export class Ghost extends Widget {
   readonly getFile: () => string;
+  private store: Store;
 
   constructor(store: Store, ver: number) {
     super();
@@ -22,10 +25,19 @@ export class Ghost extends Widget {
     this.id = "ghostbook-verdant";
     this.title.iconClass = GHOST_BOOK_ICON;
     this.title.closable = true;
+    this.store = store;
     this.initStore(store, ver);
   }
 
+  onCloseRequest(msg: Message) {
+    super.onCloseRequest(msg);
+    this.store.dispatch(closeGhostBook());
+  }
+
   public initStore(store: Store, ver: number) {
+    //update store to that of a different notebook if needed
+    this.store = store;
+
     // first, make sure ver is in range of available notebook versions
     ver = Math.max(0, ver);
     let max = (store.getState() as verdantState).notebookArtifact.ver;

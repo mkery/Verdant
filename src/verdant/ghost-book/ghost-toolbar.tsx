@@ -3,7 +3,12 @@ import { connect } from "react-redux";
 import { History } from "../../lilgit/history";
 import { Checkpoint } from "../../lilgit/checkpoint";
 import { verdantState, toggleShowAllCells, showEvent } from "../redux/";
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "../icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  ExportIcon,
+} from "../icons";
 import { Namer } from "../../lilgit/sampler/";
 
 /* CSS Constants */
@@ -28,12 +33,15 @@ class Toolbar extends React.Component<
   }
 
   public render() {
+    // ignore rendering if no ghost book is showing
+    if (this.props.ver === -1) return null;
     return (
       <div className={`v-Verdant-GhostBook-header ${JP_TOOLBAR}`}>
         <div className="v-Verdant-GhostBook-header-row">
           {this.showVersionSwitch()}
           {this.showTimestamp()}
           {this.showDiffOptions()}
+          {this.showExportOptions()}
         </div>
       </div>
     );
@@ -112,6 +120,15 @@ class Toolbar extends React.Component<
       );
     }
     return null;
+  }
+
+  private showExportOptions() {
+    return (
+      <div className="v-Verdant-GhostBook-exportOptions">
+        <ExportIcon />
+        <span>Export</span>
+      </div>
+    );
   }
 }
 

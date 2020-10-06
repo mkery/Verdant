@@ -22,19 +22,18 @@
   flex-direction: column;
   position: sticky;
   top: 0px;
-  height: 24px;
   padding: 2px;
   z-index: 5;
 }
 
 .v-Verdant-GhostBook-header-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   color: var(--jp-content-font-color2);
   margin-bottom: 0.25em;
   text-overflow: ellipsis;
-  overflow: hidden;
   white-space: nowrap;
+  flex-wrap: wrap;
   padding-top: 0.25em;
   padding-left: 6px;
 }
@@ -61,6 +60,7 @@
 
 .v-Verdant-GhostBook-diffOptions-dropdown {
   display: flex;
+  position: relative;
   width: 10em;
   margin: 0px 8px;
   padding: 0px 4px;
@@ -75,14 +75,14 @@
 
 .v-Verdant-GhostBook-diffOptions-dropdown-list {
   position: absolute;
-  top: 2em;
+  top: 1.5em;
   background: var(--jp-layout-color0);
   border: 1px solid var(--jp-border-color1);
   border-radius: var(--jp-border-radius);
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   width: calc(10em + 4px);
-  right: 1em;
+  right: 1px;
 }
 
 .v-Verdant-GhostBook-diffOptions-option {
@@ -95,6 +95,18 @@
 .v-Verdant-GhostBook-diffOptions-dropdown-list
   .v-Verdant-GhostBook-diffOptions-option:hover {
   background-color: var(--jp-layout-color2);
+}
+
+.v-Verdant-GhostBook-exportOptions {
+  padding: 0px 8px;
+  color: var(--jp-ui-font-color1);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: var(--jp-border-radius);
+  margin: 0px 4px;
+}
+
+.v-Verdant-GhostBook-exportOptions .verdant-icon-export {
+  margin-right: 6px;
 }
 
 /* Ghost Cell CSS */
@@ -199,7 +211,6 @@
 .v-Verdant-GhostBook-cell-label {
   position: absolute;
   z-index: 3;
-  top: calc(1px - var(--jp-cell-padding));
   left: calc(-1px - var(--jp-notebook-padding) - var(--jp-cell-padding));
   background-color: var(--jp-layout-color0);
   border: 1px solid var(--jp-border-color0);

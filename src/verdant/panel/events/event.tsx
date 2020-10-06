@@ -12,12 +12,14 @@ type NotebookEvent_Props = {
   events: eventState;
   notebook: NodeyNotebook;
   openGhostBook: () => void;
+  currentGhostBook: () => boolean;
 };
 
 class NotebookEvent extends React.Component<NotebookEvent_Props> {
   render() {
+    const ghostOpen = this.props.currentGhostBook();
     return (
-      <div className="Verdant-events-event">
+      <div className={`Verdant-events-event${ghostOpen ? " ghostOpen" : ""}`}>
         <div className="Verdant-events-event-stamp">
           <NotebookEventLabel
             date_id={this.props.date_id}
@@ -48,6 +50,7 @@ const mapStateToProps = (
   return {
     openGhostBook: () => state.openGhostBook(ownProps.events.notebook),
     notebook,
+    currentGhostBook: () => notebook.version === state.ghostBook.notebook_ver,
   };
 };
 
