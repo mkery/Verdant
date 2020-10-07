@@ -10,7 +10,6 @@ import { connect } from "react-redux";
 
 export type Details_Props = {
   history: History;
-  openGhostBook: (node: number) => void;
   showDetails: (n: Nodey) => void;
   target: Nodey;
   origins: Nodey[];
@@ -97,7 +96,6 @@ const mapStateToProps = (state: verdantState) => {
   let origins = findOrigins(target, history);
   return {
     history,
-    openGhostBook: state.openGhostBook,
     target,
     origins,
   };

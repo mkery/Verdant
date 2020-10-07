@@ -6,6 +6,7 @@ import { History } from "../../lilgit/history";
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
 const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
 const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";
+const SCROLL_TO_CELL = "SCROLL_TO_CELL";
 const CLOSE_GHOSTBOOK = "CLOSE_GHOSTBOOK";
 
 export const initGhostBook = (state: Partial<ghostState>) => {
@@ -34,11 +35,19 @@ export const focusGhostCell = (cell_name: string) => {
   };
 };
 
+export const scrollToGhostCell = (cell_name: string) => {
+  return {
+    type: SCROLL_TO_CELL,
+    cell: cell_name,
+  };
+};
+
 export type ghostState = {
   notebook_ver: number;
   cells: Map<string, ghostCellState>;
   cellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
+  scroll_focus: string;
   diffPresent: boolean;
   link_artifact: (n: string) => void;
   changeGhostTitle: (n: number) => void;
@@ -50,6 +59,7 @@ export const ghostInitialState = (): ghostState => {
     cells: new Map(),
     cellOutputs: new Map(),
     active_cell: null,
+    scroll_focus: null,
     diffPresent: false,
     link_artifact: null,
     changeGhostTitle: null,
@@ -101,12 +111,12 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       return present;
     }
     case SWITCH_GHOST_CELL:
-      if (ghost.active_cell != action.cell)
-        return {
-          ...ghost,
-          active_cell: action.cell,
-        };
-      else return ghost;
+      return {
+        ...ghost,
+        active_cell: action.cell,
+      };
+    case SCROLL_TO_CELL:
+      return { ...ghost, scroll_focus: action.cell, active_cell: action.cell };
     default:
       return ghost;
   }

@@ -6,6 +6,7 @@ const INSPECT_ON = "INSPECT_ON";
 const INSPECT_OFF = "INSPECT_OFF";
 const OPEN_PAIR = "OPEN_PAIR";
 const CLOSE_PAIR = "CLOSE_PAIR";
+const SELECT_ARTIFACT_DETAIL = "SELECT_ARTIFACT_DETAIL";
 
 export const inspectOn = () => {
   return {
@@ -33,11 +34,19 @@ export const closePair = (primaryNode) => {
   };
 };
 
+export const selectArtifactDetail = (name: string) => {
+  return {
+    type: SELECT_ARTIFACT_DETAIL,
+    name,
+  };
+};
+
 export type artifactPaneState = {
   showingDetail: boolean;
   inspectOn: boolean;
   inspectTarget: Nodey;
   openDetailPairs: string[];
+  selectedArtifactDetail: string;
 };
 
 export const artifactPaneInitialState = (): artifactPaneState => {
@@ -46,6 +55,7 @@ export const artifactPaneInitialState = (): artifactPaneState => {
     inspectOn: false,
     inspectTarget: null,
     openDetailPairs: [],
+    selectedArtifactDetail: null,
   };
 };
 
@@ -74,6 +84,8 @@ export const artifactReducer = (
         (item) => item !== action.primaryNode
       );
       return { ...artifactState, openDetailPairs: closeDetailPairs };
+    case SELECT_ARTIFACT_DETAIL:
+      return { ...artifactState, selectedArtifactDetail: action.name };
     default:
       return artifactState;
   }

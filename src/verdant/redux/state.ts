@@ -133,6 +133,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
             ...state.artifactView,
             inspectTarget: action.target,
             showingDetail: true,
+            selectedArtifactDetail: action.target.name,
           },
         };
       // otherwise, if there is no target, don't show detail view
@@ -146,6 +147,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
             ...state.artifactView,
             inspectTarget: null,
             showingDetail: false,
+            selectedArtifactDetail: null,
           },
         };
       }

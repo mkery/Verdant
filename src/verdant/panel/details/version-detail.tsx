@@ -4,16 +4,20 @@ import { History } from "../../../lilgit/history/";
 import { VersionSampler } from "../../sampler/version-sampler";
 import { SAMPLE_TYPE, Sampler } from "../../../lilgit/sampler";
 import VersionHeader from "./version-header";
-import { verdantState } from "../../redux/";
+import { verdantState, selectArtifactDetail } from "../../redux/";
 import { connect } from "react-redux";
 
 export type Version_Props = {
   history: History;
   nodey: Nodey;
   no_header: boolean;
+  selectArtifact: () => void;
+  selected: boolean;
 };
 
 class VersionDetail extends React.Component<Version_Props, { sample: string }> {
+  myRef: React.RefObject<HTMLDivElement>;
+
   constructor(props: Version_Props) {
     super(props);
     this.state = {
@@ -23,6 +27,16 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
 
   componentDidMount() {
     this.getSample();
+    if (this.props.selectArtifact) {
+      setTimeout(
+        () =>
+          this.myRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          }),
+        1000
+      );
+    }
   }
 
   componentDidUpdate(prevProps: Version_Props) {
@@ -30,8 +44,15 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   }
 
   render() {
+    this.myRef = React.createRef<HTMLDivElement>();
     return (
-      <div className="v-VerdantPanel-details-version">
+      <div
+        ref={this.myRef}
+        className={`v-VerdantPanel-details-version${
+          this.props.selected ? " selected" : ""
+        }`}
+        onClick={() => this.props.selectArtifact()}
+      >
         {this.showHeader()}
         <div
           className="v-VerdantPanel-details-version-sample"
@@ -71,6 +92,15 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   }
 }
 
+const mapDispatchToProps = (
+  dispatch: any,
+  ownProps: Partial<Version_Props>
+) => {
+  return {
+    selectArtifact: () => dispatch(selectArtifactDetail(ownProps.nodey.name)),
+  };
+};
+
 const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<Version_Props>
@@ -78,7 +108,8 @@ const mapStateToProps = (
   return {
     history: state.getHistory(),
     no_header: ownProps.no_header,
+    selected: state.artifactView.selectedArtifactDetail === ownProps.nodey.name,
   };
 };
 
-export default connect(mapStateToProps, null)(VersionDetail);
+export default connect(mapStateToProps, mapDispatchToProps)(VersionDetail);

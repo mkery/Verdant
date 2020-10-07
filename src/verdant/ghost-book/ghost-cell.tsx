@@ -40,6 +40,9 @@ export type GhostCell_Props = {
   hasFocus?: () => boolean;
   // open up detail of nodey
   showDetail: (n: Nodey) => void;
+  //scroll
+  scrollTo?: () => void;
+  scrollFocus: string;
 };
 
 type GhostCell_State = {
@@ -55,6 +58,15 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     this.state = {
       sample: "",
     };
+  }
+
+  componentDidUpdate(prevProps: GhostCell_Props) {
+    if (
+      prevProps.scrollFocus != this.props.scrollFocus &&
+      this.props.scrollFocus === this.props.name
+    ) {
+      setTimeout(() => this.props.scrollTo(), 1000);
+    }
   }
 
   render() {
@@ -78,7 +90,6 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         className={`${CONTAINER} ${active}`}
         onClick={() => this.props.clickEv()}
       >
-        <div className={`${CELL_BAND} ${active}`} />
         <div className={CONTAINER_STACK}>
           <div
             className="v-Verdant-GhostBook-cell-label"
@@ -88,6 +99,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
           </div>
           <div className={CELL_CONTAINER}>
             <div className="v-Verdant-GhostBook-cell-header" />
+            <div className={`${CELL_BAND} ${active}`} />
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
                 className={`${CELL} ${
@@ -153,6 +165,7 @@ const mapStateToProps = (
     history: state.getHistory(),
     diffPresent: state.ghostBook.diffPresent,
     hasFocus: () => state.ghostBook.active_cell === ownProps.name,
+    scrollFocus: state.ghostBook.scroll_focus,
   };
 };
 

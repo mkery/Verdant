@@ -165,6 +165,7 @@
   flex: 1 1 var(--jp-cell-collapser-width);
   padding: 0px;
   margin: 0px;
+  margin-right: 4px;
   border: none;
   outline: none;
   background: transparent;

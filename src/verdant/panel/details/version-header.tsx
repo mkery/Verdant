@@ -2,7 +2,12 @@ import * as React from "react";
 import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
 import { Checkpoint } from "../../../lilgit/checkpoint";
-import { verdantState, showDetailOfNode, showEvent } from "../../redux/";
+import {
+  verdantState,
+  showDetailOfNode,
+  showEvent,
+  scrollToGhostCell,
+} from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler";
 
@@ -10,6 +15,7 @@ export type VersionHeader_Props = {
   history: History;
   showDetails: (n: Nodey) => void;
   openGhostBook: (notebookVer: number) => void;
+  scrollGhostToNodey: (n: Nodey) => void;
   nodey: Nodey;
   isTarget: boolean;
   openEvent: (c: Checkpoint) => void;
@@ -29,7 +35,10 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
           <i>{" created in "}</i>
           <span
             className="verdant-link"
-            onClick={() => this.props.openGhostBook(origin_notebook.version)}
+            onClick={() => {
+              this.props.openGhostBook(origin_notebook.version);
+              this.props.scrollGhostToNodey(this.props.nodey);
+            }}
           >
             {Namer.getNotebookTitle(origin_notebook)}
           </span>
@@ -81,6 +90,9 @@ const mapDispatchToProps = (dispatch: any) => {
       dispatch(showDetailOfNode(n));
     },
     openEvent: (c: Checkpoint) => dispatch(showEvent(c)),
+    scrollGhostToNodey: (n: Nodey) => {
+      dispatch(scrollToGhostCell(n.name));
+    },
   };
 };
 

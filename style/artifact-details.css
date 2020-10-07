@@ -78,6 +78,10 @@
   border-bottom: 1px solid var(--jp-border-color2);
 }
 
+.v-VerdantPanel-details-version.selected {
+  background-color: var(--verdant-ghost-color0);
+}
+
 .v-VerdantPanel-details-version-header {
   display: flex;
   flex-direction: column;
