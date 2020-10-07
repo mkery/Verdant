@@ -15,6 +15,7 @@ type GhostCellOutput_Props = {
   history?: History;
   // open up detail of nodey
   showDetail: (n: Nodey) => void;
+  inspectOn: boolean;
 };
 
 type GhostCellOutput_State = {
@@ -50,7 +51,14 @@ class GhostCellOutput extends React.Component<
     let output = this.props.history.store.get(this.props.name) as NodeyOutput;
 
     return (
-      <div className="v-Verdant-GhostBook-cell-container output">
+      <div
+        className={`v-Verdant-GhostBook-cell-container output${
+          this.props.inspectOn ? " hoverInspect" : ""
+        }`}
+        onClick={() => {
+          if (this.props.inspectOn) this.props.showDetail(output);
+        }}
+      >
         <div
           className="v-Verdant-GhostBook-cell-label"
           onClick={() => this.props.showDetail(output)}
@@ -105,6 +113,7 @@ class GhostCellOutput extends React.Component<
 const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
+    inspectOn: state.artifactView.inspectOn,
   };
 };
 

@@ -188,6 +188,23 @@
   padding-top: 5px;
 }
 
+.v-Verdant-GhostBook-cell-container.hoverInspect:hover,
+.v-Verdant-GhostBook-cell-container.output.hoverInspect:hover,
+.v-Verdant-GhostBook-cell-container.hoverInspect:hover
+  .v-Verdant-GhostBook-cell,
+.v-Verdant-GhostBook-cell-container.hoverInspect:hover
+  .v-Verdant-GhostBook-cell-header,
+.v-Verdant-GhostBook-cell-container.hoverInspect:hover
+  .v-Verdant-GhostBook-cell-content,
+.v-Verdant-GhostBook-cell-container.output.hoverInspect:hover
+  .v-Verdant-GhostBook-cell,
+.v-Verdant-GhostBook-cell-container.output.hoverInspect:hover
+  .v-Verdant-GhostBook-cell-header,
+.v-Verdant-GhostBook-cell-container.output.hoverInspect:hover
+  .v-Verdant-GhostBook-cell-content {
+  background-color: var(--verdant-ghost-color0);
+}
+
 .v-Verdant-GhostBook-cell-content {
   flex: 1 1 100%;
   max-width: calc(100% - var(--jp-cell-prompt-width));

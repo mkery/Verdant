@@ -43,6 +43,7 @@ export type GhostCell_Props = {
   //scroll
   scrollTo?: () => void;
   scrollFocus: string;
+  inspectOn: boolean;
 };
 
 type GhostCell_State = {
@@ -97,7 +98,14 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
           >
             {Namer.getCellVersionTitle(nodey)}
           </div>
-          <div className={CELL_CONTAINER}>
+          <div
+            className={`${CELL_CONTAINER}${
+              this.props.inspectOn ? " hoverInspect" : ""
+            }`}
+            onClick={() => {
+              if (this.props.inspectOn) this.props.showDetail(nodey);
+            }}
+          >
             <div className="v-Verdant-GhostBook-cell-header" />
             <div className={`${CELL_BAND} ${active}`} />
             <div className={`${CELL_CONTENT} ${active}`}>
@@ -166,6 +174,7 @@ const mapStateToProps = (
     diffPresent: state.ghostBook.diffPresent,
     hasFocus: () => state.ghostBook.active_cell === ownProps.name,
     scrollFocus: state.ghostBook.scroll_focus,
+    inspectOn: state.artifactView.inspectOn,
   };
 };
 

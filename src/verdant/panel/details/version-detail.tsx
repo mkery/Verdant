@@ -27,15 +27,14 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
 
   componentDidMount() {
     this.getSample();
-    if (this.props.selectArtifact) {
-      setTimeout(
-        () =>
+    if (this.props.selected) {
+      setTimeout(() => {
+        if (this.myRef.current)
           this.myRef.current.scrollIntoView({
             behavior: "smooth",
             block: "nearest",
-          }),
-        1000
-      );
+          });
+      }, 1000);
     }
   }
 

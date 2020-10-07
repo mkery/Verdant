@@ -124,6 +124,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
         artifactView: artifact_state,
       };
     case INSPECT_TARGET:
+      Wishbone.endWishbone(state.getHistory().notebook);
       // showing details of a target will open the artifact detail view
       if (action.target)
         return {
@@ -132,6 +133,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
           artifactView: {
             ...state.artifactView,
             inspectTarget: action.target,
+            inspectOn: false,
             showingDetail: true,
             selectedArtifactDetail: action.target.name,
           },
@@ -143,12 +145,7 @@ export const verdantReducer = (state: verdantState, action: any) => {
         return {
           ...state,
           activeTab: tab,
-          artifactView: {
-            ...state.artifactView,
-            inspectTarget: null,
-            showingDetail: false,
-            selectedArtifactDetail: null,
-          },
+          artifactView: artifactPaneInitialState(),
         };
       }
     case INIT_EVENT_MAP:

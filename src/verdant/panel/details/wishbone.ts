@@ -54,7 +54,7 @@ namespace Private {
     return false;
   }
 
-  export function selectTarget(nodey: Nodey, inspector: Sampler, _: Event) {
+  export function selectTarget(nodey: Nodey, inspector: Sampler, _?: Event) {
     inspector.target = nodey;
   }
 
@@ -103,7 +103,7 @@ namespace Private {
       let lineMask = makeMask();
       let select = selectCode.bind(this, lineMask);
       area.editorWidget.node.appendChild(lineMask);
-      lineMask.addEventListener("click", (ev: MouseEvent) => {
+      lineMask.addEventListener("mouseup", (ev: MouseEvent) => {
         this.selectCodeTarget(nodey, inspector, area, ev);
       });
       lineMask.addEventListener("mouseenter", () => {
@@ -144,10 +144,11 @@ namespace Private {
       mask.classList.remove(WISHBONE_HIGHLIGHT);
       mask.classList.remove("highlight");
     });
-    mask.addEventListener(
-      "mouseup",
-      Private.selectTarget.bind(this, nodey, inspector)
-    );
+    mask.addEventListener("mouseup", (ev: MouseEvent) => {
+      ev.stopPropagation();
+      Private.selectTarget(nodey, inspector);
+      return false;
+    });
   }
 
   export function removeCellEvents(area: Cell) {

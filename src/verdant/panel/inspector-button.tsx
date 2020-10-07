@@ -8,6 +8,12 @@ class InspectButton extends React.Component<{
   off: () => void;
   on: () => void;
 }> {
+  componentDidUpdate(prevProps) {
+    if (!this.props.active && prevProps.active) {
+      this.props.off();
+    }
+  }
+
   render() {
     return (
       <div
@@ -29,9 +35,16 @@ class InspectButton extends React.Component<{
 }
 
 const mapDispatchToProps = (dispatch: any) => {
+  const ev = () => dispatch(inspectOff());
   return {
-    on: () => dispatch(inspectOn()),
-    off: () => dispatch(inspectOff()),
+    on: () => {
+      dispatch(inspectOn());
+      document.addEventListener("click", ev, { once: true });
+    },
+    off: () => {
+      dispatch(inspectOff());
+      document.removeEventListener("click", ev);
+    },
   };
 };
 
