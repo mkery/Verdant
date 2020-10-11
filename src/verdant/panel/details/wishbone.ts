@@ -55,7 +55,7 @@ namespace Private {
   }
 
   export function selectTarget(nodey: Nodey, inspector: Sampler, _?: Event) {
-    inspector.target = nodey;
+    inspector.target.set(nodey);
   }
 
   export function selectCodeTarget(
@@ -69,10 +69,12 @@ namespace Private {
     let betterMatch = area.getElementsByClassName(WISHBONE_HIGHLIGHT_CODE)[0];
     if (!betterMatch) this.selectTarget(nodey, inspector, event);
     else
-      inspector.target = inspector.figureOutTarget(
-        nodey,
-        cell,
-        betterMatch as HTMLElement
+      inspector.target.set(
+        inspector.target.figureOutTarget(
+          nodey,
+          cell,
+          betterMatch as HTMLElement
+        )
       );
   }
 

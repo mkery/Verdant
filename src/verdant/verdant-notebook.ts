@@ -37,7 +37,7 @@ export class VerdantNotebook extends VerNotebook {
       this.store.dispatch(initEventMap());
 
       // connect to make sure inspector works with redux store
-      history.inspector.targetChanged.connect((_: any, nodey: Nodey) => {
+      history.inspector.target.changed().connect((_: any, nodey: Nodey) => {
         this.store.dispatch(showDetailOfNode(nodey));
       });
     });

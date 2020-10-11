@@ -121,7 +121,12 @@ export class VerNotebook {
         ) {
           copied = this.history.store.getOutput(node as NodeyCode).latest;
         } // otherwise main cell
-        else copied = this.history.inspector.figureOutTarget(node, cell, text);
+        else
+          copied = this.history.inspector.target.figureOutTarget(
+            node,
+            cell,
+            text
+          );
 
         if (copied) {
           // add nodey to clip board in notebook

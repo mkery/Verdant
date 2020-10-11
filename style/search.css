@@ -70,7 +70,7 @@
 }
 .VerdantPanel-search-results-header.open {
   border-bottom: 1px solid var(--jp-layout-color2);
-  box-shadow: 0px 0px 4px var(--jp-inverse-layout-color2);
+  box-shadow: 0px 0px 2px var(--jp-inverse-layout-color2);
 }
 
 .VerdantPanel-search-results-header-title {

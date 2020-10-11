@@ -153,19 +153,17 @@ export class HistoryStore {
    * Returns a list of Markdown artifacts, each with a list
    * of all the versions of that artifact that match the query
    */
-  public findMarkdown(
-    query: string,
-    filter?: (n: Nodey) => boolean
-  ): [NodeyMarkdown[][], number] {
+  public findMarkdown(query: string): [NodeyMarkdown[][], number] {
     let results: NodeyMarkdown[][] = [];
     let resultCount = 0;
-    let text = query.toLowerCase();
+    let text = query.toLowerCase().split(" ");
     this._markdownStore.forEach((history) => {
       let match = history.filter((item) => {
         if (!item.markdown) return false;
-        let matchesText = item.markdown.toLowerCase().indexOf(text) > -1;
-        if (filter) return matchesText && filter(item);
-        else return matchesText;
+        let matchesText = text.some(
+          (keyword) => item.markdown.toLowerCase().indexOf(keyword) > -1
+        );
+        return matchesText;
       });
       if (match.length > 0) {
         results.push(match);
@@ -179,18 +177,16 @@ export class HistoryStore {
    * Returns a list of code artifacts, each with a list
    * of all the versions of that artifact that match the query
    */
-  public findCode(
-    query: string,
-    filter?: (n: Nodey) => boolean
-  ): [NodeyCode[][], number] {
+  public findCode(query: string): [NodeyCode[][], number] {
     let results: NodeyCode[][] = [];
     let resultCount = 0;
-    let text = query.toLowerCase();
+    let text = query.toLowerCase().split(" ");
     this._codeCellStore.forEach((history) => {
       let matches = history.filter((cell) => {
         let sourceText = this.history.inspector.renderNode(cell) || "";
-        if (sourceText.toLowerCase().indexOf(text) > -1) {
-          if (filter) return filter(cell);
+        if (
+          text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
+        ) {
           return true;
         }
         return false;
@@ -207,19 +203,16 @@ export class HistoryStore {
    * Returns a list of output artifacts, each with a list
    * of all the versions of that artifact that match the query
    */
-  public findOutput(
-    query: string,
-    filter?: (n: Nodey) => boolean
-  ): [NodeyOutput[][], number] {
+  public findOutput(query: string): [NodeyOutput[][], number] {
     let results: NodeyOutput[][] = [];
     let resultCount = 0;
-
-    let text = query.toLowerCase();
+    let text = query.toLowerCase().split(" ");
     this._outputStore.forEach((history) => {
       let matches = history.filter((output) => {
         let sourceText = this.history.inspector.renderNode(output) || "";
-        if (sourceText.toLowerCase().indexOf(text) > -1) {
-          if (filter) return filter(output);
+        if (
+          text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
+        ) {
           return true;
         }
         return false;

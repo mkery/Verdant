@@ -65,6 +65,10 @@ export const searchReducer = (
       };
     case OPEN_RESULTS:
       let openLabels = search_state.openResults;
+
+      const mainLabels = ["code history", "output history", "markdown history"];
+      if (mainLabels.includes(action.label))
+        openLabels = openLabels.filter((l) => !mainLabels.includes(l));
       openLabels.push(action.label);
       return { ...search_state, openResults: openLabels };
     case CLOSE_RESULTS:

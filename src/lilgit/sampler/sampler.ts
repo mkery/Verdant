@@ -1,27 +1,20 @@
 import { Widget } from "@lumino/widgets";
-import { log } from "../notebook";
 import * as JSDiff from "diff";
 import {
   Nodey,
-  NodeyCell,
   NodeyCode,
-  NodeyCodeCell,
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
 } from "../nodey";
 
-import { CodeCell, Cell } from "@jupyterlab/cells";
-
 import { History } from "../history";
-
-import { ASTUtils } from "../analysis/ast-utils";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 
-import { Signal } from "@lumino/signaling";
+import { Target } from "./target";
+import { Search } from "./search";
 
-const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
 const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
 const CHANGE_ADDED_CLASS = "v-Verdant-sampler-code-added";
 const CHANGE_REMOVED_CLASS = "v-Verdant-sampler-code-removed";
@@ -31,134 +24,15 @@ const MAX_WORD_DIFFS = 4;
 
 export class Sampler {
   readonly history: History;
-  private readonly renderBaby: RenderBaby;
-  private _targetChanged = new Signal<this, Nodey>(this);
-  private _target: Nodey;
+  readonly search: Search;
+  readonly renderBaby: RenderBaby;
+  readonly target: Target;
 
   constructor(historyModel: History, renderBaby: RenderBaby) {
     this.history = historyModel;
     this.renderBaby = renderBaby;
-  }
-
-  get notebook() {
-    return this.history.notebook;
-  }
-
-  public get target() {
-    if (!this._target) {
-      if (this.notebook.view.activeCell) {
-        this._target = this.notebook.getCell(
-          this.notebook.view.activeCell.model
-        ).model;
-      }
-    }
-    return this._target;
-  }
-
-  public set target(nodey: Nodey) {
-    log("new target!", nodey);
-    this._target = nodey;
-    this._targetChanged.emit(this._target);
-  }
-
-  get targetChanged(): Signal<this, Nodey> {
-    return this._targetChanged;
-  }
-
-  public clearTarget() {
-    this._target = null;
-  }
-
-  public figureOutTarget(
-    parent: NodeyCell,
-    cell: Cell,
-    elem: HTMLElement | string
-  ) {
-    if (parent instanceof NodeyCodeCell) {
-      if (elem instanceof HTMLElement)
-        return this.figureOut_byElem(parent, cell as CodeCell, elem);
-      else {
-        let res = this.figureOut_byText(parent, elem);
-        if (res instanceof NodeyCode) return res;
-        else return undefined;
-      }
-    } else return parent;
-  }
-
-  private figureOut_byText(
-    parent: NodeyCode,
-    text: string
-  ): string | NodeyCode {
-    let rend = "";
-    if (parent.literal) {
-      rend = parent.literal;
-    } else if (parent.content.length > 0) {
-      for (var i = 0; i < parent.content.length; i++) {
-        let name = parent.content[i];
-        if (name instanceof SyntaxToken) rend += name.tokens;
-        else {
-          let nodey = this.history.store.get(name) as NodeyCode;
-          let res: string | NodeyCode = this.figureOut_byText(nodey, text);
-          if (res instanceof Nodey) return res;
-          else rend += res + "";
-        }
-      }
-    }
-    if (rend === text || rend.indexOf(text) > -1) return parent;
-    else return rend;
-  }
-
-  private figureOut_byElem(
-    parent: NodeyCodeCell,
-    cell: CodeCell,
-    elem: HTMLElement
-  ) {
-    log("figuring out target");
-    let codeBlock = this.findAncestor(elem, "CodeMirror-code");
-    let lineCount = codeBlock.getElementsByClassName("CodeMirror-line").length;
-    let lineDiv = this.findAncestor(elem, "CodeMirror-line");
-    let lineNum = Math.round(
-      (lineDiv.offsetTop / codeBlock.offsetHeight) * lineCount
-    );
-    let lineText = cell.editor.getLine(lineNum);
-    let res;
-    let startCh = 0;
-    let endCh = lineText.length - 1;
-
-    if (!elem.hasAttribute("role")) {
-      // not a full line in Code Mirror
-      let spanRol = this.findAncestorByAttr(elem, "role");
-      startCh = Math.round(
-        (elem.offsetLeft / spanRol.offsetWidth) * lineText.length
-      );
-      endCh = Math.round(
-        ((elem.offsetLeft + elem.offsetWidth) / spanRol.offsetWidth) *
-          lineText.length
-      );
-      endCh = Math.min(endCh, lineText.length - 1);
-    }
-
-    res = ASTUtils.findNodeAtRange(
-      parent,
-      {
-        start: { line: lineNum, ch: startCh },
-        end: { line: lineNum, ch: endCh },
-      },
-      this.history
-    );
-    return res || parent; //just in case no more specific result is found
-  }
-
-  private findAncestorByAttr(el: HTMLElement, attr: string) {
-    if (el.hasAttribute(attr)) return el;
-    while ((el = el.parentElement) && !el.hasAttribute(attr));
-    return el;
-  }
-
-  private findAncestor(el: HTMLElement, cls: string) {
-    if (el.classList.contains(cls)) return el;
-    while ((el = el.parentElement) && !el.classList.contains(cls));
-    return el;
+    this.target = new Target(historyModel);
+    this.search = new Search(this);
   }
 
   public sampleNode(nodey: Nodey, textFocus: string = null): [string, number] {
@@ -250,7 +124,7 @@ export class Sampler {
   }
 
   private renderOutputNode(nodey: NodeyOutput): string {
-    return JSON.stringify(nodey.raw);
+    return nodey.raw.map((out) => out.text || "").join();
   }
 
   public async renderArtifactCell(
@@ -268,29 +142,6 @@ export class Sampler {
       case "m":
         await this.renderBaby.renderMarkdown(elem, newText);
         break;
-    }
-    return elem;
-  }
-
-  public async renderSearchCell(
-    nodey: Nodey,
-    elem: HTMLElement,
-    textFocus?: string,
-    newText?: string
-  ) {
-    switch (nodey.typeChar) {
-      case "c":
-        this.plainCode(elem, newText);
-        break;
-      case "o":
-        await this.renderOutput(nodey as NodeyOutput, elem);
-        break;
-      case "m":
-        await this.renderBaby.renderMarkdown(elem, newText);
-        break;
-    }
-    if (textFocus) {
-      elem = this.highlightText(textFocus, elem);
     }
     return elem;
   }
@@ -443,37 +294,6 @@ export class Sampler {
       elem.appendChild(widget.node);
     });
     return elem;
-  }
-
-  // Helper method for search cells
-
-  private highlightText(textFocus: string, elem: HTMLElement) {
-    /* Highlight text in an HTML element */
-
-    // get down to the bare text for highlighting
-    if (elem.children.length > 0) {
-      let elems = Array.from(elem.children).map(
-        (e) => this.highlightText(textFocus, e as HTMLElement).outerHTML
-      );
-      elem.innerHTML = elems.join("");
-    } else {
-      let i = 0;
-      let split = textFocus.split(" ");
-      let keys = textFocus.toLowerCase().split(" ");
-      let lower = elem.innerHTML.toLowerCase();
-      let index = lower.indexOf(keys[0], i);
-      let html = "";
-      while (index > -1) {
-        html += `${elem.innerHTML.slice(i, index)} 
-           <span class="${SEARCH_FILTER_RESULTS}"> ${split[0]} </span>`;
-        i = index + split[0].length;
-        index = lower.indexOf(keys[0], i);
-      }
-
-      html += elem.innerHTML.slice(i);
-      elem.innerHTML = html;
-    }
-    return elem; // finally return element
   }
 }
 

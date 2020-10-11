@@ -33,9 +33,12 @@ export namespace VersionSampler {
 
     if (nodey.typeChar === "c") {
       content.classList.add("code");
+      sample.classList.add("code");
     } else if (nodey.typeChar === "m") {
       content.classList.add("markdown");
       content.classList.add("jp-RenderedHTMLCommon");
+    } else {
+      content.classList.add("output");
     }
 
     switch (sampleType) {
@@ -43,7 +46,7 @@ export namespace VersionSampler {
         await inspector.renderArtifactCell(nodey, content, text);
         break;
       case SAMPLE_TYPE.SEARCH:
-        await inspector.renderSearchCell(nodey, content, query, text);
+        await inspector.search.renderSearchCell(nodey, content, query, text);
         break;
       case SAMPLE_TYPE.DIFF:
         await inspector.renderDiffCell(nodey, content, diff, text, prior);

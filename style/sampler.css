@@ -58,9 +58,13 @@
 }
 
 .v-VerdantPanel-sampler-version-content.code {
-  white-space: pre-wrap;
+  white-space: nowrap;
   font-family: var(--jp-code-font-family);
   padding: var(--jp-code-padding);
+}
+
+.v-VerdantPanel-sampler-version-content.output pre {
+  white-space: nowrap;
 }
 
 .v-VerdantPanel-sampler-version {
@@ -71,6 +75,9 @@
   font-family: var(--jp-cell-prompt-font-family);
   text-align: left;
   overflow-x: auto;
+}
+.v-VerdantPanel-sampler-version.code {
+  background: var(--jp-cell-editor-background);
 }
 .v-VerdantPanel-sampler-version.last {
   border-bottom: var(--jp-border-width) solid transparent;
@@ -108,7 +115,7 @@
 }
 
 .v-VerdantPanel-sample-searchResult {
-  background-color: pink;
+  background-color: #f7b500;
 }
 
 .v-VerdantPanel-sampler-version-header {
