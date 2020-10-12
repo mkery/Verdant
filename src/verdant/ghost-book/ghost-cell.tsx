@@ -1,7 +1,7 @@
 import * as React from "react";
 import { History } from "../../lilgit/history/";
 import { NodeyCode, Nodey } from "../../lilgit/nodey/";
-import { SAMPLE_TYPE, Sampler, Namer } from "../../lilgit/sampler/";
+import { SAMPLE_TYPE, DIFF_TYPE, Namer } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
@@ -29,7 +29,7 @@ export type GhostCell_Props = {
   // Name of the prior cell to diff against in diffPresent case
   prior: string;
   // Whether to display diffs with present cells or prior version
-  diffPresent?: boolean;
+  diff: DIFF_TYPE;
   // Index of the cell's output cell (for a code cell) in state.GhostCells
   output?: string;
   // Checkpoints associated with the cell
@@ -76,13 +76,13 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     // Asynchronously update innerHTML if change has occurred
     this.updateSample();
 
-    let nodey = this.props.history.store.get(this.props.name);
+    const nodey = this.props.history.store.get(this.props.name);
     if (!nodey) {
       // ERROR case
       console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return null;
     }
-    let active = this.props.hasFocus() ? "active" : "";
+    const active = this.props.hasFocus() ? "active" : "";
     const displayOutput: boolean =
       nodey instanceof NodeyCode && this.props.output !== undefined; // is a code cell & has associated output
 
@@ -143,16 +143,13 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return;
     }
-    let diff;
-    if (this.props.diffPresent) {
-      diff = Sampler.PRESENT_DIFF;
-    } else if (this.props.events === undefined) {
-      diff = Sampler.NO_DIFF;
-    } else if (this.props.events.length === 0) {
-      // optimizing case
-      diff = Sampler.NO_DIFF;
-    } else {
-      diff = Sampler.CHANGE_DIFF;
+    let diff = this.props.diff;
+    if (diff === DIFF_TYPE.CHANGE_DIFF) {
+      if (this.props.events === undefined) {
+        diff = DIFF_TYPE.NO_DIFF;
+      } else if (this.props.events.length === 0) {
+        diff = DIFF_TYPE.NO_DIFF;
+      }
     }
     return VersionSampler.sample(
       SAMPLE_TYPE.DIFF,
@@ -171,7 +168,7 @@ const mapStateToProps = (
 ) => {
   return {
     history: state.getHistory(),
-    diffPresent: state.ghostBook.diffPresent,
+    diff: state.ghostBook.diff,
     hasFocus: () => state.ghostBook.active_cell === ownProps.name,
     scrollFocus: state.ghostBook.scroll_focus,
     inspectOn: state.artifactView.inspectOn,

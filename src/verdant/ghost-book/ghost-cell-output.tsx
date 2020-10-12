@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Sampler, SAMPLE_TYPE, Namer } from "../../lilgit/sampler";
+import { SAMPLE_TYPE, Namer, DIFF_TYPE } from "../../lilgit/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
 import { NodeyOutput, Nodey } from "../../lilgit/nodey";
@@ -104,7 +104,7 @@ class GhostCellOutput extends React.Component<
         output,
         null,
         // Never attempt to show diffing for output cells
-        Sampler.NO_DIFF
+        DIFF_TYPE.NO_DIFF
       );
     }
   }

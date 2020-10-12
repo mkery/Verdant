@@ -2,7 +2,9 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { History } from "../../lilgit/history";
 import { Checkpoint } from "../../lilgit/checkpoint";
-import { verdantState, toggleShowAllCells, showEvent } from "../redux/";
+import { verdantState, showEvent, changeDiffType } from "../redux/";
+import { DIFF_TYPE } from "../../lilgit/sampler/";
+
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -17,19 +19,27 @@ const JP_TOOLBAR = "jp-Toolbar";
 interface GhostToolbar_Props {
   history: History;
   ver: number;
-  diffPresent: boolean;
-  toggleShow: () => void;
+  diff: DIFF_TYPE;
   openGhostBook: (n: number) => void;
   openEvent: (c: Checkpoint) => void;
+  setDiff: (diff: DIFF_TYPE) => void;
 }
 
 class Toolbar extends React.Component<
   GhostToolbar_Props,
   { dropdown_open: boolean }
 > {
+  private readonly diffLabels: string[];
+
   constructor(props: GhostToolbar_Props) {
     super(props);
     this.state = { dropdown_open: false };
+
+    let diffLabels = [];
+    diffLabels[DIFF_TYPE.CHANGE_DIFF] = "from prior";
+    diffLabels[DIFF_TYPE.PRESENT_DIFF] = "from current";
+    diffLabels[DIFF_TYPE.NO_DIFF] = "none";
+    this.diffLabels = diffLabels;
   }
 
   public render() {
@@ -96,7 +106,7 @@ class Toolbar extends React.Component<
         <span>show differences</span>
         <div className="v-Verdant-GhostBook-diffOptions-dropdown">
           <div className="v-Verdant-GhostBook-diffOptions-option">
-            from prior
+            {this.diffLabels[this.props.diff]}
           </div>
           <ChevronDownIcon />
           {this.showDropdownList()}
@@ -109,13 +119,19 @@ class Toolbar extends React.Component<
     if (this.state.dropdown_open) {
       return (
         <div className="v-Verdant-GhostBook-diffOptions-dropdown-list">
-          <div className="v-Verdant-GhostBook-diffOptions-option">
-            from prior
-          </div>
-          <div className="v-Verdant-GhostBook-diffOptions-option">
-            from current
-          </div>
-          <div className="v-Verdant-GhostBook-diffOptions-option">none</div>
+          {this.diffLabels.map((option, index) => {
+            return (
+              <div
+                key={index}
+                className="v-Verdant-GhostBook-diffOptions-option"
+                onClick={() => {
+                  this.props.setDiff(index);
+                }}
+              >
+                {option}
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -136,15 +152,15 @@ const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
     ver: state.ghostBook.notebook_ver,
-    diffPresent: state.ghostBook.diffPresent,
+    diff: state.ghostBook.diff,
     openGhostBook: state.openGhostBook,
   };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
-    toggleShow: () => dispatch(toggleShowAllCells()),
     openEvent: (c: Checkpoint) => dispatch(showEvent(c)),
+    setDiff: (diff: DIFF_TYPE) => dispatch(changeDiffType(diff)),
   };
 };
 

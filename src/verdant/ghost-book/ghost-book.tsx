@@ -28,7 +28,6 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
 
 export interface GhostCellContainer_Props {
   cells: Map<string, ghostCellState>;
-  diffPresent: boolean;
   scrollFocus: string;
 }
 
@@ -101,7 +100,6 @@ class CellContainer extends React.Component<
 const mapStateToProps = (state: verdantState) => {
   return {
     cells: state.ghostBook.cells,
-    diffPresent: state.ghostBook.diffPresent,
     scrollFocus: state.ghostBook.scroll_focus,
   };
 };

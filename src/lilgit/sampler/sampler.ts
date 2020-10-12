@@ -149,7 +149,7 @@ export class Sampler {
   public async renderDiffCell(
     nodey: Nodey,
     elem: HTMLElement,
-    diffKind: number = Sampler.NO_DIFF,
+    diffKind: number = DIFF_TYPE.NO_DIFF,
     newText?: string,
     prior?: string
   ) {
@@ -185,13 +185,13 @@ export class Sampler {
   private diffCode(
     elem: HTMLElement,
     newText: string,
-    diffKind: number = Sampler.NO_DIFF,
+    diffKind: number = DIFF_TYPE.NO_DIFF,
     priorVersion?: string
   ) {
     /* Inserts code data to elem with diffs if necessary */
 
     // If no diff necessary, use plaincode
-    if (diffKind === Sampler.NO_DIFF) return this.plainCode(elem, newText);
+    if (diffKind === DIFF_TYPE.NO_DIFF) return this.plainCode(elem, newText);
 
     // Split new text into lines
     let lines = newText.split("\n");
@@ -239,11 +239,11 @@ export class Sampler {
 
   private async diffMarkdown(
     elem: HTMLElement,
-    diffKind: number = Sampler.NO_DIFF,
+    diffKind: number = DIFF_TYPE.NO_DIFF,
     newText?: string,
     priorVersion?: string
   ) {
-    if (diffKind === Sampler.NO_DIFF)
+    if (diffKind === DIFF_TYPE.NO_DIFF)
       await this.renderBaby.renderMarkdown(elem, newText);
     else {
       let prior = this.history.store.get(priorVersion) as NodeyMarkdown;
@@ -297,10 +297,10 @@ export class Sampler {
   }
 }
 
-export namespace Sampler {
-  export const NO_DIFF = -1;
-  export const CHANGE_DIFF = 0;
-  export const PRESENT_DIFF = 1;
+export enum DIFF_TYPE {
+  NO_DIFF,
+  CHANGE_DIFF,
+  PRESENT_DIFF,
 }
 
 export enum SAMPLE_TYPE {

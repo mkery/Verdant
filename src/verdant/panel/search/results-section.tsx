@@ -60,7 +60,12 @@ class ResultsSection extends React.Component<ResultsSection_Props, {}> {
         <div className="VerdantPanel-search-results-category-content">
           {this.props.results.map((item, index) => {
             return (
-              <ResultsSubSection key={index} nodey={item[0]} results={item} />
+              <ResultsSubSection
+                key={index}
+                nodey={item[0]}
+                results={item}
+                sectionOpen={this.props.results.length < 2}
+              />
             );
           })}
         </div>

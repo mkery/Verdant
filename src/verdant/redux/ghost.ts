@@ -2,11 +2,12 @@ import { verdantState } from "./state";
 import { Checkpoint, CheckpointType } from "../../lilgit/checkpoint";
 import { NodeyCode } from "../../lilgit/nodey";
 import { History } from "../../lilgit/history";
+import { DIFF_TYPE } from "../../lilgit/sampler";
 
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
-const TOGGLE_SHOW_CELLS = "TOGGLE_SHOW_CELLS";
 const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";
 const SCROLL_TO_CELL = "SCROLL_TO_CELL";
+const CHANGE_DIFF_TYPE = "CHANGE_DIFF_TYPE";
 const CLOSE_GHOSTBOOK = "CLOSE_GHOSTBOOK";
 
 export const initGhostBook = (state: Partial<ghostState>) => {
@@ -19,12 +20,6 @@ export const initGhostBook = (state: Partial<ghostState>) => {
 export const closeGhostBook = () => {
   return {
     type: CLOSE_GHOSTBOOK,
-  };
-};
-
-export const toggleShowAllCells = () => {
-  return {
-    type: TOGGLE_SHOW_CELLS,
   };
 };
 
@@ -42,13 +37,20 @@ export const scrollToGhostCell = (cell_name: string) => {
   };
 };
 
+export const changeDiffType = (diff: DIFF_TYPE) => {
+  return {
+    type: CHANGE_DIFF_TYPE,
+    diff,
+  };
+};
+
 export type ghostState = {
   notebook_ver: number;
   cells: Map<string, ghostCellState>;
   cellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
   scroll_focus: string;
-  diffPresent: boolean;
+  diff: DIFF_TYPE;
   link_artifact: (n: string) => void;
   changeGhostTitle: (n: number) => void;
 };
@@ -60,7 +62,7 @@ export const ghostInitialState = (): ghostState => {
     cellOutputs: new Map(),
     active_cell: null,
     scroll_focus: null,
-    diffPresent: false,
+    diff: DIFF_TYPE.CHANGE_DIFF,
     link_artifact: null,
     changeGhostTitle: null,
   };
@@ -100,16 +102,6 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
     }
     case CLOSE_GHOSTBOOK:
       return { ...ghost, notebook_ver: -1 };
-    case TOGGLE_SHOW_CELLS: {
-      let present = { ...ghost };
-      present.diffPresent = !state.ghostBook.diffPresent;
-      [present.cells, present.cellOutputs] = loadCells(
-        state.getHistory(),
-        present.notebook_ver,
-        present.diffPresent
-      );
-      return present;
-    }
     case SWITCH_GHOST_CELL:
       return {
         ...ghost,
@@ -117,6 +109,8 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       };
     case SCROLL_TO_CELL:
       return { ...ghost, scroll_focus: action.cell, active_cell: action.cell };
+    case CHANGE_DIFF_TYPE:
+      return { ...ghost, diff: action.diff };
     default:
       return ghost;
   }

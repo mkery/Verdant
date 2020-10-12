@@ -2,7 +2,7 @@ import * as React from "react";
 import { Nodey } from "../../../lilgit/nodey/";
 import { History } from "../../../lilgit/history/";
 import { VersionSampler } from "../../sampler/version-sampler";
-import { SAMPLE_TYPE, Sampler } from "../../../lilgit/sampler";
+import { SAMPLE_TYPE, DIFF_TYPE } from "../../../lilgit/sampler";
 import VersionHeader from "./version-header";
 import { verdantState, selectArtifactDetail } from "../../redux/";
 import { connect } from "react-redux";
@@ -77,7 +77,7 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
         this.props.history,
         this.props.nodey,
         null,
-        Sampler.CHANGE_DIFF,
+        DIFF_TYPE.CHANGE_DIFF,
         prior.name
       );
     } else {

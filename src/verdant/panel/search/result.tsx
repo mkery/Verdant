@@ -1,9 +1,13 @@
 import * as React from "react";
-import { Nodey } from "../../../lilgit/nodey";
+import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
 import { History } from "../../../lilgit/history";
-import { verdantState, showDetailOfNode } from "../../redux/";
+import {
+  verdantState,
+  showDetailOfNode,
+  scrollToGhostCell,
+} from "../../redux/";
 import { connect } from "react-redux";
-import { Namer, Sampler, SAMPLE_TYPE } from "../../../lilgit/sampler/";
+import { Namer, DIFF_TYPE, SAMPLE_TYPE } from "../../../lilgit/sampler/";
 import { VersionSampler } from "../../sampler/version-sampler";
 
 type Result_Props = {
@@ -11,6 +15,7 @@ type Result_Props = {
   search_query: string;
   openNodeDetails: (n: Nodey) => void;
   openGhostBook: (n: number) => void;
+  scrollGhostToNodey: (n: Nodey) => void;
   history: History;
 };
 
@@ -27,7 +32,7 @@ class Result extends React.Component<Result_Props, { sample: string }> {
         this.props.history,
         this.props.result,
         this.props.search_query,
-        Sampler.NO_DIFF
+        DIFF_TYPE.NO_DIFF
       );
 
       this.setState({ sample: sample.outerHTML });
@@ -36,6 +41,9 @@ class Result extends React.Component<Result_Props, { sample: string }> {
 
   render() {
     let notebook = this.props.history.store.getNotebookOf(this.props.result);
+    let name = Namer.getVersionTitle(this.props.result);
+    if (this.props.result instanceof NodeyOutput)
+      name = Namer.getOutputVersionTitle(this.props.result, this.props.history);
     return (
       <div>
         <div className="VerdantPanel-search-results-artifact-header list-result">
@@ -44,12 +52,15 @@ class Result extends React.Component<Result_Props, { sample: string }> {
               className="verdant-link"
               onClick={() => this.props.openNodeDetails(this.props.result)}
             >
-              {Namer.getVersionTitle(this.props.result)}
+              {name}
             </span>
             <span>{" from "}</span>
             <span
               className="verdant-link"
-              onClick={() => this.props.openGhostBook(notebook.version)}
+              onClick={() => {
+                this.props.openGhostBook(notebook.version);
+                this.props.scrollGhostToNodey(this.props.result);
+              }}
             >
               {Namer.getNotebookTitle(notebook)}
             </span>
@@ -69,6 +80,9 @@ const mapDispatchToProps = (dispatch: any) => {
   return {
     openNodeDetails: (inspectTarget?: Nodey) => {
       dispatch(showDetailOfNode(inspectTarget));
+    },
+    scrollGhostToNodey: (n: Nodey) => {
+      dispatch(scrollToGhostCell(n.name));
     },
   };
 };
