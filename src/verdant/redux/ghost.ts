@@ -1,6 +1,12 @@
 import { verdantState } from "./state";
-import { Checkpoint, CheckpointType } from "../../lilgit/checkpoint";
-import { NodeyCode } from "../../lilgit/nodey";
+import {
+  ChangeType,
+  Checkpoint,
+  CheckpointType,
+  CellRunData,
+  GREATER_CHANGETYPE,
+} from "../../lilgit/checkpoint";
+import { NodeyCode, NodeyNotebook } from "../../lilgit/nodey";
 import { History } from "../../lilgit/history";
 import { DIFF_TYPE } from "../../lilgit/sampler";
 
@@ -46,7 +52,7 @@ export const changeDiffType = (diff: DIFF_TYPE) => {
 
 export type ghostState = {
   notebook_ver: number;
-  cells: Map<string, ghostCellState>;
+  cells: Map<string, CellRunData>;
   cellOutputs: Map<string, ghostCellOutputState>;
   active_cell: string;
   scroll_focus: string;
@@ -75,14 +81,6 @@ export type cellEffect =
   | "NEW_OUTPUT"
   | "EDITED";
 
-export type ghostCellState = {
-  name: string;
-  index: number;
-  events: Checkpoint[];
-  output: string;
-  prior: string;
-};
-
 export type ghostCellOutputState = {
   name: string;
   events: Checkpoint[];
@@ -96,7 +94,7 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
       [present.cells, present.cellOutputs] = loadCells(
         state.getHistory(),
         present.notebook_ver,
-        present.diffPresent
+        present.diff
       );
       return present;
     }
@@ -116,11 +114,11 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
   }
 };
 
-function loadCells(history: History, ver: number, diffPresent: boolean) {
+function loadCells(history: History, ver: number, diff: DIFF_TYPE) {
   // TODO: Have method to display deleted cells when diffPresent
   // Load notebook and events
-  let notebook, events;
-  if (diffPresent) {
+  let notebook: NodeyNotebook, events: Checkpoint[];
+  if (diff === DIFF_TYPE.PRESENT_DIFF) {
     notebook = history.store.currentNotebook;
     events = [];
   } else {
@@ -128,37 +126,31 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     events = history.checkpoints.getByNotebook(ver);
   }
 
-  // Type of cells after loading from notebook.cells
-  type cellDat = {
-    cell: string;
-    index?: number;
-    events?: Checkpoint[];
-    output?: string;
-    prior?: string;
-  };
-
-  let cells: cellDat[] = notebook.cells.map((item) => ({
+  let cells: CellRunData[] = notebook.cells.map((item) => ({
     cell: item,
-    events: [],
+    changeType: ChangeType.NONE,
   }));
 
-  let deletedCells: cellDat[] = [];
+  let deletedCells: CellRunData[] = [];
 
   // For each event, update list of events matching target cells
   events.forEach((ev) => {
     ev.targetCells.forEach((cell) => {
-      let index = notebook.cells.indexOf(cell.node);
+      let index = notebook.cells.indexOf(cell.cell);
       if (index < 0 && ev.checkpointType === CheckpointType.DELETE) {
         // Add new deleted cell with the event.
         // If a cell cannot be deleted multiple times per notebook version,
         // it should be fine to simply add a new deleted cell each time.
         deletedCells.push({
-          cell: cell.node,
+          cell: cell.cell,
           index: cell.index,
-          events: [ev],
+          changeType: cell.changeType,
         });
       } else {
-        cells[index].events.push(ev);
+        cells[index].changeType = GREATER_CHANGETYPE(
+          cells[index].changeType,
+          cell.changeType
+        );
       }
     });
   });
@@ -168,7 +160,7 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   });
 
   // Compute output cells
-  let output: cellDat[] = [];
+  let output: ghostCellOutputState[] = [];
   cells.forEach((cell) => {
     let nodey = history.store.get(cell.cell);
     if (nodey instanceof NodeyCode) {
@@ -180,8 +172,8 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
         });
         if (out_nodey.length > 0) {
           let out = out_nodey[out_nodey.length - 1].name;
-          output.push({ cell: out });
-          cell.output = out;
+          output.push({ name: out, events: [] });
+          cell.output = [out];
         }
       }
     } else {
@@ -189,7 +181,7 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
     }
   });
 
-  if (diffPresent) {
+  if (diff === DIFF_TYPE.PRESENT_DIFF) {
     // compute cell to diff against
     // set prior to matching cell in passed version
 
@@ -223,25 +215,17 @@ function loadCells(history: History, ver: number, diffPresent: boolean) {
   }
 
   // Add cells to cell map
-  const loadedCells = new Map();
+  const loadedCells = new Map<string, CellRunData>();
   cells.forEach((cell, index) => {
     loadedCells.set(cell.cell, {
-      name: cell.cell,
       index: index,
-      events: cell.events,
-      output: cell.output,
-      prior: cell.prior,
+      ...cell,
     });
   });
 
   // Add output to output map
-  const loadedOutput = new Map();
-  output.forEach((cell, index) => {
-    loadedOutput.set(cell.cell, {
-      name: cell.cell,
-      events: cell.events,
-    });
-  });
+  const loadedOutput = new Map<string, ghostCellOutputState>();
+  output.forEach((cell) => loadedOutput.set(cell.name, cell));
 
   return [loadedCells, loadedOutput];
 }

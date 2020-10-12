@@ -19,6 +19,7 @@ export type VersionHeader_Props = {
   nodey: Nodey;
   isTarget: boolean;
   openEvent: (c: Checkpoint) => void;
+  selected: boolean;
 };
 
 class VersionHeader extends React.Component<VersionHeader_Props> {
@@ -29,7 +30,11 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
     let created = this.props.history.checkpoints.get(this.props.nodey.created);
 
     return (
-      <div className="v-VerdantPanel-details-version-header">
+      <div
+        className={`v-VerdantPanel-details-version-header${
+          this.props.selected ? " selected" : ""
+        }`}
+      >
         <div className="v-VerdantPanel-details-version-header-labelRow">
           {this.showNodeyName()}
           <i>{" created in "}</i>
@@ -106,6 +111,7 @@ const mapStateToProps = (
     history: state.getHistory(),
     openGhostBook: state.openGhostBook,
     isTarget: nodeyName === targetName,
+    selected: state.artifactView.selectedArtifactDetail === ownProps.nodey.name,
   };
 };
 

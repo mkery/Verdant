@@ -42,7 +42,7 @@ export class AST {
             notebook.cells[index] = nodey.name;
             nodey.parent = notebook.name;
             changedCells.push({
-              node: nodey.name,
+              cell: nodey.name,
               changeType: ChangeType.ADDED,
             });
           });

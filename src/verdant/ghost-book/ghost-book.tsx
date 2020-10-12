@@ -4,7 +4,8 @@ import GhostToolbar from "./ghost-toolbar";
 import { connect } from "react-redux";
 import { Store } from "redux";
 import { Provider } from "react-redux";
-import { verdantState, ghostCellState } from "../redux/";
+import { verdantState } from "../redux/";
+import { CellRunData } from "../../lilgit/checkpoint";
 
 /* CSS Constants */
 const BOOK = "v-Verdant-GhostBook";
@@ -27,7 +28,7 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
 }
 
 export interface GhostCellContainer_Props {
-  cells: Map<string, ghostCellState>;
+  cells: Map<string, CellRunData>;
   scrollFocus: string;
 }
 
@@ -68,8 +69,8 @@ class CellContainer extends React.Component<
             <GhostCell
               name={cell[0]}
               id={cell[1].index}
-              events={cell[1].events}
-              output={cell[1].output}
+              change={cell[1].changeType}
+              output={cell[1].output ? cell[1].output[0] : null}
               prior={cell[1].prior}
               scrollTo={() =>
                 ref.current.scrollIntoView({
@@ -86,8 +87,8 @@ class CellContainer extends React.Component<
             <GhostCell
               name={cell[0]}
               id={cell[1].index}
-              events={cell[1].events}
-              output={cell[1].output}
+              change={cell[1].changeType}
+              output={cell[1].output ? cell[1].output[0] : null}
               prior={cell[1].prior}
             />
           </div>

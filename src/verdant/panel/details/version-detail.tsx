@@ -47,9 +47,7 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
     return (
       <div
         ref={this.myRef}
-        className={`v-VerdantPanel-details-version${
-          this.props.selected ? " selected" : ""
-        }`}
+        className="v-VerdantPanel-details-version"
         onClick={() => this.props.selectArtifact()}
       >
         {this.showHeader()}

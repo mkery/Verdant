@@ -78,10 +78,6 @@
   border-bottom: 1px solid var(--jp-border-color2);
 }
 
-.v-VerdantPanel-details-version.selected {
-  background-color: var(--verdant-ghost-color0);
-}
-
 .v-VerdantPanel-details-version-header {
   display: flex;
   flex-direction: column;
@@ -94,6 +90,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.v-VerdantPanel-details-version-header.selected {
+  background-color: var(--verdant-ghost-color0);
+  border-top: 2px solid;
 }
 
 .v-VerdantPanel-details-version-header.dependent {

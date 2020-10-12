@@ -9,6 +9,18 @@ export enum ChangeType {
   TYPE_CHANGED = "type changed",
 }
 
+const changeVal = {
+  "no change": 0,
+  "n/a": 0,
+  "type changed": 1,
+  moved: 1,
+  edited: 2,
+  added: 3,
+  removed: 4,
+};
+export const GREATER_CHANGETYPE = (a: ChangeType, b: ChangeType) =>
+  changeVal[a] > changeVal[b] ? a : b;
+
 // old log format for conversion
 export const CONVERT_ChangeType = (num) => {
   const convert = {
@@ -34,8 +46,9 @@ export enum CheckpointType {
 }
 
 export type CellRunData = {
-  node: string;
+  cell: string;
   changeType: ChangeType;
-  newOutput?: string[];
+  output?: string[];
   index?: number;
+  prior?: string;
 };

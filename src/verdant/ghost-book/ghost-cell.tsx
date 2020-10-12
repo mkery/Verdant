@@ -6,7 +6,7 @@ import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
 import { verdantState, focusGhostCell, showDetailOfNode } from "../redux/";
-import { Checkpoint } from "../../lilgit/checkpoint/";
+import { ChangeType } from "../../lilgit/checkpoint/";
 
 /* CSS Constants */
 const CONTAINER = "v-Verdant-GhostBook-container";
@@ -33,7 +33,7 @@ export type GhostCell_Props = {
   // Index of the cell's output cell (for a code cell) in state.GhostCells
   output?: string;
   // Checkpoints associated with the cell
-  events?: Checkpoint[];
+  change: ChangeType;
   // On-click action
   clickEv?: () => void;
   // On-focus action
@@ -51,6 +51,8 @@ type GhostCell_State = {
 };
 
 class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
+  private readonly changeColors: { [key: string]: string };
+
   constructor(props) {
     /* Explicit constructor to initialize state */
     // Required super call
@@ -59,6 +61,16 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     this.state = {
       sample: "",
     };
+
+    let changeColors = {};
+    changeColors[ChangeType.ADDED] = ChangeType.ADDED;
+    changeColors[ChangeType.REMOVED] = ChangeType.REMOVED;
+    changeColors[ChangeType.CHANGED] = ChangeType.CHANGED;
+    changeColors[ChangeType.MOVED] = ChangeType.CHANGED;
+    changeColors[ChangeType.TYPE_CHANGED] = ChangeType.CHANGED;
+    changeColors[ChangeType.NONE] = "";
+    changeColors[ChangeType.SAME] = "";
+    this.changeColors = changeColors;
   }
 
   componentDidUpdate(prevProps: GhostCell_Props) {
@@ -84,11 +96,13 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     }
     const active = this.props.hasFocus() ? "active" : "";
     const displayOutput: boolean =
-      nodey instanceof NodeyCode && this.props.output !== undefined; // is a code cell & has associated output
+      nodey instanceof NodeyCode && this.props.output !== null; // is a code cell & has associated output
 
     return (
       <div
-        className={`${CONTAINER} ${active}`}
+        className={`${CONTAINER} ${active} ${
+          this.changeColors[this.props.change]
+        }`}
         onClick={() => this.props.clickEv()}
       >
         <div className={CONTAINER_STACK}>
@@ -145,9 +159,9 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     }
     let diff = this.props.diff;
     if (diff === DIFF_TYPE.CHANGE_DIFF) {
-      if (this.props.events === undefined) {
+      if (this.props.change === ChangeType.NONE) {
         diff = DIFF_TYPE.NO_DIFF;
-      } else if (this.props.events.length === 0) {
+      } else if (this.props.change === ChangeType.SAME) {
         diff = DIFF_TYPE.NO_DIFF;
       }
     }

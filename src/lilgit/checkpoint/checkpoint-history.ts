@@ -81,7 +81,7 @@ export class HistoryCheckpoints {
       let targets = checkpoint.targetCells;
       if (notebook) {
         notebook.cells.forEach((name, index) => {
-          let match = targets.find((item) => item.node === name);
+          let match = targets.find((item) => item.cell === name);
           // all other cells
           if (match) {
             cellMap[index] = match;
@@ -91,7 +91,7 @@ export class HistoryCheckpoints {
                 cellMap[index].changeType
               );
           } else if (!cellMap[index])
-            cellMap[index] = { node: name, changeType: ChangeType.NONE };
+            cellMap[index] = { cell: name, changeType: ChangeType.NONE };
         });
 
         // for deleted cells
@@ -115,7 +115,7 @@ export class HistoryCheckpoints {
         cell.changeType !== ChangeType.SAME &&
         cell.changeType !== ChangeType.NONE
       ) {
-        let node = this.history.store.get(cell.node);
+        let node = this.history.store.get(cell.cell);
         let notebook = this.history.store.get(node.parent);
         this.checkpointList[id].notebook = notebook.version;
         break;

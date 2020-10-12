@@ -55,7 +55,7 @@ export class Commit {
 
     // update checkpoint
     let cellDat = {
-      node: name,
+      cell: name,
       changeType: ChangeType.ADDED,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
@@ -71,7 +71,7 @@ export class Commit {
 
     // update checkpoint
     let cellDat = {
-      node: deleted.name,
+      cell: deleted.name,
       changeType: ChangeType.REMOVED,
       index,
     } as CellRunData;
@@ -90,7 +90,7 @@ export class Commit {
 
     // update checkpoint
     let cellDat = {
-      node: name,
+      cell: name,
       changeType: ChangeType.MOVED,
       index: newPos,
     } as CellRunData;
@@ -112,7 +112,7 @@ export class Commit {
 
     // update checkpoint
     let cellDat = {
-      node: newCell.name,
+      cell: newCell.name,
       changeType: ChangeType.TYPE_CHANGED,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
@@ -134,7 +134,7 @@ export class Commit {
         this.stage.dirty_nodey.forEach((name) => {
           // update to checkpoint
           let cellDat = {
-            node: name,
+            cell: name,
             changeType: ChangeType.SAME,
           } as CellRunData;
           this.checkpoint.targetCells.push(cellDat);
@@ -195,7 +195,7 @@ export class Commit {
 
     // then add the update to checkpoint
     let cellDat = {
-      node: newNodey.name,
+      cell: newNodey.name,
       changeType: ChangeType.CHANGED,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
@@ -221,7 +221,7 @@ export class Commit {
 
     // then add the update to checkpoint
     let cellDat = {
-      node: newNodey.name,
+      cell: newNodey.name,
       changeType: ChangeType.CHANGED,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
@@ -284,7 +284,7 @@ export class Commit {
     let changed = oldNodey.version !== newNodey.version;
     // update the checkpoint
     let cellDat = {
-      node: newNodey.name,
+      cell: newNodey.name,
       changeType: changed ? ChangeType.CHANGED : ChangeType.SAME,
       newOutput: newOut ? [newOut.name] : [],
     } as CellRunData;

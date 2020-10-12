@@ -9,10 +9,6 @@
   background-size: 40px 40px;
 }
 
-.v-Verdant-GhostBook-cellArea {
-  padding: var(--jp-notebook-padding);
-}
-
 /* Ghost Toolbar CSS */
 
 .v-Verdant-GhostBook-header {
@@ -112,9 +108,21 @@
 /* Ghost Cell CSS */
 
 .v-Verdant-GhostBook-container {
-  padding: var(--jp-cell-padding);
+  padding: var(--jp-cell-padding)
+    calc(var(--jp-cell-padding) + var(--jp-notebook-padding));
   display: flex;
   flex-direction: row;
+  border: 1px solid var(--jp-layout-color0);
+}
+
+.v-Verdant-GhostBook-container.added {
+  background-color: var(--verdant-cell-add-color0);
+}
+.v-Verdant-GhostBook-container.edited {
+  background-color: var(--verdant-ghost-color0);
+}
+.v-Verdant-GhostBook-container.removed {
+  background-color: var(--verdant-cell-remove-color0);
 }
 
 .v-Verdant-GhostBook-container-stack {
@@ -220,7 +228,6 @@
 .v-Verdant-GhostBook-cell-header {
   min-width: var(--jp-cell-prompt-width);
   max-width: var(--jp-cell-prompt-width);
-  background-color: var(--jp-layout-color0);
   opacity: 0.8;
   box-sizing: border-box;
   padding: var(--jp-cell-padding);
@@ -229,8 +236,7 @@
 .v-Verdant-GhostBook-cell-label {
   position: absolute;
   z-index: 3;
-  left: calc(-1px - var(--jp-notebook-padding) - var(--jp-cell-padding));
-  background-color: var(--jp-layout-color0);
+  left: calc(1px - var(--jp-notebook-padding) - var(--jp-cell-padding));
   border: 1px solid var(--jp-border-color0);
   padding: 4px 8px;
   text-align: center;

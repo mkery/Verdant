@@ -16,12 +16,14 @@
   --verdant-icon-datearrow-open: url("img/chevron-down.svg");
 
   --verdant-ghost-color0: rgba(140, 204, 237, 0.21);
-  --verdant-ghost-color1: rgba(140, 204, 237, 0.49);
+  --verdant-ghost-color1: rgba(140, 204, 237, 0.5);
   --verdant-ghost-color2: #8ccced;
   --verdant-cell-change-color1: #92cbef;
   --verdant-cell-change-color2: #2199f1;
+  --verdant-cell-remove-color0: rgb(255, 125, 125, 0.5);
   --verdant-cell-remove-color1: #ff7d7d;
   --verdant-cell-remove-color2: #ce1d1d;
+  --verdant-cell-add-color0: rgba(210, 252, 157, 0.5);
   --verdant-cell-add-color1: #9dfcb6;
   --verdant-cell-add-color2: #107e5a;
 }
