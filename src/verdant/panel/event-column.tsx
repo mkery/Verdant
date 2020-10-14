@@ -1,6 +1,4 @@
 import * as React from "react";
-import { History } from "../../lilgit/history/";
-import { Checkpoint } from "../../lilgit/checkpoint";
 import NotebookEventDate from "./events/event-date";
 import { connect } from "react-redux";
 import { verdantState, dateState } from "../redux/";
@@ -9,8 +7,6 @@ const PANEL = "v-VerdantPanel-content";
 
 type EventColumn_Props = {
   ready: boolean;
-  history: History;
-  currentEvent: Checkpoint;
   dates: dateState[];
 };
 
@@ -31,10 +27,8 @@ class EventColumn extends React.Component<EventColumn_Props> {
 
 const mapStateToProps = (state: verdantState) => {
   return {
-    history: state.getHistory(),
     ready: state.eventView.ready,
     dates: state.eventView.dates,
-    currentEvent: state.eventView.currentEvent,
   };
 };
 

@@ -23,8 +23,8 @@
   color: var(--jp-ui-font-color2);
   vertical-align: middle;
 }
-.v-VerdantPanel-crumbMenu-item:hover {
-  text-decoration: underline;
+
+.v-VerdantPanel-crumbMenu-item.verdant-link {
   color: var(--jp-content-link-color);
 }
 

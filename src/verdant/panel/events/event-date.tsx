@@ -1,28 +1,14 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
+import { Checkpoint } from "../../../lilgit/checkpoint";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
-import {
-  verdantState,
-  dateOpen,
-  dateClose,
-  saveBundles,
-  eventState,
-} from "../../redux/";
+import { verdantState, dateOpen, dateClose, eventState } from "../../redux/";
 import NotebookEventDateBundle from "./event-date-bundle";
 
 /* CSS Constants */
 const DATE_HEADER = `Verdant-events-date-header`;
 const DATE_HEADER_LABEL = `${DATE_HEADER}-label`;
 const DATE_HEADER_COLLAPSE = `${DATE_HEADER}-collapse`;
-
-const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
-
-interface accumulatorObject {
-  accumulator: number[][]; // Holds partially constructed bundle output
-  timeBound: number; // Lower limit on time for inclusion in latest bundle
-  lastType: CheckpointType; // Type of current bundle
-}
 
 type NotebookDate_Props = {
   date_id: number;
@@ -32,7 +18,6 @@ type NotebookDate_Props = {
   open: (d: number) => void;
   close: (d: number) => void;
   bundles: number[][];
-  saveBundles: (bundles: number[][], d: number) => void;
 };
 
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
@@ -67,26 +52,8 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
   }
 
   private makeBundles() {
-    /* Creates date bundles using bundled indices */
-    let bundledIndices;
-    if (
-      this.props.bundles === null || // There are no saved bundles
-      this.props.bundles.reduce(
-        // The bundles are out of date
-        (a, x) => a + x.length,
-        0
-      ) !== this.props.events.length
-    ) {
-      // If there are no bundles or the bundles need an update, compute bundles
-      bundledIndices = this.computeBundles(this.props.events);
-      this.props.saveBundles(bundledIndices, this.props.date_id);
-    } else {
-      // Retrieve stored bundles
-      bundledIndices = this.props.bundles;
-    }
-
     // Creates DateBundle for each set of dates
-    return bundledIndices.map((idx_list, i) => (
+    return this.props.bundles.map((idx_list, i) => (
       <NotebookEventDateBundle
         key={i}
         bundle_id={i}
@@ -95,63 +62,12 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
       />
     ));
   }
-
-  private computeBundles(events: eventState[]): number[][] {
-    /* Helper method for makeBundles.
-       Computes list of bundled indices based on timestamp, ordered such that
-       flattening the outer list leads to a reversed list of the indices of
-       this.props.events */
-
-    return events.reduceRight(this.reducer, {
-      accumulator: [],
-      timeBound: Infinity,
-      lastType: null,
-    }).accumulator;
-  }
-
-  private reducer(accObj: accumulatorObject, e: eventState, idx) {
-    /* Helper method for computeBundles.
-       Function to use in reducing over bundles in computeBundles. */
-    // Compute properties of current element
-    let timeStamp = e.events[0].timestamp;
-    let eventType = NotebookEventDate.eventType(e);
-    if (timeStamp > accObj.timeBound && eventType === accObj.lastType) {
-      // add event to current bundle
-      const newAccumulator = accObj.accumulator
-        .slice(0, -1)
-        .concat([
-          accObj.accumulator[accObj.accumulator.length - 1].concat([idx]),
-        ]);
-      return {
-        accumulator: newAccumulator,
-        timeBound: accObj.timeBound,
-        lastType: accObj.lastType,
-      };
-    } else {
-      // create new bundle
-      return {
-        accumulator: accObj.accumulator.concat([[idx]]),
-        timeBound: timeStamp - INTERVAL_WIDTH,
-        lastType: eventType,
-      };
-    }
-  }
-
-  private static eventType(e: eventState): CheckpointType {
-    /* Helper for reducer.
-       Returns CheckpointType if all checkpoints in event have same type,
-       else returns null */
-    return e.events
-      .map((c) => c.checkpointType)
-      .reduce((acc, current) => (acc === current ? acc : null));
-  }
 }
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
     open: (d) => dispatch(dateOpen(d)),
     close: (d) => dispatch(dateClose(d)),
-    saveBundles: (bundles, d) => dispatch(saveBundles(bundles, d)),
   };
 };
 

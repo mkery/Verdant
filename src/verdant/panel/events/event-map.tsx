@@ -1,5 +1,9 @@
 import * as React from "react";
-import { ChangeType, Checkpoint } from "../../../lilgit/checkpoint";
+import {
+  CellRunData,
+  ChangeType,
+  Checkpoint,
+} from "../../../lilgit/checkpoint";
 import { History } from "../../../lilgit/history/";
 import { verdantState } from "../../redux/";
 import { connect } from "react-redux";
@@ -7,6 +11,7 @@ import { connect } from "react-redux";
 interface EventMap_Props {
   checkpoints: Checkpoint[];
   history: History;
+  eventCount: number;
 }
 
 const MAP = "Verdant-events-map";
@@ -16,11 +21,29 @@ const MAP_CELL_CHANGED = `${MAP_CELL}-changed`;
 const MAP_CELL_REMOVED = `${MAP_CELL}-removed`;
 const MAP_CELL_SAME = `${MAP_CELL}-same`;
 
-class NotebookEventMap extends React.Component<EventMap_Props> {
-  showMap() {
+class NotebookEventMap extends React.Component<
+  EventMap_Props,
+  { cellMap: CellRunData[] }
+> {
+  constructor(props) {
+    super(props);
     let checkpoints = this.props.checkpoints;
     let cellMap = this.props.history.checkpoints.getCellMap(checkpoints);
-    return cellMap.map((cell, index) => {
+    this.state = {
+      cellMap,
+    };
+  }
+
+  componentDidUpdate(oldProps) {
+    if (oldProps.eventCount !== this.props.eventCount) {
+      let checkpoints = this.props.checkpoints;
+      let cellMap = this.props.history.checkpoints.getCellMap(checkpoints);
+      this.setState({ cellMap });
+    }
+  }
+
+  showMap() {
+    return this.state.cellMap.map((cell, index) => {
       let classes = `${MAP_CELL}`;
       let kind = cell.changeType;
       switch (kind) {
@@ -52,6 +75,7 @@ const mapStateToProps = (
 ) => {
   return {
     history: state.getHistory(),
+    eventCount: ownProps.checkpoints.length,
   };
 };
 

@@ -88,9 +88,12 @@ class Seperator extends React.Component {
 
 class Item extends React.Component<{ onClick?: () => void; label: string }> {
   render() {
+    let link = this.props.onClick;
     return (
       <div
-        className="v-VerdantPanel-crumbMenu-item"
+        className={`v-VerdantPanel-crumbMenu-item ${
+          link ? "verdant-link" : ""
+        }`}
         onClick={this.props.onClick}
       >
         {this.props.label}

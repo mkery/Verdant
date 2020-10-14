@@ -1,14 +1,14 @@
 import { History } from "../../lilgit/history";
 import { Nodey } from "../../lilgit/nodey/";
 import { Ghost } from "../ghost-book/ghost";
-import { ghostState, ghostReduce, ghostInitialState } from "./ghost";
+import { ghostState, ghostReduce, ghostInitialState } from "./viewStates/ghost";
 import {
   eventMapState,
   eventReducer,
   eventsInitialState,
   INIT_EVENT_MAP,
   UPDATE_CHECKPOINT,
-} from "./events";
+} from "./viewStates/events";
 import {
   notebookState,
   notebookReducer,

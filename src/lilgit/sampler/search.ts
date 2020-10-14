@@ -36,9 +36,19 @@ export class Search {
   // Helper method for search cells
 
   private highlightText(textFocus: string, elem: HTMLElement) {
+    let words = textFocus.split(" ");
+    let elemHTML = elem.outerHTML;
+
+    words.forEach((w) => {
+      elemHTML = this.highlightWord(w, elemHTML);
+    });
+    elem.outerHTML = elemHTML;
+    return elem;
+  }
+
+  private highlightWord(textFocus: string, text: string) {
     /* Highlight text in an HTML element */
 
-    let text = elem.outerHTML;
     let textFocus_safe = this.escapeRegex(textFocus);
     let word = new RegExp(textFocus_safe, "i");
     let regex = new RegExp(">[^<]*" + textFocus_safe + "[^>]*<", "gi");
@@ -46,7 +56,7 @@ export class Search {
     let match;
     let newText = text;
     let step = 0;
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = regex.exec(text)) != null) {
       let index = match.index + step;
       //console.log("MATCH", match, index);
       let substring = (match[0] as string).slice(1, match[0].length - 1);
@@ -61,8 +71,7 @@ export class Search {
       step = newText.length - text.length;
     }
 
-    elem.outerHTML = newText;
-    return elem; // finally return element
+    return newText; // finally return element html
   }
 
   private escapeRegex(string) {

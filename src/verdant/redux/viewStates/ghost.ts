@@ -1,14 +1,14 @@
-import { verdantState } from "./state";
+import { verdantState } from "../state";
 import {
   ChangeType,
   Checkpoint,
   CheckpointType,
   CellRunData,
   GREATER_CHANGETYPE,
-} from "../../lilgit/checkpoint";
-import { NodeyCode, NodeyNotebook } from "../../lilgit/nodey";
-import { History } from "../../lilgit/history";
-import { DIFF_TYPE } from "../../lilgit/sampler";
+} from "../../../lilgit/checkpoint";
+import { NodeyCode, NodeyNotebook } from "../../../lilgit/nodey";
+import { History } from "../../../lilgit/history";
+import { DIFF_TYPE } from "../../../lilgit/sampler";
 
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
 const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";

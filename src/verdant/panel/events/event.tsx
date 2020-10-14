@@ -44,13 +44,14 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<NotebookEvent_Props>
 ) => {
-  const notebook = state
-    .getHistory()
-    .store.getNotebook(ownProps.events.notebook);
+  const events =
+    state.eventView.dates[ownProps.date_id].events[ownProps.event_id];
+  const notebook = state.getHistory().store.getNotebook(events.notebook);
   return {
     openGhostBook: () => state.openGhostBook(ownProps.events.notebook),
     notebook,
     currentGhostBook: () => notebook.version === state.ghostBook.notebook_ver,
+    events,
   };
 };
 

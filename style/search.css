@@ -84,7 +84,7 @@
   border-bottom: 2px solid var(--jp-layout-color3);
 }
 .VerdantPanel-search-results-category.open {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
 }
@@ -131,8 +131,19 @@
 }
 
 .VerdantPanel-search-results-artifact {
+  margin-top: 20px;
   border-bottom: 1px solid var(--jp-border-color3);
   padding-bottom: 10px;
+}
+
+.VerdantPanel-search-results-artifact.open {
+  padding-bottom: 20px;
+  border-color: var(--jp-border-color0);
+}
+
+.VerdantPanel-search-results-artifact:last-child,
+.VerdantPanel-search-results-artifact.open:last-child {
+  border-color: transparent;
 }
 
 .VerdantPanel-search-results-header-button {

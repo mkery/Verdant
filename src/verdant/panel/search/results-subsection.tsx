@@ -107,7 +107,11 @@ class ResultsSubSection extends React.Component<
 
   showResultsPreview() {
     return (
-      <div className="VerdantPanel-search-results-artifact">
+      <div
+        className={`VerdantPanel-search-results-artifact ${
+          this.props.sectionOpen ? "open" : ""
+        }`}
+      >
         <div
           className={`VerdantPanel-search-results-artifact-header${
             this.props.sectionOpen ? " open-artifact" : ""
@@ -143,9 +147,9 @@ class ResultsSubSection extends React.Component<
 
   showFullResults() {
     if (this.props.sectionOpen) {
-      return this.props.results.map((r, index) => (
-        <Result key={index} result={r} />
-      ));
+      return this.props.results
+        .reverse()
+        .map((r, index) => <Result key={index} result={r} />);
     }
   }
 }

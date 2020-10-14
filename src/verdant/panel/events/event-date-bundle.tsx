@@ -45,7 +45,6 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
         <NotebookEvent
           date_id={this.props.date_id}
           event_id={this.props.events[0]}
-          events={this.props.event_states[this.props.events[0]]}
         />
       </div>
     );

@@ -1,7 +1,7 @@
 import { verdantState } from "./state";
 import { History } from "../../lilgit/history/";
 import { VerCell } from "../../lilgit/cell";
-import { INIT_EVENT_MAP, UPDATE_CHECKPOINT } from "./events";
+import { INIT_EVENT_MAP, UPDATE_CHECKPOINT } from "./viewStates/events";
 
 const FOCUS_CELL = "FOCUS_CELL";
 

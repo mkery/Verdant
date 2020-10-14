@@ -29,7 +29,7 @@ class SummaryTable extends React.Component<Summary_Props> {
       <div className="v-VerdantPanel-Summary-header">
         <div className="v-VerdantPanel-Summary-header-label cell">cell</div>
         <div className="v-VerdantPanel-Summary-header-label r">
-          <b>r</b>
+          <b>revision</b>
         </div>
         <div className="v-VerdantPanel-Summary-header-label preview">
           preview

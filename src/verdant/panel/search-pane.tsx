@@ -41,9 +41,9 @@ class Search extends React.Component<Search_Props> {
 
       // finally set search results
       this.props.set_results([
-        { label: "code history", count: cCount, results: code },
-        { label: "markdown history", count: mCount, results: markdown },
-        { label: "output history", count: oCount, results: output },
+        { label: "code cell", count: cCount, results: code },
+        { label: "markdown cell", count: mCount, results: markdown },
+        { label: "output", count: oCount, results: output },
       ]);
     }
   }

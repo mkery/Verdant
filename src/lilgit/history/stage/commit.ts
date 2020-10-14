@@ -67,7 +67,7 @@ export class Commit {
 
     // remove deleted cell from notebook
     let index = this.notebook.cells.indexOf(deleted.name);
-    if (index > -1) this.notebook.cells.splice(index, 0, name);
+    if (index > -1) this.notebook.cells.splice(index, 1);
 
     // update checkpoint
     let cellDat = {

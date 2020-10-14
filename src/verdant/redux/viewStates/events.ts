@@ -1,6 +1,6 @@
-import { History } from "../../lilgit/history/";
-import { Checkpoint } from "../../lilgit/checkpoint";
-import { verdantState } from "./state";
+import { History } from "../../../lilgit/history/";
+import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
+import { verdantState } from "../state";
 
 export const INIT_EVENT_MAP = "INIT_EVENT_MAP";
 export const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
@@ -29,7 +29,7 @@ export const dateOpen = (date: number) => {
   return {
     type: DATE_EXPAND,
     date: date,
-    status: true,
+    open: true,
   };
 };
 
@@ -37,15 +37,7 @@ export const dateClose = (date: number) => {
   return {
     type: DATE_EXPAND,
     date: date,
-    status: false,
-  };
-};
-
-export const saveBundles = (bundles: number[], date: number) => {
-  return {
-    type: SAVE_BUNDLES,
-    date: date,
-    bundles: bundles,
+    open: false,
   };
 };
 
@@ -54,7 +46,7 @@ export const bundleOpen = (date: number, bundle: number) => {
     type: BUNDLE_EXPAND,
     date: date,
     bundle_id: bundle,
-    status: true,
+    open: true,
   };
 };
 
@@ -63,7 +55,7 @@ export const bundleClose = (date: number, bundle: number) => {
     type: BUNDLE_EXPAND,
     date: date,
     bundle_id: bundle,
-    status: false,
+    open: false,
   };
 };
 
@@ -126,8 +118,10 @@ export const eventReducer = (
     case DATE_EXPAND:
       const updatedElement = {
         ...eventView.dates[action.date],
-        isOpen: action.status,
+        isOpen: action.open,
       };
+      if (action.open === true)
+        updatedElement.bundles = computeBundles(updatedElement.events);
       return {
         ...eventView,
         dates: [
@@ -151,7 +145,7 @@ export const eventReducer = (
       };
     case BUNDLE_EXPAND:
       const bundleStates = eventView.dates[action.date].bundleStates;
-      bundleStates[action.bundle_id].isOpen = action.status;
+      bundleStates[action.bundle_id].isOpen = action.open;
       const updatedBundleDate = {
         ...eventView.dates[action.date],
         bundleStates: bundleStates,
@@ -202,7 +196,10 @@ export function reducer_addEvent(
       // keep bundleStates as long as event list
       date.bundleStates.push({ isOpen: false });
     }
+    // update bundles
+    if (date.isOpen) date.bundles = computeBundles(date.events);
   }
+
   return dates;
 }
 
@@ -222,4 +219,61 @@ function reducer_initEventMap(state: verdantState) {
 function getInitialEvent(history: History): Checkpoint {
   let checkpoints = history.checkpoints.all();
   return checkpoints[checkpoints.length - 1];
+}
+
+interface accumulatorObject {
+  accumulator: number[][]; // Holds partially constructed bundle output
+  timeBound: number; // Lower limit on time for inclusion in latest bundle
+  lastType: CheckpointType; // Type of current bundle
+}
+const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
+
+function computeBundles(events: eventState[]): number[][] {
+  /* Helper method for makeBundles.
+     Computes list of bundled indices based on timestamp, ordered such that
+     flattening the outer list leads to a reversed list of the indices of
+     this.props.events */
+
+  return events.reduceRight(reducer.bind(this), {
+    accumulator: [],
+    timeBound: Infinity,
+    lastType: null,
+  }).accumulator;
+}
+
+function reducer(accObj: accumulatorObject, e: eventState, idx) {
+  /* Helper method for computeBundles.
+     Function to use in reducing over bundles in computeBundles. */
+  // Compute properties of current element
+  let timeStamp = e.events[0].timestamp;
+  let eventType = getEventType(e);
+  if (timeStamp > accObj.timeBound && eventType === accObj.lastType) {
+    // add event to current bundle
+    const newAccumulator = accObj.accumulator
+      .slice(0, -1)
+      .concat([
+        accObj.accumulator[accObj.accumulator.length - 1].concat([idx]),
+      ]);
+    return {
+      accumulator: newAccumulator,
+      timeBound: accObj.timeBound,
+      lastType: accObj.lastType,
+    };
+  } else {
+    // create new bundle
+    return {
+      accumulator: accObj.accumulator.concat([[idx]]),
+      timeBound: timeStamp - INTERVAL_WIDTH,
+      lastType: eventType,
+    };
+  }
+}
+
+function getEventType(e: eventState): CheckpointType {
+  /* Helper for reducer.
+     Returns CheckpointType if all checkpoints in event have same type,
+     else returns null */
+  return e.events
+    .map((c) => c.checkpointType)
+    .reduce((acc, current) => (acc === current ? acc : null));
 }

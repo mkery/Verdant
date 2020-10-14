@@ -35,11 +35,10 @@ class ResultsSection extends React.Component<ResultsSection_Props, {}> {
           }}
         >
           {this.showIcon()}
-          <div className="VerdantPanel-search-results-header-title">{`${
+          <div className="VerdantPanel-search-results-header-title">{`appears in (${
             this.props.totalResults
-          } result${this.props.totalResults === 1 ? "" : "s"} from ${
-            this.props.title
-          }`}</div>
+          }) ${this.props.title}${this.props.totalResults === 1 ? "" : "s"}
+          `}</div>
         </div>
         {this.showResults()}
       </div>
