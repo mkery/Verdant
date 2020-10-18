@@ -262,9 +262,13 @@ export class HistoryStore {
 
     let created = val.created;
     if (created !== undefined) {
+      // error case if undefined
       let event = this.history.checkpoints.get(created);
-      let notebook_id = event.notebook;
-      if (notebook_id !== undefined) return this.getNotebook(notebook_id);
+      if (event) {
+        // error case if undefined
+        let notebook_id = event.notebook;
+        if (notebook_id !== undefined) return this.getNotebook(notebook_id);
+      }
     }
     return undefined;
   }

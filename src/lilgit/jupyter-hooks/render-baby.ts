@@ -83,7 +83,11 @@ export class RenderBaby {
   }
 
   private async renderMimeOutput(output: nbformat.IOutput) {
-    let area: OutputAreaModel = new OutputAreaModel();
+    let trusted = output?.metadata
+      ? output?.metadata["verdant_trust_plz"]
+      : null;
+    let opts = trusted ? { trusted: true } : {};
+    let area: OutputAreaModel = new OutputAreaModel(opts);
     area.fromJSON([output]);
     let model: IOutputModel = area.get(0);
 

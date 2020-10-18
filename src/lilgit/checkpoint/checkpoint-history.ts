@@ -30,8 +30,8 @@ export class HistoryCheckpoints {
     let events: Checkpoint[] = [];
     for (var i = 0; i < this.checkpointList.length; i++) {
       let item = this.checkpointList[i];
-      if (item.notebook === version) events.push(item);
-      if (item.notebook > version) break;
+      if (item?.notebook === version) events.push(item);
+      if (item?.notebook > version) break;
     }
     return events;
   }

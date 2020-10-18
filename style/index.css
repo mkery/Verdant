@@ -67,6 +67,13 @@
   vertical-align: bottom;
 }
 
+.verdant-icon-missingImage {
+  fill: var(--jp-ui-font-color1);
+  height: 14px;
+  flex: 0 0 auto; /* prevents icon shrinking in flex context */
+  vertical-align: middle;
+}
+
 .verdant-link {
   text-decoration: underline;
   color: var(--jp-content-link-color);

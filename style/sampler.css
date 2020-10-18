@@ -88,6 +88,17 @@
   font-family: var(--jp-ui-font-family);
 }
 
+.v-VerdantPanel-cellList-sample .jp-RenderedSVG img,
+.v-VerdantPanel-sampler-version .jp-RenderedSVG img {
+  height: 16px;
+  width: 2em;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex: 0 0 auto; /* prevents icon shrinking in flex context */
+  vertical-align: middle;
+}
+
 .markdown-sample {
   padding: 4px;
 }

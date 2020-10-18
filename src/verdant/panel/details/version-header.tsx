@@ -45,16 +45,18 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
               this.props.scrollGhostToNodey(this.props.nodey);
             }}
           >
-            {Namer.getNotebookTitle(origin_notebook)}
+            {origin_notebook ? Namer.getNotebookTitle(origin_notebook) : ""}
           </span>
         </div>
         <div
           className="v-VerdantPanel-details-version-header-labelRow date"
-          onClick={() => this.props.openEvent(created)}
+          onClick={() => {
+            if (created) this.props.openEvent(created);
+          }}
         >
           <span className="verdant-link">{`${Checkpoint.formatTime(
-            created.timestamp
-          )} ${Checkpoint.formatShortDate(created.timestamp)}`}</span>
+            created?.timestamp
+          )} ${Checkpoint.formatShortDate(created?.timestamp)}`}</span>
         </div>
       </div>
     );

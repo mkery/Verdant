@@ -168,7 +168,7 @@ function loadCells(history: History, ver: number, diff: DIFF_TYPE) {
       if (outHist) {
         let out_nodey = outHist.filter((n) => {
           let notebook = history.store.getNotebookOf(n);
-          return notebook.version <= ver;
+          return notebook && notebook.version <= ver;
         });
         if (out_nodey.length > 0) {
           let out = out_nodey[out_nodey.length - 1].name;

@@ -90,12 +90,29 @@ export class FileManager {
   ): Promise<nbformat.IOutput> {
     var path = this.getOutputPath() + "/" + output.offsite;
     let contents = new ContentsManager();
-    let fileDat = await contents.get(path);
-    if (fileDat) {
-      let retrieved = { output_type: "display_data", data: {} };
-      retrieved.data[`image/${output.fileType}`] = fileDat.content + "";
-      return retrieved as nbformat.IDisplayData;
+    let fileDat;
+    try {
+      fileDat = await contents.get(path);
+    } catch (error) {
+      // file is missing, that's ok.
     }
+    let retrieved: nbformat.IDisplayData = {
+      output_type: "display_data",
+      data: {},
+      metadata: {
+        verdant_trust_plz: true,
+        isolated: true,
+      },
+    };
+
+    if (fileDat) {
+      retrieved.data[`image/${output.fileType}`] = fileDat.content + "";
+    } else {
+      retrieved.data["image/svg+xml"] = MISSING_IMAGE_SVG;
+    }
+    console.log("RETRIEVED FILE", retrieved);
+
+    return retrieved;
   }
 
   public writeOutput(filename: string, data: string) {
@@ -182,3 +199,17 @@ export class OutputSaveModel implements Contents.IModel {
     this.content = content;
   }
 }
+
+const MISSING_IMAGE_SVG = `<svg
+xmlns="http://www.w3.org/2000/svg"
+viewBox="0 0 24 29"
+aria-labelledby="title"
+className="verdant-icon-missingImage"
+>
+<title id="title">Missing Image Icon</title>
+<g>
+  <circle cx="6" cy="11" r="2" />
+  <path d="M17.908 5l-.593 2H22v15h-9.129l-.593 2H24V5z" />
+  <path d="M13.167 21H21v-2.857c-1.997-2.776-2.954-6.657-4.883-7.098L13.167 21zM15.041.716L13.771 5H0v19h8.143l-1.102 3.716 1.918.568 8-27-1.918-.568zM10.31 16.682c-.668-.861-1.34-1.396-2.06-1.396-1.955 0-2.674 4.157-5.25 4.999V21H9.031l-.296 1H2V7h11.18l-2.87 9.682z" />
+</g>
+</svg>`;

@@ -48,9 +48,10 @@ const mapStateToProps = (
     state.eventView.dates[ownProps.date_id].events[ownProps.event_id];
   const notebook = state.getHistory().store.getNotebook(events.notebook);
   return {
-    openGhostBook: () => state.openGhostBook(ownProps.events.notebook),
+    openGhostBook: () =>
+      notebook ? state.openGhostBook(events.notebook) : null,
     notebook,
-    currentGhostBook: () => notebook.version === state.ghostBook.notebook_ver,
+    currentGhostBook: () => notebook?.version === state.ghostBook.notebook_ver,
     events,
   };
 };

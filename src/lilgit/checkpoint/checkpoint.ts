@@ -49,6 +49,8 @@ export namespace Checkpoint {
   }
 
   export function formatTime(date: Date | number): string {
+    if (date === null || date === undefined) return "";
+
     if (typeof date == "number") date = new Date(date);
     var hours = date.getHours();
     var minutes = date.getMinutes();
@@ -59,6 +61,8 @@ export namespace Checkpoint {
   }
 
   export function formatDate(date: Date | number): string {
+    if (date === null || date === undefined) return "";
+
     if (typeof date == "number") date = new Date(date);
     var monthNames = [
       "January",
@@ -105,6 +109,8 @@ export namespace Checkpoint {
   }
 
   export function formatShortDate(date: Date | number): string {
+    if (date === null || date === undefined) return "";
+
     if (typeof date == "number") date = new Date(date);
     var monthNames = [
       "Jan",
