@@ -72,7 +72,7 @@ export type dateState = {
   isOpen: boolean;
   date: number;
   events: eventState[];
-  bundles: number[][] | null;
+  bundles: number[][];
   bundleStates: bundleState[];
 };
 
@@ -176,7 +176,7 @@ export function reducer_addEvent(
       isOpen: true,
       date: time,
       events: [newEvent],
-      bundles: null,
+      bundles: [],
       bundleStates: [{ isOpen: false }],
     };
     dates.push(newDate);

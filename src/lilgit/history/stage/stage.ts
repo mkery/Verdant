@@ -6,6 +6,9 @@ import {
   NodeyCell,
 } from "../../nodey/";
 import { History } from "../history";
+import { OutputHistory } from "../store";
+import { IOutput } from "@jupyterlab/nbformat";
+import { FileManager } from "../../jupyter-hooks/file-manager";
 
 /*
  * Stage is responsible for figuring out which *potentially* changed nodey
@@ -14,6 +17,7 @@ import { History } from "../history";
  */
 export class Stage {
   readonly history: History;
+  private readonly fileManager: FileManager;
 
   /*
    * Dirty nodey lists nodey that *might* be changed, but we'll need to verify
@@ -31,8 +35,9 @@ export class Stage {
   private staged_markdown: { [cellName: string]: { markdown: string } } = {};
   private staged_rawCell: { [cellName: string]: { literal: string } } = {};
 
-  constructor(history: History) {
+  constructor(history: History, fileManager: FileManager) {
     this.history = history;
+    this.fileManager = fileManager;
   }
 
   public getStaging(cell: NodeyCell) {
@@ -44,24 +49,26 @@ export class Stage {
       return this.staged_rawCell[cell.artifactName];
   }
 
-  public stage() {
+  public async stage() {
     // create staging lists
-    this.dirty_nodey.forEach((name: string) => {
-      // get potentially dirty nodey
-      let nodey = this.history.store.get(name);
+    await Promise.all(
+      this.dirty_nodey.map(async (name: string) => {
+        // get potentially dirty nodey
+        let nodey = this.history.store.get(name);
 
-      if (nodey instanceof NodeyCode) {
-        let nodeyCell;
-        if (nodey instanceof NodeyCodeCell) nodeyCell = nodey;
-        else nodeyCell = this.history.store.getCellParent(nodey);
-        this.checkCodeCellNodey(nodeyCell);
-        this.checkOutputNodey(nodeyCell);
-      } else if (nodey instanceof NodeyMarkdown) {
-        this.checkMarkdownNodey(nodey);
-      } else if (nodey instanceof NodeyRawCell) {
-        this.checkRawCellNodey(nodey);
-      }
-    });
+        if (nodey instanceof NodeyCode) {
+          let nodeyCell;
+          if (nodey instanceof NodeyCodeCell) nodeyCell = nodey;
+          else nodeyCell = this.history.store.getCellParent(nodey);
+          this.checkCodeCellNodey(nodeyCell);
+          await this.checkOutputNodey(nodeyCell);
+        } else if (nodey instanceof NodeyMarkdown) {
+          this.checkMarkdownNodey(nodey);
+        } else if (nodey instanceof NodeyRawCell) {
+          this.checkRawCellNodey(nodey);
+        }
+      })
+    );
   }
 
   public isEdited() {
@@ -84,22 +91,18 @@ export class Stage {
     }
   }
 
-  private checkOutputNodey(nodey: NodeyCodeCell) {
+  private async checkOutputNodey(nodey: NodeyCodeCell) {
     // get current (new) output if any
     let cell = this.history.notebook.getCellByNode(nodey);
     let outputArea = cell.outputArea;
-    let raw = []; // no output
+    let raw: IOutput[] = []; // no output
     if (outputArea) raw = cell.outputArea.model.toJSON(); // output if present
 
     // get prior output if any
     let oldOutput = cell.output;
-    let oldRaw = [];
-    if (oldOutput) {
-      oldRaw = oldOutput.raw;
-    }
 
     // compare to see if output has changed
-    let changed = JSON.stringify(raw) != JSON.stringify(oldRaw);
+    let changed = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
     if (changed) {
       // make instructions for a new Output in staging
       if (!this.staged_codeCell[nodey.artifactName])

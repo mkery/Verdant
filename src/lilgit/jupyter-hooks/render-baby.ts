@@ -61,7 +61,7 @@ export class RenderBaby {
         let widget: Widget;
 
         // check if output is actually stored offsite
-        if (this.isOffsite(output)) {
+        if (OutputHistory.isOffsite(output)) {
           let retrieved = await this.fileManager.getOutput(output);
           widget = await this.renderMimeOutput(retrieved);
         } else {
@@ -79,13 +79,6 @@ export class RenderBaby {
 
         return widget;
       })
-    );
-  }
-
-  private isOffsite(output): output is OutputHistory.Offsite {
-    return (
-      (output as OutputHistory.Offsite).fileType !== undefined &&
-      (output as OutputHistory.Offsite).offsite !== undefined
     );
   }
 

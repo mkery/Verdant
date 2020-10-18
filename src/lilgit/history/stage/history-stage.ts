@@ -3,21 +3,24 @@ import { History } from "..";
 import { Checkpoint } from "../../checkpoint";
 import { Commit } from "./commit";
 import { log } from "../../notebook";
+import { FileManager } from "../../jupyter-hooks/file-manager";
 
 export class HistoryStage {
-  readonly history: History;
-
+  private readonly history: History;
+  private readonly fileManager: FileManager;
   private open_commits: Commit[];
 
-  constructor(history: History) {
+  constructor(history: History, fileManager: FileManager) {
     this.history = history;
+    this.fileManager = fileManager;
     this.open_commits = [];
   }
 
   public commit(checkpoint: Checkpoint): void {
     let c = this.getCommit(checkpoint);
-    c.commit();
-    this.closeCommit(c); // TODO not strictly necessary??? when to close?
+    // if commit was *actually* verified to be needed, it will return true
+    if (c.commit()) this.history.checkpoints.set(checkpoint.id, checkpoint);
+    this.closeCommit(c);
   }
 
   public markAsPossiblyEdited(nodey: Nodey, checkpoint: Checkpoint): void {
@@ -32,12 +35,14 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.addCell(added, index);
+    this.history.checkpoints[checkpoint.id] = checkpoint;
     this.closeCommit(c);
   }
 
   public commitCellDeleted(deleted: NodeyCell, checkpoint: Checkpoint): void {
     let c = this.getCommit(checkpoint);
     c.deleteCell(deleted);
+    this.history.checkpoints[checkpoint.id] = checkpoint;
     this.closeCommit(c);
   }
 
@@ -48,6 +53,7 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.moveCell(moved, newPos);
+    this.history.checkpoints[checkpoint.id] = checkpoint;
     this.closeCommit(c);
   }
 
@@ -58,13 +64,14 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.changeCellType(oldCell, newCell);
+    this.history.checkpoints[checkpoint.id] = checkpoint;
     this.closeCommit(c);
   }
 
   private getCommit(checkpoint: Checkpoint) {
     let c = this.open_commits.find((c) => c.checkpoint.id === checkpoint.id);
     if (!c) {
-      c = new Commit(checkpoint, this.history);
+      c = new Commit(checkpoint, this.history, this.fileManager);
       this.open_commits.push(c);
     }
     return c;

@@ -17,7 +17,7 @@ export class History {
   constructor(renderBaby: RenderBaby, fileManager: FileManager) {
     this._inspector = new Sampler(this, renderBaby);
     this.store = new HistoryStore(this, fileManager);
-    this.stage = new HistoryStage(this);
+    this.stage = new HistoryStage(this, fileManager);
     this.checkpoints = new HistoryCheckpoints(this);
   }
 
@@ -50,13 +50,13 @@ export class History {
   }
 
   private fromJSON(data: History.SERIALIZE) {
-    this.checkpoints.fromJSON(data.runs);
+    this.checkpoints.fromJSON(data.checkpoints);
     this.store.fromJSON(data);
   }
 
   public toJSON(): History.SERIALIZE {
     let store = this.store.toJSON();
-    return { runs: this.checkpoints.toJSON(), ...store };
+    return { checkpoints: this.checkpoints.toJSON(), ...store };
   }
 
   public dump(): void {
@@ -68,6 +68,6 @@ export class History {
 
 export namespace History {
   export type SERIALIZE = {
-    runs: Checkpoint.SERIALIZE[];
+    checkpoints: Checkpoint.SERIALIZE[];
   } & HistoryStore.SERIALIZE;
 }

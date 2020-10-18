@@ -1,9 +1,5 @@
-import {
-  Checkpoint,
-  ChangeType,
-  CellRunData,
-  CheckpointType,
-} from "../../checkpoint/";
+import { FileManager } from "../../jupyter-hooks/file-manager";
+import { Checkpoint, ChangeType, CellRunData } from "../../checkpoint/";
 import {
   NodeyCell,
   Nodey,
@@ -32,10 +28,14 @@ export class Commit {
    */
   private stage: Stage;
 
-  constructor(checkpoint: Checkpoint, history: History) {
+  constructor(
+    checkpoint: Checkpoint,
+    history: History,
+    fileManager: FileManager
+  ) {
     this.checkpoint = checkpoint;
     this.history = history;
-    this.stage = new Stage(history);
+    this.stage = new Stage(history, fileManager);
   }
 
   public markAsPossiblyEdited(nodey: Nodey) {
@@ -118,29 +118,16 @@ export class Commit {
     this.checkpoint.targetCells.push(cellDat);
   }
 
-  public commit(): void {
+  // returns true if there are changes such that a new commit is recorded
+  public commit(): boolean {
     this.stage.stage();
     if (this.stage.isEdited()) {
       // if there are real edits, make sure we have a new notebook
       if (!this.notebook) this.createNotebookVersion();
       this.commitStaged();
-    } else {
-      // no real edits, so we stick with the same notebook
-      if (!this.notebook) this.notebook = this.history.store.currentNotebook;
-      this.checkpoint.notebook = this.notebook.version;
-
-      // if this is a run event, record unchanged cells
-      if (this.checkpoint.checkpointType === CheckpointType.RUN) {
-        this.stage.dirty_nodey.forEach((name) => {
-          // update to checkpoint
-          let cellDat = {
-            cell: name,
-            changeType: ChangeType.SAME,
-          } as CellRunData;
-          this.checkpoint.targetCells.push(cellDat);
-        });
-      }
+      return true;
     }
+    return false;
   }
 
   private commitStaged() {
@@ -286,7 +273,7 @@ export class Commit {
     let cellDat = {
       cell: newNodey.name,
       changeType: changed ? ChangeType.CHANGED : ChangeType.SAME,
-      newOutput: newOut ? [newOut.name] : [],
+      output: newOut ? [newOut.name] : [],
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
 

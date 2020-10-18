@@ -1,6 +1,7 @@
 import { NodeHistory } from "./node-history";
 import { NodeyOutput } from "../../nodey";
 import { FileManager } from "../../jupyter-hooks/file-manager";
+import { IOutput } from "@jupyterlab/nbformat";
 
 /*
  * Goal is to store image or larger output externally in a folder without
@@ -25,9 +26,7 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
     super.addVersion(nodey);
     let ver = nodey.version;
     let fixedRaw = nodey.raw.map((out, index) => {
-      let imageTag = findImageTag(out);
-      if (imageTag) console.log("ITS AN IMAGE");
-      else console.log("NOT AN IMAGE");
+      let imageTag = OutputHistory.isImage(out);
       if (imageTag) return this.sendImageToFile(ver, index, out, imageTag);
       return out;
     });
@@ -35,7 +34,73 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
     return ver;
   }
 
-  sendImageToFile(
+  public static async isSame(
+    A: NodeyOutput,
+    B: NodeyOutput | IOutput[],
+    fileManager: FileManager
+  ) {
+    // first check that both outputs exist
+    if (!A || !B) return false;
+
+    let outList_a = A.raw;
+    let outList_b = B instanceof NodeyOutput ? B.raw : B;
+
+    // now check that they have the same number of outputs
+    if (outList_a.length !== outList_b.length) return false;
+    else {
+      // helper function
+      const asyncEvery = async (arr, predicate) => {
+        for (let i = 0; i < arr.length; i++) {
+          const e = arr[i];
+          if (!(await predicate(e, i))) return false;
+        }
+        return true;
+      };
+
+      // now check that every output matches in a and b
+      return await asyncEvery(outList_a, async (a, index) => {
+        let b = outList_b[index];
+
+        let raw_a = JSON.stringify(a);
+        let raw_b = JSON.stringify(b);
+
+        // retrieve from storage if needed
+        if (OutputHistory.isOffsite(a)) {
+          a = await fileManager.getOutput(a);
+          if (a) raw_a = JSON.stringify(a);
+          else raw_a = null;
+        }
+        if (b instanceof NodeyOutput && OutputHistory.isOffsite(b)) {
+          let outB = await fileManager.getOutput(b);
+          raw_b = JSON.stringify(outB);
+        }
+
+        // get image tags if images, assuming other metadata doesn't matter
+        let image_a = OutputHistory.isImage(a);
+        if (image_a) raw_a = a.data[image_a];
+        let image_b = OutputHistory.isImage(b);
+        if (image_b) raw_b = b.data[image_b];
+
+        return raw_a === raw_b;
+      });
+    }
+  }
+
+  public static isImage(out): string | undefined {
+    if (out.data) {
+      let keys = Object.keys(out.data);
+      return Array.from(keys).find((k) => k.includes("image"));
+    }
+  }
+
+  public static isOffsite(output): output is OutputHistory.Offsite {
+    return (
+      (output as OutputHistory.Offsite).fileType !== undefined &&
+      (output as OutputHistory.Offsite).offsite !== undefined
+    );
+  }
+
+  private sendImageToFile(
     ver: number,
     index: number,
     out,
@@ -53,14 +118,5 @@ export namespace OutputHistory {
   export interface Offsite {
     offsite: string;
     fileType: string;
-  }
-}
-
-/* Helper functions for identifying output kind */
-
-function findImageTag(out): string {
-  if (out.data) {
-    let keys = Object.keys(out.data);
-    return Array.from(keys).find((k) => k.includes("image"));
   }
 }

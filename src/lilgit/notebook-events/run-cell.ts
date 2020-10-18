@@ -26,8 +26,4 @@ export class RunCell extends NotebookEvent {
     this.history.stage.markAsPossiblyEdited(cell.model, this.checkpoint);
     this.history.stage.commit(this.checkpoint);
   }
-
-  endEvent() {
-    this.notebook.saveToFile();
-  }
 }

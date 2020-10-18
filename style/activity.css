@@ -163,31 +163,51 @@
   border-color: white;
 }
 
+/* This is the default tick, for a cell that was just run */
 .Verdant-events-map-cell.target {
   width: 2px;
   margin-left: 0px;
-  height: 1em;
-  border-top: 2px solid var(--jp-content-font-color3);
-  border-bottom: 2px solid var(--jp-content-font-color3);
-  border-radius: 5px;
+  height: 1.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
   margin-top: -1px;
 }
 
-.Verdant-events-map-cell-added {
+/*
+ CHANGED = "edited",
+  REMOVED = "removed",
+  ADDED = "added",
+  SAME = "no change",
+  MOVED = "moved",
+  NONE = "n/a",
+  TYPE_CHANGED = "type changed",
+*/
+.Verdant-events-map-cell.target .tic {
+  flex: 1 1 auto;
+  border-radius: 5px;
+}
+
+.Verdant-events-map-cell.target .tic.added {
   background-color: var(--verdant-cell-add-color1);
-  border-color: var(--verdant-cell-add-color2);
 }
 
-.Verdant-events-map-cell-changed {
-  background-color: var(--verdant-cell-change-color2);
-  border-color: var(--verdant-cell-change-color2);
-}
-
-.Verdant-events-map-cell-removed {
+.Verdant-events-map-cell.target .tic.removed {
   background-color: var(--verdant-cell-remove-color1);
-  border-color: var(--verdant-cell-remove-color2);
 }
 
-.Verdant-events-map-cell-same {
+.Verdant-events-map-cell.target .tic.edited {
+  background-color: var(--verdant-cell-change-color2);
+}
+
+.Verdant-events-map-cell.target .tic.moved {
+  background-color: peru;
+}
+
+.Verdant-events-map-cell.target .tic.type_changed {
+  background-color: cadetblue;
+}
+
+.Verdant-events-map-cell.target .tic.no_change {
   background-color: #d0c8d2;
 }

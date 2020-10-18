@@ -91,9 +91,11 @@ export class FileManager {
     var path = this.getOutputPath() + "/" + output.offsite;
     let contents = new ContentsManager();
     let fileDat = await contents.get(path);
-    let retrieved = { output_type: "display_data", data: {} };
-    retrieved.data[`image/${output.fileType}`] = fileDat.content + "";
-    return retrieved as nbformat.IDisplayData;
+    if (fileDat) {
+      let retrieved = { output_type: "display_data", data: {} };
+      retrieved.data[`image/${output.fileType}`] = fileDat.content + "";
+      return retrieved as nbformat.IDisplayData;
+    }
   }
 
   public writeOutput(filename: string, data: string) {

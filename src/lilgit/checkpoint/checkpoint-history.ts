@@ -1,12 +1,6 @@
-import { NodeyNotebook } from "../nodey/";
 import { History } from "../history/";
 import { log } from "../notebook";
-import {
-  CheckpointType,
-  CellRunData,
-  CONVERT_ChangeType,
-  ChangeType,
-} from "./constants";
+import { CheckpointType, ChangeType } from "./constants";
 import { Checkpoint } from "./checkpoint";
 
 const DEBUG = false;
@@ -26,6 +20,10 @@ export class HistoryCheckpoints {
 
   public get(id: number): Checkpoint {
     return this.checkpointList[id];
+  }
+
+  public set(id: number, checkpoint: Checkpoint) {
+    this.checkpointList[id] = checkpoint;
   }
 
   public getByNotebook(version: number): Checkpoint[] {
@@ -53,57 +51,7 @@ export class HistoryCheckpoints {
       checkpointType: kind,
       notebookId: undefined,
     });
-    this.checkpointList[id] = checkpoint;
     return checkpoint;
-  }
-
-  public resolveCheckpoint(id: number, cellRunDat: CellRunData[]) {
-    // update checkpoint with new cell change data
-    cellRunDat.forEach((cell) =>
-      this.checkpointList[id].targetCells.push(cell)
-    );
-
-    // set notebook ID for event if notebook is not yet set
-
-    if (this.checkpointList[id].notebook === undefined)
-      this.findCheckpointNotebook(id);
-  }
-
-  public getCellMap(checkpointList: Checkpoint | Checkpoint[]): CellRunData[] {
-    let cellMap: CellRunData[] = [];
-    if (!Array.isArray(checkpointList)) checkpointList = [checkpointList];
-
-    checkpointList.forEach((checkpoint) => {
-      let notebook = this.history.store.getNotebook(
-        checkpoint.notebook
-      ) as NodeyNotebook;
-      if (DEBUG) log("MAKING CELL MAP: notebook found", notebook, checkpoint);
-      let targets = checkpoint.targetCells;
-      if (notebook) {
-        notebook.cells.forEach((name, index) => {
-          let match = targets.find((item) => item.cell === name);
-          // all other cells
-          if (match) {
-            cellMap[index] = match;
-            // convert for older log format
-            if (typeof cellMap[index].changeType === "number")
-              cellMap[index].changeType = CONVERT_ChangeType(
-                cellMap[index].changeType
-              );
-          } else if (!cellMap[index])
-            cellMap[index] = { cell: name, changeType: ChangeType.NONE };
-        });
-
-        // for deleted cells
-        targets.forEach((t) => {
-          if (t.changeType === ChangeType.REMOVED)
-            cellMap.splice(t.index, 0, t);
-        });
-      }
-    });
-
-    if (DEBUG) log("CELL MAP", cellMap);
-    return cellMap;
   }
 
   findCheckpointNotebook(id: number) {
@@ -147,8 +95,10 @@ export class HistoryCheckpoints {
   }
 
   public toJSON(): Checkpoint.SERIALIZE[] {
-    return this.checkpointList.map((item) => {
-      return item.toJSON();
-    });
+    return this.checkpointList
+      .filter((item) => item !== null)
+      .map((item) => {
+        return item.toJSON();
+      });
   }
 }
