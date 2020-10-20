@@ -12,7 +12,7 @@ type Pos = { line: number; ch: number };
  */
 export namespace ASTUtils {
   export async function parseRequest(rawText: string = ""): Promise<jsn> {
-    let text = Private.cleanCodeString(rawText);
+    /*let text = Private.cleanCodeString(rawText);
     let fullRequest = {
       method: "POST",
       body: JSON.stringify({ code: text }),

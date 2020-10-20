@@ -6,9 +6,12 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { OutputHistory } from "../history/";
+import { OutputHistory, History } from "../history/";
 
 import * as nbformat from "@jupyterlab/nbformat";
+
+import { GhostToNotebookConverter } from "./ghost-to-ipynb";
+import { NodeyNotebook } from "../nodey";
 
 export class FileManager {
   readonly docManager: IDocumentManager;
@@ -83,6 +86,42 @@ export class FileManager {
           accept(null);
         });
     });
+  }
+
+  public async saveGhostBook(history: History, notebook: NodeyNotebook) {
+    let model = await GhostToNotebookConverter.convert(history, notebook);
+
+    // prepare the path and file name
+    var notebookPath = this._activeNotebook.path;
+    var name = PathExt.basename(notebookPath);
+    name =
+      name.substring(0, name.indexOf(".")) +
+      "-v" +
+      (notebook.version + 1) +
+      ".ipynb";
+    //log("name is", name)
+    var path =
+      "/" + notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) + name;
+
+    // create save model
+    var saveModel = new HistorySaveModel(
+      name,
+      path,
+      "today",
+      "today",
+      model.toString()
+    );
+
+    let contents = new ContentsManager();
+    contents
+      .save(path, saveModel)
+      .then(() => {
+        log("GhostBook written to file", name);
+      })
+      .catch((rej) => {
+        //here when you reject the promise if the filesave fails
+        console.error(rej);
+      });
   }
 
   public async getOutput(

@@ -143,7 +143,14 @@ class Toolbar extends React.Component<
     return (
       <div
         className="v-Verdant-GhostBook-exportOptions"
-        onClick={() => this.setState({ export_msg_open: true })}
+        onClick={() => {
+          this.setState({ export_msg_open: true });
+          const notebook = this.props.history.store.getNotebook(this.props.ver);
+          this.props.history.store.fileManager.saveGhostBook(
+            this.props.history,
+            notebook
+          );
+        }}
       >
         <ExportIcon />
         <span>Export</span>
