@@ -5,7 +5,7 @@
 :root {
   --jp-private-verdant-manager-tab-height: 24px;
 
-  --verdant-icon-logo: url("img/log-icon.svg");
+  --verdant-icon-logo: url("img/log-icon-4.svg");
 
   --verdant-icon-ghostbook: url("img/ghost-book.svg");
   --verdant-icon-search: url("img/search.svg");
@@ -31,8 +31,8 @@
 /*-----------------------------------------------------------------------------
 | Verdant in the dock panel, copied css from tabs-extension
 |----------------------------------------------------------------------------*/
-.verdant-log-icon {
-  background: var(--verdant-icon-logo);
+.verdant-log-icon svg {
+  fill: var(--jp-inverse-layout-color3);
 }
 
 .verdant-icon-chevron {
@@ -77,6 +77,15 @@
 .verdant-link {
   text-decoration: underline;
   color: var(--jp-content-link-color);
+}
+
+.v-Verdant-tooltip {
+  position: absolute;
+  padding: 4px 8px;
+  background-color: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size2);
+  border-radius: var(--jp-border-radius);
 }
 
 #v-VerdantPanel,

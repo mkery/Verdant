@@ -110,7 +110,6 @@ export class FileManager {
     } else {
       retrieved.data["image/svg+xml"] = MISSING_IMAGE_SVG;
     }
-    console.log("RETRIEVED FILE", retrieved);
 
     return retrieved;
   }

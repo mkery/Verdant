@@ -1,14 +1,17 @@
 import * as React from "react";
 import { Checkpoint } from "../../../lilgit/checkpoint";
-import { CellMap } from "../../../lilgit/sampler";
+import { CellMap, Namer } from "../../../lilgit/sampler";
 import { History } from "../../../lilgit/history/";
-import { verdantState } from "../../redux/";
+import { Nodey } from "../../../lilgit/nodey";
+import { verdantState, showDetailOfNode } from "../../redux/";
+import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 
 interface EventMap_Props {
   checkpoints: Checkpoint[];
   history: History;
   eventCount: number;
+  showDetail: (n: Nodey) => void;
 }
 
 const MAP = "Verdant-events-map";
@@ -42,10 +45,19 @@ class NotebookEventMap extends React.Component<
           let color = kind.replace(/ /g, "_");
           tics.push(<div key={j_index} className={`tic ${color}`}></div>);
         });
-
+        let nodey = this.props.history.store.get(cell.name);
+        let tooltip_msg = `${Namer.getCellVersionTitle(
+          nodey
+        )} was ${cell.changes.join(", ")}`;
         return (
-          <div key={index} className="Verdant-events-map-cell target">
+          <div
+            data-tip={tooltip_msg}
+            key={index}
+            className="Verdant-events-map-cell target"
+            onClick={() => this.props.showDetail(nodey)}
+          >
             {tics}
+            <ReactTooltip />
           </div>
         );
       } else return <div key={index} className="Verdant-events-map-cell"></div>;
@@ -67,4 +79,10 @@ const mapStateToProps = (
   };
 };
 
-export default connect(mapStateToProps)(NotebookEventMap);
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    showDetail: (n: Nodey) => dispatch(showDetailOfNode(n)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(NotebookEventMap);

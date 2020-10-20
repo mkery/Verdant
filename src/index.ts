@@ -27,6 +27,8 @@ import { FileManager } from "./lilgit/jupyter-hooks/file-manager";
 
 import { StackedPanel, Widget } from "@lumino/widgets";
 
+import { LabIcon } from "@jupyterlab/ui-components";
+
 import * as renderers from "@jupyterlab/rendermime";
 
 import "../style/index.css";
@@ -38,6 +40,7 @@ import "../style/summary.css";
 import "../style/landing.css";
 import "../style/search.css";
 import "../style/artifact-details.css";
+const verdantIconSvgStr = require("../style/img/log-icon-4.svg");
 
 import { AST } from "./lilgit/analysis/ast";
 
@@ -50,6 +53,11 @@ import { VerdantPanel } from "./verdant/verdant-panel";
 import { VerdantLanding } from "./verdant/verdant-landing";
 
 import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
+
+export const verdantIcon = new LabIcon({
+  name: "verdant",
+  svgstr: verdantIconSvgStr.default,
+});
 
 /**
  * Initialization data for the Verdant extension.
@@ -86,7 +94,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Set up icon for Verdant tool in the main editor side panel
     restorer.add(sidePanel, "v-VerdantPanel");
     sidePanel.id = "v-VerdantPanel";
-    sidePanel.title.iconClass = "verdant-log-icon jp-SideBar-tabIcon";
+    sidePanel.title.icon = verdantIcon;
+    sidePanel.title.iconClass = "verdant-log-icon";
     sidePanel.title.caption = "Verdant Log";
     sidePanel.addWidget(landingPage);
     app.shell.add(sidePanel, "left", { rank: 600 });

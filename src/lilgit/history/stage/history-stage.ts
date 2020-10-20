@@ -35,14 +35,14 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.addCell(added, index);
-    this.history.checkpoints[checkpoint.id] = checkpoint;
+    this.history.checkpoints.set(checkpoint.id, checkpoint);
     this.closeCommit(c);
   }
 
   public commitCellDeleted(deleted: NodeyCell, checkpoint: Checkpoint): void {
     let c = this.getCommit(checkpoint);
     c.deleteCell(deleted);
-    this.history.checkpoints[checkpoint.id] = checkpoint;
+    this.history.checkpoints.set(checkpoint.id, checkpoint);
     this.closeCommit(c);
   }
 
@@ -53,7 +53,7 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.moveCell(moved, newPos);
-    this.history.checkpoints[checkpoint.id] = checkpoint;
+    this.history.checkpoints.set(checkpoint.id, checkpoint);
     this.closeCommit(c);
   }
 
@@ -64,7 +64,7 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.changeCellType(oldCell, newCell);
-    this.history.checkpoints[checkpoint.id] = checkpoint;
+    this.history.checkpoints.set(checkpoint.id, checkpoint);
     this.closeCommit(c);
   }
 

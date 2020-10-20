@@ -27,13 +27,13 @@ interface GhostToolbar_Props {
 
 class Toolbar extends React.Component<
   GhostToolbar_Props,
-  { dropdown_open: boolean }
+  { dropdown_open: boolean; export_msg_open: boolean }
 > {
   private readonly diffLabels: string[];
 
   constructor(props: GhostToolbar_Props) {
     super(props);
-    this.state = { dropdown_open: false };
+    this.state = { dropdown_open: false, export_msg_open: false };
 
     let diffLabels = [];
     diffLabels[DIFF_TYPE.CHANGE_DIFF] = "from prior";
@@ -46,13 +46,14 @@ class Toolbar extends React.Component<
     // ignore rendering if no ghost book is showing
     if (this.props.ver === -1) return null;
     return (
-      <div className={`v-Verdant-GhostBook-header ${JP_TOOLBAR}`}>
-        <div className="v-Verdant-GhostBook-header-row">
+      <div className="v-Verdant-GhostBook-header">
+        <div className={`v-Verdant-GhostBook-header-row ${JP_TOOLBAR}`}>
           {this.showVersionSwitch()}
           {this.showTimestamp()}
           {this.showDiffOptions()}
           {this.showExportOptions()}
         </div>
+        {this.showExportMessage()}
       </div>
     );
   }
@@ -140,11 +141,33 @@ class Toolbar extends React.Component<
 
   private showExportOptions() {
     return (
-      <div className="v-Verdant-GhostBook-exportOptions">
+      <div
+        className="v-Verdant-GhostBook-exportOptions"
+        onClick={() => this.setState({ export_msg_open: true })}
+      >
         <ExportIcon />
         <span>Export</span>
       </div>
     );
+  }
+
+  private showExportMessage() {
+    if (this.state.export_msg_open) {
+      const notebook = this.props.history.store.getNotebook(this.props.ver);
+      let name = this.props.history.notebook.name;
+      name =
+        name.substring(0, name.indexOf(".")) +
+        "-" +
+        Namer.getNotebookVersionLabel(notebook) +
+        ".ipynb";
+
+      // hide after export is done or after a short delay
+      setTimeout(() => this.setState({ export_msg_open: false }), 2000);
+
+      return (
+        <div className="v-Verdant-GhostBook-export-msg">{`Exporting notebook to ${name}`}</div>
+      );
+    }
   }
 }
 

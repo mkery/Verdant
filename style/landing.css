@@ -17,6 +17,7 @@
   background-image: var(--verdant-icon-logo);
   background-position: center;
   background-repeat: no-repeat;
+  background-size: contain;
   height: 3em;
   margin-top: 20px;
 }
