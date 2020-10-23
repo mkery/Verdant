@@ -18,33 +18,33 @@ const CELL_CONTAINER = `${CELL}-container`;
 const CELL_CONTENT = `${CELL}-content`;
 
 // Enum for types of cells
-
-export type GhostCell_Props = {
-  // The index of the cell
-  id?: number;
-  // Entire state history. Used for VersionSampler
-  history?: History;
+export type req_GhostCell_Props = {
   // String id of the cell
   name: string;
-  // Name of the prior cell to diff against in diffPresent case
-  prior: string;
-  // Whether to display diffs with present cells or prior version
-  diff: DIFF_TYPE;
-  // Index of the cell's output cell (for a code cell) in state.GhostCells
-  output?: string;
   // Checkpoints associated with the cell
   change: ChangeType;
+  // Name of the prior cell to diff against in diffPresent case
+  prior?: string;
+  scrollTo?: () => void;
+  // Index of the cell's output cell (for a code cell) in state.GhostCells
+  output: string | null;
+};
+export type GhostCell_Props = {
+  // Entire state history. Used for VersionSampler
+  history: History;
+  // Whether to display diffs with present cells or prior version
+  diff: DIFF_TYPE;
+
   // On-click action
-  clickEv?: () => void;
+  clickEv: () => void;
   // On-focus action
-  hasFocus?: () => boolean;
+  hasFocus: () => boolean;
   // open up detail of nodey
   showDetail: (n: Nodey) => void;
   //scroll
-  scrollTo?: () => void;
   scrollFocus: string;
   inspectOn: boolean;
-};
+} & req_GhostCell_Props;
 
 type GhostCell_State = {
   sample: string;
@@ -75,6 +75,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 
   componentDidUpdate(prevProps: GhostCell_Props) {
     if (
+      this.props.scrollTo &&
       prevProps.scrollFocus != this.props.scrollFocus &&
       this.props.scrollFocus === this.props.name
     ) {
@@ -145,7 +146,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
   private async updateSample() {
     /* Update the sample HTML if it has changed */
     let newSample = await this.getSample();
-    if (newSample.outerHTML != this.state.sample)
+    if (newSample && newSample.outerHTML != this.state.sample)
       this.setState({ sample: newSample.outerHTML });
   }
 
@@ -178,7 +179,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<GhostCell_Props>
+  ownProps: req_GhostCell_Props
 ) => {
   return {
     history: state.getHistory(),
@@ -189,12 +190,10 @@ const mapStateToProps = (
   };
 };
 
-const mapDispatchToProps = (
-  dispatch: any,
-  ownProps: Partial<GhostCell_Props>
-) => {
+const mapDispatchToProps = (dispatch: any, ownProps: req_GhostCell_Props) => {
   return {
-    clickEv: () => dispatch(focusGhostCell(ownProps.name)),
+    clickEv: () =>
+      ownProps.name ? dispatch(focusGhostCell(ownProps.name)) : null,
     showDetail: (n: Nodey) => dispatch(showDetailOfNode(n)),
   };
 };

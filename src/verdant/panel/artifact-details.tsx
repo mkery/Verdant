@@ -11,7 +11,7 @@ import { connect } from "react-redux";
 export type Details_Props = {
   history: History;
   showDetails: (n: Nodey) => void;
-  target: Nodey;
+  target: Nodey | null;
   origins: Nodey[];
 };
 
@@ -24,7 +24,7 @@ class ArtifactDetails extends React.Component<Details_Props> {
           {this.showOutputLink()}
         </div>
         <div className="v-VerdantPanel-content">
-          <Artifact nodey={this.props.target} />
+          {this.props.target ? <Artifact nodey={this.props.target} /> : null}
           {this.showOrigins()}
         </div>
         <InspectorButton />
@@ -33,13 +33,15 @@ class ArtifactDetails extends React.Component<Details_Props> {
   }
 
   showOutputLink() {
-    if (this.props.target instanceof NodeyCode) {
+    if (this.props.target && this.props.target instanceof NodeyCode) {
       let out = this.props.history.store.getAllOutput(this.props.target);
       if (out && out.length > 0) {
         return (
           <span
             className="v-VerdantPanel-tab-header-outLink verdant-link"
-            onClick={() => this.props.showDetails(out[0].latest)} //TODO!
+            onClick={() =>
+              out[0].latest ? this.props.showDetails(out[0].latest) : null
+            } //TODO!
           >
             show all output
           </span>
@@ -50,12 +52,15 @@ class ArtifactDetails extends React.Component<Details_Props> {
   }
 
   showOrigins() {
-    let prior: Nodey = this.props.target;
-    return this.props.origins.map((nodey, i) => {
-      let origin = <ArtifactOrigin key={i} derived={prior} nodey={nodey} />;
-      prior = nodey;
-      return origin;
-    });
+    if (this.props.target) {
+      let prior: Nodey = this.props.target;
+      return this.props.origins.map((nodey, i) => {
+        let origin = <ArtifactOrigin key={i} derived={prior} nodey={nodey} />;
+        prior = nodey;
+        return origin;
+      });
+    }
+    return null;
   }
 
   // version pair <Version Singleton > < Version List >
@@ -73,9 +78,11 @@ function findOrigins(nodey: Nodey, history: History): Nodey[] {
   let origins: Nodey[] = [];
 
   let versions = history.store.getHistoryOf(nodey);
-  while (versions.originPointer) {
+  while (versions && versions.originPointer) {
     let o = history.store.get(versions.originPointer.origin);
-    origins.push(o);
+    if (o) {
+      origins.push(o);
+    }
     versions = history.store.getHistoryOf(o);
   }
 
@@ -93,7 +100,7 @@ const mapDispatchToProps = (dispatch: any) => {
 const mapStateToProps = (state: verdantState) => {
   let history = state.getHistory();
   let target = state.artifactView.inspectTarget;
-  let origins = findOrigins(target, history);
+  let origins = target ? findOrigins(target, history) : [];
   return {
     history,
     target,

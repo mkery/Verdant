@@ -14,19 +14,22 @@ import { VersionSampler } from "../../sampler/version-sampler";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import Result from "./result";
 
-type SubSection_Props = {
+type component_Subsection_Props = {
   nodey: Nodey;
   results: Nodey[];
-  search_query: string;
-  openNodeDetails: (n: Nodey) => void;
-  openGhostBook: (n: number) => void;
-  scrollGhostToNodey: (n: Nodey) => void;
-
   sectionOpen: boolean;
+};
+
+type SubSection_Props = {
+  // provided by redux store:
+  search_query: string | null;
   openSection: () => void;
   closeSection: () => void;
   history: History;
-};
+  openNodeDetails: (n: Nodey) => void;
+  openGhostBook: (n: number) => void;
+  scrollGhostToNodey: (n: Nodey) => void;
+} & component_Subsection_Props;
 
 class ResultsSubSection extends React.Component<
   SubSection_Props,
@@ -34,7 +37,7 @@ class ResultsSubSection extends React.Component<
 > {
   constructor(props: SubSection_Props) {
     super(props);
-    this.state = { sample: null };
+    this.state = { sample: "" };
   }
 
   componentDidMount() {
@@ -89,8 +92,10 @@ class ResultsSubSection extends React.Component<
             <span
               className="verdant-link"
               onClick={() => {
-                this.props.openGhostBook(notebook.version);
-                this.props.scrollGhostToNodey(this.props.results[0]);
+                if (this.props.openGhostBook && notebook) {
+                  this.props.openGhostBook(notebook.version);
+                  this.props.scrollGhostToNodey(this.props.results[0]);
+                }
               }}
             >
               {Namer.getNotebookTitle(notebook)}
@@ -156,7 +161,7 @@ class ResultsSubSection extends React.Component<
 
 const mapDispatchToProps = (
   dispatch: any,
-  ownProps: Partial<SubSection_Props>
+  ownProps: component_Subsection_Props
 ) => {
   return {
     openNodeDetails: (inspectTarget?: Nodey) => {
@@ -176,7 +181,7 @@ const mapDispatchToProps = (
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<SubSection_Props>
+  ownProps: component_Subsection_Props
 ) => {
   return {
     search_query: state.search.searchQuery,

@@ -8,7 +8,7 @@ const DEBUG = false;
  * Just a container for a list of nodey versions
  */
 export class NodeHistory<T extends Nodey> {
-  originPointer: OriginPointer = null;
+  originPointer: OriginPointer | null = null;
   protected versions: T[] = [];
 
   getAllVersions(): T[] {
@@ -36,7 +36,10 @@ export class NodeHistory<T extends Nodey> {
 
   get name() {
     let latest = this.versions[this.versions.length - 1];
-    if (latest) return latest.typeChar + "." + latest.id;
+    if (latest)
+      return (
+        latest.typeChar + "." + (latest.id !== undefined ? latest.id : "???")
+      );
   }
 
   get latest(): T {
@@ -55,7 +58,7 @@ export class NodeHistory<T extends Nodey> {
     let data: Nodey.SERIALIZE[] = this.versions.map((node) => node.toJSON());
     if (this.originPointer)
       data[data.length - 1].origin = this.originPointer.origin;
-    return { artifact_name: this.name, versions: data };
+    return { artifact_name: this.name || "", versions: data };
   }
 
   fromJSON(

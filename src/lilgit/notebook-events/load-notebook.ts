@@ -21,7 +21,7 @@ export class LoadNotebook extends NotebookEvent {
 
   async modelUpdate() {
     let newNotebook: NodeyNotebook;
-    if (this.matchPrior) {
+    if (this.matchPrior && this.notebook.model) {
       newNotebook = await this.notebook.ast.hotStartNotebook(
         this.notebook.model,
         this.notebook.view.notebook,

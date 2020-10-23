@@ -3,7 +3,7 @@ import { Nodey, NodeyCell } from "./nodey";
  * Markdown nodey
  */
 export class NodeyMarkdown extends Nodey implements NodeyCell {
-  markdown: string;
+  markdown: string | undefined;
 
   constructor(options: NodeyMarkdown.Options) {
     super(options);
@@ -17,7 +17,7 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 
   public toJSON(): NodeyMarkdown.SERIALIZE {
     let jsn = super.toJSON() as NodeyMarkdown.SERIALIZE;
-    jsn.markdown = this.markdown;
+    if (this.markdown) jsn.markdown = this.markdown;
     return jsn;
   }
 
@@ -28,11 +28,11 @@ export class NodeyMarkdown extends Nodey implements NodeyCell {
 
 export namespace NodeyMarkdown {
   export type Options = {
-    markdown: string;
+    markdown?: string;
   } & Nodey.Options;
 
   export interface SERIALIZE extends Nodey.SERIALIZE {
-    markdown: string;
+    markdown?: string;
   }
 
   export function fromJSON(dat: NodeyMarkdown.SERIALIZE): NodeyMarkdown {

@@ -31,8 +31,8 @@ export class HistoryStore {
     this.fileManager = fileManager;
   }
 
-  get currentNotebook(): NodeyNotebook {
-    return this._notebookHistory.latest;
+  get currentNotebook(): NodeyNotebook | undefined {
+    return this._notebookHistory?.latest;
   }
 
   public getNotebook(ver: number): NodeyNotebook {
@@ -41,11 +41,14 @@ export class HistoryStore {
 
   get cells(): NodeyCell[] {
     let notebook = this.currentNotebook;
+    if (!notebook) return []; // error case only
     return notebook.cells.map((name) => this.get(name) as NodeyCell);
   }
 
-  public getHistoryOf(name: string | Nodey): NodeHistory<Nodey> {
-    let typeChar: string;
+  public getHistoryOf(name?: string | Nodey): NodeHistory<Nodey> | undefined {
+    if (!name) return; // error case only
+
+    let typeChar = "???"; // error case only
     let id: number;
     if (typeof name === "string") {
       var idVal;
@@ -53,7 +56,7 @@ export class HistoryStore {
       id = parseInt(idVal);
     } else if (name instanceof Nodey) {
       typeChar = name.typeChar;
-      id = name.id;
+      id = name.id || -1;
     }
 
     switch (typeChar) {
@@ -70,56 +73,62 @@ export class HistoryStore {
       case "r":
         return this._rawCellStore[id];
       default:
-        throw new Error("nodey type not found" + name + " " + typeof name);
+        console.error("nodey type not found" + name + " " + typeof name);
     }
   }
 
-  getLatestOf(name: string | Nodey): Nodey {
+  getLatestOf(name: string | Nodey): Nodey | undefined {
     let nodeHist = this.getHistoryOf(name);
     if (nodeHist === undefined)
-      throw new Error("No history found for " + name + " " + typeof name);
+      // error case only
+      console.error("No history found for " + name + " " + typeof name);
     else return nodeHist.latest;
   }
 
-  getPriorVersion(name: string | Nodey): Nodey {
-    if (!name) return null;
-    let ver;
-    if (name instanceof Nodey) ver = parseInt(name.version) - 1;
+  getPriorVersion(name?: string | Nodey): Nodey | undefined {
+    if (!name) return; // error case only
+    let ver = -1; // error case only
+    if (name instanceof Nodey && name.version) ver = parseInt(name.version) - 1;
     else {
-      let [, , verVal] = name.split(".");
+      let [, , verVal] = (name as string).split(".");
       ver = parseInt(verVal) - 1;
     }
     let nodeHist = this.getHistoryOf(name);
-    if (ver > -1) return nodeHist.getVersion(ver);
-    else return null;
+    if (ver > -1 && nodeHist) return nodeHist.getVersion(ver);
+    else return;
   }
 
-  get(name: string): Nodey {
-    if (!name) return null;
+  get(name?: string): Nodey | undefined {
+    if (!name) return; // error case only
     //log("attempting to find", name);
     let [, , verVal] = name.split(".");
     let ver = parseInt(verVal);
     let nodeHist = this.getHistoryOf(name);
-    return nodeHist.getVersion(ver);
+    return nodeHist?.getVersion(ver);
   }
 
-  getOutput(nodey: NodeyCode): OutputHistory {
+  getOutput(nodey?: NodeyCode): OutputHistory | undefined {
+    if (!nodey) return;
     let cell: NodeyCodeCell;
     if (nodey instanceof NodeyCodeCell) cell = nodey;
     else cell = this.getCellParent(nodey);
     let cellHistory = this.getHistoryOf(cell) as CodeHistory;
     let outName = cellHistory.getOutput(cell.version);
     if (outName) return this.getHistoryOf(outName) as OutputHistory;
-    return null;
+    return;
   }
 
-  getAllOutput(nodey: NodeyCode): OutputHistory[] {
+  getAllOutput(nodey?: NodeyCode): OutputHistory[] | undefined {
+    if (!nodey) return;
     let cell: NodeyCodeCell;
     if (nodey instanceof NodeyCodeCell) cell = nodey;
-    else cell = this.getCellParent(nodey);
+    else {
+      let parent = this.getCellParent(nodey);
+      if (parent) cell = parent;
+    }
     let cellHistory = this.getHistoryOf(cell) as CodeHistory;
-    let outNames = cellHistory.allOutput;
-    return outNames.map((name) => this.getHistoryOf(name) as OutputHistory);
+    let outNames = cellHistory?.allOutput;
+    return outNames?.map((name) => this.getHistoryOf(name) as OutputHistory);
   }
 
   public store(nodey: Nodey): void {
@@ -132,10 +141,18 @@ export class HistoryStore {
       this._notebookHistory.addVersion(nodey);
     } else {
       let store = this._getStoreFor(nodey);
-      let history = this._makeHistoryFor(nodey);
-      let id = store.push(history) - 1;
-      nodey.id = id;
-      store[nodey.id].addVersion(nodey);
+      if (store) {
+        let history = this._makeHistoryFor(nodey);
+        if (history) {
+          let id = store.push(history) - 1;
+          nodey.id = id;
+          store[nodey.id].addVersion(nodey);
+        } else console.error("Failed to create new history for nodey: ", nodey);
+      } else
+        console.error(
+          "Failed to find existing history store for nodey ",
+          nodey
+        );
     }
   }
 
@@ -146,7 +163,14 @@ export class HistoryStore {
    **/
   public linkBackHistories(newNodey: Nodey, oldNodey: Nodey): void {
     let history = this.getHistoryOf(newNodey);
-    history.addOriginPointer(oldNodey);
+    if (history) history.addOriginPointer(oldNodey);
+    else
+      console.error(
+        "Failed to link back histories between ",
+        newNodey,
+        " and ",
+        oldNodey
+      );
   }
 
   /*
@@ -225,7 +249,7 @@ export class HistoryStore {
     return [results, resultCount];
   }
 
-  private _getStoreFor(nodey: Nodey): NodeHistory<Nodey>[] {
+  private _getStoreFor(nodey: Nodey): NodeHistory<Nodey>[] | undefined {
     if (nodey instanceof NodeyCodeCell) return this._codeCellStore;
     else if (nodey instanceof NodeyMarkdown) return this._markdownStore;
     else if (nodey instanceof NodeyOutput) return this._outputStore;
@@ -245,19 +269,29 @@ export class HistoryStore {
   public registerTiedNodey(nodey: NodeyCell, forceTie: string): void {
     let oldNodey = this.get(forceTie) as NodeyCell;
     let history = this.getHistoryOf(oldNodey);
-    history.addVersion(nodey);
-    nodey.id = oldNodey.id;
-    return;
+    if (history) {
+      history.addVersion(nodey);
+      nodey.id = oldNodey.id;
+    } else {
+      console.error(
+        "Failed to register tied history between ",
+        nodey.artifactName,
+        " and ",
+        forceTie
+      );
+    }
   }
 
-  public getCellParent(relativeTo: Nodey): NodeyCodeCell {
+  public getCellParent(relativeTo: Nodey): NodeyCodeCell | undefined {
     //log("get cell parent of ", relativeTo);
     if (relativeTo instanceof NodeyCodeCell) return relativeTo;
-    else if (relativeTo.parent)
-      return this.getCellParent(this.getLatestOf(relativeTo.parent));
+    else if (relativeTo.parent) {
+      const latest = this.getLatestOf(relativeTo.parent);
+      if (latest) return this.getCellParent(latest);
+    }
   }
 
-  public getNotebookOf(relativeTo: Nodey): NodeyNotebook {
+  public getNotebookOf(relativeTo: Nodey): NodeyNotebook | undefined {
     let val: Nodey = relativeTo;
 
     let created = val.created;
@@ -270,7 +304,7 @@ export class HistoryStore {
         if (notebook_id !== undefined) return this.getNotebook(notebook_id);
       }
     }
-    return undefined;
+    return;
   }
 
   public writeToFile(): void {

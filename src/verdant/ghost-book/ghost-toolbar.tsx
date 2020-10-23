@@ -35,7 +35,7 @@ class Toolbar extends React.Component<
     super(props);
     this.state = { dropdown_open: false, export_msg_open: false };
 
-    let diffLabels = [];
+    let diffLabels: string[] = [];
     diffLabels[DIFF_TYPE.CHANGE_DIFF] = "from prior";
     diffLabels[DIFF_TYPE.PRESENT_DIFF] = "from current";
     diffLabels[DIFF_TYPE.NO_DIFF] = "none";
@@ -162,19 +162,22 @@ class Toolbar extends React.Component<
     if (this.state.export_msg_open) {
       const notebook = this.props.history.store.getNotebook(this.props.ver);
       let name = this.props.history.notebook.name;
-      name =
-        name.substring(0, name.indexOf(".")) +
-        "-" +
-        Namer.getNotebookVersionLabel(notebook) +
-        ".ipynb";
+      if (name) {
+        name =
+          name.substring(0, name.indexOf(".")) +
+          "-" +
+          Namer.getNotebookVersionLabel(notebook) +
+          ".ipynb";
 
-      // hide after export is done or after a short delay
-      setTimeout(() => this.setState({ export_msg_open: false }), 2000);
+        // hide after export is done or after a short delay
+        setTimeout(() => this.setState({ export_msg_open: false }), 2000);
 
-      return (
-        <div className="v-Verdant-GhostBook-export-msg">{`Exporting notebook to ${name}`}</div>
-      );
+        return (
+          <div className="v-Verdant-GhostBook-export-msg">{`Exporting notebook to ${name}`}</div>
+        );
+      }
     }
+    return null;
   }
 }
 

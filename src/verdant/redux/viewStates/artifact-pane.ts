@@ -44,9 +44,9 @@ export const selectArtifactDetail = (name: string) => {
 export type artifactPaneState = {
   showingDetail: boolean;
   inspectOn: boolean;
-  inspectTarget: Nodey;
+  inspectTarget: Nodey | null;
   openDetailPairs: string[];
-  selectedArtifactDetail: string;
+  selectedArtifactDetail: string | null;
 };
 
 export const artifactPaneInitialState = (): artifactPaneState => {

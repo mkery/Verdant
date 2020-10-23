@@ -8,13 +8,14 @@ import { openResults, closeResults, verdantState } from "../../redux/";
 type ResultsSection_Props = {
   results: Nodey[][];
   totalResults: number;
-  sectionOpen: boolean;
   title: string;
-  openSection: () => void;
-  closeSection: () => void;
+  // provided by redux store:
+  sectionOpen?: boolean;
+  openSection?: () => void;
+  closeSection?: () => void;
 };
 
-class ResultsSection extends React.Component<ResultsSection_Props, {}> {
+class ResultsSection extends React.Component<ResultsSection_Props> {
   render() {
     return (
       <div
@@ -29,8 +30,9 @@ class ResultsSection extends React.Component<ResultsSection_Props, {}> {
           onClick={() => {
             if (this.props.totalResults > 0) {
               // don't open/close for empty results
-              if (this.props.sectionOpen) this.props.closeSection();
-              else this.props.openSection();
+              if (this.props.sectionOpen)
+                this.props.closeSection ? this.props.closeSection() : null;
+              else this.props.openSection ? this.props.openSection() : null;
             }
           }}
         >
@@ -73,10 +75,7 @@ class ResultsSection extends React.Component<ResultsSection_Props, {}> {
   }
 }
 
-const mapDispatchToProps = (
-  dispatch: any,
-  ownProps: Partial<ResultsSection_Props>
-) => {
+const mapDispatchToProps = (dispatch: any, ownProps: ResultsSection_Props) => {
   return {
     openSection: () => {
       dispatch(openResults(ownProps.title));
@@ -89,7 +88,7 @@ const mapDispatchToProps = (
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<ResultsSection_Props>
+  ownProps: ResultsSection_Props
 ) => {
   return {
     sectionOpen: state.search.openResults.indexOf(ownProps.title) > -1,

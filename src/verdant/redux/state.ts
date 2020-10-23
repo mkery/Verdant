@@ -46,7 +46,7 @@ export const switchTab = (name: ActiveTab) => {
   };
 };
 
-export const showDetailOfNode = (target: Nodey) => {
+export const showDetailOfNode = (target?: Nodey) => {
   return {
     type: INSPECT_TARGET,
     target,
@@ -66,7 +66,7 @@ export enum ActiveTab {
 
 export type verdantState = {
   getHistory: () => History;
-  openGhostBook: (notebook: number) => Ghost;
+  openGhostBook: (notebook: number) => void;
   eventView: eventMapState;
   activeTab: ActiveTab;
   artifactView: artifactPaneState;
@@ -77,7 +77,7 @@ export type verdantState = {
 export const createInitialState = (getHistory: () => History): verdantState => {
   return {
     getHistory: getHistory,
-    openGhostBook: null,
+    openGhostBook: (_: number) => {}, // default is do nothing
     eventView: eventsInitialState(),
     activeTab: ActiveTab.Events,
     artifactView: artifactPaneInitialState(),

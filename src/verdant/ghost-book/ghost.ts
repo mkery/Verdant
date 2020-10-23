@@ -40,7 +40,9 @@ export class Ghost extends Widget {
 
     // first, make sure ver is in range of available notebook versions
     ver = Math.max(0, ver);
-    let max = (store.getState() as verdantState).notebookArtifact.ver;
+    let max =
+      (store.getState() as verdantState)?.notebookArtifact?.ver ||
+      Number.MAX_SAFE_INTEGER;
     ver = Math.min(max, ver);
 
     let changeTitle = (ver: number) => {
@@ -50,7 +52,7 @@ export class Ghost extends Widget {
 
     const initialState: Partial<ghostState> = {
       notebook_ver: ver,
-      active_cell: null,
+      active_cell: undefined,
       changeGhostTitle: changeTitle.bind(this),
       link_artifact: (name: string) => {
         let history = store.getState().getHistory();

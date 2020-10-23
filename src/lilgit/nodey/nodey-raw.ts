@@ -4,7 +4,8 @@ import { Nodey, NodeyCell } from "./nodey";
  * Simple raw cell type (rare, since most cells are code or markdown)
  */
 export class NodeyRawCell extends Nodey implements NodeyCell {
-  literal: string;
+  literal: string | undefined;
+
   constructor(options: NodeyRawCell.Options) {
     super(options);
     this.updateState(options);
@@ -17,7 +18,7 @@ export class NodeyRawCell extends Nodey implements NodeyCell {
 
   public toJSON(): NodeyRawCell.SERIALIZE {
     let jsn = super.toJSON() as NodeyRawCell.SERIALIZE;
-    jsn.literal = this.literal;
+    if (this.literal) jsn.literal = this.literal;
     return jsn;
   }
 
@@ -32,7 +33,7 @@ export namespace NodeyRawCell {
   } & Nodey.Options;
 
   export interface SERIALIZE extends Nodey.SERIALIZE {
-    literal: string;
+    literal?: string;
   }
 
   export function fromJSON(dat: NodeyRawCell.SERIALIZE): NodeyRawCell {

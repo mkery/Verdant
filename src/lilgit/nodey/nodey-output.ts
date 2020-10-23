@@ -1,11 +1,12 @@
 import { Nodey } from "./nodey";
 import { log } from "../notebook";
+import * as nbformat from "@jupyterlab/nbformat";
 
 /*
  * Output holds raw output
  */
 export class NodeyOutput extends Nodey {
-  raw: { [i: string]: any }[];
+  raw: nbformat.IOutput[] = [];
 
   constructor(options: NodeyOutput.Options) {
     super(options);
@@ -34,7 +35,7 @@ export namespace NodeyOutput {
   export const typeChar = "o";
 
   export type Options = {
-    raw: { [i: string]: any }[];
+    raw: nbformat.IOutput[];
   } & Nodey.Options;
 
   export interface SERIALIZE extends Nodey.SERIALIZE {
@@ -43,7 +44,7 @@ export namespace NodeyOutput {
 
   export function fromJSON(dat: NodeyOutput.SERIALIZE): NodeyOutput {
     return new NodeyOutput({
-      raw: dat.raw,
+      raw: dat.raw as nbformat.IOutput[],
       parent: dat.parent,
       created: dat.start_checkpoint,
     });

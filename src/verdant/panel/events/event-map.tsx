@@ -7,12 +7,16 @@ import { verdantState, showDetailOfNode } from "../../redux/";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 
-interface EventMap_Props {
+type react_EventMap_Props = {
   checkpoints: Checkpoint[];
+};
+
+type EventMap_Props = {
+  // given by redux store
   history: History;
   eventCount: number;
   showDetail: (n: Nodey) => void;
-}
+} & react_EventMap_Props;
 
 const MAP = "Verdant-events-map";
 
@@ -40,7 +44,7 @@ class NotebookEventMap extends React.Component<
   showMap() {
     return this.state.cellMap.map((cell, index) => {
       if (cell.changes.length > 0) {
-        let tics = [];
+        let tics: JSX.Element[] = [];
         cell.changes.forEach((kind, j_index) => {
           let color = kind.replace(/ /g, "_");
           tics.push(<div key={j_index} className={`tic ${color}`}></div>);
@@ -54,7 +58,7 @@ class NotebookEventMap extends React.Component<
             data-tip={tooltip_msg}
             key={index}
             className="Verdant-events-map-cell target"
-            onClick={() => this.props.showDetail(nodey)}
+            onClick={() => (nodey ? this.props.showDetail(nodey) : null)}
           >
             {tics}
             <ReactTooltip />
@@ -71,7 +75,7 @@ class NotebookEventMap extends React.Component<
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<EventMap_Props>
+  ownProps: react_EventMap_Props
 ) => {
   return {
     history: state.getHistory(),

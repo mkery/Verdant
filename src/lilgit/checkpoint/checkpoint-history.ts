@@ -18,8 +18,8 @@ export class HistoryCheckpoints {
     return this.checkpointList;
   }
 
-  public get(id: number): Checkpoint {
-    return this.checkpointList[id];
+  public get(id?: number): Checkpoint {
+    if (id !== undefined) return this.checkpointList[id];
   }
 
   public set(id: number, checkpoint: Checkpoint) {
@@ -60,12 +60,12 @@ export class HistoryCheckpoints {
     for (let i = 0; i < targetCells.length; i++) {
       let cell = targetCells[i];
       if (
-        cell.changeType !== ChangeType.SAME &&
-        cell.changeType !== ChangeType.NONE
+        cell?.changeType !== ChangeType.SAME &&
+        cell?.changeType !== ChangeType.NONE
       ) {
-        let node = this.history.store.get(cell.cell);
-        let notebook = this.history.store.get(node.parent);
-        this.checkpointList[id].notebook = notebook.version;
+        let node = this.history.store.get(cell?.cell);
+        let notebook = this.history.store.get(node?.parent);
+        this.checkpointList[id].notebook = notebook?.version;
         break;
       }
     }

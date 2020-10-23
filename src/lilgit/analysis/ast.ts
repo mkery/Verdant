@@ -3,19 +3,16 @@ import { History } from "../history/";
 import { Cell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../checkpoint";
 import { NodeyNotebook } from "../nodey/";
-import { ASTRepair } from "./ast-repair";
 import { ASTCreate } from "./ast-create";
 
 export class AST {
   readonly history: History;
 
   //Properties
-  public readonly repair: ASTRepair;
   public readonly create: ASTCreate;
 
   constructor(history: History) {
     this.history = history;
-    this.repair = new ASTRepair(history);
     this.create = new ASTCreate(history);
   }
 

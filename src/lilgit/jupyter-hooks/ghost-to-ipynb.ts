@@ -16,7 +16,7 @@ export namespace GhostToNotebookConverter {
     // first match language of notebook
     let metadata = ver_notebook.metadata;
     let options: NotebookModel.IOptions = {};
-    let lang = metadata.get("language_info") as nbformat.ILanguageInfoMetadata;
+    let lang = metadata?.get("language_info") as nbformat.ILanguageInfoMetadata;
     if (lang) options["languagePreference"] = lang.name;
 
     let model = new NotebookModel(options);
@@ -59,13 +59,13 @@ export namespace GhostToNotebookConverter {
           //(val as ICodeCellModel).outputs.contentFactory.createOutputModel({})
         } else if (cell instanceof NodeyMarkdown) {
           val = model.contentFactory.createMarkdownCell({});
-          val.value.text = cell.markdown;
+          val.value.text = cell.markdown || "";
         } else if (cell instanceof NodeyRawCell) {
           val = model.contentFactory.createRawCell({});
-          val.value.text = cell.literal;
+          val.value.text = cell.literal || "";
         }
 
-        model.cells.push(val);
+        if (val) model.cells.push(val);
       })
     );
 

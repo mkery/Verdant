@@ -134,7 +134,7 @@ export class Commit {
     // now go through an update existing cells
     this.notebook.cells = this.notebook.cells.map((c) => {
       let cell = this.history.store.get(c);
-      let instructions = this.stage.getStaging(cell);
+      let instructions = cell ? this.stage.getStaging(cell) : null;
 
       if (instructions) {
         let newCell;
@@ -144,7 +144,7 @@ export class Commit {
           newCell = this.createMarkdownVersion(cell.artifactName, instructions);
         else if (cell instanceof NodeyRawCell)
           newCell = this.createRawCellVersion(cell.artifactName, instructions);
-        return newCell.name;
+        return newCell?.name || c; // return unchanged cell if error occurred
       } else {
         // otherwise assume this cell is unchanged in this commit
         return c;
@@ -168,65 +168,90 @@ export class Commit {
   private createMarkdownVersion(
     artifactName: string,
     instructions: { markdown: string }
-  ): NodeyMarkdown {
+  ): NodeyMarkdown | undefined {
     // first create the new Markdown version
     let nodeyHistory = this.history.store.getHistoryOf(artifactName);
-    let oldNodey = nodeyHistory.latest;
-    let newNodey = new NodeyMarkdown({
-      id: oldNodey.id,
-      created: this.checkpoint.id,
-      markdown: instructions.markdown,
-      parent: this.notebook.name,
-    });
-    nodeyHistory.addVersion(newNodey);
+    let oldNodey = nodeyHistory?.latest;
 
-    // then add the update to checkpoint
-    let cellDat = {
-      cell: newNodey.name,
-      changeType: ChangeType.CHANGED,
-    } as CellRunData;
-    this.checkpoint.targetCells.push(cellDat);
+    if (nodeyHistory && oldNodey) {
+      let newNodey = new NodeyMarkdown({
+        id: oldNodey.id,
+        created: this.checkpoint.id,
+        markdown: instructions.markdown,
+        parent: this.notebook.name,
+      });
+      nodeyHistory.addVersion(newNodey);
 
-    // finally return updated new version
-    return newNodey;
+      // then add the update to checkpoint
+      let cellDat = {
+        cell: newNodey.name,
+        changeType: ChangeType.CHANGED,
+      } as CellRunData;
+      this.checkpoint.targetCells.push(cellDat);
+
+      // finally return updated new version
+      return newNodey;
+    }
+    console.error(
+      "Failed to create new markdown version of ",
+      artifactName,
+      instructions
+    );
   }
 
   private createRawCellVersion(
     artifactName: string,
     instructions: { literal: string }
-  ): NodeyRawCell {
+  ): NodeyRawCell | undefined {
     // first create the new Raw Cell version
     let nodeyHistory = this.history.store.getHistoryOf(artifactName);
-    let oldNodey = nodeyHistory.latest;
-    let newNodey = new NodeyRawCell({
-      id: oldNodey.id,
-      created: this.checkpoint.id,
-      literal: instructions.literal,
-      parent: this.notebook.name,
-    });
-    nodeyHistory.addVersion(newNodey);
+    let oldNodey = nodeyHistory?.latest;
+    if (nodeyHistory && oldNodey) {
+      let newNodey = new NodeyRawCell({
+        id: oldNodey.id,
+        created: this.checkpoint.id,
+        literal: instructions.literal,
+        parent: this.notebook.name,
+      });
+      nodeyHistory?.addVersion(newNodey);
 
-    // then add the update to checkpoint
-    let cellDat = {
-      cell: newNodey.name,
-      changeType: ChangeType.CHANGED,
-    } as CellRunData;
-    this.checkpoint.targetCells.push(cellDat);
+      // then add the update to checkpoint
+      let cellDat = {
+        cell: newNodey.name,
+        changeType: ChangeType.CHANGED,
+      } as CellRunData;
+      this.checkpoint.targetCells.push(cellDat);
 
-    // finally return updated new version
-    return newNodey;
+      // finally return updated new version
+      return newNodey;
+    } else
+      console.error(
+        "Failed to create new raw cell version of ",
+        artifactName,
+        instructions
+      );
   }
 
   private createCodeCellVersion(
     artifactName: string,
     instructions: { [key: string]: any }
-  ): NodeyCodeCell {
+  ): NodeyCodeCell | undefined {
     // build base code cell
     let nodeyHistory = this.history.store.getHistoryOf(
       artifactName
     ) as CodeHistory;
-    let oldNodey = nodeyHistory.latest;
+    let oldNodey = nodeyHistory?.latest;
     let newNodey;
+
+    // error case only
+    if (!nodeyHistory || !oldNodey) {
+      console.error(
+        "Failed to create new code cell version of ",
+        artifactName,
+        instructions
+      );
+      return;
+    }
 
     // check do we need a new cell version other than output?
     if (instructions["literal"] || instructions["content"]) {

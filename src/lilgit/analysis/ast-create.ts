@@ -66,7 +66,7 @@ export class ASTCreate {
   }
 
   public async fromCell(cell: Cell, checkpoint: Checkpoint) {
-    let nodey: NodeyCell;
+    let nodey: NodeyCell = null;
     if (cell instanceof CodeCell) {
       // First, create code cell from text
       let text: string = cell.editor.model.value.text;
@@ -122,7 +122,7 @@ export class ASTCreate {
       raw["created"] = dict["created"];
       raw["prior"] = prior;
       raw["parent"] = parent.name;
-      let child;
+      let child: NodeyCode = null;
       if (SyntaxToken.KEY in raw)
         parent.content.push(this.createSyntaxToken(raw[SyntaxToken.KEY]));
       else {

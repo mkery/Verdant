@@ -184,7 +184,7 @@ namespace Private {
 
   export function addOutputEvents(verCell: VerCell, history: History) {
     var outputNodey = verCell.output;
-    if (outputNodey)
+    if (outputNodey && verCell.outputArea)
       addCellEvents(verCell.outputArea, outputNodey, history.inspector);
   }
 
@@ -200,7 +200,7 @@ namespace Private {
       mask.classList.remove("highlight");
 
       var code = mask.parentElement.getElementsByClassName("CodeMirror-line");
-      let betterMatch = null;
+      let betterMatch: Element;
       for (var i = 0; i < code.length; i++) {
         if (highlightCode(ev, code[i])) {
           betterMatch = code[i];

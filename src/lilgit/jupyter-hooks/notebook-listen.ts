@@ -21,7 +21,7 @@ import {
 } from "../notebook-events";
 
 export class NotebookListen {
-  public activeCell: Cell;
+  public activeCell: Cell | null = null;
 
   constructor(notebookPanel: NotebookPanel, verNotebook: VerNotebook) {
     this._notebookPanel = notebookPanel;
@@ -58,19 +58,19 @@ export class NotebookListen {
     return this._ready.promise;
   }
 
-  get metadata(): IObservableJSON {
-    return this._notebook.model.metadata;
+  get metadata(): IObservableJSON | undefined {
+    return this._notebook.model?.metadata;
   }
 
-  get nbformatMinor(): number {
-    return this._notebook.model.nbformatMinor;
+  get nbformatMinor(): number | undefined {
+    return this._notebook?.model?.nbformatMinor;
   }
 
-  get nbformat(): number {
-    return this._notebook.model.nbformat;
+  get nbformat(): number | undefined {
+    return this._notebook?.model?.nbformat;
   }
 
-  focusCell(cell: Cell = this._notebook.activeCell) {
+  focusCell(cell: Cell | null = this._notebook.activeCell) {
     if (!cell) return; //cell was just deleted
     if (!cell.model) return; //cell was just deleted
     if (cell instanceof CodeCell || cell instanceof MarkdownCell) {
@@ -82,11 +82,11 @@ export class NotebookListen {
     /**
      * fileChanged is "A signal emitted when the model is saved or reverted.""
      */
-    this._notebookPanel.context.fileChanged.connect(() => {
+    this._notebookPanel?.context?.fileChanged.connect(() => {
       let saveEvent = new SaveNotebook(this.verNotebook);
       this.verNotebook.handleNotebookEvent(saveEvent);
     });
-    this._notebook.model.cells.changed.connect(
+    this._notebook.model?.cells?.changed.connect(
       (sender: any, data: IObservableList.IChangedArgs<ICellModel>) => {
         // to avoid duplicates during load wait til load is complete
         if (!this.verNotebook.ready) return;
@@ -127,28 +127,6 @@ export class NotebookListen {
         this.verNotebook.handleNotebookEvent(runEvent);
       }
     });
-
-    document.addEventListener("copy", (ev: ClipboardEvent) => {
-      var text = "";
-      if (window.getSelection) {
-        text = window.getSelection().toString();
-      }
-      log("COPY EVENT DETECTED", ev, "string: " + text);
-      this.verNotebook.copyNode(
-        ev.target as HTMLElement,
-        this.activeCell,
-        text
-      );
-    });
-
-    document.addEventListener("cut", (ev: ClipboardEvent) => {
-      log("CUT EVENT DETECTED", ev);
-      //TODO
-    });
-
-    document.addEventListener("paste", (ev) => {
-      log("PASTE EVENT DETECTED", ev);
-    });
   }
 
   private _addNewCells(newIndex: number, newValues: ICellModel[]) {
@@ -179,14 +157,16 @@ export class NotebookListen {
   ) {
     newValues.forEach(async (item) => {
       let verCell = this.verNotebook.getCell(item);
-      log("moving cell", oldIndex, newIndex, newValues);
-      let moveCellEvent = new MoveCell(
-        this.verNotebook,
-        verCell,
-        oldIndex,
-        newIndex
-      );
-      this.verNotebook.handleNotebookEvent(moveCellEvent);
+      if (verCell) {
+        log("moving cell", oldIndex, newIndex, newValues);
+        let moveCellEvent = new MoveCell(
+          this.verNotebook,
+          verCell,
+          oldIndex,
+          newIndex
+        );
+        this.verNotebook.handleNotebookEvent(moveCellEvent);
+      } else console.error("Cell not found in notebook history: ", item);
     });
   }
 

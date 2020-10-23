@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 
 type Search_Props = {
   history: History;
-  search_query: string;
+  search_query: string | null;
   results: searchResults;
   openResults: string[];
   set_results: (results: searchResults) => void;

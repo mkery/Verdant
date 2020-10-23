@@ -10,7 +10,7 @@ import { connect } from "react-redux";
 export type Version_Props = {
   history: History;
   nodey: Nodey;
-  no_header: boolean;
+  no_header?: boolean;
   selectArtifact: () => void;
   selected: boolean;
 };
@@ -23,6 +23,7 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
     this.state = {
       sample: "",
     };
+    this.myRef = React.createRef<HTMLDivElement>(); // todo test
   }
 
   componentDidMount() {
@@ -43,7 +44,6 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   }
 
   render() {
-    this.myRef = React.createRef<HTMLDivElement>();
     return (
       <div
         ref={this.myRef}
@@ -94,7 +94,10 @@ const mapDispatchToProps = (
   ownProps: Partial<Version_Props>
 ) => {
   return {
-    selectArtifact: () => dispatch(selectArtifactDetail(ownProps.nodey.name)),
+    selectArtifact: () =>
+      ownProps.nodey
+        ? dispatch(selectArtifactDetail(ownProps.nodey.name))
+        : null,
   };
 };
 
@@ -105,7 +108,10 @@ const mapStateToProps = (
   return {
     history: state.getHistory(),
     no_header: ownProps.no_header,
-    selected: state.artifactView.selectedArtifactDetail === ownProps.nodey.name,
+    selected:
+      ownProps.nodey?.name != undefined &&
+      state.artifactView?.selectedArtifactDetail != undefined &&
+      state.artifactView?.selectedArtifactDetail === ownProps.nodey?.name,
   };
 };
 

@@ -69,7 +69,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
 
   showRightOpen() {
     // if open, show dependencies in list
-    let vers = [];
+    let vers: Nodey[] = [];
     if (Array.isArray(this.props.dependent)) vers = this.props.dependent;
     else vers.push(this.props.dependent);
 
@@ -93,7 +93,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
 
   showLeftOpen() {
     // if open, show versions in a plain list
-    let vers = [];
+    let vers: Nodey[] = [];
     if (Array.isArray(this.props.nodey)) vers = this.props.nodey;
     else vers.push(this.props.nodey);
 
@@ -102,7 +102,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
 
   showLeftClosed() {
     // if closed, just show all versions the same way
-    let vers = [];
+    let vers: Nodey[] = [];
     if (Array.isArray(this.props.nodey)) vers = this.props.nodey;
     else vers.push(this.props.nodey);
 
@@ -120,7 +120,7 @@ class VersionPair extends React.Component<VersionPair_Props> {
   }
 
   closedRightHeader() {
-    let vers = [];
+    let vers: Nodey[] = [];
     if (Array.isArray(this.props.dependent)) vers = this.props.dependent;
     else vers.push(this.props.dependent);
 

@@ -37,7 +37,7 @@ export const closeAll = () => {
 };
 
 export type searchState = {
-  searchQuery: string;
+  searchQuery: string | null;
   searchResults: searchResults;
   openResults: string[];
 };

@@ -20,7 +20,7 @@ export type CrumbMenu_Props = {
   showSummary: () => void;
   showDetails: (n: Nodey) => void;
   history: History;
-  target: Nodey;
+  target: Nodey | null;
 };
 
 class CrumbMenu extends React.Component<CrumbMenu_Props> {
@@ -46,23 +46,7 @@ class CrumbMenu extends React.Component<CrumbMenu_Props> {
   }
 
   pathToOutput() {
-    let cell = this.props.history.store.getCellParent(this.props.target);
-    return (
-      <span>
-        <Item
-          label={Namer.getCellTitle(cell)}
-          onClick={() => this.props.showDetails(cell)}
-        />
-        <Seperator />
-        <Item label="Output" />
-      </span>
-    );
-  }
-
-  pathToCode() {
-    if (this.props.target instanceof NodeyCodeCell) {
-      return <Item label={Namer.getCellTitle(this.props.target)} />;
-    } else {
+    if (this.props.target) {
       let cell = this.props.history.store.getCellParent(this.props.target);
       return (
         <span>
@@ -71,11 +55,32 @@ class CrumbMenu extends React.Component<CrumbMenu_Props> {
             onClick={() => this.props.showDetails(cell)}
           />
           <Seperator />
-          <Item
-            label={Namer.getCodeSnippetTitle(this.props.target as NodeyCode)}
-          />
+          <Item label="Output" />
         </span>
       );
+    }
+    return null;
+  }
+
+  pathToCode() {
+    if (this.props.target) {
+      if (this.props.target instanceof NodeyCodeCell) {
+        return <Item label={Namer.getCellTitle(this.props.target)} />;
+      } else {
+        let cell = this.props.history.store.getCellParent(this.props.target);
+        return (
+          <span>
+            <Item
+              label={Namer.getCellTitle(cell)}
+              onClick={() => (cell ? this.props.showDetails(cell) : null)}
+            />
+            <Seperator />
+            <Item
+              label={Namer.getCodeSnippetTitle(this.props.target as NodeyCode)}
+            />
+          </span>
+        );
+      }
     }
   }
 }

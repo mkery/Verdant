@@ -15,10 +15,9 @@ type Panel_Props = {
   activeTab: ActiveTab;
   showingDetail: boolean;
   setActiveTab: (n: ActiveTab) => void;
-  openGhostBook: (n: number) => void;
 };
 
-class PanelContainer extends React.Component<Partial<Panel_Props>> {
+class PanelContainer extends React.Component<Panel_Props> {
   render() {
     return (
       <div className="v-VerdantPanel">
@@ -79,7 +78,6 @@ class PanelContainer extends React.Component<Partial<Panel_Props>> {
 const mapStateToProps = (state: verdantState) => {
   return {
     activeTab: state.activeTab,
-    openGhostBook: state.openGhostBook,
     showingDetail: state.artifactView.showingDetail,
   };
 };

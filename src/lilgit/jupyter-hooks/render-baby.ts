@@ -44,7 +44,7 @@ export class RenderBaby {
       source: text,
       shouldTypeset: true,
       trusted: true,
-      sanitizer: null,
+      sanitizer: undefined,
       resolver: null,
       linkHandler: this.linkHandler,
       latexTypesetter: this.latexTypesetter,
@@ -58,7 +58,7 @@ export class RenderBaby {
   async renderOutput(nodey: NodeyOutput) {
     return await Promise.all(
       nodey.raw.map(async (output: nbformat.IOutput) => {
-        let widget: Widget;
+        let widget: Widget | undefined;
 
         // check if output is actually stored offsite
         if (OutputHistory.isOffsite(output)) {

@@ -12,7 +12,7 @@ import { VersionSampler } from "../../sampler/version-sampler";
 
 type Result_Props = {
   result: Nodey;
-  search_query: string;
+  search_query: string | null;
   openNodeDetails: (n: Nodey) => void;
   openGhostBook: (n: number) => void;
   scrollGhostToNodey: (n: Nodey) => void;
@@ -22,7 +22,7 @@ type Result_Props = {
 class Result extends React.Component<Result_Props, { sample: string }> {
   constructor(props: Result_Props) {
     super(props);
-    this.state = { sample: null };
+    this.state = { sample: "" };
   }
 
   componentDidMount() {
@@ -56,10 +56,12 @@ class Result extends React.Component<Result_Props, { sample: string }> {
             </span>
             <span>{" from "}</span>
             <span
-              className="verdant-link"
+              className={notebook ? "verdant-link" : ""}
               onClick={() => {
-                this.props.openGhostBook(notebook.version);
-                this.props.scrollGhostToNodey(this.props.result);
+                if (notebook && this.props.openGhostBook) {
+                  this.props.openGhostBook(notebook.version);
+                  this.props.scrollGhostToNodey(this.props.result);
+                }
               }}
             >
               {Namer.getNotebookTitle(notebook)}
@@ -68,7 +70,10 @@ class Result extends React.Component<Result_Props, { sample: string }> {
         </div>
         <div
           className={"v-VerdantPanel-search-version"}
-          onClick={() => this.props.openGhostBook(notebook.version)}
+          onClick={() => {
+            if (notebook && this.props.openGhostBook)
+              this.props.openGhostBook(notebook.version);
+          }}
           dangerouslySetInnerHTML={{ __html: this.state.sample }}
         ></div>
       </div>

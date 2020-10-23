@@ -1,8 +1,8 @@
 export abstract class Nodey {
-  id: number; //id for this node
-  version: any; //chronological number
-  created: number; //id marking which checkpoint
-  parent: string; //lookup id for the parent Nodey of this Nodey
+  id: number | undefined; //id for this node
+  version: any | undefined; //chronological number
+  created: number | undefined; //id marking which checkpoint
+  parent: string | undefined; //lookup id for the parent Nodey of this Nodey
 
   constructor(options: Nodey.Options) {
     this.id = options.id;
@@ -21,7 +21,10 @@ export abstract class Nodey {
   public updateState(_: Nodey.Options) {}
 
   public toJSON(): Nodey.SERIALIZE {
-    return { start_checkpoint: this.created, parent: this.parent };
+    let jsn = {};
+    if (this.created) jsn["start_checkpoint"] = this.created;
+    if (this.parent) jsn["parent"] = this.parent;
+    return jsn;
   }
 
   abstract get typeChar(): string;
@@ -37,7 +40,7 @@ export namespace Nodey {
 
   export interface SERIALIZE {
     parent?: string;
-    start_checkpoint: number;
+    start_checkpoint?: number;
     origin?: string; // only used if this nodey was derived from a prior seperate nodey
   }
 }

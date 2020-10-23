@@ -6,7 +6,6 @@ import { VerNotebook } from "../notebook";
 export class SwitchCellType extends NotebookEvent {
   cell: Cell;
   cell_index: number;
-  match: boolean;
 
   constructor(notebook: VerNotebook, cell: Cell, cell_index: number) {
     super(notebook);

@@ -17,7 +17,7 @@ export class NodeyNotebook extends Nodey {
   }
 
   public toJSON(): NodeyNotebook.SERIALIZE {
-    return { start_checkpoint: this.created, cells: this.cells };
+    return { ...super.toJSON(), cells: this.cells };
   }
 
   get typeChar() {
@@ -31,7 +31,7 @@ export namespace NodeyNotebook {
   } & Nodey.Options;
 
   export interface SERIALIZE extends Nodey.SERIALIZE {
-    start_checkpoint: number;
+    start_checkpoint?: number;
     cells: string[];
   }
 
