@@ -3,6 +3,7 @@ import { Store } from "redux";
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
 // TODO stream log to file
+const DEBUG = false;
 
 export class VerdantLog {
   private notebook: VerNotebook | null = null;
@@ -103,12 +104,13 @@ export class VerdantLog {
 
 /* Function for redux middleware */
 const verLogger = (log: VerdantLog, store: Store) => (next) => (action) => {
-  console.log(
-    "REDUX",
-    action.type,
-    action,
-    JSON.parse(JSON.stringify(store.getState()))
-  );
+  if (DEBUG)
+    console.log(
+      "REDUX",
+      action.type,
+      action,
+      JSON.parse(JSON.stringify(store.getState()))
+    );
   log.recordAction(action, store);
   let result = next(action);
   return result;

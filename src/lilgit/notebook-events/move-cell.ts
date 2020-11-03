@@ -31,10 +31,11 @@ export class MoveCell extends NotebookEvent {
     this.notebook.cells.splice(this.newPos, 0, this.cell);
 
     // make sure cell is moved in the model
-    this.history.stage.commitCellMoved(
-      this.cell.model,
-      this.newPos,
-      this.checkpoint
-    );
+    if (this.cell.model)
+      this.history.stage.commitCellMoved(
+        this.cell.model,
+        this.newPos,
+        this.checkpoint
+      );
   }
 }

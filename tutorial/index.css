@@ -1,0 +1,100 @@
+html {
+  background-color: #ebe2e2;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  padding: 0px;
+  margin: 0px;
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 200;
+  font-size: 14pt;
+  background-image: url(./images/coverImage.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+  columns: #212121;
+}
+
+a {
+  font-weight: 400;
+  color: black;
+}
+
+h1 {
+  font-family: "Rubik", sans-serif;
+  font-size: 48pt;
+  margin: 0px;
+  color: #424;
+}
+
+h2,
+h3,
+h4,
+h5 {
+  text-align: center;
+}
+
+code {
+  font-family: "Courier New", Courier, monospace;
+  background: darkblue;
+  color: lawngreen;
+  padding: 0px 2px;
+}
+
+footer {
+  padding: 10px;
+  text-align: center;
+  font-size: small;
+}
+
+#header {
+  text-align: center;
+  padding: 20px;
+  padding-top: 40px;
+  border-bottom: 3px solid #e1ffd7;
+  z-index: 3;
+}
+
+#header p {
+  margin: 0px;
+}
+
+#content {
+  flex: 1 1 auto;
+  border-bottom: 2px solid #e1ffd7;
+  background: rgb(255 255 255 / 70%);
+}
+
+.row {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  background: white;
+  margin: 10px 0px;
+  border-bottom: 1px solid #e1ffd7;
+  border-top: 1px solid #e1ffd7;
+}
+
+.col {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.logIcon {
+  width: 1.5em;
+  margin: 0px 4px;
+}
+
+.verdant-screenshot {
+  width: 60vw;
+}
+
+.description {
+  justify-content: center;
+  padding: 20px;
+}

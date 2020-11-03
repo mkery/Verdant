@@ -21,7 +21,7 @@ export class RunCell extends NotebookEvent {
     // now repair the cell against the prior version
     let cell = this.notebook.getCell(this.cellModel);
 
-    if (cell) {
+    if (cell && cell.model) {
       // commit the notebook if the cell has changed
       this.history.stage.markAsPossiblyEdited(cell.model, this.checkpoint);
       this.history.stage.commit(this.checkpoint);

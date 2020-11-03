@@ -88,8 +88,9 @@ export class HistoryStore {
   getPriorVersion(name?: string | Nodey): Nodey | undefined {
     if (!name) return; // error case only
     let ver = -1; // error case only
-    if (name instanceof Nodey && name.version) ver = parseInt(name.version) - 1;
-    else {
+    if (name instanceof Nodey) {
+      if (name.version !== undefined) ver = name.version - 1;
+    } else {
       let [, , verVal] = (name as string).split(".");
       ver = parseInt(verVal) - 1;
     }
@@ -113,7 +114,7 @@ export class HistoryStore {
     if (nodey instanceof NodeyCodeCell) cell = nodey;
     else cell = this.getCellParent(nodey);
     let cellHistory = this.getHistoryOf(cell) as CodeHistory;
-    let outName = cellHistory.getOutput(cell.version);
+    let outName = cellHistory?.getOutput(cell?.version);
     if (outName) return this.getHistoryOf(outName) as OutputHistory;
     return;
   }

@@ -1,6 +1,6 @@
 export abstract class Nodey {
   id: number | undefined; //id for this node
-  version: any | undefined; //chronological number
+  version: number | undefined; //chronological number
   created: number | undefined; //id marking which checkpoint
   parent: string | undefined; //lookup id for the parent Nodey of this Nodey
 

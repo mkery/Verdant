@@ -1,6 +1,5 @@
 import { History } from "../../lilgit/history";
 import { Nodey } from "../../lilgit/nodey/";
-import { Ghost } from "../ghost-book/ghost";
 import { ghostState, ghostReduce, ghostInitialState } from "./viewStates/ghost";
 import {
   eventMapState,
@@ -32,7 +31,7 @@ const SWITCH_TAB = "SWITCH_TAB";
 const INSPECT_TARGET = "INSPECT_TARGET";
 const GOTO_EVENT = "GOTO_EVENT";
 
-export const setGhostOpener = (fun: (notebook: number) => Ghost) => {
+export const setGhostOpener = (fun: (notebook: number) => void) => {
   return {
     type: SET_GHOST_OPENER,
     fun,

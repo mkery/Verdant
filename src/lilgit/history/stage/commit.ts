@@ -155,14 +155,14 @@ export class Commit {
   private createNotebookVersion() {
     let oldNotebook = this.history.store.currentNotebook;
     let newNotebook = new NodeyNotebook({
-      id: oldNotebook.id,
+      id: oldNotebook?.id,
       created: this.checkpoint.id,
-      cells: oldNotebook.cells.slice(0),
+      cells: oldNotebook?.cells.slice(0) || [],
     });
     let notebookHist = this.history.store.getHistoryOf(oldNotebook);
-    notebookHist.addVersion(newNotebook);
+    notebookHist?.addVersion(newNotebook);
     this.notebook = newNotebook;
-    this.checkpoint.notebook = this.notebook.version;
+    this.checkpoint.notebook = this.notebook?.version;
   }
 
   private createMarkdownVersion(
@@ -273,7 +273,7 @@ export class Commit {
         let oldOut = oldOutputHist.latest;
         newOut = new NodeyOutput({
           id: oldOut.id,
-          created: this.checkpoint.id,
+          created: this.checkpoint?.id,
           parent: newNodey.name,
           raw: instructions["output"],
         });
@@ -283,7 +283,7 @@ export class Commit {
         // but only if raw is not empty
         if (instructions["output"].length > 0) {
           newOut = new NodeyOutput({
-            created: this.checkpoint.id,
+            created: this.checkpoint?.id,
             parent: newNodey.name,
             raw: instructions["output"],
           });

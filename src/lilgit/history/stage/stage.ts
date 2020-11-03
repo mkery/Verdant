@@ -96,7 +96,7 @@ export class Stage {
     let cell = this.history.notebook.getCellByNode(nodey);
     let outputArea = cell?.outputArea;
     let raw: IOutput[] = []; // no output
-    if (outputArea) raw = cell?.outputArea?.model.toJSON(); // output if present
+    if (outputArea) raw = cell?.outputArea?.model.toJSON() || []; // output if present
 
     // get prior output if any
     let oldOutput = cell?.output;
@@ -125,7 +125,7 @@ export class Stage {
 
   private checkRawCellNodey(nodey: NodeyRawCell) {
     let cell = this.history.notebook.getCellByNode(nodey);
-    let newText = cell.getText();
+    let newText = cell?.getText() || "";
     let oldText = nodey.literal;
     if (oldText != newText) {
       // store instructions for a new version of nodey in staging

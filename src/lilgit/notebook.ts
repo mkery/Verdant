@@ -87,7 +87,10 @@ export class VerNotebook {
   }
 
   public getCellByNode(cell: NodeyCell): VerCell | undefined {
-    return this.cells.find((item) => cell.name === item.model.name);
+    return this.cells.find(
+      (item) =>
+        cell?.name === item?.model?.name && item?.model?.name !== undefined
+    );
   }
 
   public async focusCell(cell: Cell): Promise<VerCell> {

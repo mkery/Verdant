@@ -7,19 +7,20 @@ const DEBUG = false;
 
 export class HistoryCheckpoints {
   readonly history: History;
-  private checkpointList: Checkpoint[];
+  private checkpointList: (Checkpoint | null)[];
 
   constructor(history: History) {
     this.history = history;
     this.checkpointList = [];
   }
 
-  public all(): Checkpoint[] {
+  public all(): (Checkpoint | null)[] {
     return this.checkpointList;
   }
 
-  public get(id?: number): Checkpoint {
+  public get(id?: number): Checkpoint | null {
     if (id !== undefined) return this.checkpointList[id];
+    return null;
   }
 
   public set(id: number, checkpoint: Checkpoint) {
@@ -31,7 +32,7 @@ export class HistoryCheckpoints {
     for (var i = 0; i < this.checkpointList.length; i++) {
       let item = this.checkpointList[i];
       if (item?.notebook === version) events.push(item);
-      if (item?.notebook > version) break;
+      if ((item?.notebook || -1) > version) break;
     }
     return events;
   }
@@ -55,27 +56,29 @@ export class HistoryCheckpoints {
   }
 
   findCheckpointNotebook(id: number) {
-    // set notebook ID for event if notebook is not yet set
-    let targetCells = this.checkpointList[id].targetCells;
-    for (let i = 0; i < targetCells.length; i++) {
-      let cell = targetCells[i];
-      if (
-        cell?.changeType !== ChangeType.SAME &&
-        cell?.changeType !== ChangeType.NONE
-      ) {
-        let node = this.history.store.get(cell?.cell);
-        let notebook = this.history.store.get(node?.parent);
-        this.checkpointList[id].notebook = notebook?.version;
-        break;
+    if (this.checkpointList[id]) {
+      // set notebook ID for event if notebook is not yet set
+      let targetCells = this.checkpointList[id].targetCells;
+      for (let i = 0; i < targetCells.length; i++) {
+        let cell = targetCells[i];
+        if (
+          cell?.changeType !== ChangeType.SAME &&
+          cell?.changeType !== ChangeType.NONE
+        ) {
+          let node = this.history.store.get(cell?.cell);
+          let notebook = this.history.store.get(node?.parent);
+          this.checkpointList[id].notebook = notebook?.version;
+          break;
+        }
       }
-    }
 
-    // if nothing happened in this checkpoint,
-    // give it same notebook as the previous checkpoint
-    if (this.checkpointList[id].notebook === undefined) {
-      let prev = this.checkpointList[id - 1];
-      if (prev) this.checkpointList[id].notebook = prev.notebook;
-      else this.checkpointList[id].notebook = 0;
+      // if nothing happened in this checkpoint,
+      // give it same notebook as the previous checkpoint
+      if (this.checkpointList[id].notebook === undefined) {
+        let prev = this.checkpointList[id - 1];
+        if (prev) this.checkpointList[id].notebook = prev.notebook;
+        else this.checkpointList[id].notebook = 0;
+      }
     }
   }
 

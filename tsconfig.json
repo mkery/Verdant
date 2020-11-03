@@ -4,7 +4,6 @@
     "paths": {
       "*": ["./node_modules/@types/*", "*"]
     },
-    "strict": true,
     "declaration": true,
     "esModuleInterop": true,
     "sourceMap": true,

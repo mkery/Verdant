@@ -255,7 +255,7 @@ function createVerdantPanelUI(store: Store): Widget {
  */
 function shutDownInstance(panel: NotebookPanel) {
   // TODO
-  instances.find((i) => i.panel === panel).logger.log("Notebook Closed");
+  instances.find((i) => i.panel === panel)?.logger?.log("Notebook Closed");
   updateVerdantView();
 }
 
