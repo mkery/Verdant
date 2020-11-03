@@ -16,10 +16,11 @@ export class HistoryStage {
     this.open_commits = [];
   }
 
-  public commit(checkpoint: Checkpoint): void {
+  public async commit(checkpoint: Checkpoint): Promise<void> {
     let c = this.getCommit(checkpoint);
     // if commit was *actually* verified to be needed, it will return true
-    if (c.commit()) this.history.checkpoints.set(checkpoint.id, checkpoint);
+    if (await c.commit())
+      this.history.checkpoints.set(checkpoint.id, checkpoint);
     this.closeCommit(c);
   }
 

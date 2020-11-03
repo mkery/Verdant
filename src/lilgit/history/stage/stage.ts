@@ -102,8 +102,8 @@ export class Stage {
     let oldOutput = cell?.output;
 
     // compare to see if output has changed
-    let changed = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
-    if (changed) {
+    let same = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
+    if (!same) {
       // make instructions for a new Output in staging
       if (!this.staged_codeCell[nodey.artifactName])
         this.staged_codeCell[nodey.artifactName] = {};

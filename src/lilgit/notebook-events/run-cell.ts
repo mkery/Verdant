@@ -24,7 +24,7 @@ export class RunCell extends NotebookEvent {
     if (cell && cell.model) {
       // commit the notebook if the cell has changed
       this.history.stage.markAsPossiblyEdited(cell.model, this.checkpoint);
-      this.history.stage.commit(this.checkpoint);
+      await this.history.stage.commit(this.checkpoint);
     }
   }
 }

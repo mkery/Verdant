@@ -15,7 +15,7 @@ export class SaveNotebook extends NotebookEvent {
         this.history.stage.markAsPossiblyEdited(cell.model, this.checkpoint);
       }
     });
-    this.history.stage.commit(this.checkpoint);
+    await this.history.stage.commit(this.checkpoint);
   }
 
   endEvent() {

@@ -119,8 +119,8 @@ export class Commit {
   }
 
   // returns true if there are changes such that a new commit is recorded
-  public commit(): boolean {
-    this.stage.stage();
+  public async commit(): Promise<boolean> {
+    await this.stage.stage();
     if (this.stage.isEdited()) {
       // if there are real edits, make sure we have a new notebook
       if (!this.notebook) this.createNotebookVersion();

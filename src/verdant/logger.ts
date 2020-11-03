@@ -3,7 +3,7 @@ import { Store } from "redux";
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
 // TODO stream log to file
-const DEBUG = false;
+const DEBUG = true;
 
 export class VerdantLog {
   private notebook: VerNotebook | null = null;
