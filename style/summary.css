@@ -32,6 +32,7 @@
   display: inline-flex;
   flex-direction: column;
   width: 100%;
+  overflow: hidden scroll;
 }
 
 .v-VerdantPanel-Summary-table-row {

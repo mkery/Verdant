@@ -180,7 +180,7 @@
   ADDED = "added",
   SAME = "no change",
   MOVED = "moved",
-  NONE = "n/a",
+  SAME = "n/a",
   TYPE_CHANGED = "type changed",
 */
 .Verdant-events-map-cell.target .tic {

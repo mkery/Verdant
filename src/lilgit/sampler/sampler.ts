@@ -15,7 +15,7 @@ import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { Target } from "./target";
 import { Search } from "./search";
 
-const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
+const CHANGE_SAME_CLASS = "v-Verdant-sampler-code-same";
 const CHANGE_ADDED_CLASS = "v-Verdant-sampler-code-added";
 const CHANGE_REMOVED_CLASS = "v-Verdant-sampler-code-removed";
 const MARKDOWN_LINEBREAK = "v-Verdant-sampler-markdown-linebreak";
@@ -273,7 +273,7 @@ export class Sampler {
             partDiv = document.createElement("span");
             await this.renderBaby.renderMarkdown(partDiv, part.value);
 
-            partDiv.classList.add(CHANGE_NONE_CLASS);
+            partDiv.classList.add(CHANGE_SAME_CLASS);
 
             if (part.added) {
               partDiv.classList.add(CHANGE_ADDED_CLASS);

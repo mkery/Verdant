@@ -114,7 +114,11 @@ export const ghostReduce = (state: verdantState, action: any): ghostState => {
   }
 };
 
-function loadCells(history: History, ver: number, diff: DIFF_TYPE) {
+function loadCells(
+  history: History,
+  ver: number,
+  diff: DIFF_TYPE
+): [{ [name: string]: CellRunData }, { [name: string]: ghostCellOutputState }] {
   // TODO: Have method to display deleted cells when diffPresent
   // Load notebook and events
   let notebook: NodeyNotebook | undefined;
@@ -138,7 +142,7 @@ function loadCells(history: History, ver: number, diff: DIFF_TYPE) {
   if (notebook !== undefined) {
     let cells: CellRunData[] = notebook.cells.map((item) => ({
       cell: item,
-      changeType: ChangeType.NONE,
+      changeType: ChangeType.SAME,
     }));
 
     let deletedCells: CellRunData[] = [];
@@ -225,11 +229,17 @@ function loadCells(history: History, ver: number, diff: DIFF_TYPE) {
     }
 
     // Add cells to cell map
-    const loadedCells = cells.map((cell, index) => (cell.index = index));
+    let loadedCells: { [name: string]: CellRunData } = {};
+    cells.forEach((cell, index) => {
+      cell.index = index;
+      loadedCells[cell.cell] = cell;
+    });
 
     // Add output to output map
-    let loadedOutput = {};
+    let loadedOutput: { [name: string]: ghostCellOutputState } = {};
     output.forEach((cell) => (loadedOutput[cell.name] = cell));
+
+    console.log("GHOST cells found:", loadedCells, loadedOutput);
 
     return [loadedCells, loadedOutput];
   }

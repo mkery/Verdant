@@ -68,7 +68,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     changeColors[ChangeType.CHANGED] = ChangeType.CHANGED;
     changeColors[ChangeType.MOVED] = ChangeType.CHANGED;
     changeColors[ChangeType.TYPE_CHANGED] = ChangeType.CHANGED;
-    changeColors[ChangeType.NONE] = "";
+    changeColors[ChangeType.SAME] = "";
     changeColors[ChangeType.SAME] = "";
     this.changeColors = changeColors;
   }
@@ -160,9 +160,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     }
     let diff = this.props.diff;
     if (diff === DIFF_TYPE.CHANGE_DIFF) {
-      if (this.props.change === ChangeType.NONE) {
-        diff = DIFF_TYPE.NO_DIFF;
-      } else if (this.props.change === ChangeType.SAME) {
+      if (this.props.change === ChangeType.SAME) {
         diff = DIFF_TYPE.NO_DIFF;
       }
     }

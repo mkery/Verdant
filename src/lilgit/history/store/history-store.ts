@@ -56,7 +56,7 @@ export class HistoryStore {
       id = parseInt(idVal);
     } else if (name instanceof Nodey) {
       typeChar = name.typeChar;
-      id = name.id || -1;
+      id = name.id === undefined ? -1 : name.id;
     }
 
     switch (typeChar) {

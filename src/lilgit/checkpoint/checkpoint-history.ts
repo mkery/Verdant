@@ -61,10 +61,7 @@ export class HistoryCheckpoints {
       let targetCells = this.checkpointList[id].targetCells;
       for (let i = 0; i < targetCells.length; i++) {
         let cell = targetCells[i];
-        if (
-          cell?.changeType !== ChangeType.SAME &&
-          cell?.changeType !== ChangeType.NONE
-        ) {
+        if (cell?.changeType !== ChangeType.SAME) {
           let node = this.history.store.get(cell?.cell);
           let notebook = this.history.store.get(node?.parent);
           this.checkpointList[id].notebook = notebook?.version;

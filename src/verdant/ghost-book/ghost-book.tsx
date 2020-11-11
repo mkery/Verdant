@@ -7,10 +7,6 @@ import { Provider } from "react-redux";
 import { verdantState } from "../redux/";
 import { CellRunData } from "../../lilgit/checkpoint";
 
-/* CSS Constants */
-const BOOK = "v-Verdant-GhostBook";
-const BOOK_CELLAREA = `${BOOK}-cellArea`;
-
 export interface GhostBook_Props {
   store: Store;
 }
@@ -36,9 +32,9 @@ export interface GhostCellContainer_Props {
 class CellContainer extends React.Component<GhostCellContainer_Props> {
   render() {
     return (
-      <div className={BOOK}>
+      <div className="v-Verdant-GhostBook">
         <GhostToolbar />
-        <div className={BOOK_CELLAREA}>{this.showCells()}</div>
+        <div className="v-Verdant-GhostBook-cellArea">{this.showCells()}</div>
       </div>
     );
   }
@@ -50,7 +46,7 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
 
     Object.keys(this.props.cells).forEach((name: string) => {
       const cell = this.props.cells[name];
-      if (!cell.index) return;
+      if (cell.index === undefined) return;
 
       if (this.props.scrollFocus === cell.cell) {
         const ref = React.createRef<HTMLDivElement>();

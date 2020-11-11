@@ -67,6 +67,7 @@ function calculateVersionMapping(nodey: Nodey, history: History) {
   if (nodey instanceof NodeyCode) {
     let hist = history.store.getHistoryOf(nodey);
     nodey_versions = hist?.getAllVersions() || [];
+
     if (nodey_versions)
       nodey_dependents = (nodey_versions as NodeyCode[]).map((ver) => {
         let outHist = history.store.getOutput(ver);
