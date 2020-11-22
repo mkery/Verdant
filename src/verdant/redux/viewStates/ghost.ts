@@ -2,7 +2,6 @@ import { verdantState } from "../state";
 import {
   ChangeType,
   Checkpoint,
-  CheckpointType,
   CellRunData,
   GREATER_CHANGETYPE,
 } from "../../../lilgit/checkpoint";
@@ -150,8 +149,7 @@ function loadCells(
     // For each event, update list of events matching target cells
     events.forEach((ev) => {
       ev.targetCells.forEach((cell) => {
-        let index = notebook.cells.indexOf(cell.cell);
-        if (index < 0 && ev.checkpointType === CheckpointType.DELETE) {
+        if (cell.changeType === ChangeType.REMOVED) {
           // Add new deleted cell with the event.
           // If a cell cannot be deleted multiple times per notebook version,
           // it should be fine to simply add a new deleted cell each time.
@@ -161,6 +159,7 @@ function loadCells(
             changeType: cell.changeType,
           });
         } else {
+          let index = notebook.cells.indexOf(cell.cell);
           cells[index].changeType = GREATER_CHANGETYPE(
             cells[index].changeType,
             cell.changeType

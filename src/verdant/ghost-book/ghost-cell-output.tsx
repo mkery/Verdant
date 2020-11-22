@@ -16,6 +16,7 @@ type GhostCellOutput_Props = {
   // open up detail of nodey
   showDetail: (n: Nodey) => void;
   inspectOn: boolean;
+  changed: boolean;
 };
 
 type GhostCellOutput_State = {
@@ -54,7 +55,7 @@ class GhostCellOutput extends React.Component<
       <div
         className={`v-Verdant-GhostBook-cell-container output${
           this.props.inspectOn ? " hoverInspect" : ""
-        }`}
+        }${this.props.changed ? " changed" : ""}`}
         onClick={() => {
           if (this.props.inspectOn) this.props.showDetail(output);
         }}

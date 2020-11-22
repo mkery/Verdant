@@ -10,10 +10,11 @@ export enum ChangeType {
 }
 
 const changeVal = {
-  "n/a": 0,
+  none: 0,
   "type changed": 1,
   moved: 1,
   edited: 2,
+  "output changed": 2,
   added: 3,
   removed: 4,
 };

@@ -259,9 +259,13 @@
 .v-Verdant-GhostBook-cell-container.output {
   padding-top: 5px;
 }
+.v-Verdant-GhostBook-cell-container.output.changed {
+  background-color: var(--verdant-ghost-color0);
+}
 
 .v-Verdant-GhostBook-cell-container.hoverInspect:hover,
 .v-Verdant-GhostBook-cell-container.output.hoverInspect:hover,
+.v-Verdant-GhostBook-cell-container.output.changed:hover,
 .v-Verdant-GhostBook-cell-container.hoverInspect:hover
   .v-Verdant-GhostBook-cell,
 .v-Verdant-GhostBook-cell-container.hoverInspect:hover

@@ -52,6 +52,7 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+  max-width: 100%;
 }
 .v-VerdantPanel-details-versionPair-col.open {
   min-width: 50%;

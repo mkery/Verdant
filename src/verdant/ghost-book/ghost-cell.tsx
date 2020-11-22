@@ -51,8 +51,6 @@ type GhostCell_State = {
 };
 
 class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
-  private readonly changeColors: { [key: string]: string };
-
   constructor(props) {
     /* Explicit constructor to initialize state */
     // Required super call
@@ -61,15 +59,6 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     this.state = {
       sample: "",
     };
-
-    let changeColors = {};
-    changeColors[ChangeType.ADDED] = ChangeType.ADDED;
-    changeColors[ChangeType.REMOVED] = ChangeType.REMOVED;
-    changeColors[ChangeType.CHANGED] = ChangeType.CHANGED;
-    changeColors[ChangeType.MOVED] = ChangeType.CHANGED;
-    changeColors[ChangeType.TYPE_CHANGED] = ChangeType.CHANGED;
-    changeColors[ChangeType.OUTPUT_CHANGED] = ChangeType.OUTPUT_CHANGED;
-    this.changeColors = changeColors;
   }
 
   componentDidUpdate(prevProps: GhostCell_Props) {
@@ -100,9 +89,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 
     return (
       <div
-        className={`${CONTAINER} ${active} ${
-          this.changeColors[this.props.change]
-        }`}
+        className={`${CONTAINER} ${active} ${this.props.change}`}
         onClick={() => this.props.clickEv()}
       >
         <div className={CONTAINER_STACK}>
@@ -135,6 +122,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
             <GhostCellOutput
               name={this.props.output}
               codeCell={this.props.name}
+              changed={this.props.change === ChangeType.OUTPUT_CHANGED}
             />
           ) : null}
         </div>
