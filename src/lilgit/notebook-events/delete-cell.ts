@@ -18,6 +18,7 @@ export class DeleteCell extends NotebookEvent {
 
   async modelUpdate() {
     let oldCell = this.notebook.cells.splice(this.cell_index, 1)[0];
-    this.history.stage.commitCellDeleted(oldCell.model, this.checkpoint);
+    if (oldCell.model)
+      this.history.stage.commitCellDeleted(oldCell.model, this.checkpoint);
   }
 }

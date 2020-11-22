@@ -2,11 +2,11 @@ import { PathExt } from "@jupyterlab/coreutils";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
-import { Cell, ICellModel, CodeCell } from "@jupyterlab/cells";
+import { Cell, ICellModel } from "@jupyterlab/cells";
 import { History } from "./history/";
 import { AST } from "./analysis/ast";
 import { VerCell } from "./cell";
-import { NodeyNotebook, NodeyCell, NodeyCode } from "./nodey";
+import { NodeyNotebook, NodeyCell } from "./nodey";
 import { NotebookEvent, LoadNotebook } from "./notebook-events";
 
 const DEBUG = true;
@@ -18,7 +18,6 @@ export class VerNotebook {
   readonly view: NotebookListen;
   readonly history: History;
   readonly ast: AST;
-  private clipboard: { target: string; text: string };
   private eventQueue: Promise<any>[] = [];
   cells: VerCell[];
 
@@ -60,16 +59,16 @@ export class VerNotebook {
     return ev;
   }
 
-  get model(): NodeyNotebook {
+  get model(): NodeyNotebook | undefined {
     return this.history.store.currentNotebook;
   }
 
-  get path(): string {
-    return this.view.panel.sessionContext.path; // TODO updated, check still working
+  get path(): string | undefined {
+    return this.view.panel?.sessionContext?.path;
   }
 
-  get name(): string {
-    return PathExt.basename(this.path);
+  get name(): string | undefined {
+    if (this.path) return PathExt.basename(this.path);
   }
 
   get metadata() {
@@ -81,14 +80,17 @@ export class VerNotebook {
     this.history.store.writeToFile();
   }
 
-  public getCell(cell: ICellModel): VerCell {
+  public getCell(cell: ICellModel): VerCell | undefined {
     return this.cells.find((item) => {
       if (item.view && item.view.model) return item.view.model.id === cell.id;
     });
   }
 
-  public getCellByNode(cell: NodeyCell): VerCell {
-    return this.cells.find((item) => cell.name === item.model.name);
+  public getCellByNode(cell: NodeyCell): VerCell | undefined {
+    return this.cells.find(
+      (item) =>
+        cell?.name === item?.model?.name && item?.model?.name !== undefined
+    );
   }
 
   public async focusCell(cell: Cell): Promise<VerCell> {
@@ -102,51 +104,6 @@ export class VerNotebook {
     });
     this.eventQueue.push(ev);
     return ev;
-  }
-
-  public async copyNode(target: HTMLElement, cell: Cell, text: string) {
-    // verify that target came from current active cell (otherwise not a nodey)
-    if (this.isDescendant(cell.node, target)) {
-      let verCell = this.getCell(cell.model);
-
-      // figure out which nodey this is by the text(?)
-      if (verCell) {
-        let node = verCell.model;
-        let copied;
-
-        // check to see if it's output
-        if (
-          cell instanceof CodeCell &&
-          this.isDescendant(cell.outputArea.node, target)
-        ) {
-          copied = this.history.store.getOutput(node as NodeyCode).latest;
-        } // otherwise main cell
-        else
-          copied = this.history.inspector.target.figureOutTarget(
-            node,
-            cell,
-            text
-          );
-
-        if (copied) {
-          // add nodey to clip board in notebook
-          this.clipboard = { target: copied.name, text: text };
-          log("COPIED NODE IS", this.clipboard);
-        } else this.clipboard = null;
-      }
-    } // otherwise reset clipboard
-    else this.clipboard = null;
-  }
-
-  private isDescendant(parent: HTMLElement, child: HTMLElement) {
-    var node = child.parentNode;
-    while (node != null) {
-      if (node == parent) {
-        return true;
-      }
-      node = node.parentNode;
-    }
-    return false;
   }
 
   public dump(): void {

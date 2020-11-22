@@ -1,18 +1,22 @@
 import * as React from "react";
-import { Checkpoint } from "../../../lilgit/checkpoint";
+import { ChangeType, Checkpoint } from "../../../lilgit/checkpoint";
 import { CellMap, Namer } from "../../../lilgit/sampler";
 import { History } from "../../../lilgit/history/";
-import { Nodey } from "../../../lilgit/nodey";
+import { Nodey, NodeyCodeCell } from "../../../lilgit/nodey";
 import { verdantState, showDetailOfNode } from "../../redux/";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 
-interface EventMap_Props {
+type react_EventMap_Props = {
   checkpoints: Checkpoint[];
+};
+
+type EventMap_Props = {
+  // given by redux store
   history: History;
   eventCount: number;
   showDetail: (n: Nodey) => void;
-}
+} & react_EventMap_Props;
 
 const MAP = "Verdant-events-map";
 
@@ -40,21 +44,28 @@ class NotebookEventMap extends React.Component<
   showMap() {
     return this.state.cellMap.map((cell, index) => {
       if (cell.changes.length > 0) {
-        let tics = [];
+        let tics: JSX.Element[] = [];
         cell.changes.forEach((kind, j_index) => {
           let color = kind.replace(/ /g, "_");
           tics.push(<div key={j_index} className={`tic ${color}`}></div>);
         });
         let nodey = this.props.history.store.get(cell.name);
-        let tooltip_msg = `${Namer.getCellVersionTitle(
-          nodey
-        )} was ${cell.changes.join(", ")}`;
+        let tooltip_msg = Namer.describeChange(nodey, cell.changes);
         return (
           <div
             data-tip={tooltip_msg}
             key={index}
             className="Verdant-events-map-cell target"
-            onClick={() => this.props.showDetail(nodey)}
+            onClick={() => {
+              if (nodey) {
+                if (cell.changes[0] === ChangeType.OUTPUT_CHANGED) {
+                  let out = this.props.history.store.getOutput(
+                    nodey as NodeyCodeCell
+                  )?.latest;
+                  if (out) this.props.showDetail(out);
+                } else this.props.showDetail(nodey);
+              }
+            }}
           >
             {tics}
             <ReactTooltip />
@@ -71,7 +82,7 @@ class NotebookEventMap extends React.Component<
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<EventMap_Props>
+  ownProps: react_EventMap_Props
 ) => {
   return {
     history: state.getHistory(),

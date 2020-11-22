@@ -119,8 +119,8 @@ export class Commit {
   }
 
   // returns true if there are changes such that a new commit is recorded
-  public commit(): boolean {
-    this.stage.stage();
+  public async commit(): Promise<boolean> {
+    await this.stage.stage();
     if (this.stage.isEdited()) {
       // if there are real edits, make sure we have a new notebook
       if (!this.notebook) this.createNotebookVersion();
@@ -134,7 +134,7 @@ export class Commit {
     // now go through an update existing cells
     this.notebook.cells = this.notebook.cells.map((c) => {
       let cell = this.history.store.get(c);
-      let instructions = this.stage.getStaging(cell);
+      let instructions = cell ? this.stage.getStaging(cell) : null;
 
       if (instructions) {
         let newCell;
@@ -144,7 +144,7 @@ export class Commit {
           newCell = this.createMarkdownVersion(cell.artifactName, instructions);
         else if (cell instanceof NodeyRawCell)
           newCell = this.createRawCellVersion(cell.artifactName, instructions);
-        return newCell.name;
+        return newCell?.name || c; // return unchanged cell if error occurred
       } else {
         // otherwise assume this cell is unchanged in this commit
         return c;
@@ -155,78 +155,103 @@ export class Commit {
   private createNotebookVersion() {
     let oldNotebook = this.history.store.currentNotebook;
     let newNotebook = new NodeyNotebook({
-      id: oldNotebook.id,
+      id: oldNotebook?.id,
       created: this.checkpoint.id,
-      cells: oldNotebook.cells.slice(0),
+      cells: oldNotebook?.cells.slice(0) || [],
     });
     let notebookHist = this.history.store.getHistoryOf(oldNotebook);
-    notebookHist.addVersion(newNotebook);
+    notebookHist?.addVersion(newNotebook);
     this.notebook = newNotebook;
-    this.checkpoint.notebook = this.notebook.version;
+    this.checkpoint.notebook = this.notebook?.version;
   }
 
   private createMarkdownVersion(
     artifactName: string,
     instructions: { markdown: string }
-  ): NodeyMarkdown {
+  ): NodeyMarkdown | undefined {
     // first create the new Markdown version
     let nodeyHistory = this.history.store.getHistoryOf(artifactName);
-    let oldNodey = nodeyHistory.latest;
-    let newNodey = new NodeyMarkdown({
-      id: oldNodey.id,
-      created: this.checkpoint.id,
-      markdown: instructions.markdown,
-      parent: this.notebook.name,
-    });
-    nodeyHistory.addVersion(newNodey);
+    let oldNodey = nodeyHistory?.latest;
 
-    // then add the update to checkpoint
-    let cellDat = {
-      cell: newNodey.name,
-      changeType: ChangeType.CHANGED,
-    } as CellRunData;
-    this.checkpoint.targetCells.push(cellDat);
+    if (nodeyHistory && oldNodey) {
+      let newNodey = new NodeyMarkdown({
+        id: oldNodey.id,
+        created: this.checkpoint.id,
+        markdown: instructions.markdown,
+        parent: this.notebook.name,
+      });
+      nodeyHistory.addVersion(newNodey);
 
-    // finally return updated new version
-    return newNodey;
+      // then add the update to checkpoint
+      let cellDat = {
+        cell: newNodey.name,
+        changeType: ChangeType.CHANGED,
+      } as CellRunData;
+      this.checkpoint.targetCells.push(cellDat);
+
+      // finally return updated new version
+      return newNodey;
+    }
+    console.error(
+      "Failed to create new markdown version of ",
+      artifactName,
+      instructions
+    );
   }
 
   private createRawCellVersion(
     artifactName: string,
     instructions: { literal: string }
-  ): NodeyRawCell {
+  ): NodeyRawCell | undefined {
     // first create the new Raw Cell version
     let nodeyHistory = this.history.store.getHistoryOf(artifactName);
-    let oldNodey = nodeyHistory.latest;
-    let newNodey = new NodeyRawCell({
-      id: oldNodey.id,
-      created: this.checkpoint.id,
-      literal: instructions.literal,
-      parent: this.notebook.name,
-    });
-    nodeyHistory.addVersion(newNodey);
+    let oldNodey = nodeyHistory?.latest;
+    if (nodeyHistory && oldNodey) {
+      let newNodey = new NodeyRawCell({
+        id: oldNodey.id,
+        created: this.checkpoint.id,
+        literal: instructions.literal,
+        parent: this.notebook.name,
+      });
+      nodeyHistory?.addVersion(newNodey);
 
-    // then add the update to checkpoint
-    let cellDat = {
-      cell: newNodey.name,
-      changeType: ChangeType.CHANGED,
-    } as CellRunData;
-    this.checkpoint.targetCells.push(cellDat);
+      // then add the update to checkpoint
+      let cellDat = {
+        cell: newNodey.name,
+        changeType: ChangeType.CHANGED,
+      } as CellRunData;
+      this.checkpoint.targetCells.push(cellDat);
 
-    // finally return updated new version
-    return newNodey;
+      // finally return updated new version
+      return newNodey;
+    } else
+      console.error(
+        "Failed to create new raw cell version of ",
+        artifactName,
+        instructions
+      );
   }
 
   private createCodeCellVersion(
     artifactName: string,
     instructions: { [key: string]: any }
-  ): NodeyCodeCell {
+  ): NodeyCodeCell | undefined {
     // build base code cell
     let nodeyHistory = this.history.store.getHistoryOf(
       artifactName
     ) as CodeHistory;
-    let oldNodey = nodeyHistory.latest;
+    let oldNodey = nodeyHistory?.latest;
     let newNodey;
+
+    // error case only
+    if (!nodeyHistory || !oldNodey) {
+      console.error(
+        "Failed to create new code cell version of ",
+        artifactName,
+        instructions
+      );
+      return;
+    }
 
     // check do we need a new cell version other than output?
     if (instructions["literal"] || instructions["content"]) {
@@ -248,7 +273,7 @@ export class Commit {
         let oldOut = oldOutputHist.latest;
         newOut = new NodeyOutput({
           id: oldOut.id,
-          created: this.checkpoint.id,
+          created: this.checkpoint?.id,
           parent: newNodey.name,
           raw: instructions["output"],
         });
@@ -258,7 +283,7 @@ export class Commit {
         // but only if raw is not empty
         if (instructions["output"].length > 0) {
           newOut = new NodeyOutput({
-            created: this.checkpoint.id,
+            created: this.checkpoint?.id,
             parent: newNodey.name,
             raw: instructions["output"],
           });
@@ -269,13 +294,20 @@ export class Commit {
     }
 
     let changed = oldNodey.version !== newNodey.version;
+    let changeKind: ChangeType;
+
+    if (changed) changeKind = ChangeType.CHANGED;
+    if (!changed && newOut) changeKind = ChangeType.OUTPUT_CHANGED;
+
     // update the checkpoint
-    let cellDat = {
-      cell: newNodey.name,
-      changeType: changed ? ChangeType.CHANGED : ChangeType.SAME,
-      output: newOut ? [newOut.name] : [],
-    } as CellRunData;
-    this.checkpoint.targetCells.push(cellDat);
+    if (changeKind) {
+      let cellDat = {
+        cell: newNodey.name,
+        changeType: changeKind,
+        output: newOut ? [newOut.name] : [],
+      } as CellRunData;
+      this.checkpoint.targetCells.push(cellDat);
+    }
 
     // finally return updated new version
     return newNodey;

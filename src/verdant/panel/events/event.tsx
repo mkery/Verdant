@@ -6,14 +6,18 @@ import { eventState, verdantState } from "../../redux/";
 import { NodeyNotebook } from "../../../lilgit/nodey";
 import { Namer } from "../../../lilgit/sampler/";
 
-type NotebookEvent_Props = {
+type react_NotebookEvent_Props = {
   date_id: number;
   event_id: number;
+};
+
+type NotebookEvent_Props = {
+  // provided by redux store
   events: eventState;
   notebook: NodeyNotebook;
   openGhostBook: () => void;
   currentGhostBook: () => boolean;
-};
+} & react_NotebookEvent_Props;
 
 class NotebookEvent extends React.Component<NotebookEvent_Props> {
   render() {
@@ -42,7 +46,7 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<NotebookEvent_Props>
+  ownProps: react_NotebookEvent_Props
 ) => {
   const events =
     state.eventView.dates[ownProps.date_id].events[ownProps.event_id];

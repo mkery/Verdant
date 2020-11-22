@@ -10,15 +10,17 @@ const DATE_HEADER = `Verdant-events-date-header`;
 const DATE_HEADER_LABEL = `${DATE_HEADER}-label`;
 const DATE_HEADER_COLLAPSE = `${DATE_HEADER}-collapse`;
 
+type req_NotebookDate_Props = { date_id: number };
+
 type NotebookDate_Props = {
-  date_id: number;
+  // provided by redux store
   date: number;
   events: eventState[];
   isOpen: boolean;
   open: (d: number) => void;
   close: (d: number) => void;
   bundles: number[][];
-};
+} & req_NotebookDate_Props;
 
 class NotebookEventDate extends React.Component<NotebookDate_Props> {
   render() {
@@ -73,7 +75,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<NotebookDate_Props>
+  ownProps: req_NotebookDate_Props
 ) => {
   let dateState = state.eventView.dates[ownProps.date_id];
   return {

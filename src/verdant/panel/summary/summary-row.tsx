@@ -12,10 +12,10 @@ import {
 import { Namer } from "../../../lilgit/sampler";
 
 type SummaryRow_Props = {
-  history: History;
+  history?: History;
   cell_index: number;
-  cell: NodeyCell;
-  output: NodeyOutput;
+  cell?: NodeyCell;
+  output?: NodeyOutput;
   showDetails: (n: Nodey) => void;
   focused: boolean;
 };
@@ -34,16 +34,18 @@ export class Row extends React.Component<
   }
 
   private async fetchArtifact() {
-    CellSampler.sampleCell(this.props.history, this.props.cell).then(
-      (sample) => {
-        this.setState({ sample: sample.outerHTML });
-      }
-    );
-    if (this.props.output)
-      CellSampler.sampleOutput(
-        this.props.history,
-        this.props.output
-      ).then((sample) => this.setState({ output_sample: sample.outerHTML }));
+    if (this.props.history && this.props.cell) {
+      CellSampler.sampleCell(this.props.history, this.props.cell).then(
+        (sample) => {
+          this.setState({ sample: sample.outerHTML });
+        }
+      );
+      if (this.props.output)
+        CellSampler.sampleOutput(
+          this.props.history,
+          this.props.output
+        ).then((sample) => this.setState({ output_sample: sample.outerHTML }));
+    }
   }
 
   render() {
@@ -51,15 +53,17 @@ export class Row extends React.Component<
       <div>
         <div
           className={`v-VerdantPanel-Summary-table-row ${
-            this.props.cell.typeChar
+            this.props.cell ? this.props.cell.typeChar : ""
           } ${this.props.focused ? "focused" : ""}`}
-          onClick={() => this.props.showDetails(this.props.cell)}
+          onClick={() =>
+            this.props.cell ? this.props.showDetails(this.props.cell) : null
+          }
         >
           <div className="v-VerdantPanel-Summary-table-row-name">
             {Namer.getCellShortTitle(this.props.cell)}
           </div>
           <div className="v-VerdantPanel-Summary-table-row-version">
-            {Namer.getVersionNumberLabel(this.props.cell.version)}
+            {Namer.getVersionNumberLabel(this.props.cell?.version)}
           </div>
           <div
             className="v-VerdantPanel-Summary-table-row-sample"
@@ -78,7 +82,9 @@ export class Row extends React.Component<
           className={`v-VerdantPanel-Summary-table-row o ${
             this.props.focused ? "focused" : ""
           }`}
-          onClick={() => this.props.showDetails(this.props.output)}
+          onClick={() =>
+            this.props.output ? this.props.showDetails(this.props.output) : null
+          }
         >
           <div className="v-VerdantPanel-Summary-table-row-name o">
             <div className="v-VerdantPanel-Summary-table-row-outputLabel">
@@ -86,7 +92,7 @@ export class Row extends React.Component<
             </div>
           </div>
           <div className="v-VerdantPanel-Summary-table-row-version">
-            {Namer.getVersionNumberLabel(this.props.output.version)}
+            {Namer.getVersionNumberLabel(this.props.output?.version)}
           </div>
           <div
             className="v-VerdantPanel-Summary-table-row-sample"
@@ -99,10 +105,7 @@ export class Row extends React.Component<
   }
 }
 
-const mapStateToProps = (
-  state: verdantState,
-  ownProps: Partial<SummaryRow_Props>
-) => {
+const mapStateToProps = (state: verdantState, ownProps: SummaryRow_Props) => {
   const history = state.getHistory();
   const cellDat = state.cellArtifacts[ownProps.cell_index];
   const cell = history.store.get(cellDat.name);

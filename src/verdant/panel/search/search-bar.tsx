@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 
 type SearchBar_Props = {
   searchFor: (string) => void;
-  searchQuery: string;
+  searchQuery: string | null;
 };
 
 type SearchBar_State = {

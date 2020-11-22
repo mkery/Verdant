@@ -26,7 +26,7 @@ export class VerCell {
   /**
    * last seen text for when the cell is deleted
    */
-  private lastSeenText: string;
+  private lastSeenText: string = "";
 
   /**
    * Constructs a cell
@@ -35,15 +35,13 @@ export class VerCell {
     this.notebook = notebook;
     this.view = cell;
     this.modelName = modelName;
-    this.lastSeenText = "";
-    this.listen();
   }
 
   /**
    * Gets the Nodey representation of this cell
    */
-  public get model(): NodeyCell {
-    return this.notebook.history.store.getLatestOf(this.modelName);
+  public get model(): NodeyCell | undefined {
+    return this.notebook?.history?.store.getLatestOf(this.modelName);
   }
 
   /**
@@ -65,7 +63,7 @@ export class VerCell {
   /**
    * Ges output if the cell has it
    */
-  public get output(): NodeyOutput {
+  public get output(): NodeyOutput | undefined {
     if (this.model instanceof NodeyCodeCell) {
       let output = this.notebook.history.store.getOutput(this.model);
       if (output) return output.latest as NodeyOutput;
@@ -75,7 +73,7 @@ export class VerCell {
   /**
    * Gets output area if the cell has it
    */
-  public get outputArea(): OutputArea {
+  public get outputArea(): OutputArea | undefined {
     if (this.view instanceof CodeCell)
       return (this.view as CodeCell).outputArea;
   }
@@ -85,26 +83,8 @@ export class VerCell {
 
     // check cell wasn't just deleted
     if (this.view.inputArea) {
-      text = this.view.editor.model.value.text;
+      text = this.view.editor?.model?.value?.text || this.lastSeenText;
     }
     return text;
-  }
-
-  /**
-   * Listen to events emitted by Jupyter Cell
-   */
-  private listen() {
-    // TODO add back as an optimization for checking changes on save
-    /*this.view.model.contentChanged.connect(() => {
-      /*
-       * set model of this cell to star state, although we
-       * don't know for sure yet, because of possible undo,
-       * if anything has truly changed yet
-       */
-    /*if (this.view.inputArea) {
-        this.lastSeenText = this.view.editor.model.value.text;
-      }
-      this.notebook.history.stage.markAsEdited(this.model);
-    });*/
   }
 }

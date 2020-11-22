@@ -1,7 +1,7 @@
 import { NodeHistory } from "./node-history";
 import { NodeyOutput } from "../../nodey";
 import { FileManager } from "../../jupyter-hooks/file-manager";
-import { IOutput } from "@jupyterlab/nbformat";
+import { IOutput, IUnrecognizedOutput } from "@jupyterlab/nbformat";
 
 /*
  * Goal is to store image or larger output externally in a folder without
@@ -35,14 +35,11 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
   }
 
   public static async isSame(
-    A: NodeyOutput,
-    B: NodeyOutput | IOutput[],
+    A: NodeyOutput | IOutput[] = [],
+    B: NodeyOutput | IOutput[] = [],
     fileManager: FileManager
   ) {
-    // first check that both outputs exist
-    if (!A || !B) return false;
-
-    let outList_a = A.raw;
+    let outList_a = A instanceof NodeyOutput ? A.raw : A;
     let outList_b = B instanceof NodeyOutput ? B.raw : B;
 
     // now check that they have the same number of outputs
@@ -68,18 +65,17 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
         if (OutputHistory.isOffsite(a)) {
           a = await fileManager.getOutput(a);
           if (a) raw_a = JSON.stringify(a);
-          else raw_a = null;
         }
         if (b instanceof NodeyOutput && OutputHistory.isOffsite(b)) {
-          let outB = await fileManager.getOutput(b);
-          raw_b = JSON.stringify(outB);
+          b = await fileManager.getOutput(b);
+          if (b) raw_b = JSON.stringify(b);
         }
 
         // get image tags if images, assuming other metadata doesn't matter
         let image_a = OutputHistory.isImage(a);
-        if (image_a) raw_a = a.data[image_a];
+        if (image_a && a?.data) raw_a = a.data[image_a] || raw_a;
         let image_b = OutputHistory.isImage(b);
-        if (image_b) raw_b = b.data[image_b];
+        if (image_b && b?.data) raw_b = b.data[image_b] || raw_b;
 
         return raw_a === raw_b;
       });
@@ -105,12 +101,12 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
     index: number,
     out,
     imageTag: string
-  ): OutputHistory.Offsite {
+  ): IUnrecognizedOutput {
     let fileType = imageTag.split("/")[1]; // e.g. png
     let data = out.data[imageTag];
     let filename = `output_${this.versions[0].id}_${ver}_${index}.${fileType}`;
     this.fileManager.writeOutput(filename, data);
-    return { offsite: filename, fileType };
+    return { output_type: "offsite image", offsite: filename, fileType };
   }
 }
 

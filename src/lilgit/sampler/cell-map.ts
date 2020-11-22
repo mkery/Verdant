@@ -30,7 +30,9 @@ export namespace CellMap {
           if (!cellMap[index]) cellMap[index] = { name, changes: [] };
 
           // see if anything happened to this cell at this checkpoint
-          let match: CellRunData = targets.find((item) => item.cell === name);
+          let match: CellRunData | undefined = targets.find(
+            (item) => item.cell === name
+          );
           if (match) {
             let change = match.changeType;
 
@@ -39,20 +41,12 @@ export namespace CellMap {
 
             // add change to cell's list of changes
             cellMap[index] = addChange(cellMap[index], change);
-
-            // check if output changed even if code did not
-            if (
-              change === ChangeType.SAME &&
-              match.output &&
-              match.output.length > 0
-            )
-              cellMap[index] = addChange(cellMap[index], ChangeType.CHANGED);
           }
         });
 
         // for deleted cells
         targets.forEach((t) => {
-          if (t.changeType === ChangeType.REMOVED)
+          if (t.changeType === ChangeType.REMOVED && t.index)
             cellMap.splice(t.index, 0, {
               name: t.cell,
               changes: [ChangeType.REMOVED],

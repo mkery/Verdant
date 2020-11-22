@@ -7,12 +7,6 @@ import { Provider } from "react-redux";
 import { verdantState } from "../redux/";
 import { CellRunData } from "../../lilgit/checkpoint";
 
-/* CSS Constants */
-const BOOK = "v-Verdant-GhostBook";
-const BOOK_CELLAREA = `${BOOK}-cellArea`;
-
-//const scrollToRef = (ref) => window.scrollTo(0, ref.current.offsetTop);
-
 export interface GhostBook_Props {
   store: Store;
 }
@@ -28,52 +22,43 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
 }
 
 export interface GhostCellContainer_Props {
-  cells: Map<string, CellRunData>;
+  cells: { [name: string]: CellRunData };
   scrollFocus: string;
 }
 
 /*
  * Make a sub class to contain cells to make updates work across notebooks better
  */
-class CellContainer extends React.Component<
-  GhostCellContainer_Props,
-  { scroll_to: string }
-> {
-  constructor(props: GhostCellContainer_Props) {
-    super(props);
-    // keep track of cell div ref for scroll purposes
-    this.state = { scroll_to: null };
-  }
-
+class CellContainer extends React.Component<GhostCellContainer_Props> {
   render() {
     return (
-      <div className={BOOK}>
+      <div className="v-Verdant-GhostBook">
         <GhostToolbar />
-        <div className={BOOK_CELLAREA}>{this.showCells()}</div>
+        <div className="v-Verdant-GhostBook-cellArea">{this.showCells()}</div>
       </div>
     );
   }
 
   private showCells() {
     /* Map cells to GhostCells */
-    // construct list from Map
-    let cellList = [...this.props.cells.entries()];
-    // sort list by index of cell
-    cellList.sort((a, b) => a[1].index - b[1].index);
 
-    return cellList.map((cell, index: number) => {
-      if (this.props.scrollFocus === cell[0]) {
+    let cellDivs: JSX.Element[] = [];
+
+    Object.keys(this.props.cells).forEach((name: string) => {
+      const cell = this.props.cells[name];
+      if (cell.index === undefined) return;
+
+      if (this.props.scrollFocus === cell.cell) {
         const ref = React.createRef<HTMLDivElement>();
-        return (
-          <div key={index} ref={ref}>
+        cellDivs[cell.index] = (
+          <div key={cell.index} ref={ref}>
             <GhostCell
-              name={cell[0]}
-              id={cell[1].index}
-              change={cell[1].changeType}
-              output={cell[1].output ? cell[1].output[0] : null}
-              prior={cell[1].prior}
+              name={cell.cell}
+              change={cell.changeType}
+              output={cell.output ? cell.output[0] : null}
+              prior={cell.prior}
               scrollTo={() =>
-                ref.current.scrollIntoView({
+                ref?.current?.scrollIntoView({
                   behavior: "smooth",
                   block: "nearest",
                 })
@@ -82,26 +67,27 @@ class CellContainer extends React.Component<
           </div>
         );
       } else {
-        return (
-          <div key={index}>
+        cellDivs[cell.index] = (
+          <div key={cell.index}>
             <GhostCell
-              name={cell[0]}
-              id={cell[1].index}
-              change={cell[1].changeType}
-              output={cell[1].output ? cell[1].output[0] : null}
-              prior={cell[1].prior}
+              name={cell.cell}
+              change={cell.changeType}
+              output={cell.output ? cell.output[0] : null}
+              prior={cell.prior}
             />
           </div>
         );
       }
     });
+
+    return cellDivs;
   }
 }
 
 const mapStateToProps = (state: verdantState) => {
   return {
     cells: state.ghostBook.cells,
-    scrollFocus: state.ghostBook.scroll_focus,
+    scrollFocus: state.ghostBook.scroll_focus || "",
   };
 };
 

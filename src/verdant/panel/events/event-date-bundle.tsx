@@ -20,17 +20,21 @@ const BUNDLE_MULTI_FOOTER = `Verdant-events-bundle-multi-footer`;
 const BUNDLE_MULTI_FOOTER_LINE = `${BUNDLE_MULTI_FOOTER}-line`;
 const BUNDLE_MULTI_FOOTER_SPACER = `${BUNDLE_MULTI_FOOTER}-spacer`;
 
-type DateBundle_Props = {
+type req_DateBundle_Props = {
   events: number[]; // Indices of events prop of NotebookEventDate
   date_id: number;
   bundle_id: number; // Index of bundle in date
+};
+
+type DateBundle_Props = {
+  // provided by redux store
   event_states: eventState[];
   isOpen: boolean;
   open: (d: number, b: number) => void;
   close: (d: number, b: number) => void;
   checkpoints: Checkpoint[];
   history: History;
-};
+} & req_DateBundle_Props;
 
 class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
   render() {
@@ -159,12 +163,7 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
     return (
       <div className={BUNDLE_MULTI_BODY}>
         {this.props.events.map((id) => (
-          <NotebookEvent
-            key={id}
-            date_id={this.props.date_id}
-            event_id={id}
-            events={this.props.event_states[id]}
-          />
+          <NotebookEvent key={id} date_id={this.props.date_id} event_id={id} />
         ))}
       </div>
     );
@@ -190,7 +189,7 @@ const mapDispatchToProps = (dispatch: any) => {
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<DateBundle_Props>
+  ownProps: req_DateBundle_Props
 ) => {
   const checkpoints = ownProps.events
     .map((e) => state.eventView.dates[ownProps.date_id].events[e].events)

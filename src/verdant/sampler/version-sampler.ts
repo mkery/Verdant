@@ -1,28 +1,21 @@
-import {
-  Nodey,
-  NodeyCode,
-  NodeyCodeCell,
-  NodeyMarkdown,
-  NodeyOutput,
-} from "../../lilgit/nodey";
+import { Nodey } from "../../lilgit/nodey";
 import { History } from "../../lilgit/history";
 import { SAMPLE_TYPE } from "../../lilgit/sampler";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
-const RESULT_HEADER_BUTTON = "VerdantPanel-search-results-header-button";
 
 export namespace VersionSampler {
   export async function sample(
     sampleType: SAMPLE_TYPE,
-    history: History,
-    nodey: Nodey,
-    query?: string,
+    history?: History,
+    nodey?: Nodey,
+    query?: string | null,
     diff?: number,
     prior?: string
   ) {
-    let inspector = history.inspector;
-    let text = inspector.renderNode(nodey);
+    // annoying type conversion
+    if (query === null) query = undefined;
 
     let sample = document.createElement("div");
     sample.classList.add(INSPECT_VERSION);
@@ -31,85 +24,32 @@ export namespace VersionSampler {
     content.classList.add(INSPECT_VERSION_CONTENT);
     sample.appendChild(content);
 
-    if (nodey.typeChar === "c") {
-      content.classList.add("code");
-      sample.classList.add("code");
-    } else if (nodey.typeChar === "m") {
-      content.classList.add("markdown");
-      content.classList.add("jp-RenderedHTMLCommon");
-    } else {
-      content.classList.add("output");
-    }
-
-    switch (sampleType) {
-      case SAMPLE_TYPE.ARTIFACT:
-        await inspector.renderArtifactCell(nodey, content, text);
-        break;
-      case SAMPLE_TYPE.SEARCH:
-        await inspector.search.renderSearchCell(nodey, content, query, text);
-        break;
-      case SAMPLE_TYPE.DIFF:
-        await inspector.renderDiffCell(nodey, content, diff, text, prior);
-        break;
-    }
-
-    return sample;
-  }
-
-  export function nameNodey(history: History, nodey: Nodey): string {
-    let nodeyName: string;
-    if (nodey instanceof NodeyMarkdown) nodeyName = "markdown " + nodey.id;
-    else if (nodey instanceof NodeyCodeCell)
-      nodeyName = "code cell " + nodey.id;
-    else if (nodey instanceof NodeyOutput) nodeyName = "output " + nodey.id;
-    else if (nodey instanceof NodeyCode) {
-      let cell = history.store.getCellParent(nodey);
-      nodeyName =
-        nodey.type + " " + nodey.id + " from " + nameNodey(history, cell);
-    }
-    return nodeyName;
-  }
-
-  /*
-   * animated button, thus the extra divs
-   */
-  export function addCaret(
-    label: HTMLElement,
-    content: HTMLElement,
-    opened?: boolean,
-    onOpen?: () => void,
-    onClose?: () => void
-  ) {
-    let button = document.createElement("div");
-    button.classList.add(RESULT_HEADER_BUTTON);
-    if (opened) button.classList.add("opened");
-    else button.classList.add("closed");
-    label.appendChild(button);
-    let circle = document.createElement("div");
-    circle.classList.add("circle");
-    button.appendChild(circle);
-    let horizontal = document.createElement("div");
-    horizontal.classList.add("horizontal");
-    circle.appendChild(horizontal);
-    let vertical = document.createElement("div");
-    vertical.classList.add("vertical");
-    circle.appendChild(vertical);
-    label.addEventListener("mousedown", () => {
-      if (button.classList.contains("opened")) {
-        button.classList.remove("opened");
-        button.classList.add("closed");
-        setTimeout(() => {
-          if (onClose) onClose();
-          if (content) content.style.display = "none";
-        }, 100);
-      } else if (button.classList.contains("closed")) {
-        button.classList.remove("closed");
-        button.classList.add("opened");
-        setTimeout(() => {
-          if (onOpen) onOpen();
-          if (content) content.style.display = "block";
-        }, 300);
+    // check we have valid input
+    if (nodey && history) {
+      if (nodey.typeChar === "c") {
+        content.classList.add("code");
+        sample.classList.add("code");
+      } else if (nodey.typeChar === "m") {
+        content.classList.add("markdown");
+        content.classList.add("jp-RenderedHTMLCommon");
+      } else {
+        content.classList.add("output");
       }
-    });
+
+      let inspector = history.inspector;
+      let text = inspector.renderNode(nodey);
+      switch (sampleType) {
+        case SAMPLE_TYPE.ARTIFACT:
+          await inspector.renderArtifactCell(nodey, content, text);
+          break;
+        case SAMPLE_TYPE.SEARCH:
+          await inspector.search.renderSearchCell(nodey, content, query, text);
+          break;
+        case SAMPLE_TYPE.DIFF:
+          await inspector.renderDiffCell(nodey, content, diff, text, prior);
+          break;
+      }
+    }
+    return sample;
   }
 }

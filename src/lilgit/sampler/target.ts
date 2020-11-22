@@ -18,7 +18,7 @@ import { Signal } from "@lumino/signaling";
 export class Target {
   readonly history: History;
   private _targetChanged = new Signal<this, Nodey>(this);
-  private _target: Nodey;
+  private _target: Nodey | null = null;
 
   constructor(history: History) {
     this.history = history;
@@ -31,9 +31,9 @@ export class Target {
   public get() {
     if (!this._target) {
       if (this.notebook.view.activeCell) {
-        this._target = this.notebook.getCell(
-          this.notebook.view.activeCell.model
-        ).model;
+        this._target =
+          this.notebook.getCell(this.notebook.view.activeCell.model)?.model ||
+          null;
       }
     }
     return this._target;
@@ -104,7 +104,7 @@ export class Target {
     let lineNum = Math.round(
       (lineDiv.offsetTop / codeBlock.offsetHeight) * lineCount
     );
-    let lineText = cell.editor.getLine(lineNum);
+    let lineText = cell?.editor?.getLine(lineNum) || "";
     let res;
     let startCh = 0;
     let endCh = lineText.length - 1;
@@ -135,13 +135,21 @@ export class Target {
 
   private findAncestorByAttr(el: HTMLElement, attr: string) {
     if (el.hasAttribute(attr)) return el;
-    while ((el = el.parentElement) && !el.hasAttribute(attr));
+    while (
+      el.parentElement &&
+      (el = el.parentElement) &&
+      !el.hasAttribute(attr)
+    );
     return el;
   }
 
   private findAncestor(el: HTMLElement, cls: string) {
     if (el.classList.contains(cls)) return el;
-    while ((el = el.parentElement) && !el.classList.contains(cls));
+    while (
+      el.parentElement &&
+      (el = el.parentElement) &&
+      !el.classList.contains(cls)
+    );
     return el;
   }
 }

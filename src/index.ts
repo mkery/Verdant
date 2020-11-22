@@ -88,8 +88,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       fileManager
     );
     sidePanel = new StackedPanel();
-    openGhostBook = __openGhostBook.bind(this, app);
-    updateVerdantView = __layoutChange.bind(this, app);
+    openGhostBook = (store, ver) => __openGhostBook(app, store, ver);
+    updateVerdantView = () => __layoutChange(app);
 
     // Set up icon for Verdant tool in the main editor side panel
     restorer.add(sidePanel, "v-VerdantPanel");
@@ -128,7 +128,7 @@ let fileManager: FileManager;
 let sidePanel: StackedPanel;
 let ghostWidget: Ghost;
 let updateVerdantView: () => void;
-let openGhostBook: (store: Store, ver: number) => Ghost;
+let openGhostBook: (store: Store, ver: number) => void;
 let landingPage: Widget;
 
 type VerdantInstance = {
@@ -222,7 +222,7 @@ function createVerdantInstance(panel: NotebookPanel): VerdantInstance {
   let notebook = new VerdantNotebook(history, analysis, panel, store, logger);
 
   // set up ghost book for this notebook
-  store.dispatch(setGhostOpener(openGhostBook.bind(this, store)));
+  store.dispatch(setGhostOpener((ver: number) => openGhostBook(store, ver)));
 
   // set up listener to close notebook
   panel.disposed.connect((_) => shutDownInstance(panel));
@@ -255,7 +255,7 @@ function createVerdantPanelUI(store: Store): Widget {
  */
 function shutDownInstance(panel: NotebookPanel) {
   // TODO
-  instances.find((i) => i.panel === panel).logger.log("Notebook Closed");
+  instances.find((i) => i.panel === panel)?.logger?.log("Notebook Closed");
   updateVerdantView();
 }
 
@@ -276,7 +276,6 @@ function __openGhostBook(app: JupyterFrontEnd, store: Store, ver: number) {
   }
   // Activate the widget
   app.shell.activateById(ghostWidget.id);
-  return ghostWidget;
 }
 
 /*

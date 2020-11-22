@@ -20,9 +20,9 @@ export type artifactState = {
 };
 
 export type notebookState = {
-  focusedCell: number;
+  focusedCell: number | null;
   cellArtifacts: artifactState[];
-  notebookArtifact: artifactState;
+  notebookArtifact: artifactState | null;
 };
 
 export const notebookStateInitialState = (): notebookState => {
@@ -54,21 +54,26 @@ export const notebookReducer = (
 };
 
 function _cellReducer(history: History): artifactState[] {
-  return history.notebook.cells.map((cell: VerCell) => {
-    let name = cell.model.name;
+  let cellList: artifactState[] = [];
+
+  history.notebook?.cells.forEach((cell: VerCell) => {
+    let name = cell?.model?.name;
     let outputVer = 0;
     if (cell.output) {
       let latestOut = history.store.getLatestOf(cell.output);
-      outputVer = parseInt(latestOut.version);
+      if (latestOut) outputVer = latestOut.version;
     }
-    let ver = cell.model.version;
+    let ver = cell.model?.version;
 
-    return { name, ver, outputVer };
+    if (name && ver !== undefined) cellList.push({ name, ver, outputVer });
   });
+
+  return cellList; // returns an empty list in error case
 }
 
-function _notebookReducer(history: History): artifactState {
-  let i = history.notebook.model.version;
-  let version = parseInt(i);
-  return { name: "", ver: version, file: history.notebook.name };
+function _notebookReducer(history: History): artifactState | null {
+  const version = history?.notebook?.model?.version;
+  if (version === undefined || history?.notebook?.name === undefined)
+    return null; // error case only
+  return { name: "", ver: version, file: history.notebook?.name };
 }

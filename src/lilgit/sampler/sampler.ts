@@ -15,7 +15,7 @@ import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { Target } from "./target";
 import { Search } from "./search";
 
-const CHANGE_NONE_CLASS = "v-Verdant-sampler-code-same";
+const CHANGE_SAME_CLASS = "v-Verdant-sampler-code-same";
 const CHANGE_ADDED_CLASS = "v-Verdant-sampler-code-added";
 const CHANGE_REMOVED_CLASS = "v-Verdant-sampler-code-removed";
 const MARKDOWN_LINEBREAK = "v-Verdant-sampler-markdown-linebreak";
@@ -35,20 +35,21 @@ export class Sampler {
     this.search = new Search(this);
   }
 
-  public sampleNode(nodey: Nodey, textFocus: string = null): [string, number] {
+  public sampleNode(nodey: Nodey, textFocus?: string): [string, number] {
     // goal get the first line of the node
     if (nodey instanceof NodeyMarkdown) {
       if (!nodey.markdown) return ["", 0];
       let lines = nodey.markdown.split("\n");
       if (textFocus) {
         let index = -1;
-        let focusLine = lines.find((ln) => {
-          let i = ln
-            .toLowerCase()
-            .indexOf(textFocus.toLowerCase().split(" ")[0]);
-          if (i > -1) index = i;
-          return i > -1;
-        });
+        let focusLine =
+          lines.find((ln) => {
+            let i = ln
+              .toLowerCase()
+              .indexOf(textFocus.toLowerCase().split(" ")[0]);
+            if (i > -1) index = i;
+            return i > -1;
+          }) || "";
         return [focusLine, index];
       } else return [lines[0], 0];
     } else {
@@ -56,11 +57,12 @@ export class Sampler {
       if (textFocus) {
         let index = -1;
         let lines = this.renderNode(nodeyCode).toLowerCase().split("\n");
-        let focusLine = lines.find((ln) => {
-          let i = ln.toLowerCase().indexOf(textFocus.split(" ")[0]);
-          if (i > -1) index = i;
-          return i > -1;
-        });
+        let focusLine =
+          lines.find((ln) => {
+            let i = ln.toLowerCase().indexOf(textFocus.split(" ")[0]);
+            if (i > -1) index = i;
+            return i > -1;
+          }) || "";
         return [focusLine, index];
       } else {
         let lineNum = 0;
@@ -102,6 +104,7 @@ export class Sampler {
     else if (nodey instanceof NodeyMarkdown)
       return this.renderMarkdownNode(nodey);
     else if (nodey instanceof NodeyOutput) return this.renderOutputNode(nodey);
+    return "";
   }
 
   private renderCodeNode(nodey: NodeyCode): string {
@@ -120,7 +123,7 @@ export class Sampler {
   }
 
   private renderMarkdownNode(nodey: NodeyMarkdown): string {
-    return nodey.markdown;
+    return nodey.markdown || "";
   }
 
   private renderOutputNode(nodey: NodeyOutput): string {
@@ -130,7 +133,7 @@ export class Sampler {
   public async renderArtifactCell(
     nodey: Nodey,
     elem: HTMLElement,
-    newText?: string
+    newText: string = ""
   ) {
     switch (nodey.typeChar) {
       case "c":
@@ -150,7 +153,7 @@ export class Sampler {
     nodey: Nodey,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
-    newText?: string,
+    newText: string = "",
     prior?: string
   ) {
     switch (nodey.typeChar) {
@@ -197,8 +200,10 @@ export class Sampler {
     let lines = newText.split("\n");
 
     // Split old text into lines
-    let prior = this.history.store.get(priorVersion) as NodeyCode;
-    let oldLines = this.renderCodeNode(prior).split("\n");
+    let prior = priorVersion
+      ? (this.history.store.get(priorVersion) as NodeyCode)
+      : undefined;
+    let oldLines = prior ? this.renderCodeNode(prior).split("\n") : [];
 
     // Loop over lines and append diffs to elem
     const maxLength = Math.max(lines.length, oldLines.length);
@@ -240,13 +245,15 @@ export class Sampler {
   private async diffMarkdown(
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
-    newText?: string,
+    newText: string = "",
     priorVersion?: string
   ) {
     if (diffKind === DIFF_TYPE.NO_DIFF)
       await this.renderBaby.renderMarkdown(elem, newText);
     else {
-      let prior = this.history.store.get(priorVersion) as NodeyMarkdown;
+      let prior = priorVersion
+        ? (this.history.store.get(priorVersion) as NodeyMarkdown)
+        : undefined;
       if (!prior || !prior.markdown) {
         // easy, everything is added
         await this.renderBaby.renderMarkdown(elem, newText);
@@ -266,7 +273,7 @@ export class Sampler {
             partDiv = document.createElement("span");
             await this.renderBaby.renderMarkdown(partDiv, part.value);
 
-            partDiv.classList.add(CHANGE_NONE_CLASS);
+            partDiv.classList.add(CHANGE_SAME_CLASS);
 
             if (part.added) {
               partDiv.classList.add(CHANGE_ADDED_CLASS);

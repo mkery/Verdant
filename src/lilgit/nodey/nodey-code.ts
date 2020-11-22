@@ -4,13 +4,12 @@ import { Nodey } from "./nodey";
  * Code holds AST details
  */
 export class NodeyCode extends Nodey {
-  type: string;
+  type: string = "module"; // default top-level AST type is module
   content: (SyntaxToken | string)[] = [];
   start: NodeyCode.Pos;
   end: NodeyCode.Pos;
   literal: any;
-  right: string; // lookup id for the next Nodey to the right of this one
-  pendingUpdate: string;
+  right: string | undefined; // lookup id for the next Nodey to the right of this one
 
   constructor(options: NodeyCode.Options) {
     super(options);
@@ -19,7 +18,7 @@ export class NodeyCode extends Nodey {
 
   public updateState(options: NodeyCode.Options) {
     super.updateState(options);
-    this.type = options.type;
+    this.type = options.type || "module";
     if (options.content && options.content.length > 0) {
       this.content = options.content.slice(0);
       this.content = this.content.map((item) => {
@@ -39,8 +38,8 @@ export class NodeyCode extends Nodey {
     // jsn.type = this.type;
     // if (this.content) jsn.content = this.content;
     if (this.literal) jsn.literal = this.literal;
-    jsn.start = this.start;
-    jsn.end = this.end;
+    if (this.start) jsn.start = this.start;
+    if (this.end) jsn.end = this.end;
     return jsn;
   }
 
@@ -51,10 +50,12 @@ export class NodeyCode extends Nodey {
   positionRelativeTo(target: NodeyCode) {
     if (!target) return;
     //may run into historical targets that do not have position info
-    let myStart = this.start || { line: 0, ch: 0 };
+    this.start = this.start || { line: 0, ch: 0 };
+    this.end = this.end || { line: 0, ch: 0 };
+
     if (target.start && target.end) {
-      var deltaLine = Math.max(target.start.line - myStart.line, 0);
-      var deltaCh = Math.max(target.start.ch - myStart.ch, 0);
+      var deltaLine = Math.max(target.start.line - this.start.line, 0);
+      var deltaCh = Math.max(target.start.ch - this.start.ch, 0);
       this.start = {
         line: deltaLine + this.start.line,
         ch: deltaCh + this.start.ch,
@@ -78,7 +79,7 @@ export class NodeyCode extends Nodey {
 }
 
 export namespace NodeyCode {
-  export type Pos = { line: number; ch: number };
+  export type Pos = { line: number; ch: number } | undefined;
 
   export const EMPTY = () => {
     return new NodeyCode({ type: "EMPTY", content: [] });

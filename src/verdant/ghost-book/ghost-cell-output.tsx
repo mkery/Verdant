@@ -12,7 +12,7 @@ type GhostCellOutput_Props = {
   // String id of the output cell
   name: string;
   // Entire state history. Used for VersionSampler
-  history?: History;
+  history: History;
   // open up detail of nodey
   showDetail: (n: Nodey) => void;
   inspectOn: boolean;

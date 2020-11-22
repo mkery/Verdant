@@ -27,7 +27,7 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
     let origin_notebook = this.props.history.store.getNotebookOf(
       this.props.nodey
     );
-    let created = this.props.history.checkpoints.get(this.props.nodey.created);
+    let created = this.props.history.checkpoints.get(this.props.nodey?.created);
 
     return (
       <div
@@ -41,8 +41,10 @@ class VersionHeader extends React.Component<VersionHeader_Props> {
           <span
             className="verdant-link"
             onClick={() => {
-              this.props.openGhostBook(origin_notebook.version);
-              this.props.scrollGhostToNodey(this.props.nodey);
+              if (origin_notebook) {
+                this.props.openGhostBook(origin_notebook.version);
+                this.props.scrollGhostToNodey(this.props.nodey);
+              }
             }}
           >
             {origin_notebook ? Namer.getNotebookTitle(origin_notebook) : ""}
@@ -107,13 +109,17 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<VersionHeader_Props>
 ) => {
-  let nodeyName = ownProps.nodey.artifactName;
-  const targetName = state.artifactView.inspectTarget.artifactName;
+  const nodeyName = ownProps.nodey?.artifactName;
+  const targetName = state.artifactView?.inspectTarget?.artifactName;
   return {
     history: state.getHistory(),
     openGhostBook: state.openGhostBook,
-    isTarget: nodeyName === targetName,
-    selected: state.artifactView.selectedArtifactDetail === ownProps.nodey.name,
+    isTarget:
+      nodeyName != undefined &&
+      targetName != undefined &&
+      nodeyName === targetName,
+    selected:
+      state.artifactView?.selectedArtifactDetail === ownProps.nodey?.name,
   };
 };
 

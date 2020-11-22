@@ -9,9 +9,9 @@ export type Summary_Props = {
   history: History;
   showDetails: (n: Nodey) => void;
   cells: artifactState[];
-  notebook: artifactState;
+  notebook: artifactState | null;
   artifact_count: number;
-  focused_cell: number;
+  focused_cell: number | null;
 };
 
 class SummaryTable extends React.Component<Summary_Props> {

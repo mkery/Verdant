@@ -20,12 +20,16 @@ type timeLabel = {
   eventCounts: eventCounts;
   events: Checkpoint[];
 };
+
+type req_EventLabel_Props = {
+  event_id: number | null;
+  date_id: number;
+  events?: Checkpoint[];
+};
 type EventLabel_Props = {
   events: Checkpoint[];
-  event_id: number;
-  date_id: number;
   eventCount: number;
-};
+} & req_EventLabel_Props;
 type EventLabel_State = {
   times: timeLabel[];
 };
@@ -130,7 +134,7 @@ class NotebookEventLabel extends React.Component<
 
 const mapStateToProps = (
   state: verdantState,
-  ownProps: Partial<EventLabel_Props>
+  ownProps: req_EventLabel_Props
 ) => {
   if (ownProps.event_id !== null) {
     // regular case
@@ -143,8 +147,8 @@ const mapStateToProps = (
   } else {
     // null case, for bundle labels
     return {
-      events: ownProps.events,
-      eventCount: ownProps.events.length,
+      events: ownProps.events ? ownProps.events : [],
+      eventCount: ownProps.events ? ownProps.events.length : 0,
     };
   }
 };

@@ -21,7 +21,7 @@ export class LoadNotebook extends NotebookEvent {
 
   async modelUpdate() {
     let newNotebook: NodeyNotebook;
-    if (this.matchPrior) {
+    if (this.matchPrior && this.notebook.model) {
       newNotebook = await this.notebook.ast.hotStartNotebook(
         this.notebook.model,
         this.notebook.view.notebook,
@@ -41,6 +41,10 @@ export class LoadNotebook extends NotebookEvent {
         this.notebook.cells.push(cell);
       }
     });
-    log("cell names", this.notebook.cells);
+
+    // finally commit checkpoint
+    this.history.checkpoints.set(this.checkpoint.id, this.checkpoint);
+
+    log("cell names", this.notebook.cells, this.checkpoint);
   }
 }

@@ -60,35 +60,44 @@ class Artifact extends React.Component<Artifact_Props> {
 }
 
 function calculateVersionMapping(nodey: Nodey, history: History) {
-  let nodey_versions;
-  let nodey_dependents;
+  let nodey_versions: Nodey[] | Nodey[][] = [];
+  let nodey_dependents: Nodey[] | Nodey[][] = [];
 
   // one to many mapping between code and output
   if (nodey instanceof NodeyCode) {
     let hist = history.store.getHistoryOf(nodey);
-    nodey_versions = hist.getAllVersions();
-    nodey_dependents = nodey_versions.map((ver) => {
-      let outHist = history.store.getOutput(ver);
-      if (outHist) return outHist.getAllVersions();
-      else return [];
-    });
+    nodey_versions = hist?.getAllVersions() || [];
+
+    if (nodey_versions)
+      nodey_dependents = (nodey_versions as NodeyCode[]).map((ver) => {
+        let outHist = history.store.getOutput(ver);
+        if (outHist) return outHist.getAllVersions();
+        else return [];
+      });
   }
   // many to one mapping between output and code
   else if (nodey instanceof NodeyOutput) {
     let cellParent = history.store.getCellParent(nodey);
-    let allOutput = history.store.getAllOutput(cellParent);
-    nodey_versions = allOutput.map((hist) => hist.getAllVersions());
-    nodey_dependents = allOutput.map((hist) => {
-      let out = hist.latest;
-      // return the code cell parent, which should be the same for every output
-      // in this output history
-      return history.store.get(out.parent);
-    });
+    if (cellParent) {
+      let allOutput = history.store.getAllOutput(cellParent);
+      if (allOutput) {
+        nodey_versions = allOutput.map((hist) => hist.getAllVersions() || []);
+        allOutput.map((hist) => {
+          let out = hist.latest;
+          // return the code cell parent, which should be the same for every output
+          // in this output history
+          if (out) {
+            let parent = history.store.get(out.parent);
+            if (parent) (nodey_dependents as Nodey[]).push(parent);
+          }
+        });
+      }
+    }
   }
   // otherwise (for now) assume no dependents with markdown or raw cells
   else {
     let hist = history.store.getHistoryOf(nodey);
-    nodey_versions = hist.getAllVersions();
+    if (hist) nodey_versions = hist.getAllVersions();
   }
 
   return [nodey_versions, nodey_dependents];
@@ -99,10 +108,9 @@ const mapStateToProps = (
   ownProps: Partial<Artifact_Props>
 ) => {
   let history = state.getHistory();
-  let [nodey_versions, nodey_dependents] = calculateVersionMapping(
-    ownProps.nodey,
-    history
-  );
+  let [nodey_versions, nodey_dependents] = ownProps.nodey
+    ? calculateVersionMapping(ownProps.nodey, history)
+    : [[], []];
 
   return {
     history,

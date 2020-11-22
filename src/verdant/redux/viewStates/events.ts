@@ -80,7 +80,7 @@ export type dateState = {
 export type eventMapState = {
   ready: boolean;
   dates: dateState[];
-  currentEvent: Checkpoint;
+  currentEvent: Checkpoint | null;
 };
 
 export const eventsInitialState = (): eventMapState => {
@@ -209,11 +209,17 @@ function reducer_initEventMap(state: verdantState) {
     .getHistory()
     .checkpoints.all()
     .forEach((event) => reducer_addEvent(event, dates));
+
   // Set all dates to closed except the most recent
-  return dates.map((x, i) => {
-    x.bundleStates.map((b) => (b.isOpen = false));
-    return { ...x, isOpen: i == dates.length - 1 };
-  });
+  dates.forEach((d) => (d.isOpen = false));
+
+  // initialize the most recent event
+  dates[dates.length - 1].isOpen = true;
+  dates[dates.length - 1].bundles = computeBundles(
+    dates[dates.length - 1].events
+  );
+
+  return dates;
 }
 
 function getInitialEvent(history: History): Checkpoint {
@@ -221,11 +227,11 @@ function getInitialEvent(history: History): Checkpoint {
   return checkpoints[checkpoints.length - 1];
 }
 
-interface accumulatorObject {
+type accumulatorObject = {
   accumulator: number[][]; // Holds partially constructed bundle output
   timeBound: number; // Lower limit on time for inclusion in latest bundle
-  lastType: CheckpointType; // Type of current bundle
-}
+  lastType: CheckpointType | null; // Type of current bundle or null if no prev bundle
+};
 const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
 
 function computeBundles(events: eventState[]): number[][] {
@@ -234,14 +240,24 @@ function computeBundles(events: eventState[]): number[][] {
      flattening the outer list leads to a reversed list of the indices of
      this.props.events */
 
-  return events.reduceRight(reducer.bind(this), {
+  let initial: accumulatorObject = {
     accumulator: [],
     timeBound: Infinity,
     lastType: null,
-  }).accumulator;
+  };
+
+  let result: accumulatorObject = events.reduceRight(
+    (accObj, event, index) => reducer(accObj, event, index),
+    initial
+  );
+  return result.accumulator;
 }
 
-function reducer(accObj: accumulatorObject, e: eventState, idx) {
+function reducer(
+  accObj: accumulatorObject,
+  e: eventState,
+  idx: number
+): accumulatorObject {
   /* Helper method for computeBundles.
      Function to use in reducing over bundles in computeBundles. */
   // Compute properties of current element
@@ -269,11 +285,12 @@ function reducer(accObj: accumulatorObject, e: eventState, idx) {
   }
 }
 
-function getEventType(e: eventState): CheckpointType {
+function getEventType(e: eventState): CheckpointType | null {
   /* Helper for reducer.
      Returns CheckpointType if all checkpoints in event have same type,
      else returns null */
-  return e.events
-    .map((c) => c.checkpointType)
-    .reduce((acc, current) => (acc === current ? acc : null));
+  let evType = e?.events[0]?.checkpointType;
+  if (evType)
+    if (e.events.every((c) => c.checkpointType === evType)) return evType;
+  return null;
 }

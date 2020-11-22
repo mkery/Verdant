@@ -1,6 +1,4 @@
 import { NodeyCode, NodeyCodeCell } from "../nodey/";
-import { ServerConnection } from "@jupyterlab/services";
-import { URLExt } from "@jupyterlab/coreutils";
 import { jsn } from "../notebook";
 import { History } from "../history/";
 import { log } from "../notebook";
@@ -70,32 +68,6 @@ export namespace ASTUtils {
   }
 
   /*
-   *
-   */
-  //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
-  export function inRange(nodey: NodeyCode, change: Range): number {
-    var val = 0;
-    if (change.start.line < nodey.start.line) val = -1;
-    else if (
-      change.start.line === nodey.start.line &&
-      change.start.ch < nodey.start.ch
-    )
-      val = -1;
-
-    if (change.end.line > nodey.end.line) {
-      if (val === -1) val = 2;
-      else val = 1;
-    } else if (
-      change.end.line === nodey.end.line &&
-      change.end.ch > nodey.end.ch
-    ) {
-      if (val === -1) val = 2;
-      else val = 1;
-    }
-    return val;
-  }
-
-  /*
    * goal: get rid of wrappers or any types called Module
    */
   export function reduceASTDict(ast: {
@@ -136,6 +108,37 @@ namespace Private {
     //log("cleaned code is ", newCode);
     return newCode;
   }
+
+  /*
+   *
+   */
+  //return 0 for match, 1 for to the right, -1 for to the left, 2 for both
+  function inRange(nodey: NodeyCode, change: Range): number {
+    var val = 0;
+
+    if (!nodey?.start?.line || !change.start || !change.end || !nodey?.end.ch)
+      return 2; //error case only
+
+    if (change.start.line < nodey.start.line) val = -1;
+    else if (
+      change.start.line === nodey.start.line &&
+      change.start.ch < nodey.start.ch
+    )
+      val = -1;
+
+    if (change.end.line > nodey.end.line) {
+      if (val === -1) val = 2;
+      else val = 1;
+    } else if (
+      change.end.line === nodey.end.line &&
+      change.end.ch > nodey.end.ch
+    ) {
+      if (val === -1) val = 2;
+      else val = 1;
+    }
+    return val;
+  }
+
   /*
    *
    */
@@ -153,7 +156,7 @@ namespace Private {
     var mid = Math.floor((max - min) / 2) + min;
     log("CHILDREN", children, mid, children[mid]);
     var midNodey = <NodeyCode>history.store.getLatestOf(children[mid]);
-    var direction = ASTUtils.inRange(midNodey, change);
+    var direction = inRange(midNodey, change);
     log("checking mid range", midNodey, direction, change);
 
     if (direction === 0) {

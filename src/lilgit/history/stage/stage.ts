@@ -80,10 +80,11 @@ export class Stage {
 
   private checkCodeCellNodey(nodey: NodeyCodeCell) {
     let cell = this.history.notebook.getCellByNode(nodey);
-    let newText = cell.getText();
-    // TODO AST LEVEL
-    let oldText = nodey.literal; // assuming no AST level data
-    if (oldText != newText) {
+    let newText = cell?.getText() || "";
+
+    let oldText = nodey.literal || ""; // assuming no AST level data
+
+    if (oldText !== newText) {
       // store instructions for a new version of nodey in staging
       if (!this.staged_codeCell[nodey.artifactName])
         this.staged_codeCell[nodey.artifactName] = { literal: newText };
@@ -94,16 +95,17 @@ export class Stage {
   private async checkOutputNodey(nodey: NodeyCodeCell) {
     // get current (new) output if any
     let cell = this.history.notebook.getCellByNode(nodey);
-    let outputArea = cell.outputArea;
+    let outputArea = cell?.outputArea;
     let raw: IOutput[] = []; // no output
-    if (outputArea) raw = cell.outputArea.model.toJSON(); // output if present
+    if (outputArea) raw = cell?.outputArea?.model.toJSON() || []; // output if present
 
     // get prior output if any
-    let oldOutput = cell.output;
+    let oldOutput = cell?.output;
 
     // compare to see if output has changed
-    let changed = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
-    if (changed) {
+    let same = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
+
+    if (!same) {
       // make instructions for a new Output in staging
       if (!this.staged_codeCell[nodey.artifactName])
         this.staged_codeCell[nodey.artifactName] = {};
@@ -113,7 +115,7 @@ export class Stage {
 
   private checkMarkdownNodey(nodey: NodeyMarkdown) {
     let cell = this.history.notebook.getCellByNode(nodey);
-    let newText = cell.getText();
+    let newText = cell?.getText() || "";
     let oldText = nodey.markdown;
     if (oldText != newText) {
       // store instructions for a new version of nodey in staging
@@ -125,7 +127,7 @@ export class Stage {
 
   private checkRawCellNodey(nodey: NodeyRawCell) {
     let cell = this.history.notebook.getCellByNode(nodey);
-    let newText = cell.getText();
+    let newText = cell?.getText() || "";
     let oldText = nodey.literal;
     if (oldText != newText) {
       // store instructions for a new version of nodey in staging
