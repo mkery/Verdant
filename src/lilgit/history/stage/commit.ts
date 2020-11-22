@@ -294,13 +294,20 @@ export class Commit {
     }
 
     let changed = oldNodey.version !== newNodey.version;
+    let changeKind: ChangeType;
+
+    if (changed) changeKind = ChangeType.CHANGED;
+    if (!changed && newOut) changeKind = ChangeType.OUTPUT_CHANGED;
+
     // update the checkpoint
-    let cellDat = {
-      cell: newNodey.name,
-      changeType: changed ? ChangeType.CHANGED : ChangeType.SAME,
-      output: newOut ? [newOut.name] : [],
-    } as CellRunData;
-    this.checkpoint.targetCells.push(cellDat);
+    if (changeKind) {
+      let cellDat = {
+        cell: newNodey.name,
+        changeType: changeKind,
+        output: newOut ? [newOut.name] : [],
+      } as CellRunData;
+      this.checkpoint.targetCells.push(cellDat);
+    }
 
     // finally return updated new version
     return newNodey;

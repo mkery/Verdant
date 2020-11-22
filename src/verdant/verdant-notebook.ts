@@ -32,7 +32,10 @@ export class VerdantNotebook extends VerNotebook {
     this.logger.setNotebook(this);
 
     // connect to keep inspect up to date in model and UI side
-    history.ready.then(() => {
+    history.ready.then(async () => {
+      // wait until notebook is loaded
+      await history.notebook.ready;
+
       // signal to load event map UI data
       this.store.dispatch(initEventMap());
 

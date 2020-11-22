@@ -71,7 +71,7 @@ export class AST {
       }
     });*/
 
-    console.log(notebook_view, notebook, checkpoint);
+    //console.log(notebook_view, notebook, checkpoint);
 
     // TODO TODO TODO
 

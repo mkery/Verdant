@@ -4,7 +4,8 @@ export enum ChangeType {
   REMOVED = "removed",
   ADDED = "added",
   MOVED = "moved",
-  SAME = "n/a",
+  NONE = "none",
+  OUTPUT_CHANGED = "output changed",
   TYPE_CHANGED = "type changed",
 }
 
@@ -26,7 +27,7 @@ export const CONVERT_ChangeType = (num) => {
     1.5: ChangeType.REMOVED,
     1: ChangeType.ADDED,
     3: ChangeType.MOVED,
-    4: ChangeType.SAME,
+    4: ChangeType.OUTPUT_CHANGED,
   };
   return convert[num];
 };

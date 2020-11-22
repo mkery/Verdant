@@ -35,14 +35,11 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
   }
 
   public static async isSame(
-    A: NodeyOutput | undefined,
-    B: NodeyOutput | IOutput[],
+    A: NodeyOutput | IOutput[] = [],
+    B: NodeyOutput | IOutput[] = [],
     fileManager: FileManager
   ) {
-    // first check that both outputs exist
-    if (!A || !B) return false;
-
-    let outList_a = A.raw;
+    let outList_a = A instanceof NodeyOutput ? A.raw : A;
     let outList_b = B instanceof NodeyOutput ? B.raw : B;
 
     // now check that they have the same number of outputs

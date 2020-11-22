@@ -210,12 +210,16 @@ function reducer_initEventMap(state: verdantState) {
     .checkpoints.all()
     .forEach((event) => reducer_addEvent(event, dates));
 
-  console.log("DATES ARE", dates);
   // Set all dates to closed except the most recent
-  return dates.map((x, i) => {
-    x.bundleStates.map((b) => (b.isOpen = false));
-    return { ...x, isOpen: i == dates.length - 1 };
-  });
+  dates.forEach((d) => (d.isOpen = false));
+
+  // initialize the most recent event
+  dates[dates.length - 1].isOpen = true;
+  dates[dates.length - 1].bundles = computeBundles(
+    dates[dates.length - 1].events
+  );
+
+  return dates;
 }
 
 function getInitialEvent(history: History): Checkpoint {

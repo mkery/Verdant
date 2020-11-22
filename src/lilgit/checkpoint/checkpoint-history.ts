@@ -1,6 +1,6 @@
 import { History } from "../history/";
 import { log } from "../notebook";
-import { CheckpointType, ChangeType } from "./constants";
+import { CheckpointType } from "./constants";
 import { Checkpoint } from "./checkpoint";
 
 const DEBUG = false;
@@ -59,15 +59,10 @@ export class HistoryCheckpoints {
     if (this.checkpointList[id]) {
       // set notebook ID for event if notebook is not yet set
       let targetCells = this.checkpointList[id].targetCells;
-      for (let i = 0; i < targetCells.length; i++) {
-        let cell = targetCells[i];
-        if (cell?.changeType !== ChangeType.SAME) {
-          let node = this.history.store.get(cell?.cell);
-          let notebook = this.history.store.get(node?.parent);
-          this.checkpointList[id].notebook = notebook?.version;
-          break;
-        }
-      }
+      let cell = targetCells[0];
+      let node = this.history.store.get(cell?.cell);
+      let notebook = this.history.store.get(node?.parent);
+      this.checkpointList[id].notebook = notebook?.version;
 
       // if nothing happened in this checkpoint,
       // give it same notebook as the previous checkpoint

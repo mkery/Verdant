@@ -72,7 +72,8 @@ function _cellReducer(history: History): artifactState[] {
 }
 
 function _notebookReducer(history: History): artifactState | null {
-  const version = history?.notebook?.model?.version || -1;
-  if (version < 0 || !history?.notebook?.name) return null; // error case only
+  const version = history?.notebook?.model?.version;
+  if (version === undefined || history?.notebook?.name === undefined)
+    return null; // error case only
   return { name: "", ver: version, file: history.notebook?.name };
 }

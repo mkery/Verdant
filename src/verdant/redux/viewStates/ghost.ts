@@ -142,7 +142,7 @@ function loadCells(
   if (notebook !== undefined) {
     let cells: CellRunData[] = notebook.cells.map((item) => ({
       cell: item,
-      changeType: ChangeType.SAME,
+      changeType: ChangeType.NONE,
     }));
 
     let deletedCells: CellRunData[] = [];
@@ -238,8 +238,6 @@ function loadCells(
     // Add output to output map
     let loadedOutput: { [name: string]: ghostCellOutputState } = {};
     output.forEach((cell) => (loadedOutput[cell.name] = cell));
-
-    console.log("GHOST cells found:", loadedCells, loadedOutput);
 
     return [loadedCells, loadedOutput];
   }

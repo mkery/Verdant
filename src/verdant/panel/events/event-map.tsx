@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Checkpoint } from "../../../lilgit/checkpoint";
+import { ChangeType, Checkpoint } from "../../../lilgit/checkpoint";
 import { CellMap, Namer } from "../../../lilgit/sampler";
 import { History } from "../../../lilgit/history/";
-import { Nodey } from "../../../lilgit/nodey";
+import { Nodey, NodeyCodeCell } from "../../../lilgit/nodey";
 import { verdantState, showDetailOfNode } from "../../redux/";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
@@ -50,15 +50,22 @@ class NotebookEventMap extends React.Component<
           tics.push(<div key={j_index} className={`tic ${color}`}></div>);
         });
         let nodey = this.props.history.store.get(cell.name);
-        let tooltip_msg = `${Namer.getCellVersionTitle(
-          nodey
-        )} was ${cell.changes.join(", ")}`;
+        let tooltip_msg = Namer.describeChange(nodey, cell.changes);
         return (
           <div
             data-tip={tooltip_msg}
             key={index}
             className="Verdant-events-map-cell target"
-            onClick={() => (nodey ? this.props.showDetail(nodey) : null)}
+            onClick={() => {
+              if (nodey) {
+                if (cell.changes[0] === ChangeType.OUTPUT_CHANGED) {
+                  let out = this.props.history.store.getOutput(
+                    nodey as NodeyCodeCell
+                  )?.latest;
+                  if (out) this.props.showDetail(out);
+                } else this.props.showDetail(nodey);
+              }
+            }}
           >
             {tics}
             <ReactTooltip />

@@ -81,9 +81,10 @@ export class Stage {
   private checkCodeCellNodey(nodey: NodeyCodeCell) {
     let cell = this.history.notebook.getCellByNode(nodey);
     let newText = cell?.getText() || "";
-    // TODO AST LEVEL
-    let oldText = nodey.literal; // assuming no AST level data
-    if (oldText != newText) {
+
+    let oldText = nodey.literal || ""; // assuming no AST level data
+
+    if (oldText !== newText) {
       // store instructions for a new version of nodey in staging
       if (!this.staged_codeCell[nodey.artifactName])
         this.staged_codeCell[nodey.artifactName] = { literal: newText };
@@ -103,6 +104,7 @@ export class Stage {
 
     // compare to see if output has changed
     let same = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
+
     if (!same) {
       // make instructions for a new Output in staging
       if (!this.staged_codeCell[nodey.artifactName])

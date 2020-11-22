@@ -41,14 +41,6 @@ export namespace CellMap {
 
             // add change to cell's list of changes
             cellMap[index] = addChange(cellMap[index], change);
-
-            // check if output changed even if code did not
-            if (
-              change === ChangeType.SAME &&
-              match.output &&
-              match.output.length > 0
-            )
-              cellMap[index] = addChange(cellMap[index], ChangeType.CHANGED);
           }
         });
 

@@ -9,6 +9,7 @@ import {
   NodeyRawCell,
 } from "../nodey";
 import { History } from "../history";
+import { ChangeType } from "../checkpoint";
 
 /*
  * Remember that versions and ids are 1 indexed for display, but 0 indexed in storage
@@ -82,5 +83,11 @@ export namespace Namer {
   export function getVersionNumberLabel(n?: number) {
     if (n !== undefined) return `${n + 1}`;
     return "???";
+  }
+
+  export function describeChange(nodey: NodeyCell, changes: ChangeType[]) {
+    if (changes[0] === ChangeType.OUTPUT_CHANGED)
+      return `${Namer.getCellVersionTitle(nodey)}'s ${changes.join(", ")}`;
+    return `${Namer.getCellVersionTitle(nodey)} was ${changes.join(", ")}`;
   }
 }
