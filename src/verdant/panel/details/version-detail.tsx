@@ -75,8 +75,7 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
         this.props.history,
         this.props.nodey,
         null,
-        DIFF_TYPE.CHANGE_DIFF,
-        prior.name
+        DIFF_TYPE.CHANGE_DIFF
       );
     } else {
       s = await VersionSampler.sample(

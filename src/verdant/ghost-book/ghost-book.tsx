@@ -5,7 +5,6 @@ import { connect } from "react-redux";
 import { Store } from "redux";
 import { Provider } from "react-redux";
 import { verdantState } from "../redux/";
-import { CellRunData } from "../../lilgit/checkpoint";
 
 export interface GhostBook_Props {
   store: Store;
@@ -22,7 +21,7 @@ export class GhostBook extends React.Component<GhostBook_Props, {}> {
 }
 
 export interface GhostCellContainer_Props {
-  cells: { [name: string]: CellRunData };
+  cells: string[];
   scrollFocus: string;
 }
 
@@ -42,21 +41,13 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
   private showCells() {
     /* Map cells to GhostCells */
 
-    let cellDivs: JSX.Element[] = [];
-
-    Object.keys(this.props.cells).forEach((name: string) => {
-      const cell = this.props.cells[name];
-      if (cell.index === undefined) return;
-
-      if (this.props.scrollFocus === cell.cell) {
+    return this.props.cells.map((cell: string, index: number) => {
+      if (this.props.scrollFocus === cell) {
         const ref = React.createRef<HTMLDivElement>();
-        cellDivs[cell.index] = (
-          <div key={cell.index} ref={ref}>
+        return (
+          <div key={index} ref={ref}>
             <GhostCell
-              name={cell.cell}
-              change={cell.changeType}
-              output={cell.output ? cell.output[0] : null}
-              prior={cell.prior}
+              name={cell}
               scrollTo={() =>
                 ref?.current?.scrollIntoView({
                   behavior: "smooth",
@@ -67,26 +58,23 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
           </div>
         );
       } else {
-        cellDivs[cell.index] = (
-          <div key={cell.index}>
-            <GhostCell
-              name={cell.cell}
-              change={cell.changeType}
-              output={cell.output ? cell.output[0] : null}
-              prior={cell.prior}
-            />
+        return (
+          <div key={index}>
+            <GhostCell name={cell} />
           </div>
         );
       }
     });
-
-    return cellDivs;
   }
 }
 
 const mapStateToProps = (state: verdantState) => {
+  let history = state.getHistory();
+  const notebook = history?.store?.getNotebook(state.ghostBook.notebook_ver);
+  const cells = notebook?.cells || [];
+
   return {
-    cells: state.ghostBook.cells,
+    cells,
     scrollFocus: state.ghostBook.scroll_focus || "",
   };
 };

@@ -11,8 +11,7 @@ export namespace VersionSampler {
     history?: History,
     nodey?: Nodey,
     query?: string | null,
-    diff?: number,
-    prior?: string
+    diff?: number
   ) {
     // annoying type conversion
     if (query === null) query = undefined;
@@ -46,7 +45,7 @@ export namespace VersionSampler {
           await inspector.search.renderSearchCell(nodey, content, query, text);
           break;
         case SAMPLE_TYPE.DIFF:
-          await inspector.renderDiffCell(nodey, content, diff, text, prior);
+          await inspector.renderDiff(nodey, content, diff, text);
           break;
       }
     }

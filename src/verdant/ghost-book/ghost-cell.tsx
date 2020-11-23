@@ -21,20 +21,15 @@ const CELL_CONTENT = `${CELL}-content`;
 export type req_GhostCell_Props = {
   // String id of the cell
   name: string;
-  // Checkpoints associated with the cell
-  change: ChangeType;
-  // Name of the prior cell to diff against in diffPresent case
-  prior?: string;
   scrollTo?: () => void;
-  // Index of the cell's output cell (for a code cell) in state.GhostCells
-  output: string | null;
 };
 export type GhostCell_Props = {
   // Entire state history. Used for VersionSampler
   history: History;
   // Whether to display diffs with present cells or prior version
   diff: DIFF_TYPE;
-
+  output: string | null;
+  nodey: Nodey;
   // On-click action
   clickEv: () => void;
   // On-focus action
@@ -48,6 +43,7 @@ export type GhostCell_Props = {
 
 type GhostCell_State = {
   sample: string;
+  change: ChangeType;
 };
 
 class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
@@ -58,6 +54,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     // Set state
     this.state = {
       sample: "",
+      change: ChangeType.NONE,
     };
   }
 
@@ -77,34 +74,32 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     // Asynchronously update innerHTML if change has occurred
     this.updateSample();
 
-    const nodey = this.props.history.store.get(this.props.name);
-    if (!nodey) {
+    if (!this.props.nodey) {
       // ERROR case
       console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return null;
     }
     const active = this.props.hasFocus() ? "active" : "";
-    const displayOutput: boolean =
-      nodey instanceof NodeyCode && this.props.output !== null; // is a code cell & has associated output
+    const displayOutput: boolean = this.props.output !== null; // is a code cell & has associated output
 
     return (
       <div
-        className={`${CONTAINER} ${active} ${this.props.change}`}
+        className={`${CONTAINER} ${active} ${this.state.change}`}
         onClick={() => this.props.clickEv()}
       >
         <div className={CONTAINER_STACK}>
           <div
             className="v-Verdant-GhostBook-cell-label"
-            onClick={() => this.props.showDetail(nodey)}
+            onClick={() => this.props.showDetail(this.props.nodey)}
           >
-            {Namer.getCellVersionTitle(nodey)}
+            {Namer.getCellVersionTitle(this.props.nodey)}
           </div>
           <div
             className={`${CELL_CONTAINER}${
               this.props.inspectOn ? " hoverInspect" : ""
             }`}
             onClick={() => {
-              if (this.props.inspectOn) this.props.showDetail(nodey);
+              if (this.props.inspectOn) this.props.showDetail(this.props.nodey);
             }}
           >
             <div className="v-Verdant-GhostBook-cell-header" />
@@ -112,7 +107,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
                 className={`${CELL} ${
-                  nodey.typeChar === "c" ? "code" : "markdown"
+                  this.props.nodey.typeChar === "c" ? "code" : "markdown"
                 }  ${active}`}
                 dangerouslySetInnerHTML={{ __html: this.state.sample }}
               />
@@ -121,8 +116,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
           {displayOutput ? (
             <GhostCellOutput
               name={this.props.output}
-              codeCell={this.props.name}
-              changed={this.props.change === ChangeType.OUTPUT_CHANGED}
+              changed={this.state.change === ChangeType.OUTPUT_CHANGED}
             />
           ) : null}
         </div>
@@ -147,7 +141,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     }
     let diff = this.props.diff;
     if (diff === DIFF_TYPE.CHANGE_DIFF) {
-      if (this.props.change === ChangeType.OUTPUT_CHANGED) {
+      if (this.state.change === ChangeType.OUTPUT_CHANGED) {
         diff = DIFF_TYPE.NO_DIFF;
       }
     }
@@ -156,8 +150,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       this.props.history,
       nodey,
       null,
-      diff,
-      this.props.prior
+      diff
     );
   }
 }
@@ -166,8 +159,16 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: req_GhostCell_Props
 ) => {
+  const history = state.getHistory();
+  const nodey = history?.store?.get(ownProps.name);
+  const outputHist =
+    nodey instanceof NodeyCode ? history?.store?.getOutput(nodey) : null;
+  const output = outputHist?.name || null;
+
   return {
-    history: state.getHistory(),
+    history,
+    output,
+    nodey,
     diff: state.ghostBook.diff,
     hasFocus: () => state.ghostBook.active_cell === ownProps.name,
     scrollFocus: state.ghostBook.scroll_focus,

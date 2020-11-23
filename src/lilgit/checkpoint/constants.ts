@@ -49,5 +49,4 @@ export type CellRunData = {
   changeType: ChangeType;
   output?: string[];
   index?: number;
-  prior?: string;
 };

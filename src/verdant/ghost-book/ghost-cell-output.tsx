@@ -7,8 +7,6 @@ import { connect } from "react-redux";
 import { verdantState, showDetailOfNode } from "../redux/";
 
 type GhostCellOutput_Props = {
-  // Parent code cell id
-  codeCell: string;
   // String id of the output cell
   name: string;
   // Entire state history. Used for VersionSampler
@@ -17,6 +15,7 @@ type GhostCellOutput_Props = {
   showDetail: (n: Nodey) => void;
   inspectOn: boolean;
   changed: boolean;
+  nodey: NodeyOutput[];
 };
 
 type GhostCellOutput_State = {
@@ -49,7 +48,7 @@ class GhostCellOutput extends React.Component<
     // If output is empty, return nothing
     if (this.state.sample.length === 0) return null;
 
-    let output = this.props.history.store.get(this.props.name) as NodeyOutput;
+    let output = this.props.nodey[0];
 
     return (
       <div
@@ -96,7 +95,7 @@ class GhostCellOutput extends React.Component<
 
   async getSample() {
     // Get output HTML
-    let output = this.props.history.store.get(this.props.name) as NodeyOutput;
+    let output = this.props.nodey[0];
     if (output.raw.length > 0) {
       // Attach diffs to output
       return VersionSampler.sample(
@@ -111,9 +110,17 @@ class GhostCellOutput extends React.Component<
   }
 }
 
-const mapStateToProps = (state: verdantState) => {
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<GhostCellOutput_Props>
+) => {
+  const history = state.getHistory();
+  const outHist = history?.store?.getHistoryOf(ownProps.name);
+  const nodey = outHist?.getAllVersions() || [];
+
   return {
-    history: state.getHistory(),
+    nodey,
+    history,
     inspectOn: state.artifactView.inspectOn,
   };
 };
