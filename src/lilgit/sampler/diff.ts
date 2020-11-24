@@ -1,6 +1,12 @@
 import * as JSDiff from "diff";
 import { RenderBaby } from "../jupyter-hooks/render-baby";
-import { NodeyCell, NodeyCode, NodeyMarkdown } from "../nodey";
+import {
+  Nodey,
+  NodeyCell,
+  NodeyCode,
+  NodeyCodeCell,
+  NodeyMarkdown,
+} from "../nodey";
 import { Sampler } from "./sampler";
 import { History } from "../history";
 
@@ -32,14 +38,24 @@ export class Diff {
     nodey: NodeyCell,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
-    newText: string = ""
+    relativeToNotebook?: number
   ) {
     switch (nodey.typeChar) {
       case "c":
-        this.diffCode(elem, newText, diffKind);
+        this.diffCode(
+          nodey as NodeyCodeCell,
+          elem,
+          diffKind,
+          relativeToNotebook
+        );
         break;
       case "m":
-        await this.diffMarkdown(elem, diffKind, newText);
+        await this.diffMarkdown(
+          nodey as NodeyMarkdown,
+          elem,
+          diffKind,
+          relativeToNotebook
+        );
         break;
       case "r":
         // TODO raw cell
@@ -47,31 +63,66 @@ export class Diff {
     }
   }
 
-  diffCode(
-    elem: HTMLElement,
-    newText: string,
-    diffKind: number = DIFF_TYPE.NO_DIFF,
-    priorVersion?: string
-  ) {
-    /* Inserts code data to elem with diffs if necessary */
+  private getOldNewText(
+    nodey: Nodey,
+    diffKind: DIFF_TYPE,
+    relativeToNotebook?: number
+  ): [string, string, DIFF_TYPE] {
+    // first get text of the current nodey
+    let newText = this.sampler.renderNode(nodey);
 
-    // If no diff necessary, use plaincode
-    if (diffKind === DIFF_TYPE.NO_DIFF)
+    // now get text of prior nodey
+    let nodeyHistory = this.history.store?.getHistoryOf(nodey);
+    let priorNodey = nodeyHistory?.getVersion(nodey.version - 1);
+    let oldText = ""; // default to no string if no prior nodey
+
+    /*
+     * If relative to a checkpoint, check that changes to this nodey occurs
+     * no earlier than the checkpoint immediately previous so that we
+     * don't get irrelevant old changes showing up in diffs (ghost book only)
+     */
+    if (relativeToNotebook !== undefined) {
+      let notebook = this.history?.store.getNotebookOf(nodey);
+      if (notebook.version < relativeToNotebook - 1) {
+        priorNodey = undefined;
+        diffKind = DIFF_TYPE.NO_DIFF;
+      }
+    }
+
+    // otherwise make oldText the value of priorNodey
+    if (priorNodey) oldText = this.sampler.renderNode(priorNodey);
+
+    return [newText, oldText, diffKind];
+  }
+
+  private diffCode(
+    nodey: NodeyCode,
+    elem: HTMLElement,
+    diffKind: number = DIFF_TYPE.NO_DIFF,
+    relativeToNotebook?: number
+  ) {
+    let [newText, oldText, fixedDiffKind] = this.getOldNewText(
+      nodey,
+      diffKind,
+      relativeToNotebook
+    );
+    diffKind = fixedDiffKind;
+
+    // If no diff necessary, use plain code
+    if (diffKind === DIFF_TYPE.NO_DIFF) {
       return this.sampler.plainCode(elem, newText);
+    }
 
     // Split new text into lines
-    let lines = newText.split("\n");
+    let newLines = newText.split("\n");
 
     // Split old text into lines
-    let prior = priorVersion
-      ? (this.history.store.get(priorVersion) as NodeyCode)
-      : undefined;
-    let oldLines = prior ? this.sampler.renderCodeNode(prior).split("\n") : [];
+    let oldLines = oldText.split("\n");
 
     // Loop over lines and append diffs to elem
-    const maxLength = Math.max(lines.length, oldLines.length);
+    const maxLength = Math.max(newLines.length, oldLines.length);
     for (let i = 0; i < maxLength; i++) {
-      let newLine = lines[i] || "";
+      let newLine = newLines[i] || "";
       let oldLine = oldLines[i] || "";
       elem.appendChild(this.diffLine(oldLine, newLine));
     }
@@ -104,51 +155,49 @@ export class Diff {
   }
 
   async diffMarkdown(
+    nodey: NodeyMarkdown,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
-    newText: string = "",
-    priorVersion?: string
+    relativeToNotebook?: number
   ) {
+    let [newText, oldText, fixedDiffKind] = this.getOldNewText(
+      nodey,
+      diffKind,
+      relativeToNotebook
+    );
+    diffKind = fixedDiffKind;
+
+    // If no diff necessary, use plain markdown
     if (diffKind === DIFF_TYPE.NO_DIFF)
       await this.renderBaby.renderMarkdown(elem, newText);
     else {
-      let prior = priorVersion
-        ? (this.history.store.get(priorVersion) as NodeyMarkdown)
-        : undefined;
-      if (!prior || !prior.markdown) {
-        // easy, everything is added
-        await this.renderBaby.renderMarkdown(elem, newText);
-        elem.classList.add(CHANGE_ADDED_CLASS);
-      } else {
-        let priorText = prior.markdown;
-        let diff = JSDiff.diffWords(priorText, newText);
-        if (diff.length > MAX_WORD_DIFFS) {
-          diff = JSDiff.diffLines(priorText, newText, { newlineIsToken: true });
-        }
-        const divs = diff.map(async (part) => {
-          let partDiv: HTMLElement;
-          if (part.value === "\n") {
-            partDiv = document.createElement("br");
-            partDiv.classList.add(MARKDOWN_LINEBREAK);
-          } else {
-            partDiv = document.createElement("span");
-            await this.renderBaby.renderMarkdown(partDiv, part.value);
-
-            partDiv.classList.add(CHANGE_SAME_CLASS);
-
-            if (part.added) {
-              partDiv.classList.add(CHANGE_ADDED_CLASS);
-            } else if (part.removed) {
-              partDiv.classList.add(CHANGE_REMOVED_CLASS);
-            }
-          }
-          return partDiv;
-        });
-
-        await Promise.all(divs).then((elems) =>
-          elems.forEach((e) => elem.appendChild(e))
-        );
+      let diff = JSDiff.diffWords(oldText, newText);
+      if (diff.length > MAX_WORD_DIFFS) {
+        diff = JSDiff.diffLines(oldText, newText, { newlineIsToken: true });
       }
+      const divs = diff.map(async (part) => {
+        let partDiv: HTMLElement;
+        if (part.value === "\n") {
+          partDiv = document.createElement("br");
+          partDiv.classList.add(MARKDOWN_LINEBREAK);
+        } else {
+          partDiv = document.createElement("span");
+          await this.renderBaby.renderMarkdown(partDiv, part.value);
+
+          partDiv.classList.add(CHANGE_SAME_CLASS);
+
+          if (part.added) {
+            partDiv.classList.add(CHANGE_ADDED_CLASS);
+          } else if (part.removed) {
+            partDiv.classList.add(CHANGE_REMOVED_CLASS);
+          }
+        }
+        return partDiv;
+      });
+
+      await Promise.all(divs).then((elems) =>
+        elems.forEach((e) => elem.appendChild(e))
+      );
     }
 
     return elem;

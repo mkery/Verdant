@@ -9,7 +9,7 @@ import {
   closeResults,
 } from "../../redux/";
 import { connect } from "react-redux";
-import { Namer, DIFF_TYPE, SAMPLE_TYPE } from "../../../lilgit/sampler/";
+import { Namer } from "../../../lilgit/sampler/";
 import { VersionSampler } from "../../sampler/version-sampler";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import Result from "./result";
@@ -45,11 +45,9 @@ class ResultsSubSection extends React.Component<
     if (this.props.results.length < 2) {
       this.props.history.ready.then(async () => {
         let sample = await VersionSampler.sample(
-          SAMPLE_TYPE.SEARCH,
           this.props.history,
           this.props.results[0],
-          this.props.search_query,
-          DIFF_TYPE.NO_DIFF
+          this.props.search_query
         );
 
         this.setState({ sample: sample.outerHTML });

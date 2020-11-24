@@ -9,7 +9,6 @@ import {
 } from "../nodey";
 
 import { History } from "../history";
-
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 
 import { Target } from "./target";
@@ -35,9 +34,9 @@ export class Sampler {
     nodey: NodeyCell,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
-    newText: string = ""
+    relativeToNotebook?: number
   ) {
-    return this.diff.renderDiffCell(nodey, elem, diffKind, newText);
+    return this.diff.renderDiffCell(nodey, elem, diffKind, relativeToNotebook);
   }
 
   public sampleNode(nodey: Nodey, textFocus?: string): [string, number] {
@@ -179,11 +178,4 @@ export class Sampler {
     });
     return elem;
   }
-}
-
-export enum SAMPLE_TYPE {
-  /* types of render callers */
-  DIFF,
-  ARTIFACT,
-  SEARCH,
 }

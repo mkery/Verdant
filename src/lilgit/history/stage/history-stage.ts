@@ -19,8 +19,7 @@ export class HistoryStage {
   public async commit(checkpoint: Checkpoint): Promise<void> {
     let c = this.getCommit(checkpoint);
     // if commit was *actually* verified to be needed, it will return true
-    if (await c.commit())
-      this.history.checkpoints.set(checkpoint.id, checkpoint);
+    if (await c.commit()) this.history.checkpoints.add(checkpoint);
     this.closeCommit(c);
   }
 
@@ -36,14 +35,14 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.addCell(added, index);
-    this.history.checkpoints.set(checkpoint.id, checkpoint);
+    this.history.checkpoints.add(checkpoint);
     this.closeCommit(c);
   }
 
   public commitCellDeleted(deleted: NodeyCell, checkpoint: Checkpoint): void {
     let c = this.getCommit(checkpoint);
     c.deleteCell(deleted);
-    this.history.checkpoints.set(checkpoint.id, checkpoint);
+    this.history.checkpoints.add(checkpoint);
     this.closeCommit(c);
   }
 
@@ -54,7 +53,7 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.moveCell(moved, newPos);
-    this.history.checkpoints.set(checkpoint.id, checkpoint);
+    this.history.checkpoints.add(checkpoint);
     this.closeCommit(c);
   }
 
@@ -65,7 +64,7 @@ export class HistoryStage {
   ): void {
     let c = this.getCommit(checkpoint);
     c.changeCellType(oldCell, newCell);
-    this.history.checkpoints.set(checkpoint.id, checkpoint);
+    this.history.checkpoints.add(checkpoint);
     this.closeCommit(c);
   }
 

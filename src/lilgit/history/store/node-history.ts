@@ -20,8 +20,8 @@ export class NodeHistory<T extends Nodey> {
     nodey.version = ver - 1;
   }
 
-  getVersion(ver: number) {
-    return this.versions[ver];
+  getVersion(ver: number): T | undefined {
+    return ver > -1 ? this.versions[ver] : undefined;
   }
 
   // wrap to allow override implementation of filter

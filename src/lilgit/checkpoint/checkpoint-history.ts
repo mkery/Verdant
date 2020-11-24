@@ -8,92 +8,62 @@ const DEBUG = false;
 export class HistoryCheckpoints {
   readonly history: History;
   private checkpointList: (Checkpoint | null)[];
+  private timeTable: { [key: number]: number };
 
   constructor(history: History) {
     this.history = history;
     this.checkpointList = [];
+    this.timeTable = {};
   }
 
   public all(): (Checkpoint | null)[] {
     return this.checkpointList;
   }
 
-  public get(id?: number): Checkpoint | null {
-    if (id !== undefined) return this.checkpointList[id];
-    return null;
-  }
-
-  public set(id: number, checkpoint: Checkpoint) {
-    this.checkpointList[id] = checkpoint;
-  }
-
-  public getByNotebook(version: number): Checkpoint[] {
-    let events: Checkpoint[] = [];
-    for (var i = 0; i < this.checkpointList.length; i++) {
-      let item = this.checkpointList[i];
-      if (item?.notebook === version) events.push(item);
-      if ((item?.notebook || -1) > version) break;
+  public get(timestamp?: number): Checkpoint | null {
+    if (timestamp !== undefined) {
+      let index = this.timeTable[timestamp];
+      return this.checkpointList[index];
     }
-    return events;
   }
 
-  private generateId(): number {
-    let id = this.checkpointList.push(null) - 1;
-    return id;
+  public add(checkpoint: Checkpoint) {
+    let index = this.checkpointList.push(checkpoint) - 1;
+    this.timeTable[checkpoint.timestamp] = index;
   }
 
   public generateCheckpoint(kind: CheckpointType): Checkpoint {
-    let id = this.generateId();
     let timestamp = Date.now();
+
+    // check if checkpoint already exists
+    if (this.timeTable[timestamp])
+      return this.checkpointList[this.timeTable[timestamp]];
+
     let checkpoint = new Checkpoint({
-      id: id,
       timestamp: timestamp,
       targetCells: [],
       checkpointType: kind,
       notebookId: undefined,
     });
+
     return checkpoint;
-  }
-
-  findCheckpointNotebook(id: number) {
-    if (this.checkpointList[id]) {
-      // set notebook ID for event if notebook is not yet set
-      let targetCells = this.checkpointList[id].targetCells;
-      let cell = targetCells[0];
-      let node = this.history.store.get(cell?.cell);
-      let notebook = this.history.store.get(node?.parent);
-      this.checkpointList[id].notebook = notebook?.version;
-
-      // if nothing happened in this checkpoint,
-      // give it same notebook as the previous checkpoint
-      if (this.checkpointList[id].notebook === undefined) {
-        let prev = this.checkpointList[id - 1];
-        if (prev) this.checkpointList[id].notebook = prev.notebook;
-        else this.checkpointList[id].notebook = 0;
-      }
-    }
   }
 
   public fromJSON(data: Checkpoint.SERIALIZE[]) {
     if (DEBUG) log("CHECKPOINTS FROM JSON", data);
-    let fixList = [];
     this.checkpointList = data.map(
       (item: Checkpoint.SERIALIZE, index: number) => {
-        let checkpoint = Checkpoint.fromJSON(item, index);
-        if (checkpoint.notebook === undefined) fixList.push(index);
+        let checkpoint = Checkpoint.fromJSON(item);
+        this.timeTable[checkpoint.timestamp] = index;
         return checkpoint;
       }
     );
-    // fix for old logs for bug where checkpoint notebook is not set
-    fixList.forEach((id) => this.findCheckpointNotebook(id));
     if (DEBUG) log("CHECKPOINTS LOADED", this.checkpointList);
   }
 
   public toJSON(): Checkpoint.SERIALIZE[] {
-    return this.checkpointList
-      .filter((item) => item !== null)
-      .map((item) => {
-        return item.toJSON();
-      });
+    return this.checkpointList.map((item) => {
+      return item.toJSON();
+    });
   }
 }

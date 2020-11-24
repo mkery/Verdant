@@ -7,7 +7,7 @@ import {
   scrollToGhostCell,
 } from "../../redux/";
 import { connect } from "react-redux";
-import { Namer, DIFF_TYPE, SAMPLE_TYPE } from "../../../lilgit/sampler/";
+import { Namer } from "../../../lilgit/sampler/";
 import { VersionSampler } from "../../sampler/version-sampler";
 
 type Result_Props = {
@@ -28,11 +28,9 @@ class Result extends React.Component<Result_Props, { sample: string }> {
   componentDidMount() {
     this.props.history.ready.then(async () => {
       let sample = await VersionSampler.sample(
-        SAMPLE_TYPE.SEARCH,
         this.props.history,
         this.props.result,
-        this.props.search_query,
-        DIFF_TYPE.NO_DIFF
+        this.props.search_query
       );
 
       this.setState({ sample: sample.outerHTML });

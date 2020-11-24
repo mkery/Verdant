@@ -1,7 +1,7 @@
 import * as React from "react";
 import { History } from "../../lilgit/history/";
 import { NodeyCode, Nodey } from "../../lilgit/nodey/";
-import { SAMPLE_TYPE, DIFF_TYPE, Namer } from "../../lilgit/sampler/";
+import { DIFF_TYPE, Namer } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
@@ -39,6 +39,7 @@ export type GhostCell_Props = {
   //scroll
   scrollFocus: string;
   inspectOn: boolean;
+  notebookVer: number;
 } & req_GhostCell_Props;
 
 type GhostCell_State = {
@@ -145,12 +146,11 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         diff = DIFF_TYPE.NO_DIFF;
       }
     }
-    return VersionSampler.sample(
-      SAMPLE_TYPE.DIFF,
+    return VersionSampler.sampleDiff(
       this.props.history,
       nodey,
-      null,
-      diff
+      diff,
+      this.props.notebookVer
     );
   }
 }
@@ -164,6 +164,7 @@ const mapStateToProps = (
   const outputHist =
     nodey instanceof NodeyCode ? history?.store?.getOutput(nodey) : null;
   const output = outputHist?.name || null;
+  const notebookVer = state.ghostBook.notebook_ver;
 
   return {
     history,
@@ -173,6 +174,7 @@ const mapStateToProps = (
     hasFocus: () => state.ghostBook.active_cell === ownProps.name,
     scrollFocus: state.ghostBook.scroll_focus,
     inspectOn: state.artifactView.inspectOn,
+    notebookVer,
   };
 };
 

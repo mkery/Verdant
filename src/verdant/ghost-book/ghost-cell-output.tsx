@@ -1,5 +1,5 @@
 import * as React from "react";
-import { SAMPLE_TYPE, Namer, DIFF_TYPE } from "../../lilgit/sampler";
+import { Namer, DIFF_TYPE } from "../../lilgit/sampler";
 import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
 import { NodeyOutput, Nodey } from "../../lilgit/nodey";
@@ -16,6 +16,7 @@ type GhostCellOutput_Props = {
   inspectOn: boolean;
   changed: boolean;
   nodey: NodeyOutput[];
+  notebookVer: number;
 };
 
 type GhostCellOutput_State = {
@@ -98,13 +99,11 @@ class GhostCellOutput extends React.Component<
     let output = this.props.nodey[0];
     if (output.raw.length > 0) {
       // Attach diffs to output
-      return VersionSampler.sample(
-        SAMPLE_TYPE.DIFF,
+      return VersionSampler.sampleDiff(
         this.props.history,
         output,
-        null,
-        // Never attempt to show diffing for output cells
-        DIFF_TYPE.NO_DIFF
+        DIFF_TYPE.NO_DIFF,
+        this.props.notebookVer
       );
     }
   }
@@ -117,11 +116,13 @@ const mapStateToProps = (
   const history = state.getHistory();
   const outHist = history?.store?.getHistoryOf(ownProps.name);
   const nodey = outHist?.getAllVersions() || [];
+  const notebookVer = state.ghostBook.notebook_ver;
 
   return {
     nodey,
     history,
     inspectOn: state.artifactView.inspectOn,
+    notebookVer,
   };
 };
 

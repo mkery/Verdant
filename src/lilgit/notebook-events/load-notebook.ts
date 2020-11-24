@@ -42,9 +42,6 @@ export class LoadNotebook extends NotebookEvent {
       }
     });
 
-    // finally commit checkpoint
-    this.history.checkpoints.set(this.checkpoint.id, this.checkpoint);
-
     log("cell names", this.notebook.cells, this.checkpoint);
   }
 }

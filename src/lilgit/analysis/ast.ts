@@ -49,6 +49,7 @@ export class AST {
     // update checkpoint
     checkpoint.notebook = notebook.version;
     checkpoint.targetCells.push(...changedCells);
+    this.history.checkpoints.add(checkpoint);
 
     return notebook;
   }
@@ -71,12 +72,9 @@ export class AST {
       }
     });*/
 
-    //console.log(notebook_view, notebook, checkpoint);
+    console.log(notebook_view, notebook, checkpoint);
 
     // TODO TODO TODO
-
-    // update checkpoint
-    checkpoint.notebook = notebook.version;
 
     return notebook;
   }
