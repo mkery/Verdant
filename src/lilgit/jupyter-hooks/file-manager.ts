@@ -16,9 +16,11 @@ import { NodeyNotebook } from "../nodey";
 export class FileManager {
   readonly docManager: IDocumentManager;
   private _activeNotebook: VerNotebook;
+  private test_mode: boolean;
 
-  constructor(docManager: IDocumentManager) {
+  constructor(docManager: IDocumentManager, test = false) {
     this.docManager = docManager;
+    this.test_mode = test;
   }
 
   public set activeNotebook(notebook: VerNotebook) {
@@ -26,6 +28,7 @@ export class FileManager {
   }
 
   public writeToFile(): Promise<void> {
+    if (this.test_mode) return;
     return new Promise((accept, reject) => {
       var notebookPath = this._activeNotebook.path;
       if (notebookPath) {
@@ -101,6 +104,7 @@ export class FileManager {
   }
 
   public async saveGhostBook(history: History, notebook: NodeyNotebook) {
+    if (this.test_mode) return;
     let model = await GhostToNotebookConverter.convert(history, notebook);
 
     // prepare the path and file name
@@ -178,6 +182,7 @@ export class FileManager {
   }
 
   public async writeOutput(filename: string, data: string) {
+    if (this.test_mode) return;
     var path = this.getOutputPath();
     if (path !== undefined) {
       path += "/" + filename;
@@ -204,6 +209,7 @@ export class FileManager {
   }
 
   private makeOutputFolder() {
+    if (this.test_mode) return;
     let path = this.getOutputPath();
     if (path) {
       let name = path.substring(2);
