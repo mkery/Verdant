@@ -2,7 +2,6 @@ import { Widget } from "@lumino/widgets";
 import {
   Nodey,
   NodeyCode,
-  NodeyCell,
   NodeyMarkdown,
   NodeyOutput,
   SyntaxToken,
@@ -31,12 +30,12 @@ export class Sampler {
   }
 
   public async renderDiff(
-    nodey: NodeyCell,
+    nodey: Nodey,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
     relativeToNotebook?: number
   ) {
-    return this.diff.renderDiffCell(nodey, elem, diffKind, relativeToNotebook);
+    return this.diff.render(nodey, elem, diffKind, relativeToNotebook);
   }
 
   public sampleNode(nodey: Nodey, textFocus?: string): [string, number] {
@@ -171,7 +170,7 @@ export class Sampler {
 
   // Methods for rendering output cells
 
-  private async renderOutput(nodey: NodeyOutput, elem: HTMLElement) {
+  public async renderOutput(nodey: NodeyOutput, elem: HTMLElement) {
     let widgetList = await this.renderBaby.renderOutput(nodey);
     widgetList.forEach((widget: Widget) => {
       elem.appendChild(widget.node);

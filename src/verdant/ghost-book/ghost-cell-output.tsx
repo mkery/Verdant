@@ -7,15 +7,13 @@ import { connect } from "react-redux";
 import { verdantState, showDetailOfNode } from "../redux/";
 
 type GhostCellOutput_Props = {
-  // String id of the output cell
-  name: string;
   // Entire state history. Used for VersionSampler
   history: History;
   // open up detail of nodey
   showDetail: (n: Nodey) => void;
   inspectOn: boolean;
   changed: boolean;
-  nodey: NodeyOutput[];
+  nodey: NodeyOutput;
   notebookVer: number;
 };
 
@@ -40,16 +38,17 @@ class GhostCellOutput extends React.Component<
     };
   }
 
+  componentDidMount() {
+    this.updateSample();
+  }
+
+  componentDidUpdate(priorProps: GhostCellOutput_Props) {
+    if (this.props.notebookVer !== priorProps.notebookVer) this.updateSample();
+  }
+
   render() {
     /* Render cell output */
-
-    // Conditionally update HTML
-    this.updateSample();
-
-    // If output is empty, return nothing
-    if (this.state.sample.length === 0) return null;
-
-    let output = this.props.nodey[0];
+    let output = this.props.nodey;
 
     return (
       <div
@@ -79,24 +78,14 @@ class GhostCellOutput extends React.Component<
   private async updateSample() {
     /* Update the sample HTML if it has changed */
     let newSample = await this.getSample();
-    if (
-      newSample === undefined && // sample is undefined and
-      this.state.sample !== "" // sample has not been reset
-    ) {
-      // undefined samples are reset to blank
-      this.setState({ sample: "" });
-    } else if (
-      newSample !== undefined && // sample is not undefined
-      this.state.sample !== newSample.outerHTML // sample has not been updated
-    ) {
-      // new samples update state
+    if (newSample && newSample.outerHTML != this.state.sample)
       this.setState({ sample: newSample.outerHTML });
-    }
   }
 
-  async getSample() {
+  private async getSample() {
     // Get output HTML
-    let output = this.props.nodey[0];
+    let output = this.props.nodey;
+    console.log("GET OUTPUT SAMPLE", output);
     if (output.raw.length > 0) {
       // Attach diffs to output
       return VersionSampler.sampleDiff(
@@ -109,17 +98,10 @@ class GhostCellOutput extends React.Component<
   }
 }
 
-const mapStateToProps = (
-  state: verdantState,
-  ownProps: Partial<GhostCellOutput_Props>
-) => {
+const mapStateToProps = (state: verdantState) => {
   const history = state.getHistory();
-  const outHist = history?.store?.getHistoryOf(ownProps.name);
-  const nodey = outHist?.getAllVersions() || [];
   const notebookVer = state.ghostBook.notebook_ver;
-
   return {
-    nodey,
     history,
     inspectOn: state.artifactView.inspectOn,
     notebookVer,

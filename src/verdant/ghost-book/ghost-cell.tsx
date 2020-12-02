@@ -1,6 +1,6 @@
 import * as React from "react";
 import { History } from "../../lilgit/history/";
-import { NodeyCode, Nodey } from "../../lilgit/nodey/";
+import { NodeyCode, Nodey, NodeyOutput } from "../../lilgit/nodey/";
 import { DIFF_TYPE, Namer } from "../../lilgit/sampler/";
 import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
@@ -28,7 +28,7 @@ export type GhostCell_Props = {
   history: History;
   // Whether to display diffs with present cells or prior version
   diff: DIFF_TYPE;
-  output: string | null;
+  output: NodeyOutput | undefined;
   nodey: Nodey;
   // On-click action
   clickEv: () => void;
@@ -59,6 +59,11 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     };
   }
 
+  componentDidMount() {
+    // load in the content and diff for this cell
+    this.updateSample();
+  }
+
   componentDidUpdate(prevProps: GhostCell_Props) {
     if (
       this.props.scrollTo &&
@@ -67,13 +72,11 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     ) {
       setTimeout(() => this.props.scrollTo(), 1000);
     }
+    if (this.props.notebookVer !== prevProps.notebookVer) this.updateSample();
   }
 
   render() {
     /* Render cell */
-
-    // Asynchronously update innerHTML if change has occurred
-    this.updateSample();
 
     if (!this.props.nodey) {
       // ERROR case
@@ -81,7 +84,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
       return null;
     }
     const active = this.props.hasFocus() ? "active" : "";
-    const displayOutput: boolean = this.props.output !== null; // is a code cell & has associated output
+    const displayOutput: boolean = this.props.output !== undefined; // is a code cell & has associated output
 
     return (
       <div
@@ -116,7 +119,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
           </div>
           {displayOutput ? (
             <GhostCellOutput
-              name={this.props.output}
+              nodey={this.props.output}
               changed={this.state.change === ChangeType.OUTPUT_CHANGED}
             />
           ) : null}
@@ -134,8 +137,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
 
   private async getSample() {
     /* Get the new sample HTML */
-    let nodey = this.props.history.store.get(this.props.name);
-    if (!nodey) {
+    if (!this.props.nodey) {
       // ERROR case
       console.log("ERROR: CAN'T FIND GHOST CELL", this.props.name);
       return;
@@ -148,7 +150,7 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     }
     return VersionSampler.sampleDiff(
       this.props.history,
-      nodey,
+      this.props.nodey,
       diff,
       this.props.notebookVer
     );
@@ -163,8 +165,8 @@ const mapStateToProps = (
   const nodey = history?.store?.get(ownProps.name);
   const outputHist =
     nodey instanceof NodeyCode ? history?.store?.getOutput(nodey) : null;
-  const output = outputHist?.name || null;
   const notebookVer = state.ghostBook.notebook_ver;
+  const output = history?.store?.getForNotebook(outputHist, notebookVer);
 
   return {
     history,

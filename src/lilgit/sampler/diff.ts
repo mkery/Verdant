@@ -2,10 +2,10 @@ import * as JSDiff from "diff";
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 import {
   Nodey,
-  NodeyCell,
   NodeyCode,
-  NodeyCodeCell,
   NodeyMarkdown,
+  NodeyOutput,
+  NodeyRawCell,
 } from "../nodey";
 import { Sampler } from "./sampler";
 import { History } from "../history";
@@ -34,32 +34,22 @@ export class Diff {
     this.renderBaby = sampler.renderBaby;
   }
 
-  async renderDiffCell(
-    nodey: NodeyCell,
+  async render(
+    nodey: Nodey,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
     relativeToNotebook?: number
   ) {
-    switch (nodey.typeChar) {
-      case "c":
-        this.diffCode(
-          nodey as NodeyCodeCell,
-          elem,
-          diffKind,
-          relativeToNotebook
-        );
-        break;
-      case "m":
-        await this.diffMarkdown(
-          nodey as NodeyMarkdown,
-          elem,
-          diffKind,
-          relativeToNotebook
-        );
-        break;
-      case "r":
-        // TODO raw cell
-        break;
+    if (nodey instanceof NodeyCode) {
+      this.diffCode(nodey, elem, diffKind, relativeToNotebook);
+    } else if (nodey instanceof NodeyMarkdown) {
+      await this.diffMarkdown(nodey, elem, diffKind, relativeToNotebook);
+    } else if (nodey instanceof NodeyRawCell) {
+      // raw can be treated the same as code
+      this.diffCode(nodey, elem, diffKind, relativeToNotebook);
+    } else if (nodey instanceof NodeyOutput) {
+      // TODO add diff
+      await this.diffOutput(nodey, elem);
     }
   }
 
@@ -83,7 +73,7 @@ export class Diff {
      */
     if (relativeToNotebook !== undefined) {
       let notebook = this.history?.store.getNotebookOf(nodey);
-      if (notebook.version < relativeToNotebook - 1) {
+      if (notebook.version < relativeToNotebook) {
         priorNodey = undefined;
         diffKind = DIFF_TYPE.NO_DIFF;
       }
@@ -96,7 +86,7 @@ export class Diff {
   }
 
   private diffCode(
-    nodey: NodeyCode,
+    nodey: Nodey,
     elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
     relativeToNotebook?: number
@@ -201,5 +191,9 @@ export class Diff {
     }
 
     return elem;
+  }
+
+  async diffOutput(nodey: NodeyOutput, elem: HTMLElement) {
+    await this.sampler.renderOutput(nodey, elem);
   }
 }

@@ -306,6 +306,22 @@ export class HistoryStore {
     return;
   }
 
+  public getForNotebook(
+    nodeyHist: NodeHistory<Nodey>,
+    relativeTo: number
+  ): Nodey | undefined {
+    const notebook = this.getNotebook(relativeTo);
+    const nextNotebook = this.getNotebook(relativeTo + 1);
+    const startCheck = notebook?.created;
+    const endCheck = nextNotebook?.created || startCheck + 1;
+
+    if (nodeyHist && startCheck) {
+      return nodeyHist.find(
+        (ver) => ver.created >= startCheck && ver.created < endCheck
+      );
+    }
+  }
+
   public writeToFile(): void {
     this.fileManager.writeToFile();
   }

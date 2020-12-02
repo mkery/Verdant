@@ -71,7 +71,6 @@ class CellContainer extends React.Component<GhostCellContainer_Props> {
 const mapStateToProps = (state: verdantState) => {
   let history = state.getHistory();
   const notebook = history?.store?.getNotebook(state.ghostBook.notebook_ver);
-  console.log("FOUND NOTEBOOK", state.ghostBook.notebook_ver, notebook);
   const cells = notebook?.cells || [];
 
   return {

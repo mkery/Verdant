@@ -24,6 +24,12 @@ export class NodeHistory<T extends Nodey> {
     return ver > -1 ? this.versions[ver] : undefined;
   }
 
+  find(
+    callbackfn: (value: T, index: number, array: T[]) => boolean
+  ): T | undefined {
+    return this.versions.find(callbackfn);
+  }
+
   // wrap to allow override implementation of filter
   filter(callbackfn: (value: T, index: number, array: T[]) => unknown): T[] {
     return this.versions.filter(callbackfn);
