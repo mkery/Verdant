@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { verdantState } from "../../redux/";
 import { History } from "../../../lilgit/history/";
-import { CellSampler } from "../../sampler/cell-sampler";
+import { RowPreview } from "./row-preview";
 import {
   NodeyCell,
   Nodey,
@@ -35,13 +35,13 @@ export class Row extends React.Component<
 
   private async fetchArtifact() {
     if (this.props.history && this.props.cell) {
-      CellSampler.sampleCell(this.props.history, this.props.cell).then(
+      RowPreview.previewCell(this.props.history, this.props.cell).then(
         (sample) => {
           this.setState({ sample: sample.outerHTML });
         }
       );
       if (this.props.output)
-        CellSampler.sampleOutput(
+        RowPreview.previewOutput(
           this.props.history,
           this.props.output
         ).then((sample) => this.setState({ output_sample: sample.outerHTML }));

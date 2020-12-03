@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Nodey } from "../../../lilgit/nodey/";
 import { History } from "../../../lilgit/history/";
-import { VersionSampler } from "../../sampler/version-sampler";
 import { DIFF_TYPE } from "../../../lilgit/sampler";
 import VersionHeader from "./version-header";
 import { verdantState, selectArtifactDetail } from "../../redux/";
@@ -67,17 +66,10 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
 
   async getSample() {
     await this.props.history.ready;
-    let prior = this.props.history.store.getPriorVersion(this.props.nodey);
-    let s: HTMLDivElement;
-    if (prior != null) {
-      s = await VersionSampler.sampleDiff(
-        this.props.history,
-        this.props.nodey,
-        DIFF_TYPE.CHANGE_DIFF
-      );
-    } else {
-      s = await VersionSampler.sample(this.props.history, this.props.nodey);
-    }
+    let s: HTMLDivElement = await this.props.history.inspector.renderDiff(
+      this.props.nodey,
+      DIFF_TYPE.CHANGE_DIFF
+    );
     this.setState({ sample: s.outerHTML });
   }
 }

@@ -9,7 +9,7 @@ import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell } from "./nodey";
 import { NotebookEvent, LoadNotebook } from "./notebook-events";
 
-const DEBUG = true;
+const DEBUG = false;
 
 /*
  * Notebook holds a list of cells

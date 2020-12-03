@@ -10,7 +10,6 @@ import {
 } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler/";
-import { VersionSampler } from "../../sampler/version-sampler";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import Result from "./result";
 
@@ -44,8 +43,7 @@ class ResultsSubSection extends React.Component<
     // load sample IF this result is a singleton
     if (this.props.results.length < 2) {
       this.props.history.ready.then(async () => {
-        let sample = await VersionSampler.sample(
-          this.props.history,
+        let sample = await this.props.history.inspector.search.renderSearchCell(
           this.props.results[0],
           this.props.search_query
         );

@@ -2,7 +2,6 @@ import * as React from "react";
 import { History } from "../../lilgit/history/";
 import { NodeyCode, Nodey, NodeyOutput } from "../../lilgit/nodey/";
 import { DIFF_TYPE, Namer } from "../../lilgit/sampler/";
-import { VersionSampler } from "../sampler/version-sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
 import { verdantState, focusGhostCell, showDetailOfNode } from "../redux/";
@@ -72,7 +71,11 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     ) {
       setTimeout(() => this.props.scrollTo(), 1000);
     }
-    if (this.props.notebookVer !== prevProps.notebookVer) this.updateSample();
+    if (
+      this.props.notebookVer !== prevProps.notebookVer ||
+      this.props.diff !== prevProps.diff
+    )
+      this.updateSample();
   }
 
   render() {
@@ -128,6 +131,10 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
     );
   }
 
+  /*private getChangeStatus(){
+    let status = await this.props.history.inspector.getCellStatus()
+  }*/
+
   private async updateSample() {
     /* Update the sample HTML if it has changed */
     let newSample = await this.getSample();
@@ -148,11 +155,15 @@ class GhostCell extends React.Component<GhostCell_Props, GhostCell_State> {
         diff = DIFF_TYPE.NO_DIFF;
       }
     }
-    return VersionSampler.sampleDiff(
-      this.props.history,
+
+    let notebook = this.props.notebookVer;
+    if (diff === DIFF_TYPE.PRESENT_DIFF)
+      notebook = this.props.history.store.currentNotebook.version;
+
+    return this.props.history.inspector.renderDiff(
       this.props.nodey,
       diff,
-      this.props.notebookVer
+      notebook
     );
   }
 }

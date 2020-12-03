@@ -48,8 +48,7 @@ export class Diff {
       // raw can be treated the same as code
       this.diffCode(nodey, elem, diffKind, relativeToNotebook);
     } else if (nodey instanceof NodeyOutput) {
-      // TODO add diff
-      await this.diffOutput(nodey, elem);
+      await this.diffOutput(nodey, elem, diffKind, relativeToNotebook);
     }
   }
 
@@ -62,27 +61,48 @@ export class Diff {
     let newText = this.sampler.renderNode(nodey);
 
     // now get text of prior nodey
-    let nodeyHistory = this.history.store?.getHistoryOf(nodey);
-    let priorNodey = nodeyHistory?.getVersion(nodey.version - 1);
+    let [priorNodey, fixedDiffKind] = this.getPrior(
+      nodey,
+      diffKind,
+      relativeToNotebook
+    );
     let oldText = ""; // default to no string if no prior nodey
-
-    /*
-     * If relative to a checkpoint, check that changes to this nodey occurs
-     * no earlier than the checkpoint immediately previous so that we
-     * don't get irrelevant old changes showing up in diffs (ghost book only)
-     */
-    if (relativeToNotebook !== undefined) {
-      let notebook = this.history?.store.getNotebookOf(nodey);
-      if (notebook.version < relativeToNotebook) {
-        priorNodey = undefined;
-        diffKind = DIFF_TYPE.NO_DIFF;
-      }
-    }
 
     // otherwise make oldText the value of priorNodey
     if (priorNodey) oldText = this.sampler.renderNode(priorNodey);
 
-    return [newText, oldText, diffKind];
+    return [newText, oldText, fixedDiffKind];
+  }
+
+  private getPrior(
+    nodey: Nodey,
+    diffKind: DIFF_TYPE,
+    relativeToNotebook?: number
+  ): [Nodey | undefined, DIFF_TYPE] {
+    // now get text of prior nodey
+    let nodeyHistory = this.history.store?.getHistoryOf(nodey);
+    let priorNodey = undefined;
+
+    if (diffKind === DIFF_TYPE.CHANGE_DIFF) {
+      priorNodey = nodeyHistory?.getVersion(nodey.version - 1);
+
+      /*
+       * If relative to a checkpoint, check that changes to this nodey occurs
+       * no earlier than the checkpoint immediately previous so that we
+       * don't get irrelevant old changes showing up in diffs (ghost book only)
+       */
+      if (relativeToNotebook !== undefined) {
+        let notebook = this.history?.store.getNotebookOf(nodey);
+        if (notebook.version < relativeToNotebook) {
+          priorNodey = undefined;
+          diffKind = DIFF_TYPE.NO_DIFF;
+        }
+      }
+    } else if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
+      priorNodey = nodeyHistory?.latest;
+    }
+
+    return [priorNodey, diffKind];
   }
 
   private diffCode(
@@ -103,6 +123,10 @@ export class Diff {
       return this.sampler.plainCode(elem, newText);
     }
 
+    return this.diffText(oldText, newText, elem);
+  }
+
+  diffText(oldText: string, newText: string, elem: HTMLElement) {
     // Split new text into lines
     let newLines = newText.split("\n");
 
@@ -193,7 +217,40 @@ export class Diff {
     return elem;
   }
 
-  async diffOutput(nodey: NodeyOutput, elem: HTMLElement) {
+  async diffOutput(
+    nodey: NodeyOutput,
+    elem: HTMLElement,
+    diffKind: number = DIFF_TYPE.NO_DIFF,
+    relativeToNotebook?: number
+  ) {
+    /*const [priorNodey, fixedDiffType] = this.getPrior(
+      nodey,
+      diffKind,
+      relativeToNotebook
+    );*/
+
+    //if (fixedDiffType === DIFF_TYPE.NO_DIFF)
     await this.sampler.renderOutput(nodey, elem);
+    /*else {
+      await Promise.all(
+        nodey.raw.map(async (raw, index) => {
+          const plaintext = this.renderBaby.plaintextOutput(raw);
+          if (plaintext) {
+            // now get text of prior nodey
+            let oldText = ""; // default to no string if no prior nodey
+            if (priorNodey && priorNodey instanceof NodeyOutput)
+              oldText = this.renderBaby.plaintextOutput(priorNodey.raw[index]);
+
+            elem = this.diffText(oldText, plaintext, elem);
+          } else {
+            // no plaintext, just render
+            const part = await this.renderBaby.renderOutputRaw(raw);
+            elem.appendChild(part.node);
+          }
+        })
+      );
+    }*/
+
+    return elem;
   }
 }

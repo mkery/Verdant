@@ -1,11 +1,11 @@
-import { History } from "../../lilgit/history";
+import { History } from "../../../lilgit/history";
 
-import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../../lilgit/nodey";
+import { NodeyCell, NodeyMarkdown, NodeyOutput } from "../../../lilgit/nodey";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 
-export namespace CellSampler {
-  export async function sampleCell(historyModel: History, cell: NodeyCell) {
+export namespace RowPreview {
+  export async function previewCell(historyModel: History, cell: NodeyCell) {
     let sample = document.createElement("div");
     sample.classList.add(CELL_SAMPLE);
     sample.classList.add(cell.typeChar);
@@ -28,7 +28,7 @@ export namespace CellSampler {
     return sample;
   }
 
-  export async function sampleOutput(
+  export async function previewOutput(
     historyModel: History,
     output: NodeyOutput
   ) {

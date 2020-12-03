@@ -55,31 +55,46 @@ export class RenderBaby {
     return new MimeModel({ data });
   }
 
+  // returns a string if this is a plaintext output, undefined otherwise
+  public plaintextOutput(raw: nbformat.IOutput): string | undefined {
+    if (raw) {
+      const data = raw?.data;
+      const plaintext = data["text/plain"]
+        ? (data["text/plain"] as string)
+        : undefined;
+      return plaintext;
+    }
+  }
+
   async renderOutput(nodey: NodeyOutput) {
     return await Promise.all(
       nodey.raw.map(async (output: nbformat.IOutput) => {
-        let widget: Widget | undefined;
-
-        // check if output is actually stored offsite
-        if (OutputHistory.isOffsite(output)) {
-          let retrieved = await this.fileManager.getOutput(output);
-          widget = await this.renderMimeOutput(retrieved);
-        } else {
-          widget = await this.renderMimeOutput(output);
-        }
-
-        if (!widget) {
-          // could not be rendered
-          widget = new Widget();
-          widget.node.innerHTML =
-            `No renderer could be ` +
-            "found for output. It has the following keys: " +
-            Object.keys(output).join(", ");
-        }
-
-        return widget;
+        return this.renderOutputRaw(output);
       })
     );
+  }
+
+  async renderOutputRaw(output: nbformat.IOutput) {
+    let widget: Widget | undefined;
+
+    // check if output is actually stored offsite
+    if (OutputHistory.isOffsite(output)) {
+      let retrieved = await this.fileManager.getOutput(output);
+      widget = await this.renderMimeOutput(retrieved);
+    } else {
+      widget = await this.renderMimeOutput(output);
+    }
+
+    if (!widget) {
+      // could not be rendered
+      widget = new Widget();
+      widget.node.innerHTML =
+        `No renderer could be ` +
+        "found for output. It has the following keys: " +
+        Object.keys(output).join(", ");
+    }
+
+    return widget;
   }
 
   private async renderMimeOutput(output: nbformat.IOutput) {

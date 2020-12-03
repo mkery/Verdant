@@ -30,6 +30,10 @@ export class NodeHistory<T extends Nodey> {
     return this.versions.find(callbackfn);
   }
 
+  foreach(callbackfn: (value: T, index: number, array: T[]) => void): void {
+    return this.versions.forEach(callbackfn);
+  }
+
   // wrap to allow override implementation of filter
   filter(callbackfn: (value: T, index: number, array: T[]) => unknown): T[] {
     return this.versions.filter(callbackfn);

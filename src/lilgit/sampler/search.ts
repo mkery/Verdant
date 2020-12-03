@@ -1,4 +1,4 @@
-import { Nodey, NodeyOutput } from "../nodey";
+import { Nodey } from "../nodey";
 import { Sampler } from "./sampler";
 
 const SEARCH_FILTER_RESULTS = "v-VerdantPanel-sample-searchResult";
@@ -10,27 +10,15 @@ export class Search {
     this.sampler = sampler;
   }
 
-  public async renderSearchCell(
-    nodey: Nodey,
-    elem: HTMLElement,
-    textFocus?: string,
-    newText?: string
-  ) {
-    switch (nodey.typeChar) {
-      case "c":
-        this.sampler.plainCode(elem, newText);
-        break;
-      case "o":
-        await this.sampler.renderOutput(nodey as NodeyOutput, elem);
-        break;
-      case "m":
-        await this.sampler.renderBaby.renderMarkdown(elem, newText);
-        break;
+  public async renderSearchCell(nodey: Nodey, query?: string) {
+    let [sample, elem] = this.sampler.makeSampleDivs(nodey);
+
+    await this.sampler.renderArtifactCell(nodey, elem);
+
+    if (query) {
+      elem = this.highlightText(query, elem);
     }
-    if (textFocus) {
-      elem = this.highlightText(textFocus, elem);
-    }
-    return elem;
+    return sample;
   }
 
   // Helper method for search cells

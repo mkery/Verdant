@@ -8,7 +8,6 @@ import {
 } from "../../redux/";
 import { connect } from "react-redux";
 import { Namer } from "../../../lilgit/sampler/";
-import { VersionSampler } from "../../sampler/version-sampler";
 
 type Result_Props = {
   result: Nodey;
@@ -27,8 +26,7 @@ class Result extends React.Component<Result_Props, { sample: string }> {
 
   componentDidMount() {
     this.props.history.ready.then(async () => {
-      let sample = await VersionSampler.sample(
-        this.props.history,
+      let sample = await this.props.history.inspector.search.renderSearchCell(
         this.props.result,
         this.props.search_query
       );

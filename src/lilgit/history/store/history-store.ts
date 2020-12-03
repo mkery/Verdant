@@ -35,7 +35,7 @@ export class HistoryStore {
     return this._notebookHistory?.latest;
   }
 
-  public getNotebook(ver: number): NodeyNotebook {
+  public getNotebook(ver?: number): NodeyNotebook {
     return this._notebookHistory.getVersion(ver);
   }
 
@@ -312,13 +312,14 @@ export class HistoryStore {
   ): Nodey | undefined {
     const notebook = this.getNotebook(relativeTo);
     const nextNotebook = this.getNotebook(relativeTo + 1);
-    const startCheck = notebook?.created;
-    const endCheck = nextNotebook?.created || startCheck + 1;
+    const endCheck = nextNotebook?.created || notebook?.created + 1 || -1;
 
-    if (nodeyHist && startCheck) {
-      return nodeyHist.find(
-        (ver) => ver.created >= startCheck && ver.created < endCheck
-      );
+    if (nodeyHist && endCheck !== -1) {
+      let max = -1;
+      nodeyHist.foreach((ver) => {
+        if (ver.created < endCheck) max = ver.version;
+      });
+      return nodeyHist.getVersion(max);
     }
   }
 

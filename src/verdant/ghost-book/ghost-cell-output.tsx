@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Namer, DIFF_TYPE } from "../../lilgit/sampler";
-import { VersionSampler } from "../sampler/version-sampler";
 import { History } from "../../lilgit/history";
 import { NodeyOutput, Nodey } from "../../lilgit/nodey";
 import { connect } from "react-redux";
@@ -15,6 +14,7 @@ type GhostCellOutput_Props = {
   changed: boolean;
   nodey: NodeyOutput;
   notebookVer: number;
+  diff: DIFF_TYPE;
 };
 
 type GhostCellOutput_State = {
@@ -43,7 +43,11 @@ class GhostCellOutput extends React.Component<
   }
 
   componentDidUpdate(priorProps: GhostCellOutput_Props) {
-    if (this.props.notebookVer !== priorProps.notebookVer) this.updateSample();
+    if (
+      this.props.notebookVer !== priorProps.notebookVer ||
+      this.props.diff !== priorProps.diff
+    )
+      this.updateSample();
   }
 
   render() {
@@ -83,16 +87,16 @@ class GhostCellOutput extends React.Component<
   }
 
   private async getSample() {
-    // Get output HTML
     let output = this.props.nodey;
-    console.log("GET OUTPUT SAMPLE", output);
     if (output.raw.length > 0) {
-      // Attach diffs to output
-      return VersionSampler.sampleDiff(
-        this.props.history,
+      let notebook = this.props.notebookVer;
+      if (this.props.diff === DIFF_TYPE.PRESENT_DIFF)
+        notebook = this.props.history.store.currentNotebook.version;
+
+      return this.props.history.inspector.renderDiff(
         output,
-        DIFF_TYPE.NO_DIFF,
-        this.props.notebookVer
+        this.props.diff,
+        notebook
       );
     }
   }
@@ -102,6 +106,7 @@ const mapStateToProps = (state: verdantState) => {
   const history = state.getHistory();
   const notebookVer = state.ghostBook.notebook_ver;
   return {
+    diff: state.ghostBook.diff,
     history,
     inspectOn: state.artifactView.inspectOn,
     notebookVer,

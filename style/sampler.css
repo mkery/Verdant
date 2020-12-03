@@ -64,7 +64,7 @@
 }
 
 .v-VerdantPanel-sampler-version-content.output pre {
-  white-space: nowrap;
+  /*white-space: nowrap;*/
 }
 
 .v-VerdantPanel-sampler-version {

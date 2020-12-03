@@ -14,6 +14,9 @@ import { Target } from "./target";
 import { Search } from "./search";
 import { DIFF_TYPE, Diff } from "./diff";
 
+const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
+const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
+
 export class Sampler {
   readonly history: History;
   readonly search: Search;
@@ -31,11 +34,12 @@ export class Sampler {
 
   public async renderDiff(
     nodey: Nodey,
-    elem: HTMLElement,
     diffKind: number = DIFF_TYPE.NO_DIFF,
     relativeToNotebook?: number
   ) {
-    return this.diff.render(nodey, elem, diffKind, relativeToNotebook);
+    const [sample, content] = this.makeSampleDivs(nodey);
+    await this.diff.render(nodey, content, diffKind, relativeToNotebook);
+    return sample;
   }
 
   public sampleNode(nodey: Nodey, textFocus?: string): [string, number] {
@@ -176,5 +180,28 @@ export class Sampler {
       elem.appendChild(widget.node);
     });
     return elem;
+  }
+
+  public makeSampleDivs(nodey: Nodey) {
+    let sample = document.createElement("div");
+    sample.classList.add(INSPECT_VERSION);
+
+    let content = document.createElement("div");
+    content.classList.add(INSPECT_VERSION_CONTENT);
+    sample.appendChild(content);
+
+    // check we have valid input
+    if (nodey && history) {
+      if (nodey.typeChar === "c") {
+        content.classList.add("code");
+        sample.classList.add("code");
+      } else if (nodey.typeChar === "m") {
+        content.classList.add("markdown");
+        content.classList.add("jp-RenderedHTMLCommon");
+      } else {
+        content.classList.add("output");
+      }
+    }
+    return [sample, content];
   }
 }
