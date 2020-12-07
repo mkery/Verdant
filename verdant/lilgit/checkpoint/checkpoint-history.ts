@@ -2,6 +2,7 @@ import { History } from "../history/";
 import { log } from "../notebook";
 import { CheckpointType } from "./constants";
 import { Checkpoint } from "./checkpoint";
+import { NodeyNotebook } from "../nodey";
 
 const DEBUG = false;
 
@@ -25,6 +26,20 @@ export class HistoryCheckpoints {
       let index = this.timeTable[timestamp];
       return this.checkpointList[index];
     }
+    return null;
+  }
+
+  public getForNotebook(notebook: NodeyNotebook): Checkpoint[] {
+    let checkpoints = [];
+    let created = notebook.created;
+    let index = this.timeTable[created];
+
+    while (this.checkpointList[index].notebook === notebook.version) {
+      checkpoints.push(this.checkpointList[index]);
+      index++;
+    }
+
+    return checkpoints;
   }
 
   public add(checkpoint: Checkpoint) {

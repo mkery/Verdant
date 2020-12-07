@@ -35,7 +35,7 @@ export class HistoryStore {
     return this._notebookHistory?.latest;
   }
 
-  public getNotebook(ver?: number): NodeyNotebook {
+  public getNotebook(ver?: number): NodeyNotebook | undefined {
     return this._notebookHistory.getVersion(ver);
   }
 

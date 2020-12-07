@@ -7,14 +7,21 @@ import {
   NodeyOutput,
   NodeyRawCell,
 } from "../nodey";
-import { Sampler } from "./sampler";
+import { Sampler, CellMap } from "../sampler";
 import { History } from "../history";
+import { ChangeType } from "../checkpoint";
 
 export enum DIFF_TYPE {
   NO_DIFF,
   CHANGE_DIFF,
   PRESENT_DIFF,
 }
+
+export type DiffCell = {
+  name: string;
+  sample: HTMLElement;
+  status: ChangeType[];
+};
 
 const CHANGE_SAME_CLASS = "v-Verdant-sampler-code-same";
 const CHANGE_ADDED_CLASS = "v-Verdant-sampler-code-added";
@@ -34,12 +41,46 @@ export class Diff {
     this.renderBaby = sampler.renderBaby;
   }
 
-  async render(
+  async renderNotebook(
+    notebook_ver: number,
+    diffKind: DIFF_TYPE
+  ): Promise<DiffCell[]> {
+    let newNotebook = this.history.store.getNotebook(notebook_ver);
+
+    let relativeToNotebook = notebook_ver;
+    if (relativeToNotebook < 0) relativeToNotebook = undefined;
+    if (diffKind === DIFF_TYPE.PRESENT_DIFF)
+      relativeToNotebook = this.history.store.currentNotebook?.version;
+
+    //let priorNotebook = this.history.store.getNotebook(relativeToNotebook)
+
+    let checkpoints = this.history.checkpoints.getForNotebook(newNotebook);
+    let cellMap = CellMap.build(checkpoints, this.history);
+
+    return Promise.all(
+      cellMap.map(async (value: { name: string; changes: ChangeType[] }) => {
+        const name = value.name;
+        const changes = value.changes;
+        let cell = this.history.store.get(name);
+        let status = [ChangeType.NONE];
+        if (diffKind !== DIFF_TYPE.NO_DIFF) status = changes;
+        const sample = await this.renderCell(
+          cell,
+          diffKind,
+          relativeToNotebook
+        );
+        return { sample, status, name };
+      })
+    );
+  }
+
+  async renderCell(
     nodey: Nodey,
-    elem: HTMLElement,
-    diffKind: number = DIFF_TYPE.NO_DIFF,
+    diffKind: DIFF_TYPE = DIFF_TYPE.NO_DIFF,
     relativeToNotebook?: number
-  ) {
+  ): Promise<HTMLElement> {
+    const [sample, elem] = this.sampler.makeSampleDivs(nodey);
+
     if (nodey instanceof NodeyCode) {
       this.diffCode(nodey, elem, diffKind, relativeToNotebook);
     } else if (nodey instanceof NodeyMarkdown) {
@@ -50,6 +91,8 @@ export class Diff {
     } else if (nodey instanceof NodeyOutput) {
       await this.diffOutput(nodey, elem, diffKind, relativeToNotebook);
     }
+
+    return sample;
   }
 
   private getOldNewText(

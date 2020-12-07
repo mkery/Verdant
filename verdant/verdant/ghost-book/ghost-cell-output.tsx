@@ -93,7 +93,7 @@ class GhostCellOutput extends React.Component<
       if (this.props.diff === DIFF_TYPE.PRESENT_DIFF)
         notebook = this.props.history.store.currentNotebook.version;
 
-      return this.props.history.inspector.renderDiff(
+      return this.props.history.inspector.diff.renderCell(
         output,
         this.props.diff,
         notebook

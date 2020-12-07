@@ -12,7 +12,7 @@ import { RenderBaby } from "../jupyter-hooks/render-baby";
 
 import { Target } from "./target";
 import { Search } from "./search";
-import { DIFF_TYPE, Diff } from "./diff";
+import { Diff } from "./diff";
 
 const INSPECT_VERSION = "v-VerdantPanel-sampler-version";
 const INSPECT_VERSION_CONTENT = "v-VerdantPanel-sampler-version-content";
@@ -22,7 +22,7 @@ export class Sampler {
   readonly search: Search;
   readonly renderBaby: RenderBaby;
   readonly target: Target;
-  private readonly diff: Diff;
+  readonly diff: Diff;
 
   constructor(historyModel: History, renderBaby: RenderBaby) {
     this.history = historyModel;
@@ -30,16 +30,6 @@ export class Sampler {
     this.target = new Target(historyModel);
     this.search = new Search(this);
     this.diff = new Diff(this);
-  }
-
-  public async renderDiff(
-    nodey: Nodey,
-    diffKind: number = DIFF_TYPE.NO_DIFF,
-    relativeToNotebook?: number
-  ) {
-    const [sample, content] = this.makeSampleDivs(nodey);
-    await this.diff.render(nodey, content, diffKind, relativeToNotebook);
-    return sample;
   }
 
   public sampleNode(nodey: Nodey, textFocus?: string): [string, number] {

@@ -66,7 +66,7 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
 
   async getSample() {
     await this.props.history.ready;
-    let s: HTMLDivElement = await this.props.history.inspector.renderDiff(
+    let s: HTMLElement = await this.props.history.inspector.diff.renderCell(
       this.props.nodey,
       DIFF_TYPE.CHANGE_DIFF
     );

@@ -24,7 +24,7 @@ import {
   searchReducer,
 } from "./viewStates/search";
 import { Wishbone } from "../panel/details/wishbone";
-import { Checkpoint } from "src/lilgit/checkpoint";
+import { Checkpoint } from "../../lilgit/checkpoint";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const SWITCH_TAB = "SWITCH_TAB";
