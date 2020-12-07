@@ -8,14 +8,14 @@ import {
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { createStore, applyMiddleware, Store } from "redux";
-import { VerdantLog } from "./verdant/logger";
+import { VerdantLog } from "./verdant-ui/logger";
 import {
   verdantReducer,
   createInitialState,
   setGhostOpener,
-} from "./verdant/redux/";
+} from "./verdant-ui/redux/";
 
-import { Ghost } from "./verdant/ghost-book/ghost";
+import { Ghost } from "./verdant-ui/ghost-book/ghost";
 
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 
@@ -44,13 +44,13 @@ const verdantIconSvgStr = require("../style/img/log-icon-4.svg");
 
 import { AST } from "./lilgit/analysis/ast";
 
-import { VerdantNotebook } from "./verdant/verdant-notebook";
+import { VerdantNotebook } from "./verdant-ui/verdant-notebook";
 
 import { History } from "./lilgit/history/";
 
-import { VerdantPanel } from "./verdant/verdant-panel";
+import { VerdantPanel } from "./verdant-ui/verdant-panel";
 
-import { VerdantLanding } from "./verdant/verdant-landing";
+import { VerdantLanding } from "./verdant-ui/verdant-landing";
 
 import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
 

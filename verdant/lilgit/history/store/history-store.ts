@@ -119,6 +119,28 @@ export class HistoryStore {
     return;
   }
 
+  // returns output that was specifically created or present in a given notebook
+  getOutputForNotebook(
+    nodey?: NodeyCode,
+    relativeTo?: NodeyNotebook
+  ): NodeyOutput | undefined {
+    if (!nodey || !relativeTo) return;
+    let outputHist = this.getOutput(nodey);
+    if (!outputHist) return;
+    let out = outputHist.find(
+      (output) => output.created === relativeTo.created
+    );
+    if (!out) {
+      // no output was created in this notebook, so find any output that would
+      // have been present
+      let outBefore = outputHist.filter(
+        (output) => output.created < relativeTo.created
+      );
+      out = outBefore[outBefore.length - 1];
+    }
+    return out;
+  }
+
   getAllOutput(nodey?: NodeyCode): OutputHistory[] | undefined {
     if (!nodey) return;
     let cell: NodeyCodeCell;

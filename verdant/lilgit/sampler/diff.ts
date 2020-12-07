@@ -4,6 +4,7 @@ import {
   Nodey,
   NodeyCode,
   NodeyMarkdown,
+  NodeyNotebook,
   NodeyOutput,
   NodeyRawCell,
 } from "../nodey";
@@ -45,25 +46,41 @@ export class Diff {
     notebook_ver: number,
     diffKind: DIFF_TYPE
   ): Promise<DiffCell[]> {
-    let newNotebook = this.history.store.getNotebook(notebook_ver);
-
+    /*
+     * First set up the basics that we'll need regardless of what kind of
+     * diff we're doing
+     */
+    let focusedNotebook = this.history.store.getNotebook(notebook_ver);
     let relativeToNotebook = notebook_ver;
     if (relativeToNotebook < 0) relativeToNotebook = undefined;
-    if (diffKind === DIFF_TYPE.PRESENT_DIFF)
+    let cellMap: { name: string; changes: ChangeType[] }[] = [];
+
+    /*
+     * Based on the diff kind, build a list of cells with changes
+     */
+    if (diffKind === DIFF_TYPE.CHANGE_DIFF) {
+      let checkpoints = this.history.checkpoints.getForNotebook(
+        focusedNotebook
+      );
+      cellMap = CellMap.build(checkpoints, this.history);
+    } else if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
       relativeToNotebook = this.history.store.currentNotebook?.version;
+      let currentNotebook = this.history.store.currentNotebook;
+      cellMap = this.zipNotebooks(focusedNotebook, currentNotebook);
+    } else if (diffKind === DIFF_TYPE.NO_DIFF) {
+      cellMap = focusedNotebook.cells.map((name) => {
+        return { name, changes: [] };
+      });
+    }
 
-    //let priorNotebook = this.history.store.getNotebook(relativeToNotebook)
-
-    let checkpoints = this.history.checkpoints.getForNotebook(newNotebook);
-    let cellMap = CellMap.build(checkpoints, this.history);
-
+    /*
+     * For each cell, render line-level diff notation
+     */
     return Promise.all(
       cellMap.map(async (value: { name: string; changes: ChangeType[] }) => {
         const name = value.name;
-        const changes = value.changes;
+        const status = value.changes;
         let cell = this.history.store.get(name);
-        let status = [ChangeType.NONE];
-        if (diffKind !== DIFF_TYPE.NO_DIFF) status = changes;
         const sample = await this.renderCell(
           cell,
           diffKind,
@@ -295,5 +312,70 @@ export class Diff {
     }*/
 
     return elem;
+  }
+
+  private zipNotebooks(
+    A: NodeyNotebook,
+    B: NodeyNotebook
+  ): { name: string; changes: ChangeType[] }[] {
+    let cellMap: { name: string; changes: ChangeType[] }[] = [];
+
+    let cellsInA = A.cells.map((name) => {
+      return this.history.store.get(name)?.artifactName;
+    });
+
+    let cellsInB = B.cells.map((name) => {
+      return this.history.store.get(name)?.artifactName;
+    });
+
+    let diff = JSDiff.diffArrays(cellsInA, cellsInB);
+
+    let indexA = 0;
+    let indexB = 0;
+    diff.map((part) => {
+      if (part.added) {
+        // these cells are only in B
+        part.value.forEach(() => {
+          let cellB = B.cells[indexB];
+          cellMap.push({ name: cellB, changes: [ChangeType.ADDED] });
+          indexB++;
+        });
+      } else if (part.removed) {
+        // these cells are only in A
+        part.value.forEach(() => {
+          let cellA = A.cells[indexA];
+          cellMap.push({ name: cellA, changes: [ChangeType.REMOVED] });
+          indexB++;
+        });
+      } else {
+        // these cells are in both notebooks
+        part.value.forEach(() => {
+          let cellA = A.cells[indexA];
+          let cellB = B.cells[indexB];
+          let status = cellA === cellB ? ChangeType.NONE : ChangeType.CHANGED;
+
+          // Check has output changed?
+          if (status === ChangeType.NONE) {
+            // assuming they're the same version, is this cell code
+            let nodey = this.history.store.get(cellA);
+            if (nodey instanceof NodeyCode) {
+              let outA = this.history.store.getOutputForNotebook(nodey, A);
+              let outB = this.history.store.getOutputForNotebook(nodey, B);
+              if (outA && outB && outA !== outB) {
+                status = ChangeType.OUTPUT_CHANGED;
+              }
+            }
+          }
+
+          cellMap.push({ name: cellB, changes: [status] });
+          indexA++;
+          indexB++;
+        });
+      }
+    });
+
+    console.log("CURRENT DIFF CELL MAP", cellMap);
+
+    return cellMap;
   }
 }
