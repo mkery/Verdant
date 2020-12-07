@@ -1,0 +1,129 @@
+import * as React from "react";
+import { NodeyCode, NodeyCell, Nodey, NodeyOutput } from "../../lilgit/nodey/";
+import { Namer } from "../../lilgit/sampler/";
+import GhostCellOutput from "./ghost-cell-output";
+import { connect } from "react-redux";
+import { verdantState, focusGhostCell, showDetailOfNode } from "../redux/";
+import { ChangeType } from "../../lilgit/checkpoint/";
+import { DiffCell } from "../../lilgit/sampler/diff";
+
+/* CSS Constants */
+const CONTAINER = "v-Verdant-GhostBook-container";
+const CONTAINER_STACK = `${CONTAINER}-stack`;
+
+const CELL = "v-Verdant-GhostBook-cell";
+const CELL_BAND = `${CELL}-band`;
+const CELL_CONTAINER = `${CELL}-container`;
+const CELL_CONTENT = `${CELL}-content`;
+
+// Enum for types of cells
+export type req_GhostCell_Props = {
+  // String id of the cell
+  cell: DiffCell;
+  scrollTo?: () => void;
+};
+export type GhostCell_Props = {
+  output: NodeyOutput | undefined;
+  nodey: NodeyCell;
+  // On-click action
+  clickEv: () => void;
+  // On-focus action
+  hasFocus: () => boolean;
+  // open up detail of nodey
+  showDetail: (n: Nodey) => void;
+  //scroll
+  scrollFocus: string;
+  inspectOn: boolean;
+} & req_GhostCell_Props;
+
+class GhostCell extends React.Component<GhostCell_Props> {
+  render() {
+    /* Render cell */
+
+    if (!this.props.cell) {
+      // ERROR case
+      console.log("ERROR: CAN'T FIND GHOST CELL", this.props.cell.name);
+      return null;
+    }
+    const active = this.props.hasFocus() ? "active" : "";
+    const displayOutput: boolean = this.props.output !== undefined; // is a code cell & has associated output
+
+    return (
+      <div
+        className={`${CONTAINER} ${active} ${this.props.cell.status}`}
+        onClick={() => this.props.clickEv()}
+      >
+        <div className={CONTAINER_STACK}>
+          <div
+            className="v-Verdant-GhostBook-cell-label"
+            onClick={() => this.props.showDetail(this.props.nodey)}
+          >
+            {Namer.getCellVersionTitle(this.props.nodey)}
+          </div>
+          <div
+            className={`${CELL_CONTAINER}${
+              this.props.inspectOn ? " hoverInspect" : ""
+            }`}
+            onClick={() => {
+              if (this.props.inspectOn) this.props.showDetail(this.props.nodey);
+            }}
+          >
+            <div className="v-Verdant-GhostBook-cell-header" />
+            <div className={`${CELL_BAND} ${active}`} />
+            <div className={`${CELL_CONTENT} ${active}`}>
+              <div
+                className={`${CELL} ${
+                  this.props.nodey.typeChar === "c" ? "code" : "markdown"
+                }  ${active}`}
+                dangerouslySetInnerHTML={{
+                  __html: this.props.cell.sample.outerHTML,
+                }}
+              />
+            </div>
+          </div>
+          {displayOutput ? (
+            <GhostCellOutput
+              nodey={this.props.output}
+              changed={this.props.cell.status.includes(
+                ChangeType.OUTPUT_CHANGED
+              )}
+            />
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: req_GhostCell_Props
+) => {
+  const history = state.getHistory();
+  const nodey = history?.store?.get(ownProps.cell.name);
+  const outputHist =
+    nodey instanceof NodeyCode ? history?.store?.getOutput(nodey) : null;
+  const notebookVer = state.ghostBook.notebook_ver;
+  const output = history?.store?.getForNotebook(outputHist, notebookVer);
+
+  return {
+    history,
+    output,
+    nodey,
+    diff: state.ghostBook.diff,
+    hasFocus: () => state.ghostBook.active_cell === ownProps.cell.name,
+    scrollFocus: state.ghostBook.scroll_focus,
+    inspectOn: state.artifactView.inspectOn,
+    notebookVer,
+  };
+};
+
+const mapDispatchToProps = (dispatch: any, ownProps: req_GhostCell_Props) => {
+  return {
+    clickEv: () =>
+      ownProps.cell.name ? dispatch(focusGhostCell(ownProps.cell.name)) : null,
+    showDetail: (n: Nodey) => dispatch(showDetailOfNode(n)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(GhostCell);
