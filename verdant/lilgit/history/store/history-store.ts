@@ -230,7 +230,7 @@ export class HistoryStore {
     let text = query.toLowerCase().split(" ");
     this._codeCellStore.forEach((history) => {
       let matches = history.filter((cell) => {
-        let sourceText = this.history.inspector.renderNode(cell) || "";
+        let sourceText = this.history.inspector.nodeToText(cell) || "";
         if (
           text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
         ) {
@@ -256,7 +256,7 @@ export class HistoryStore {
     let text = query.toLowerCase().split(" ");
     this._outputStore.forEach((history) => {
       let matches = history.filter((output) => {
-        let sourceText = this.history.inspector.renderNode(output) || "";
+        let sourceText = this.history.inspector.nodeToText(output) || "";
         if (
           text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
         ) {

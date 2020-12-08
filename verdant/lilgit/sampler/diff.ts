@@ -118,7 +118,7 @@ export class Diff {
     relativeToNotebook?: number
   ): [string, string, DIFF_TYPE] {
     // first get text of the current nodey
-    let newText = this.sampler.renderNode(nodey);
+    let newText = this.sampler.nodeToText(nodey);
 
     // now get text of prior nodey
     let [priorNodey, fixedDiffKind] = this.getPrior(
@@ -129,7 +129,7 @@ export class Diff {
     let oldText = ""; // default to no string if no prior nodey
 
     // otherwise make oldText the value of priorNodey
-    if (priorNodey) oldText = this.sampler.renderNode(priorNodey);
+    if (priorNodey) oldText = this.sampler.nodeToText(priorNodey);
 
     return [newText, oldText, fixedDiffKind];
   }

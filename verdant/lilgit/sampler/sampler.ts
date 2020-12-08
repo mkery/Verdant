@@ -4,6 +4,7 @@ import {
   NodeyCode,
   NodeyMarkdown,
   NodeyOutput,
+  NodeyRawCell,
   SyntaxToken,
 } from "../nodey";
 
@@ -53,7 +54,7 @@ export class Sampler {
       let nodeyCode = nodey as NodeyCode;
       if (textFocus) {
         let index = -1;
-        let lines = this.renderNode(nodeyCode).toLowerCase().split("\n");
+        let lines = this.nodeToText(nodeyCode).toLowerCase().split("\n");
         let focusLine =
           lines.find((ln) => {
             let i = ln.toLowerCase().indexOf(textFocus.split(" ")[0]);
@@ -96,15 +97,15 @@ export class Sampler {
     return line;
   }
 
-  public renderNode(nodey: Nodey): string {
-    if (nodey instanceof NodeyCode) return this.renderCodeNode(nodey);
-    else if (nodey instanceof NodeyMarkdown)
-      return this.renderMarkdownNode(nodey);
-    else if (nodey instanceof NodeyOutput) return this.renderOutputNode(nodey);
+  public nodeToText(nodey: Nodey): string {
+    if (nodey instanceof NodeyCode) return this.codeToText(nodey);
+    else if (nodey instanceof NodeyMarkdown) return nodey.markdown || "";
+    else if (nodey instanceof NodeyRawCell) return nodey.literal;
+    else if (nodey instanceof NodeyOutput) return this.outputToText(nodey);
     return "";
   }
 
-  public renderCodeNode(nodey: NodeyCode): string {
+  public codeToText(nodey: NodeyCode): string {
     let literal = nodey.literal || "";
     if (nodey.content) {
       nodey.content.forEach((name) => {
@@ -112,36 +113,28 @@ export class Sampler {
           literal += name.tokens;
         } else {
           let child = this.history.store.get(name);
-          literal += this.renderCodeNode(child as NodeyCode);
+          literal += this.codeToText(child as NodeyCode);
         }
       });
     }
     return literal;
   }
 
-  private renderMarkdownNode(nodey: NodeyMarkdown): string {
-    return nodey.markdown || "";
+  private outputToText(nodey: NodeyOutput): string {
+    return nodey.raw
+      .map((out) => this.renderBaby.plaintextOutput(out) || "")
+      .join();
   }
 
-  private renderOutputNode(nodey: NodeyOutput): string {
-    return nodey.raw.map((out) => out.text || "").join();
-  }
-
-  public async renderArtifactCell(
-    nodey: Nodey,
-    elem: HTMLElement,
-    newText: string = ""
-  ) {
-    switch (nodey.typeChar) {
-      case "c":
-        this.plainCode(elem, newText);
-        break;
-      case "o":
-        await this.renderOutput(nodey as NodeyOutput, elem);
-        break;
-      case "m":
-        await this.renderBaby.renderMarkdown(elem, newText);
-        break;
+  public async renderArtifactCell(nodey: Nodey, elem: HTMLElement) {
+    if (nodey instanceof NodeyCode) {
+      this.plainCode(elem, nodey.literal);
+    } else if (nodey instanceof NodeyOutput) {
+      await this.renderOutput(nodey, elem);
+    } else if (nodey instanceof NodeyMarkdown) {
+      await this.renderBaby.renderMarkdown(elem, nodey.markdown);
+    } else if (nodey instanceof NodeyRawCell) {
+      this.plainCode(elem, nodey.literal);
     }
     return elem;
   }
