@@ -34,7 +34,7 @@ export class HistoryCheckpoints {
     let created = notebook.created;
     let index = this.timeTable[created];
 
-    while (this.checkpointList[index].notebook === notebook.version) {
+    while (this.checkpointList[index]?.notebook === notebook?.version) {
       checkpoints.push(this.checkpointList[index]);
       index++;
     }

@@ -23,14 +23,14 @@ export namespace GhostToNotebookConverter {
 
     // now create cells
     await Promise.all(
-      notebook.cells.map(async (name) => {
+      notebook?.cells?.map(async (name, index) => {
         let cell = history.store.get(name);
         let val: ICellModel;
 
         // create a CellModel with the Nodey's text
         if (cell instanceof NodeyCodeCell) {
           val = model.contentFactory.createCodeCell({});
-          val.value.text = cell.literal;
+          val.value.text = cell.literal || "";
 
           // create outputs if needed
           let output = history.store.getOutput(cell);
@@ -65,7 +65,7 @@ export namespace GhostToNotebookConverter {
           val.value.text = cell.literal || "";
         }
 
-        if (val) model.cells.push(val);
+        if (val) model.cells.insert(index, val);
       })
     );
 

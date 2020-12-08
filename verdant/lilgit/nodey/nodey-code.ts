@@ -8,7 +8,7 @@ export class NodeyCode extends Nodey {
   content: (SyntaxToken | string)[] = [];
   start: NodeyCode.Pos;
   end: NodeyCode.Pos;
-  literal: any;
+  literal: string | undefined;
   right: string | undefined; // lookup id for the next Nodey to the right of this one
 
   constructor(options: NodeyCode.Options) {
