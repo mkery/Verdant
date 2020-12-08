@@ -58,8 +58,10 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
       return await asyncEvery(outList_a, async (a, index) => {
         let b = outList_b[index];
 
-        let raw_a = JSON.stringify(a);
-        let raw_b = JSON.stringify(b);
+        // Important! ignore the execution count, only compare
+        // the data field of the output
+        let raw_a = JSON.stringify(a.data);
+        let raw_b = JSON.stringify(b.data);
 
         // retrieve from storage if needed
         if (OutputHistory.isOffsite(a)) {
