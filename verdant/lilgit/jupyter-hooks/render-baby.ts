@@ -59,10 +59,12 @@ export class RenderBaby {
   public plaintextOutput(raw: nbformat.IOutput): string | undefined {
     if (raw) {
       const data = raw?.data;
-      const plaintext = data["text/plain"]
-        ? (data["text/plain"] as string)
-        : undefined;
-      return plaintext;
+      if (data) {
+        const plaintext = data["text/plain"]
+          ? (data["text/plain"] as string)
+          : undefined;
+        return plaintext;
+      }
     }
   }
 
