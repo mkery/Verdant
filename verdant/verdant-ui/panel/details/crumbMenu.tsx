@@ -5,8 +5,8 @@ import {
   NodeyMarkdown,
   NodeyOutput,
   NodeyCodeCell,
-} from "../../../lilgit/nodey/";
-import { History } from "../../../lilgit/history/";
+} from "../../../verdant-model/nodey";
+import { History } from "../../../verdant-model/history";
 import {
   verdantState,
   ActiveTab,
@@ -14,7 +14,7 @@ import {
   showDetailOfNode,
 } from "../../redux/";
 import { connect } from "react-redux";
-import { Namer } from "../../../lilgit/sampler";
+import { Namer } from "../../../verdant-model/sampler";
 
 export type CrumbMenu_Props = {
   showSummary: () => void;

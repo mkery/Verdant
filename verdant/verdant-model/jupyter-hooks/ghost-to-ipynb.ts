@@ -1,11 +1,11 @@
 import { NotebookModel } from "@jupyterlab/notebook";
-import { History, OutputHistory } from "../history/";
+import { History, OutputHistory } from "../history";
 import {
   NodeyCodeCell,
   NodeyMarkdown,
   NodeyNotebook,
   NodeyRawCell,
-} from "../nodey/";
+} from "../nodey";
 import * as nbformat from "@jupyterlab/nbformat";
 import { CodeCellModel, ICellModel } from "@jupyterlab/cells";
 

@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Nodey, NodeyOutput, NodeyCode } from "../../../lilgit/nodey";
+import { Nodey, NodeyOutput, NodeyCode } from "../../../verdant-model/nodey";
 import VersionDetail from "./version-detail";
 import VersionHeader from "./version-header";
-import { Namer } from "../../../lilgit/sampler";
-import { History } from "../../../lilgit/history";
+import { Namer } from "../../../verdant-model/sampler";
+import { History } from "../../../verdant-model/history";
 import {
   verdantState,
   showDetailOfNode,
@@ -24,20 +24,6 @@ export type VersionPair_Props = {
 };
 
 class VersionPair extends React.Component<VersionPair_Props> {
-  /*componentDidUpdate(prevProps: VersionPair_Props) {
-    // if the data we're looking at changes, reset the view open/close state
-    let nameA;
-    if (Array.isArray(prevProps.nodey)) nameA = prevProps.nodey[0].artifactName;
-    else nameA = prevProps.nodey.artifactName;
-
-    let nameB;
-    if (Array.isArray(this.props.nodey))
-      nameB = this.props.nodey[0].artifactName;
-    else nameB = this.props.nodey.artifactName;
-
-    if (nameA && nameB && nameA != nameB) this.setState({ open: false });
-  }/*/
-
   render() {
     return (
       <div

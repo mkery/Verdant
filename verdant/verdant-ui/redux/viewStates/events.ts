@@ -1,5 +1,5 @@
-import { History } from "../../../lilgit/history/";
-import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
+import { History } from "../../../verdant-model/history";
+import { Checkpoint, CheckpointType } from "../../../verdant-model/checkpoint";
 import { verdantState } from "../state";
 
 export const INIT_EVENT_MAP = "INIT_EVENT_MAP";

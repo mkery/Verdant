@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
-import { History } from "../../../lilgit/history";
+import { Nodey, NodeyOutput } from "../../../verdant-model/nodey";
+import { History } from "../../../verdant-model/history";
 import {
   verdantState,
   showDetailOfNode,
@@ -9,7 +9,7 @@ import {
   closeResults,
 } from "../../redux/";
 import { connect } from "react-redux";
-import { Namer } from "../../../lilgit/sampler/";
+import { Namer } from "../../../verdant-model/sampler";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import Result from "./result";
 

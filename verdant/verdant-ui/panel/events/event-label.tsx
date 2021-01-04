@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Checkpoint, CheckpointType } from "../../../lilgit/checkpoint";
+import { Checkpoint, CheckpointType } from "../../../verdant-model/checkpoint";
 import { connect } from "react-redux";
 import { verdantState } from "../../redux/";
 
@@ -38,6 +38,8 @@ class NotebookEventLabel extends React.Component<
   EventLabel_Props,
   EventLabel_State
 > {
+  private _isMounted = false;
+
   constructor(props: EventLabel_Props) {
     super(props);
     let times: timeLabel[] = [];
@@ -51,8 +53,16 @@ class NotebookEventLabel extends React.Component<
     return <div className={LABEL}>{this.makeTimestamp()}</div>;
   }
 
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(prevProps) {
-    if (this.props.eventCount !== prevProps.eventCount) {
+    if (this._isMounted && this.props.eventCount !== prevProps.eventCount) {
       let times: timeLabel[] = [];
       this.props.events.map((ev) => this.addEvent(ev, times));
       this.setState({ times: times });

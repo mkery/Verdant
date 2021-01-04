@@ -1,5 +1,5 @@
 import { Checkpoint } from "../checkpoint";
-import { History } from "../history/";
+import { History } from "../history";
 import { VerNotebook } from "../notebook";
 
 // 1. event begins

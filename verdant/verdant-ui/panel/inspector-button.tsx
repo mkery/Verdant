@@ -8,8 +8,18 @@ class InspectButton extends React.Component<{
   off: () => void;
   on: () => void;
 }> {
+  private _isMounted = false;
+
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(prevProps) {
-    if (!this.props.active && prevProps.active) {
+    if (this._isMounted && !this.props.active && prevProps.active) {
       this.props.off();
     }
   }

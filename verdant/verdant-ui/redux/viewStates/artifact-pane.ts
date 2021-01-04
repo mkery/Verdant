@@ -1,4 +1,4 @@
-import { Nodey } from "../../../lilgit/nodey/";
+import { Nodey } from "../../../verdant-model/nodey";
 import { verdantState } from "../state";
 import { Wishbone } from "../../panel/details/wishbone";
 

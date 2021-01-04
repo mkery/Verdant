@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Checkpoint } from "../../../lilgit/checkpoint";
+import { Checkpoint } from "../../../verdant-model/checkpoint";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import { verdantState, dateOpen, dateClose, eventState } from "../../redux/";
 import NotebookEventDateBundle from "./event-date-bundle";

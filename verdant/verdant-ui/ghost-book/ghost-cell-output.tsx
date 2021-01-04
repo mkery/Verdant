@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Namer, DIFF_TYPE } from "../../lilgit/sampler";
-import { History } from "../../lilgit/history";
-import { NodeyOutput, Nodey } from "../../lilgit/nodey";
+import { Namer, DIFF_TYPE } from "../../verdant-model/sampler";
+import { History } from "../../verdant-model/history";
+import { NodeyOutput, Nodey } from "../../verdant-model/nodey";
 import { connect } from "react-redux";
 import { verdantState, showDetailOfNode } from "../redux/";
 
@@ -25,6 +25,8 @@ class GhostCellOutput extends React.Component<
   GhostCellOutput_Props,
   GhostCellOutput_State
 > {
+  private _isMounted;
+
   /*
    * Component to render output of a code ghost cell.
    * */
@@ -36,18 +38,26 @@ class GhostCellOutput extends React.Component<
     this.state = {
       sample: "",
     };
+    this._isMounted = false;
   }
 
   componentDidMount() {
+    this._isMounted = true;
+
     this.updateSample();
   }
 
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(priorProps: GhostCellOutput_Props) {
-    if (
-      this.props.notebookVer !== priorProps.notebookVer ||
-      this.props.diff !== priorProps.diff
-    )
-      this.updateSample();
+    if (this._isMounted)
+      if (
+        this.props.notebookVer !== priorProps.notebookVer ||
+        this.props.diff !== priorProps.diff
+      )
+        this.updateSample();
   }
 
   render() {

@@ -1,9 +1,9 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { History } from "../../lilgit/history";
-import { Checkpoint } from "../../lilgit/checkpoint";
+import { History } from "../../verdant-model/history";
+import { Checkpoint } from "../../verdant-model/checkpoint";
 import { verdantState, showEvent, changeDiffType } from "../redux/";
-import { DIFF_TYPE } from "../../lilgit/sampler/";
+import { DIFF_TYPE } from "../../verdant-model/sampler";
 
 import {
   ChevronLeftIcon,
@@ -11,7 +11,7 @@ import {
   ChevronDownIcon,
   ExportIcon,
 } from "../icons";
-import { Namer } from "../../lilgit/sampler/";
+import { Namer } from "../../verdant-model/sampler";
 
 /* CSS Constants */
 const JP_TOOLBAR = "jp-Toolbar";

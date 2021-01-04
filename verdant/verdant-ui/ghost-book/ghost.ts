@@ -10,7 +10,7 @@ import {
 } from "../redux/";
 import { Widget } from "@lumino/widgets";
 import { GhostBook } from "./ghost-book";
-import { Namer } from "../../lilgit/sampler/";
+import { Namer } from "../../verdant-model/sampler";
 import { Message } from "@lumino/messaging";
 
 const GHOST_BOOK_ICON = "v-Verdant-GhostBook-icon";

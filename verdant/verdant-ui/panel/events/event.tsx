@@ -3,8 +3,8 @@ import { connect } from "react-redux";
 import NotebookEventLabel from "./event-label";
 import NotebookEventMap from "./event-map";
 import { eventState, verdantState } from "../../redux/";
-import { NodeyNotebook } from "../../../lilgit/nodey";
-import { Namer } from "../../../lilgit/sampler/";
+import { NodeyNotebook } from "../../../verdant-model/nodey";
+import { Namer } from "../../../verdant-model/sampler";
 
 type react_NotebookEvent_Props = {
   date_id: number;

@@ -1,9 +1,9 @@
 import { Store } from "redux";
 import { Cell } from "@jupyterlab/cells";
-import { AST } from "../lilgit/analysis/ast";
-import { History } from "../lilgit/history/";
-import { VerNotebook } from "../lilgit/notebook";
-import { VerCell } from "../lilgit/cell";
+import { AST } from "../verdant-model/analysis/ast";
+import { History } from "../verdant-model/history";
+import { VerNotebook } from "../verdant-model/notebook";
+import { VerCell } from "../verdant-model/cell";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import {
   showDetailOfNode,
@@ -11,9 +11,9 @@ import {
   updateCheckpoint,
   initEventMap,
 } from "./redux/";
-import { Nodey } from "../lilgit/nodey/";
+import { Nodey } from "../verdant-model/nodey";
 import { VerdantLog } from "./logger";
-import { NotebookEvent } from "../lilgit/notebook-events";
+import { NotebookEvent } from "../verdant-model/notebook-events";
 
 export class VerdantNotebook extends VerNotebook {
   private store: Store;

@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Nodey, NodeyCode, NodeyOutput } from "../../../lilgit/nodey";
-import { History } from "../../../lilgit/history";
+import { Nodey, NodeyCode, NodeyOutput } from "../../../verdant-model/nodey";
+import { History } from "../../../verdant-model/history";
 import { verdantState } from "../../redux/index";
 import { connect } from "react-redux";
 import VersionDetail from "./version-detail";

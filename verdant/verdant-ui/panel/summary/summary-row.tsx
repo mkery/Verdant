@@ -1,15 +1,15 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { verdantState } from "../../redux/";
-import { History } from "../../../lilgit/history/";
+import { History } from "../../../verdant-model/history";
 import { RowPreview } from "./row-preview";
 import {
   NodeyCell,
   Nodey,
   NodeyCode,
   NodeyOutput,
-} from "../../../lilgit/nodey";
-import { Namer } from "../../../lilgit/sampler";
+} from "../../../verdant-model/nodey";
+import { Namer } from "../../../verdant-model/sampler";
 
 type SummaryRow_Props = {
   history?: History;

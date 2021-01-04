@@ -1,10 +1,10 @@
-import { History } from "../../../lilgit/history/";
-import { Nodey, NodeyCodeCell } from "../../../lilgit/nodey/";
-import { Sampler } from "../../../lilgit/sampler/";
-import { VerNotebook } from "../../../lilgit/notebook";
+import { History } from "../../../verdant-model/history";
+import { Nodey, NodeyCodeCell } from "../../../verdant-model/nodey";
+import { Sampler } from "../../../verdant-model/sampler";
+import { VerNotebook } from "../../../verdant-model/notebook";
 import { CodeCell, Cell, MarkdownCell } from "@jupyterlab/cells";
 import { OutputArea } from "@jupyterlab/outputarea";
-import { VerCell } from "../../../lilgit/cell";
+import { VerCell } from "../../../verdant-model/cell";
 
 const WISHBONE_HIGHLIGHT = "v-VerdantPanel-wishbone-highlight";
 const WISHBONE_HIGHLIGHT_CODE = "v-VerdantPanel-wishbone-code-highlight";

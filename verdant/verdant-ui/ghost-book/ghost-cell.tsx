@@ -1,11 +1,16 @@
 import * as React from "react";
-import { NodeyCode, NodeyCell, Nodey, NodeyOutput } from "../../lilgit/nodey/";
-import { Namer } from "../../lilgit/sampler/";
+import {
+  NodeyCode,
+  NodeyCell,
+  Nodey,
+  NodeyOutput,
+} from "../../verdant-model/nodey";
+import { Namer } from "../../verdant-model/sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
 import { verdantState, focusGhostCell, showDetailOfNode } from "../redux/";
-import { ChangeType } from "../../lilgit/checkpoint/";
-import { DiffCell } from "../../lilgit/sampler/diff";
+import { ChangeType } from "../../verdant-model/checkpoint";
+import { DiffCell } from "../../verdant-model/sampler/diff";
 
 /* CSS Constants */
 const CONTAINER = "v-Verdant-GhostBook-container";

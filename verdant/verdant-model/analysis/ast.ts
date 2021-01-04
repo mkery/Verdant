@@ -1,8 +1,8 @@
 import { Notebook } from "@jupyterlab/notebook";
-import { History } from "../history/";
+import { History } from "../history";
 import { Cell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../checkpoint";
-import { NodeyNotebook } from "../nodey/";
+import { NodeyNotebook } from "../nodey";
 import { ASTCreate } from "./ast-create";
 
 export class AST {

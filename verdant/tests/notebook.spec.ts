@@ -5,13 +5,13 @@ import { Context } from "@jupyterlab/docregistry";
 import { NBTestUtils } from "@jupyterlab/testutils";
 import { RenderMimeRegistry } from "@jupyterlab/rendermime";
 
-import { RenderBaby } from "../lilgit/jupyter-hooks/render-baby";
-import { FileManager } from "../lilgit/jupyter-hooks/file-manager";
-import { History } from "../lilgit/history";
-import { AST } from "../lilgit/analysis/ast";
+import { RenderBaby } from "../verdant-model/jupyter-hooks/render-baby";
+import { FileManager } from "../verdant-model/jupyter-hooks/file-manager";
+import { History } from "../verdant-model/history";
+import { AST } from "../verdant-model/analysis/ast";
 
 import * as utils from "./jupyterlab_utils";
-import { VerNotebook } from "../lilgit/notebook";
+import { VerNotebook } from "../verdant-model/notebook";
 
 const server = new JupyterServer();
 

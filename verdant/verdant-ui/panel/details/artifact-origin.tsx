@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Nodey } from "../../../lilgit/nodey";
-import { Namer } from "../../../lilgit/sampler";
+import { Nodey } from "../../../verdant-model/nodey";
+import { Namer } from "../../../verdant-model/sampler";
 import Artifact from "./artifact";
 
 export type Origin_Props = {

@@ -23,7 +23,7 @@ import { IDocumentManager } from "@jupyterlab/docmanager";
 
 import { NotebookPanel } from "@jupyterlab/notebook";
 
-import { FileManager } from "./lilgit/jupyter-hooks/file-manager";
+import { FileManager } from "./verdant-model/jupyter-hooks/file-manager";
 
 import { StackedPanel, Widget } from "@lumino/widgets";
 
@@ -42,17 +42,17 @@ import "../style/search.css";
 import "../style/artifact-details.css";
 const verdantIconSvgStr = require("../style/img/log-icon-4.svg");
 
-import { AST } from "./lilgit/analysis/ast";
+import { AST } from "./verdant-model/analysis/ast";
 
 import { VerdantNotebook } from "./verdant-ui/verdant-notebook";
 
-import { History } from "./lilgit/history/";
+import { History } from "./verdant-model/history";
 
 import { VerdantPanel } from "./verdant-ui/verdant-panel";
 
 import { VerdantLanding } from "./verdant-ui/verdant-landing";
 
-import { RenderBaby } from "./lilgit/jupyter-hooks/render-baby";
+import { RenderBaby } from "./verdant-model/jupyter-hooks/render-baby";
 
 export const verdantIcon = new LabIcon({
   name: "verdant",

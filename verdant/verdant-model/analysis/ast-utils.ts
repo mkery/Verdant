@@ -1,6 +1,6 @@
-import { NodeyCode, NodeyCodeCell } from "../nodey/";
+import { NodeyCode, NodeyCodeCell } from "../nodey";
 import { jsn } from "../notebook";
-import { History } from "../history/";
+import { History } from "../history";
 import { log } from "../notebook";
 
 type Range = { start: Pos; end: Pos };

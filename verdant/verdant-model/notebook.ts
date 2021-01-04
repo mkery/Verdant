@@ -3,7 +3,7 @@ import { PromiseDelegate } from "@lumino/coreutils";
 import { NotebookPanel } from "@jupyterlab/notebook";
 import { NotebookListen } from "./jupyter-hooks/notebook-listen";
 import { Cell, ICellModel } from "@jupyterlab/cells";
-import { History } from "./history/";
+import { History } from "./history";
 import { AST } from "./analysis/ast";
 import { VerCell } from "./cell";
 import { NodeyNotebook, NodeyCell } from "./nodey";

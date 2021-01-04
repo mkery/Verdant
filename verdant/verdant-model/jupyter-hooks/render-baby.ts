@@ -12,7 +12,7 @@ import {
   IOutputModel,
 } from "@jupyterlab/rendermime";
 
-import { NodeyOutput } from "../../lilgit/nodey/";
+import { NodeyOutput } from "../nodey";
 import { OutputHistory } from "../history";
 import { FileManager } from "./file-manager";
 

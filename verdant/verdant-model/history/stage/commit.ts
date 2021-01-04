@@ -1,5 +1,5 @@
 import { FileManager } from "../../jupyter-hooks/file-manager";
-import { Checkpoint, ChangeType, CellRunData } from "../../checkpoint/";
+import { Checkpoint, ChangeType, CellRunData } from "../../checkpoint";
 import {
   NodeyCell,
   Nodey,
@@ -8,9 +8,9 @@ import {
   NodeyNotebook,
   NodeyMarkdown,
   NodeyRawCell,
-} from "../../nodey/";
+} from "../../nodey";
 import { History } from "../history";
-import { CodeHistory } from "../store/";
+import { CodeHistory } from "../store";
 import { Stage } from "./stage";
 
 export class Commit {

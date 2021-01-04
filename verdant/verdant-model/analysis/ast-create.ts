@@ -1,5 +1,5 @@
 import { jsn } from "../notebook";
-import { History, CodeHistory } from "../history/";
+import { History, CodeHistory } from "../history";
 import { CodeCell, MarkdownCell, Cell, RawCell } from "@jupyterlab/cells";
 import { ASTUtils } from "./ast-utils";
 import { Checkpoint } from "../checkpoint";
@@ -12,7 +12,7 @@ import {
   NodeyNotebook,
   NodeyOutput,
   NodeyRawCell,
-} from "../nodey/";
+} from "../nodey";
 
 export class ASTCreate {
   history: History;

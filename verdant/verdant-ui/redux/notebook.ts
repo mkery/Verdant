@@ -1,6 +1,6 @@
 import { verdantState } from "./state";
-import { History } from "../../lilgit/history/";
-import { VerCell } from "../../lilgit/cell";
+import { History } from "../../verdant-model/history";
+import { VerCell } from "../../verdant-model/cell";
 import { INIT_EVENT_MAP, UPDATE_CHECKPOINT } from "./viewStates/events";
 
 const FOCUS_CELL = "FOCUS_CELL";

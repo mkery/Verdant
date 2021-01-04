@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
-import { History } from "../../../lilgit/history";
-import { Checkpoint } from "../../../lilgit/checkpoint";
+import { Nodey, NodeyOutput } from "../../../verdant-model/nodey";
+import { History } from "../../../verdant-model/history";
+import { Checkpoint } from "../../../verdant-model/checkpoint";
 import {
   verdantState,
   showDetailOfNode,
@@ -9,7 +9,7 @@ import {
   scrollToGhostCell,
 } from "../../redux/";
 import { connect } from "react-redux";
-import { Namer } from "../../../lilgit/sampler";
+import { Namer } from "../../../verdant-model/sampler";
 
 export type VersionHeader_Props = {
   history: History;

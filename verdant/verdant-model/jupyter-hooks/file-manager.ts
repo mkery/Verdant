@@ -6,7 +6,7 @@ import { Contents, ContentsManager } from "@jupyterlab/services";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { OutputHistory, History } from "../history/";
+import { OutputHistory, History } from "../history";
 
 import * as nbformat from "@jupyterlab/nbformat";
 

@@ -4,7 +4,7 @@ import {
   NodeyCode,
   NodeyRawCell,
   NodeyCell,
-} from "../../nodey/";
+} from "../../nodey";
 import { History } from "../history";
 import { OutputHistory } from "../store";
 import { IOutput } from "@jupyterlab/nbformat";

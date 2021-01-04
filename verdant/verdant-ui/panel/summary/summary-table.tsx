@@ -1,6 +1,6 @@
 import * as React from "react";
-import { History } from "../../../lilgit/history";
-import { Nodey } from "../../../lilgit/nodey";
+import { History } from "../../../verdant-model/history";
+import { Nodey } from "../../../verdant-model/nodey";
 import { connect } from "react-redux";
 import { verdantState, showDetailOfNode, artifactState } from "../../redux/";
 import { SummaryRow } from "./summary-row";

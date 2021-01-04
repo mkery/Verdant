@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Nodey } from "../../../lilgit/nodey/";
-import { History } from "../../../lilgit/history/";
-import { DIFF_TYPE } from "../../../lilgit/sampler";
+import { Nodey } from "../../../verdant-model/nodey";
+import { History } from "../../../verdant-model/history";
+import { DIFF_TYPE } from "../../../verdant-model/sampler";
 import VersionHeader from "./version-header";
 import { verdantState, selectArtifactDetail } from "../../redux/";
 import { connect } from "react-redux";
@@ -16,6 +16,7 @@ export type Version_Props = {
 
 class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   myRef: React.RefObject<HTMLDivElement>;
+  private _isMounted = false;
 
   constructor(props: Version_Props) {
     super(props);
@@ -26,6 +27,7 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   }
 
   componentDidMount() {
+    this._isMounted = true;
     this.getSample();
     if (this.props.selected) {
       setTimeout(() => {
@@ -38,8 +40,13 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
     }
   }
 
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(prevProps: Version_Props) {
-    if (this.props.nodey.name != prevProps.nodey.name) this.getSample();
+    if (this._isMounted && this.props.nodey.name != prevProps.nodey.name)
+      this.getSample();
   }
 
   render() {

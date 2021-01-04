@@ -1,13 +1,13 @@
 import * as React from "react";
-import { Nodey, NodeyOutput } from "../../../lilgit/nodey";
-import { History } from "../../../lilgit/history";
+import { Nodey, NodeyOutput } from "../../../verdant-model/nodey";
+import { History } from "../../../verdant-model/history";
 import {
   verdantState,
   showDetailOfNode,
   scrollToGhostCell,
 } from "../../redux/";
 import { connect } from "react-redux";
-import { Namer } from "../../../lilgit/sampler/";
+import { Namer } from "../../../verdant-model/sampler";
 
 type Result_Props = {
   result: Nodey;

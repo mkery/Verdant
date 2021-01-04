@@ -1,6 +1,6 @@
 import { verdantState } from "../state";
-import { Checkpoint } from "../../../lilgit/checkpoint";
-import { DIFF_TYPE } from "../../../lilgit/sampler";
+import { Checkpoint } from "../../../verdant-model/checkpoint";
+import { DIFF_TYPE } from "../../../verdant-model/sampler";
 
 const INIT_GHOSTBOOK = "INIT_GHOSTBOOK";
 const SWITCH_GHOST_CELL = "SWITCH_GHOST_CELL";

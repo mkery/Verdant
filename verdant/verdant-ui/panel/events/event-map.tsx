@@ -1,8 +1,8 @@
 import * as React from "react";
-import { ChangeType, Checkpoint } from "../../../lilgit/checkpoint";
-import { CellMap, Namer } from "../../../lilgit/sampler";
-import { History } from "../../../lilgit/history/";
-import { Nodey, NodeyCodeCell } from "../../../lilgit/nodey";
+import { ChangeType, Checkpoint } from "../../../verdant-model/checkpoint";
+import { CellMap, Namer } from "../../../verdant-model/sampler";
+import { History } from "../../../verdant-model/history";
+import { Nodey, NodeyCodeCell } from "../../../verdant-model/nodey";
 import { verdantState, showDetailOfNode } from "../../redux/";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
@@ -24,6 +24,8 @@ class NotebookEventMap extends React.Component<
   EventMap_Props,
   { cellMap: CellMap.map }
 > {
+  private _isMounted;
+
   constructor(props) {
     super(props);
     let checkpoints = this.props.checkpoints;
@@ -33,8 +35,16 @@ class NotebookEventMap extends React.Component<
     };
   }
 
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(oldProps) {
-    if (oldProps.eventCount !== this.props.eventCount) {
+    if (this._isMounted && oldProps.eventCount !== this.props.eventCount) {
       let checkpoints = this.props.checkpoints;
       let cellMap = CellMap.build(checkpoints, this.props.history);
       this.setState({ cellMap });

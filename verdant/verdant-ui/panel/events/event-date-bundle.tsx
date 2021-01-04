@@ -8,10 +8,10 @@ import {
   eventState,
 } from "../../redux/";
 import NotebookEventLabel from "./event-label";
-import { Checkpoint } from "../../../lilgit/checkpoint";
+import { Checkpoint } from "../../../verdant-model/checkpoint";
 import NotebookEventMap from "./event-map";
-import { Namer } from "../../../lilgit/sampler";
-import { History } from "../../../lilgit/history/";
+import { Namer } from "../../../verdant-model/sampler";
+import { History } from "../../../verdant-model/history";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 
 /* CSS Constants */

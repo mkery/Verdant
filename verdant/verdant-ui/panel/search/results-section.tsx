@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Nodey } from "../../../lilgit/nodey";
+import { Nodey } from "../../../verdant-model/nodey";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
 import ResultsSubSection from "./results-subsection";
 import { connect } from "react-redux";

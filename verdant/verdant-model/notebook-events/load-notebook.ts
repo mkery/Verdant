@@ -3,7 +3,7 @@ import { Cell } from "@jupyterlab/cells";
 import { CheckpointType } from "../checkpoint";
 import { VerCell } from "../cell";
 import { VerNotebook, log } from "../notebook";
-import { NodeyNotebook } from "../nodey/";
+import { NodeyNotebook } from "../nodey";
 
 export class LoadNotebook extends NotebookEvent {
   matchPrior: boolean;

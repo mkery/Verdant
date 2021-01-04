@@ -1,5 +1,5 @@
-import { NodeyNotebook } from "../nodey/";
-import { History } from "../history/";
+import { NodeyNotebook } from "../nodey";
+import { History } from "../history";
 import { CellRunData, CONVERT_ChangeType, ChangeType } from "../checkpoint";
 import { Checkpoint } from "../checkpoint";
 

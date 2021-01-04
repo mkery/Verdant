@@ -1,5 +1,5 @@
 import * as React from "react";
-import { History } from "../../lilgit/history";
+import { History } from "../../verdant-model/history";
 import SearchBar from "./search/search-bar";
 import ResultsSection from "./search/results-section";
 import { verdantState, searchResults, setResults, closeAll } from "../redux/";
@@ -15,8 +15,21 @@ type Search_Props = {
 };
 
 class Search extends React.Component<Search_Props> {
+  private _isMounted = false;
+
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(priorProps: Search_Props) {
-    if (priorProps.search_query !== this.props.search_query) {
+    if (
+      this._isMounted &&
+      priorProps.search_query !== this.props.search_query
+    ) {
       this.props.set_results([]);
       this.props.close_all();
       this.search();

@@ -1,5 +1,5 @@
-import { History } from "../../lilgit/history";
-import { Nodey } from "../../lilgit/nodey/";
+import { History } from "../../verdant-model/history";
+import { Nodey } from "../../verdant-model/nodey";
 import { ghostState, ghostReduce, ghostInitialState } from "./viewStates/ghost";
 import {
   eventMapState,
@@ -24,7 +24,7 @@ import {
   searchReducer,
 } from "./viewStates/search";
 import { Wishbone } from "../panel/details/wishbone";
-import { Checkpoint } from "../../lilgit/checkpoint";
+import { Checkpoint } from "../../verdant-model/checkpoint";
 
 const SET_GHOST_OPENER = "SET_GHOST_OPENER";
 const SWITCH_TAB = "SWITCH_TAB";

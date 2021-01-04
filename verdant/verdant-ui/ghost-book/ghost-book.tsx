@@ -5,8 +5,8 @@ import { connect } from "react-redux";
 import { Store } from "redux";
 import { Provider } from "react-redux";
 import { verdantState } from "../redux/";
-import { DIFF_TYPE, DiffCell } from "../../lilgit/sampler/diff";
-import { History } from "../../lilgit/history";
+import { DIFF_TYPE, DiffCell } from "../../verdant-model/sampler/diff";
+import { History } from "../../verdant-model/history";
 
 export interface GhostBook_Props {
   store: Store;
@@ -36,24 +36,33 @@ class CellContainer extends React.Component<
   GhostCellContainer_Props,
   { cells: DiffCell[] }
 > {
+  private _isMounted;
+
   constructor(props: GhostCellContainer_Props) {
     super(props);
     this.state = {
       cells: [],
     };
+    this._isMounted = false;
   }
 
   componentDidMount() {
+    this._isMounted = true;
     this.loadCells();
   }
 
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   componentDidUpdate(priorProps: GhostCellContainer_Props) {
-    if (
-      priorProps.diffKind !== this.props.diffKind ||
-      (priorProps.notebook_ver !== this.props.notebook_ver &&
-        this.props.notebook_ver > 0)
-    )
-      this.loadCells();
+    if (this._isMounted)
+      if (
+        priorProps.diffKind !== this.props.diffKind ||
+        (priorProps.notebook_ver !== this.props.notebook_ver &&
+          this.props.notebook_ver > 0)
+      )
+        this.loadCells();
   }
 
   render() {

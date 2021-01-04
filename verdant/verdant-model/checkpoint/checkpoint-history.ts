@@ -1,4 +1,4 @@
-import { History } from "../history/";
+import { History } from "../history";
 import { log } from "../notebook";
 import { CheckpointType } from "./constants";
 import { Checkpoint } from "./checkpoint";

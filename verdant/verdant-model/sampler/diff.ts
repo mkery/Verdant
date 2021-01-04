@@ -8,7 +8,7 @@ import {
   NodeyOutput,
   NodeyRawCell,
 } from "../nodey";
-import { Sampler, CellMap } from "../sampler";
+import { Sampler, CellMap } from ".";
 import { History } from "../history";
 import { ChangeType } from "../checkpoint";
 
@@ -345,7 +345,7 @@ export class Diff {
         part.value.forEach(() => {
           let cellA = A.cells[indexA];
           cellMap.push({ name: cellA, changes: [ChangeType.REMOVED] });
-          indexB++;
+          indexA++;
         });
       } else {
         // these cells are in both notebooks
@@ -374,7 +374,7 @@ export class Diff {
       }
     });
 
-    console.log("CURRENT DIFF CELL MAP", cellMap);
+    //console.log("CURRENT DIFF CELL MAP", cellMap);
 
     return cellMap;
   }

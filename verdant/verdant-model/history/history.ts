@@ -2,7 +2,7 @@ import { VerNotebook, log } from "../notebook";
 
 import { RenderBaby } from "../jupyter-hooks/render-baby";
 import { PromiseDelegate } from "@lumino/coreutils";
-import { Sampler } from "../sampler/";
+import { Sampler } from "../sampler";
 
 import { FileManager } from "../jupyter-hooks/file-manager";
 

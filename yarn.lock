@@ -1441,19 +1441,19 @@
     chalk "^4.0.0"
 
 "@jupyterlab/application@^2.1.0":
-  version "2.2.5"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/application/-/application-2.2.5.tgz#c8709705054ca566cc1efc29e3e65f4172a1ee7e"
-  integrity sha512-++j9LGUpgunf6e8n2d0ezBayjulKl5RtjdPkllP2xmpwup6Lj5Sufb1yFTRkFpKqTduR/vT0bafAsl9GTikLCQ==
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/application/-/application-2.2.6.tgz#4c505d7196f784c11d533b4539e7b2fbc5d664d6"
+  integrity sha512-pW/Cu+t3CYii52YncrbcRWSfAFTIlsDy8yMxgYqkG6TSsImca3Rix3o69jTu264Ct2UQzEWP4+6u2IqF5wziuw==
   dependencies:
     "@fortawesome/fontawesome-free" "^5.12.0"
-    "@jupyterlab/apputils" "^2.2.5"
-    "@jupyterlab/coreutils" "^4.2.4"
-    "@jupyterlab/docregistry" "^2.2.3"
-    "@jupyterlab/rendermime" "^2.2.3"
-    "@jupyterlab/rendermime-interfaces" "^2.2.0"
-    "@jupyterlab/services" "^5.2.4"
-    "@jupyterlab/statedb" "^2.2.4"
-    "@jupyterlab/ui-components" "^2.2.3"
+    "@jupyterlab/apputils" "^2.2.6"
+    "@jupyterlab/coreutils" "^4.2.5"
+    "@jupyterlab/docregistry" "^2.2.4"
+    "@jupyterlab/rendermime" "^2.2.4"
+    "@jupyterlab/rendermime-interfaces" "^2.2.1"
+    "@jupyterlab/services" "^5.2.5"
+    "@jupyterlab/statedb" "^2.2.5"
+    "@jupyterlab/ui-components" "^2.2.4"
     "@lumino/algorithm" "^1.2.3"
     "@lumino/application" "^1.8.4"
     "@lumino/commands" "^1.10.1"

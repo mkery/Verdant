@@ -1,6 +1,6 @@
-import { History } from "../../../lilgit/history";
+import { History } from "../../../verdant-model/history";
 
-import { NodeyCell, NodeyOutput } from "../../../lilgit/nodey";
+import { NodeyCell, NodeyOutput } from "../../../verdant-model/nodey";
 
 const CELL_SAMPLE = "v-VerdantPanel-cellList-sample";
 

@@ -1,5 +1,5 @@
 import { verdantState } from "../state";
-import { Nodey } from "../../../lilgit/nodey";
+import { Nodey } from "../../../verdant-model/nodey";
 
 const SEARCH_FOR = "SEARCH_FOR";
 const SET_RESULTS = "SET_RESULTS";

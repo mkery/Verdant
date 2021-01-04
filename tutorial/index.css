@@ -1,5 +1,5 @@
 html {
-  background-color: #ebe2e2;
+  background-color: #000e21;
 }
 
 body {
@@ -9,25 +9,26 @@ body {
   padding: 0px;
   margin: 0px;
   font-family: "Source Sans Pro", sans-serif;
-  font-weight: 200;
+  font-weight: 300;
   font-size: 14pt;
-  background-image: url(./images/coverImage.png);
-  background-size: cover;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  color: #212121;
+  background-color: #000e21;
+  background-image: linear-gradient(314deg, #1f3d0a 0%, #000e21 74%);
+
+  color: whitesmoke;
 }
 
 a {
-  font-weight: 400;
-  color: black;
+  font-family: "Courier New", Courier, monospace;
+  color: mediumspringgreen;
+  padding: 0px 4px;
+  background: darkslateblue;
 }
 
 h1 {
-  font-family: "Rubik", sans-serif;
-  font-size: 48pt;
-  margin: 0px;
-  color: #424;
+  font-family: "Bungee Hairline", cursive;
+  font-size: 40pt;
+  margin: 10px;
+  color: darkslategrey;
 }
 
 h2,
@@ -39,24 +40,37 @@ h5 {
 
 code {
   font-family: "Courier New", Courier, monospace;
-  background: darkblue;
-  color: lawngreen;
-  padding: 0px 2px;
+  color: mediumspringgreen;
+  padding: 0px 4px;
+  background: darkslateblue;
 }
 
 footer {
   padding: 10px;
   text-align: center;
   font-size: small;
-  background-color: #ebe2e2;
+  background-color: #000e21;
+}
+
+#nav {
+  text-align: right;
+  padding: 8px;
+  font-size: 12pt;
+}
+
+#nav img {
+  height: 1.25em;
+  width: auto;
+  vertical-align: middle;
+  margin: 0px 8px;
 }
 
 #header {
   text-align: center;
-  padding: 20px;
-  padding-top: 40px;
-  border-bottom: 3px solid #e1ffd7;
+  padding-bottom: 0px;
+  padding-top: 60pt;
   z-index: 3;
+  margin: 0px 20vw;
 }
 
 #header p {
@@ -65,8 +79,6 @@ footer {
 
 #content {
   flex: 1 1 auto;
-  border-bottom: 2px solid #e1ffd7;
-  background: rgb(255 255 255 / 70%);
 }
 
 .row {
@@ -74,10 +86,7 @@ footer {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-  background: white;
-  margin: 10px 0px;
-  border-bottom: 1px solid #e1ffd7;
-  border-top: 1px solid #e1ffd7;
+  margin: 10px 20px;
 }
 
 .col {
