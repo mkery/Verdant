@@ -1,10 +1,10 @@
 import * as React from "react";
-import SummaryTable from "./summary/summary-table";
-import InspectorButton from "./inspector-button";
-import { verdantState, artifactState } from "../redux/";
+import SummaryTable from "./summary-table";
+import InspectorButton from "../inspector-button";
+import { verdantState, artifactState } from "../../redux";
 import { connect } from "react-redux";
-import { Namer } from "../../verdant-model/sampler";
-import { History } from "../../verdant-model/history";
+import { Namer } from "../../../verdant-model/sampler";
+import { History } from "../../../verdant-model/history";
 
 const PANEL = "v-VerdantPanel-content";
 const HEADER = "v-VerdantPanel-tab-header";

@@ -1,8 +1,8 @@
 import * as React from "react";
-import { History } from "../../verdant-model/history";
-import SearchBar from "./search/search-bar";
-import ResultsSection from "./search/results-section";
-import { verdantState, searchResults, setResults, closeAll } from "../redux/";
+import { History } from "../../../verdant-model/history";
+import SearchBar from "./search-bar";
+import ResultsSection from "./results-section";
+import { verdantState, searchResults, setResults, closeAll } from "../../redux";
 import { connect } from "react-redux";
 
 type Search_Props = {

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Store } from "redux";
 import { Provider } from "react-redux";
-import Panel from "./panel/panel";
+import Panel from "./panel";
 
 /**
  * A widget which displays notebook-level history information

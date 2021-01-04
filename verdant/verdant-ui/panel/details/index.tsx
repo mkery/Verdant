@@ -1,11 +1,11 @@
 import * as React from "react";
-import InspectorButton from "./inspector-button";
-import { History } from "../../verdant-model/history";
-import CrumbMenu from "./details/crumbMenu";
-import Artifact from "./details/artifact";
-import ArtifactOrigin from "./details/artifact-origin";
-import { Nodey, NodeyCode } from "../../verdant-model/nodey";
-import { verdantState, showDetailOfNode } from "../redux/";
+import InspectorButton from "../inspector-button";
+import { History } from "../../../verdant-model/history";
+import CrumbMenu from "./crumbMenu";
+import Artifact from "./artifact";
+import ArtifactOrigin from "./artifact-origin";
+import { Nodey, NodeyCode } from "../../../verdant-model/nodey";
+import { verdantState, showDetailOfNode } from "../../redux";
 import { connect } from "react-redux";
 
 export type Details_Props = {

@@ -1,10 +1,10 @@
 import * as React from "react";
-import ArtifactDetails from "./artifact-details";
-import ArtifactSummary from "./artifact-summary";
-import EventMap from "./event-column";
-import Search from "./search-pane";
-import { ActiveTab, switchTab, verdantState } from "../redux/";
-import { SearchIcon } from "../icons/";
+import ArtifactDetails from "./details";
+import ArtifactSummary from "./summary";
+import EventMap from "./events";
+import Search from "./search";
+import { ActiveTab, switchTab, verdantState } from "../redux";
+import { SearchIcon } from "../icons";
 import { connect } from "react-redux";
 
 const PANEL_CONTAINER = "v-VerdantPanel-content-container";

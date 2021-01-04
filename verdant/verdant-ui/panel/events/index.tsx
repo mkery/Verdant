@@ -1,7 +1,7 @@
 import * as React from "react";
-import NotebookEventDate from "./events/event-date";
+import NotebookEventDate from "./event-date";
 import { connect } from "react-redux";
-import { verdantState, dateState } from "../redux/";
+import { verdantState, dateState } from "../../redux";
 
 const PANEL = "v-VerdantPanel-content";
 
