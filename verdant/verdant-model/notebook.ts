@@ -33,6 +33,13 @@ export class VerNotebook {
     return this._ready.promise;
   }
 
+  public setPanel(panel: NotebookPanel) {
+    // update if the active panel changes
+    this.view.setPanel(panel);
+    // update cells
+    this.init();
+  }
+
   private async init() {
     await this.view.ready;
 

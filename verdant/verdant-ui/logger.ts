@@ -2,8 +2,8 @@ import { VerNotebook } from "../verdant-model/notebook";
 import { Store } from "redux";
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
-// TODO stream log to file
 const DEBUG = true;
+const RECORD = false;
 
 export class VerdantLog {
   private notebook: VerNotebook | null = null;
@@ -12,8 +12,15 @@ export class VerdantLog {
   private fileIO: ContentsManager | null = null;
 
   log(msg: string, ...msg_list: string[]) {
-    let str = `${Date.now()} ${msg} ${msg_list.join(", ")}`;
-    this.logPending.push(str);
+    if (DEBUG) {
+      // print to browser console
+      console.log(msg);
+      if (msg_list.length > 0) console.log(msg_list.join(", "));
+    }
+    if (RECORD) {
+      let str = `${Date.now()} ${msg} ${msg_list.join(", ")}`;
+      this.logPending.push(str);
+    }
   }
 
   async setNotebook(notebook: VerNotebook) {
@@ -104,13 +111,6 @@ export class VerdantLog {
 
 /* Function for redux middleware */
 const verLogger = (log: VerdantLog, store: Store) => (next) => (action) => {
-  if (DEBUG)
-    console.log(
-      "REDUX",
-      action.type,
-      action,
-      JSON.parse(JSON.stringify(store.getState()))
-    );
   log.recordAction(action, store);
   let result = next(action);
   return result;

@@ -4,6 +4,7 @@ import {
   JupyterFrontEndPlugin,
   LabShell,
 } from "@jupyterlab/application";
+import { toArray } from "@lumino/algorithm";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
@@ -90,6 +91,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     sidePanel = new StackedPanel();
     openGhostBook = (store, ver) => __openGhostBook(app, store, ver);
     updateVerdantView = () => __layoutChange(app);
+    shutDownInstance = (panel) => __shutDownInstance(app, panel);
 
     // Set up icon for Verdant tool in the main editor side panel
     restorer.add(sidePanel, "v-VerdantPanel");
@@ -121,7 +123,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 /*
  * Singletons used by all instances
  */
-const instances: VerdantInstance[] = [];
+let instances: VerdantInstance[] = [];
 let activeInstance: VerdantInstance;
 let renderBaby: RenderBaby;
 let fileManager: FileManager;
@@ -129,6 +131,7 @@ let sidePanel: StackedPanel;
 let ghostWidget: Ghost;
 let updateVerdantView: () => void;
 let openGhostBook: (store: Store, ver: number) => void;
+let shutDownInstance: (panel: NotebookPanel) => void;
 let landingPage: Widget;
 
 type VerdantInstance = {
@@ -190,6 +193,16 @@ function getInstance(panel: NotebookPanel) {
   let verInst = instances.find(
     (inst) => inst.panel.sessionContext.path === whichNotebook
   );
+  /*
+   * This is important, if the panels don't match, we need to make sure
+   * this instance has the right panel for the open notebook, or things like
+   * inspector won't work
+   */
+  if (verInst && verInst.panel !== panel) {
+    verInst.panel = panel; //update to new panel
+    verInst.notebook.setPanel(panel); // update to new panel
+  }
+
   if (!verInst) {
     verInst = createVerdantInstance(panel);
     instances.push(verInst);
@@ -253,10 +266,28 @@ function createVerdantPanelUI(store: Store): Widget {
 /*
  * Close a Verdant instance
  */
-function shutDownInstance(panel: NotebookPanel) {
-  // TODO
-  instances.find((i) => i.panel === panel)?.logger?.log("Notebook Closed");
-  updateVerdantView();
+function __shutDownInstance(app: JupyterFrontEnd, panel: NotebookPanel) {
+  const index = instances.findIndex((i) => i.panel === panel);
+  if (index) {
+    const inst = instances[index];
+    const path = inst.panel.sessionContext.path;
+    if (activeInstance === inst) activeInstance = null;
+
+    // dispose instance only if it's notebook is not open in another tab
+    setTimeout(() => {
+      // wait 2 minutes to see if they're gonna open up this tab again
+      let openNotebook = toArray(app.shell.widgets("main")).find((widg) => {
+        if (widg instanceof NotebookPanel)
+          return widg.sessionContext.path === path;
+      });
+      if (!openNotebook) {
+        instances = instances.splice(index, 1);
+      }
+    }, 120000);
+
+    inst?.logger?.log("Notebook Closed");
+    updateVerdantView();
+  }
 }
 
 /*

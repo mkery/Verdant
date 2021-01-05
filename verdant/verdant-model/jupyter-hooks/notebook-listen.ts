@@ -50,6 +50,12 @@ export class NotebookListen {
     return this._notebookPanel;
   }
 
+  setPanel(panel: NotebookPanel): void {
+    // update to a new panel
+    this._notebookPanel = panel;
+    this.init();
+  }
+
   get notebook(): Notebook {
     return this._notebook;
   }

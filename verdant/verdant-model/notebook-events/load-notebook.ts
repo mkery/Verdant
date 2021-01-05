@@ -34,6 +34,7 @@ export class LoadNotebook extends NotebookEvent {
       );
 
     // initialize the cells of the notebook
+    this.notebook.cells = [];
     this.notebook.view.notebook.widgets.forEach((item, index) => {
       if (item instanceof Cell) {
         let name = newNotebook.cells[index];
