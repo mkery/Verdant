@@ -1,6 +1,5 @@
 import { ICellModel } from "@jupyterlab/cells";
 import { NotebookEvent } from ".";
-import { CheckpointType } from "../checkpoint";
 import { VerNotebook } from "../notebook";
 
 export class RunCell extends NotebookEvent {
@@ -9,12 +8,6 @@ export class RunCell extends NotebookEvent {
   constructor(notebook: VerNotebook, cellModel: ICellModel) {
     super(notebook);
     this.cellModel = cellModel;
-  }
-
-  createCheckpoint() {
-    this.checkpoint = this.history.checkpoints.generateCheckpoint(
-      CheckpointType.RUN
-    );
   }
 
   async modelUpdate() {

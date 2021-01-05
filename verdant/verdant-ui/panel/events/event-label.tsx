@@ -1,23 +1,12 @@
 import * as React from "react";
-import { Checkpoint, CheckpointType } from "../../../verdant-model/checkpoint";
+import { Checkpoint } from "../../../verdant-model/checkpoint";
 import { connect } from "react-redux";
 import { verdantState } from "../../redux/";
 
 const LABEL = "Verdant-events-label";
 
-// Used to track the counts of each kind of event for label construction
-interface eventCounts {
-  added: number;
-  deleted: number;
-  run: number;
-  load: number;
-  save: number;
-  moved: number;
-}
-
 type timeLabel = {
   time: string;
-  eventCounts: eventCounts;
   events: Checkpoint[];
 };
 
@@ -88,57 +77,12 @@ class NotebookEventLabel extends React.Component<
       matchTime = {
         time: time,
         events: [],
-        eventCounts: {
-          added: 0,
-          deleted: 0,
-          moved: 0,
-          load: 0,
-          run: 0,
-          save: 0,
-        },
       };
       times.push(matchTime);
     }
 
     // add to start since assume it will be a later time
     matchTime.events.unshift(event);
-    matchTime.eventCounts = this.countEvents(matchTime.events);
-  }
-
-  private countEvents(events: Checkpoint[]): eventCounts {
-    const counts: eventCounts = {
-      added: 0,
-      deleted: 0,
-      moved: 0,
-      load: 0,
-      run: 0,
-      save: 0,
-    };
-
-    events.forEach((ev) => {
-      switch (ev.checkpointType) {
-        case CheckpointType.ADD:
-          counts.added++;
-          break;
-        case CheckpointType.DELETE:
-          counts.deleted++;
-          break;
-        case CheckpointType.RUN:
-          counts.run++;
-          break;
-        case CheckpointType.LOAD:
-          counts.load++;
-          break;
-        case CheckpointType.SAVE:
-          counts.save++;
-          break;
-        case CheckpointType.MOVED:
-          counts.moved++;
-          break;
-      }
-    });
-
-    return counts;
   }
 }
 

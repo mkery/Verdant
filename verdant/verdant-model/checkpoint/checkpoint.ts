@@ -1,17 +1,15 @@
-import { CheckpointType, CellRunData } from "./constants";
+import { CellRunData } from "./constants";
 
 export class Checkpoint {
   readonly timestamp: number;
   notebook: number;
   readonly targetCells: CellRunData[];
-  readonly checkpointType: CheckpointType;
 
   //runID, timestamp, notebook, runCells, output
   constructor(options: { [key: string]: any }) {
     this.timestamp = options.timestamp;
     this.notebook = options.notebook;
     this.targetCells = options.targetCells;
-    this.checkpointType = options.checkpointType;
   }
 
   get id() {
@@ -20,7 +18,6 @@ export class Checkpoint {
 
   public toJSON(): Checkpoint.SERIALIZE {
     return {
-      checkpointType: this.checkpointType,
       timestamp: this.timestamp,
       notebook: this.notebook,
       targetCells: this.targetCells,
@@ -31,7 +28,6 @@ export class Checkpoint {
 export namespace Checkpoint {
   export function fromJSON(dat: Checkpoint.SERIALIZE): Checkpoint {
     return new Checkpoint({
-      checkpointType: dat.checkpointType,
       timestamp: dat.timestamp,
       notebook: dat.notebook,
       targetCells: dat.targetCells,
@@ -39,7 +35,6 @@ export namespace Checkpoint {
   }
 
   export interface SERIALIZE {
-    checkpointType: CheckpointType;
     timestamp: number;
     notebook: number;
     targetCells: CellRunData[];

@@ -1,5 +1,4 @@
 import { NotebookEvent } from ".";
-import { CheckpointType } from "../checkpoint";
 import { VerNotebook } from "../notebook";
 
 export class DeleteCell extends NotebookEvent {
@@ -8,12 +7,6 @@ export class DeleteCell extends NotebookEvent {
   constructor(notebook: VerNotebook, cell_index: number) {
     super(notebook);
     this.cell_index = cell_index;
-  }
-
-  createCheckpoint() {
-    this.checkpoint = this.history.checkpoints.generateCheckpoint(
-      CheckpointType.DELETE
-    );
   }
 
   async modelUpdate() {

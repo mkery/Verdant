@@ -1,5 +1,4 @@
 import { NotebookEvent } from ".";
-import { CheckpointType } from "../checkpoint";
 import { VerCell } from "../cell";
 import { VerNotebook } from "../notebook";
 
@@ -18,12 +17,6 @@ export class MoveCell extends NotebookEvent {
     this.cell = cell;
     this.oldPos = oldPos;
     this.newPos = newPos;
-  }
-
-  createCheckpoint() {
-    this.checkpoint = this.history.checkpoints.generateCheckpoint(
-      CheckpointType.MOVED
-    );
   }
 
   async modelUpdate() {

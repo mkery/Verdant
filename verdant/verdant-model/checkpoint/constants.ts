@@ -21,29 +21,6 @@ const changeVal = {
 export const GREATER_CHANGETYPE = (a: ChangeType, b: ChangeType) =>
   changeVal[a] > changeVal[b] ? a : b;
 
-// old log format for conversion
-export const CONVERT_ChangeType = (num) => {
-  const convert = {
-    2: ChangeType.CHANGED,
-    1.5: ChangeType.REMOVED,
-    1: ChangeType.ADDED,
-    3: ChangeType.MOVED,
-    4: ChangeType.OUTPUT_CHANGED,
-  };
-  return convert[num];
-};
-
-// made verbose for log readability
-export enum CheckpointType {
-  RUN = "run",
-  SAVE = "notebook saved",
-  LOAD = "notebook loaded",
-  ADD = "cell added",
-  DELETE = "cell deleted",
-  MOVED = "cell moved",
-  SWITCH_CELL_TYPE = "cell type changed",
-}
-
 export type CellRunData = {
   cell: string;
   changeType: ChangeType;

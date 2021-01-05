@@ -1,6 +1,5 @@
 import { NotebookEvent } from ".";
 import { Cell } from "@jupyterlab/cells";
-import { CheckpointType } from "../checkpoint";
 import { VerNotebook } from "../notebook";
 
 export class SwitchCellType extends NotebookEvent {
@@ -11,12 +10,6 @@ export class SwitchCellType extends NotebookEvent {
     super(notebook);
     this.cell = cell;
     this.cell_index = cell_index;
-  }
-
-  createCheckpoint() {
-    this.checkpoint = this.history.checkpoints.generateCheckpoint(
-      CheckpointType.SWITCH_CELL_TYPE
-    );
   }
 
   async modelUpdate() {

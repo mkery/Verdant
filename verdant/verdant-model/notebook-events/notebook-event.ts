@@ -19,7 +19,7 @@ export abstract class NotebookEvent {
   public runEvent(): Promise<Checkpoint> {
     let ev = new Promise<Checkpoint>(async (accept) => {
       // create a checkpoint to record this event
-      this.createCheckpoint();
+      this.checkpoint = this.history.checkpoints.generateCheckpoint();
 
       // evaluate what updates are needed to the model caused by this event
       await this.modelUpdate();
@@ -34,8 +34,6 @@ export abstract class NotebookEvent {
   }
 
   abstract async modelUpdate();
-
-  abstract createCheckpoint(): void;
 
   endEvent(): void {}
 }

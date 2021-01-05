@@ -1,6 +1,5 @@
 import { History } from "../history";
 import { log } from "../notebook";
-import { CheckpointType } from "./constants";
 import { Checkpoint } from "./checkpoint";
 import { NodeyNotebook } from "../nodey";
 
@@ -43,11 +42,13 @@ export class HistoryCheckpoints {
   }
 
   public add(checkpoint: Checkpoint) {
+    // first, check if this checkpoint can be combined with
+    // the prior checkpoint TODO
     let index = this.checkpointList.push(checkpoint) - 1;
     this.timeTable[checkpoint.timestamp] = index;
   }
 
-  public generateCheckpoint(kind: CheckpointType): Checkpoint {
+  public generateCheckpoint(): Checkpoint {
     let timestamp = Date.now();
 
     // check if checkpoint already exists
@@ -57,7 +58,6 @@ export class HistoryCheckpoints {
     let checkpoint = new Checkpoint({
       timestamp: timestamp,
       targetCells: [],
-      checkpointType: kind,
       notebookId: undefined,
     });
 

@@ -1,6 +1,7 @@
 import { History } from "../../../verdant-model/history";
-import { Checkpoint, CheckpointType } from "../../../verdant-model/checkpoint";
+import { ChangeType, Checkpoint } from "../../../verdant-model/checkpoint";
 import { verdantState } from "../state";
+import { NodeyNotebook } from "verdant/verdant-model/nodey";
 
 export const INIT_EVENT_MAP = "INIT_EVENT_MAP";
 export const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
@@ -107,13 +108,21 @@ export const eventReducer = (
           // update both event map and current event with new event
           ...eventView,
           currentEvent: action.currentEvent,
-          dates: reducer_addEvent(action.currentEvent, eventView.dates),
+          dates: reducer_addEvent(
+            action.currentEvent,
+            eventView.dates,
+            state.getHistory()
+          ),
         };
       } else return eventView;
     case ADD_EVENT:
       return {
         ...eventView,
-        dates: reducer_addEvent(action.ev, [...eventView.dates]),
+        dates: reducer_addEvent(
+          action.ev,
+          [...eventView.dates],
+          state.getHistory()
+        ),
       };
     case DATE_EXPAND:
       const updatedElement = {
@@ -121,7 +130,10 @@ export const eventReducer = (
         isOpen: action.open,
       };
       if (action.open === true)
-        updatedElement.bundles = computeBundles(updatedElement.events);
+        updatedElement.bundles = computeBundles(
+          updatedElement.events,
+          state.getHistory()
+        );
       return {
         ...eventView,
         dates: [
@@ -165,7 +177,8 @@ export const eventReducer = (
 
 export function reducer_addEvent(
   event: Checkpoint,
-  dates: dateState[]
+  dates: dateState[],
+  history: History
 ): dateState[] {
   let time = event.timestamp;
   let date = dates[dates.length - 1];
@@ -197,7 +210,7 @@ export function reducer_addEvent(
       date.bundleStates.push({ isOpen: false });
     }
     // update bundles
-    if (date.isOpen) date.bundles = computeBundles(date.events);
+    if (date.isOpen) date.bundles = computeBundles(date.events, history);
   }
 
   return dates;
@@ -208,7 +221,7 @@ function reducer_initEventMap(state: verdantState) {
   state
     .getHistory()
     .checkpoints.all()
-    .forEach((event) => reducer_addEvent(event, dates));
+    .forEach((event) => reducer_addEvent(event, dates, state.getHistory()));
 
   // Set all dates to closed except the most recent
   dates.forEach((d) => (d.isOpen = false));
@@ -216,7 +229,8 @@ function reducer_initEventMap(state: verdantState) {
   // initialize the most recent event
   dates[dates.length - 1].isOpen = true;
   dates[dates.length - 1].bundles = computeBundles(
-    dates[dates.length - 1].events
+    dates[dates.length - 1].events,
+    state.getHistory()
   );
 
   return dates;
@@ -230,11 +244,12 @@ function getInitialEvent(history: History): Checkpoint {
 type accumulatorObject = {
   accumulator: number[][]; // Holds partially constructed bundle output
   timeBound: number; // Lower limit on time for inclusion in latest bundle
-  lastType: CheckpointType | null; // Type of current bundle or null if no prev bundle
+  changeByCell: { [cell: string]: ChangeType } | null; // Type of current bundle or null if no prev bundle
+  cellOrder: string[];
 };
 const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
 
-function computeBundles(events: eventState[]): number[][] {
+function computeBundles(events: eventState[], history: History): number[][] {
   /* Helper method for makeBundles.
      Computes list of bundled indices based on timestamp, ordered such that
      flattening the outer list leads to a reversed list of the indices of
@@ -243,54 +258,159 @@ function computeBundles(events: eventState[]): number[][] {
   let initial: accumulatorObject = {
     accumulator: [],
     timeBound: Infinity,
-    lastType: null,
+    changeByCell: {},
+    cellOrder: [],
   };
 
   let result: accumulatorObject = events.reduceRight(
-    (accObj, event, index) => reducer(accObj, event, index),
+    (accObj, event, index) => bundle(accObj, event, index, history),
     initial
   );
   return result.accumulator;
 }
 
-function reducer(
+function bundle(
   accObj: accumulatorObject,
   e: eventState,
-  idx: number
+  idx: number,
+  history: History
 ): accumulatorObject {
   /* Helper method for computeBundles.
      Function to use in reducing over bundles in computeBundles. */
   // Compute properties of current element
   let timeStamp = e.events[0].timestamp;
-  let eventType = getEventType(e);
-  if (timeStamp > accObj.timeBound && eventType === accObj.lastType) {
-    // add event to current bundle
-    const newAccumulator = accObj.accumulator
-      .slice(0, -1)
-      .concat([
-        accObj.accumulator[accObj.accumulator.length - 1].concat([idx]),
-      ]);
-    return {
-      accumulator: newAccumulator,
-      timeBound: accObj.timeBound,
-      lastType: accObj.lastType,
-    };
-  } else {
-    // create new bundle
-    return {
-      accumulator: accObj.accumulator.concat([[idx]]),
-      timeBound: timeStamp - INTERVAL_WIDTH,
-      lastType: eventType,
-    };
+  let newEventTypes = getEventTypes(e);
+  let newNotebook = history?.store?.getNotebook(e.notebook);
+  let newCellOrder = getCellOrder(newNotebook, e);
+
+  /*
+   * CONDITIONS TO BUNDLE EVENTS
+   * 1. occur within the same time bound
+   * 2. notebooks A and B don't have conflicting cells at the same index
+   * 3. no events have conflicting events for the same cell
+   */
+
+  // 1. occur within the same time bound
+  if (timeStamp > accObj.timeBound) {
+    //2. notebooks A and B don't have conflicting cells at the same index
+    let zippedCells = zipCellOrder(newCellOrder, accObj.cellOrder);
+    if (zippedCells) {
+      // 3. no events have conflicting events for the same cell
+      let zippedEvents = zipEventTypes(newEventTypes, accObj.changeByCell);
+      if (zippedEvents) {
+        // add event to current bundle
+        const newAccumulator = accObj.accumulator
+          .slice(0, -1)
+          .concat([
+            accObj.accumulator[accObj.accumulator.length - 1].concat([idx]),
+          ]);
+
+        return {
+          accumulator: newAccumulator,
+          timeBound: accObj.timeBound,
+          changeByCell: zippedEvents,
+          cellOrder: zippedCells,
+        };
+      }
+    }
   }
+
+  // create new bundle if one or more conditions fail
+  return {
+    accumulator: accObj.accumulator.concat([[idx]]),
+    timeBound: timeStamp - INTERVAL_WIDTH,
+    changeByCell: newEventTypes,
+    cellOrder: newCellOrder,
+  };
 }
 
-function getEventType(e: eventState): CheckpointType | null {
-  /* Helper for reducer.
-     Returns CheckpointType if all checkpoints in event have same type,
-     else returns null */
-  let evType = e?.events[0]?.checkpointType;
-  if (evType)
-    if (e.events.every((c) => c.checkpointType === evType)) return evType;
-  return null;
+function getEventTypes(e: eventState): { [key: string]: ChangeType } {
+  let newEventTypes: { [key: string]: ChangeType } = {};
+  e.events.forEach((event) =>
+    event.targetCells.forEach(
+      (cell) => (newEventTypes[cell.cell] = cell.changeType)
+    )
+  );
+  return newEventTypes;
+}
+
+function zipEventTypes(
+  A: { [key: string]: ChangeType },
+  B: { [key: string]: ChangeType }
+): { [key: string]: ChangeType } | null {
+  let keys_A = Object.keys(A);
+  let keys_B = Object.keys(B);
+
+  // get the simplified artifact name of each cell version
+  let art_A = keys_A.map((cell) =>
+    cell?.substr(0, cell.lastIndexOf(".") || cell.length)
+  );
+  let art_B = keys_B.map((cell) =>
+    cell?.substr(0, cell.lastIndexOf(".") || cell.length)
+  );
+
+  // first check if any conflicting changes on the same
+  // artifact
+  let zipped = {};
+  let compatible = art_A.every((art, index) => {
+    let index_b = art_B.indexOf(art);
+
+    if (index_b > -1) {
+      if (B[keys_B[index_b]] === A[keys_A[index]]) {
+        return true;
+      }
+      return false;
+    } else {
+      zipped[keys_A[index]] = A[keys_A[index]];
+      return true;
+    }
+  });
+
+  if (compatible) {
+    keys_B.forEach((cell) => (zipped[cell] = B[cell]));
+  } else {
+    zipped = null;
+  }
+
+  return zipped;
+}
+
+function zipCellOrder(A: string[], B: string[]) {
+  let smaller = B;
+  let larger = A;
+  if (A.length < B.length) {
+    smaller = A;
+    larger = B;
+  }
+
+  let zipped = A;
+  let compatible = smaller.every((cell, index) => cell === larger[index]);
+  if (compatible && larger.length > smaller.length) {
+    zipped = zipped.concat(larger.slice(smaller.length));
+  }
+
+  return compatible ? zipped : null;
+}
+
+function getCellOrder(notebook: NodeyNotebook, e: eventState) {
+  if (!notebook) return []; // error state
+  let order = notebook?.cells?.map((cell) => {
+    let name = cell.substr(0, cell.lastIndexOf(".") || cell.length);
+    return name;
+  });
+
+  // add in removed cells too
+  e.events.forEach((event) => {
+    event.targetCells.forEach((cell) => {
+      if (cell.changeType === ChangeType.REMOVED) {
+        let name = cell.cell;
+        name = name?.substr(0, name.lastIndexOf(".") || name.length);
+        if (cell.index !== undefined && order.length > cell.index) {
+          order = order.splice(cell.index, 0, name);
+        } else order.push(name);
+      }
+    });
+  });
+
+  return order;
 }

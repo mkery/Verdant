@@ -1,6 +1,6 @@
 import { NodeyNotebook } from "../nodey";
 import { History } from "../history";
-import { CellRunData, CONVERT_ChangeType, ChangeType } from "../checkpoint";
+import { CellRunData, ChangeType } from "../checkpoint";
 import { Checkpoint } from "../checkpoint";
 
 export namespace CellMap {
@@ -35,9 +35,6 @@ export namespace CellMap {
           );
           if (match) {
             let change = match.changeType;
-
-            // convert for older log format
-            if (typeof change === "number") change = CONVERT_ChangeType(change);
 
             // add change to cell's list of changes
             cellMap[index] = addChange(cellMap[index], change);
