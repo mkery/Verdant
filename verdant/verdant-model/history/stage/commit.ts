@@ -19,7 +19,7 @@ export class Commit {
   /*
    * The checkpoint and notebook are the identifying pieces of this commit
    */
-  readonly checkpoint: Checkpoint;
+  public checkpoint: Checkpoint;
   private notebook: NodeyNotebook;
 
   /*
@@ -43,12 +43,18 @@ export class Commit {
   }
 
   public addCell(added: NodeyCell, index: number) {
+    // first see if this commit can be combined with a prior one
+    const merged = this.attemptMergeWithPriorCheckpoint([added], [index]);
+
     // add cell is an event that changes notebook version
     if (!this.notebook) this.createNotebookVersion();
 
     // make sure new cell's parent is this newNotebook
     added.parent = this.notebook.name;
     let name = added.name;
+
+    // make sure new cell's checkpoint is this one
+    added.created = this.checkpoint.timestamp;
 
     // add added cell to notebook
     this.notebook.cells.splice(index, 0, name);
@@ -59,14 +65,23 @@ export class Commit {
       changeType: ChangeType.ADDED,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
+
+    // record checkpoint
+    if (!merged) this.history.checkpoints.add(this.checkpoint);
   }
 
   public deleteCell(deleted: NodeyCell) {
+    let oldNotebook = this.history.store.currentNotebook;
+    let index = oldNotebook?.cells?.indexOf(deleted?.name) || -1;
+
+    // first see if this commit can be combined with a prior one
+    const merged = this.attemptMergeWithPriorCheckpoint([deleted], [index]);
+
     // delete cell is an event that changes notebook version
     if (!this.notebook) this.createNotebookVersion();
 
     // remove deleted cell from notebook
-    let index = this.notebook.cells.indexOf(deleted.name);
+    index = this.notebook.cells.indexOf(deleted.name);
     if (index > -1) this.notebook.cells.splice(index, 1);
 
     // update checkpoint
@@ -76,9 +91,15 @@ export class Commit {
       index,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
+
+    // record checkpoint
+    if (!merged) this.history.checkpoints.add(this.checkpoint);
   }
 
   public moveCell(moved: NodeyCell, newPos: number) {
+    // first see if this commit can be combined with a prior one
+    const merged = this.attemptMergeWithPriorCheckpoint([moved]);
+
     // moving a cell is an event that changes notebook version
     if (!this.notebook) this.createNotebookVersion();
 
@@ -95,9 +116,15 @@ export class Commit {
       index: newPos,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
+
+    // record checkpoint
+    if (!merged) this.history.checkpoints.add(this.checkpoint);
   }
 
   public changeCellType(oldCell: NodeyCell, newCell: NodeyCell) {
+    // first see if this commit can be combined with a prior one
+    const merged = this.attemptMergeWithPriorCheckpoint([oldCell, newCell]);
+
     // changing a cell type is an event that changes notebook version
     if (!this.notebook) this.createNotebookVersion();
 
@@ -116,18 +143,27 @@ export class Commit {
       changeType: ChangeType.TYPE_CHANGED,
     } as CellRunData;
     this.checkpoint.targetCells.push(cellDat);
+
+    // record checkpoint
+    if (!merged) this.history.checkpoints.add(this.checkpoint);
   }
 
   // returns true if there are changes such that a new commit is recorded
-  public async commit(): Promise<boolean> {
+  public async commit(): Promise<void> {
     await this.stage.stage();
     if (this.stage.isEdited()) {
+      // first see if this commit can be combined with a prior one
+      const merged = this.attemptMergeWithPriorCheckpoint(
+        this.stage.getAllStaged()
+      );
+
       // if there are real edits, make sure we have a new notebook
       if (!this.notebook) this.createNotebookVersion();
       this.commitStaged();
-      return true;
+
+      // record checkpoint
+      if (!merged) this.history.checkpoints.add(this.checkpoint);
     }
-    return false;
   }
 
   private commitStaged() {
@@ -150,6 +186,57 @@ export class Commit {
         return c;
       }
     });
+  }
+
+  private attemptMergeWithPriorCheckpoint(
+    targetedCells: Nodey[],
+    indicies?: number[]
+  ): boolean {
+    /*
+     * We will try to add new changes to an existing notebook version if
+     * 1) no changes on this commit conflict with existing changes on this notebook
+     * version.
+     * 2) changes on this commit occur within 5 minutes of existing changes on this
+     * notebook version.
+     *
+     * The goal of this merge is to compress the number of overall notebook versions so
+     * that there is less sparse information to shift through, and more meaty versions.
+     */
+    let pass = false;
+    let oldNotebook = this.history.store.currentNotebook;
+    let oldCheckpoints = this.history.checkpoints.getForNotebook(oldNotebook);
+    if (oldCheckpoints.length > 0) {
+      let latestCheckpoint = oldCheckpoints[oldCheckpoints.length - 1];
+      // check that the latest checkpoint is within 5 min of this one
+      pass = checkTimeDiff(latestCheckpoint, this.checkpoint);
+
+      // check that the older checkpoint does not affect the same cells as this one
+      if (pass) {
+        pass = false;
+        let oldTargets = latestCheckpoint?.targetCells?.map((target) =>
+          this.history.store.get(target?.cell)
+        );
+        if (oldTargets) {
+          pass = checkArtfiactOverlap(targetedCells, oldTargets);
+        }
+
+        // check that the older checkpoint does not affect the same cell indices as this one
+        if (pass && indicies) {
+          pass = latestCheckpoint.targetCells.every((target) => {
+            if (target.index) return indicies.indexOf(target.index) < 0;
+            return true;
+          });
+        }
+      }
+
+      // OK to merge
+      if (pass) {
+        this.notebook = oldNotebook;
+        this.checkpoint = latestCheckpoint;
+      }
+    }
+
+    return pass;
   }
 
   private createNotebookVersion() {
@@ -312,4 +399,21 @@ export class Commit {
     // finally return updated new version
     return newNodey;
   }
+}
+
+// helper functions
+function checkTimeDiff(A: Checkpoint, B: Checkpoint): boolean {
+  let minutes_elapsed = Math.abs(A.timestamp - B.timestamp) / 1000 / 60;
+  return minutes_elapsed < 6;
+}
+
+function checkArtfiactOverlap(targets_A, targets_B): boolean {
+  let B = targets_B?.map((target) => target.artifactName);
+  if (B) {
+    return targets_A.every((nodey) => {
+      let artifactName = nodey.artifactName;
+      return B.indexOf(artifactName) < 0;
+    });
+  }
+  return false;
 }

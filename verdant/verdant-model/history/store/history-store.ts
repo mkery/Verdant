@@ -103,9 +103,10 @@ export class HistoryStore {
     if (!name) return; // error case only
     //log("attempting to find", name);
     let [, , verVal] = name.split(".");
-    let ver = parseInt(verVal);
+    let ver = verVal ? parseInt(verVal) : undefined;
     let nodeHist = this.getHistoryOf(name);
-    return nodeHist?.getVersion(ver);
+    if (ver) return nodeHist?.getVersion(ver);
+    return nodeHist?.latest;
   }
 
   getOutput(nodey?: NodeyCode): OutputHistory | undefined {

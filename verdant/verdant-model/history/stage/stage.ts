@@ -31,6 +31,7 @@ export class Stage {
    * is recorded by the cell name, which is the base artifact name of the cell
    * such as C5 or M4
    */
+  private staged_total = [];
   private staged_codeCell: {} = {};
   private staged_markdown: { [cellName: string]: { markdown: string } } = {};
   private staged_rawCell: { [cellName: string]: { literal: string } } = {};
@@ -38,6 +39,10 @@ export class Stage {
   constructor(history: History, fileManager: FileManager) {
     this.history = history;
     this.fileManager = fileManager;
+  }
+
+  public getAllStaged() {
+    return this.staged_total;
   }
 
   public getStaging(cell: NodeyCell) {
@@ -86,8 +91,10 @@ export class Stage {
 
     if (oldText !== newText) {
       // store instructions for a new version of nodey in staging
-      if (!this.staged_codeCell[nodey.artifactName])
+      if (!this.staged_codeCell[nodey.artifactName]) {
         this.staged_codeCell[nodey.artifactName] = { literal: newText };
+        this.staged_total.push(nodey);
+      }
       this.staged_codeCell[nodey.artifactName]["literal"] = newText;
     }
   }
@@ -107,8 +114,10 @@ export class Stage {
 
     if (!same) {
       // make instructions for a new Output in staging
-      if (!this.staged_codeCell[nodey.artifactName])
+      if (!this.staged_codeCell[nodey.artifactName]) {
         this.staged_codeCell[nodey.artifactName] = {};
+        this.staged_total.push(nodey);
+      }
       this.staged_codeCell[nodey.artifactName]["output"] = raw;
     }
   }
@@ -119,9 +128,10 @@ export class Stage {
     let oldText = nodey.markdown;
     if (oldText != newText) {
       // store instructions for a new version of nodey in staging
-      if (!this.staged_markdown[nodey.artifactName])
+      if (!this.staged_markdown[nodey.artifactName]) {
         this.staged_markdown[nodey.artifactName] = { markdown: newText };
-      else this.staged_markdown[nodey.artifactName]["markdown"] = newText;
+        this.staged_total.push(nodey);
+      } else this.staged_markdown[nodey.artifactName]["markdown"] = newText;
     }
   }
 
@@ -131,9 +141,10 @@ export class Stage {
     let oldText = nodey.literal;
     if (oldText != newText) {
       // store instructions for a new version of nodey in staging
-      if (!this.staged_rawCell[nodey.artifactName])
+      if (!this.staged_rawCell[nodey.artifactName]) {
         this.staged_rawCell[nodey.artifactName] = { literal: newText };
-      else this.staged_rawCell[nodey.artifactName]["literal"] = newText;
+        this.staged_total.push(nodey);
+      } else this.staged_rawCell[nodey.artifactName]["literal"] = newText;
     }
   }
 }

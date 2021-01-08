@@ -42,10 +42,11 @@ export class HistoryCheckpoints {
   }
 
   public add(checkpoint: Checkpoint) {
-    // first, check if this checkpoint can be combined with
-    // the prior checkpoint TODO
-    let index = this.checkpointList.push(checkpoint) - 1;
-    this.timeTable[checkpoint.timestamp] = index;
+    // don't permit multiple checkpoints with the same timestamp
+    if (!this.timeTable[checkpoint.timestamp]) {
+      let index = this.checkpointList.push(checkpoint) - 1;
+      this.timeTable[checkpoint.timestamp] = index;
+    }
   }
 
   public generateCheckpoint(): Checkpoint {
