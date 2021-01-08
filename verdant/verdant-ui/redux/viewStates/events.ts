@@ -129,7 +129,7 @@ export const eventReducer = (
         ...eventView.dates[action.date],
         isOpen: action.open,
       };
-      if (action.open === true)
+      if (action.open === true && updatedElement.bundles.length < 1)
         updatedElement.bundles = computeBundles(
           updatedElement.events,
           state.getHistory()
@@ -186,7 +186,7 @@ export function reducer_addEvent(
     // new date
     let newEvent: eventState = { notebook: event.notebook, events: [event] };
     let newDate: dateState = {
-      isOpen: true,
+      isOpen: false,
       date: time,
       events: [newEvent],
       bundles: [],
@@ -210,7 +210,9 @@ export function reducer_addEvent(
       date.bundleStates.push({ isOpen: false });
     }
     // update bundles
-    if (date.isOpen) date.bundles = computeBundles(date.events, history);
+    if (date.isOpen) {
+      date.bundles = computeBundles(date.events, history); // TODO massively inefficient :(
+    }
   }
 
   return dates;
@@ -242,7 +244,7 @@ function getInitialEvent(history: History): Checkpoint {
 }
 
 type accumulatorObject = {
-  accumulator: number[][]; // Holds partially constructed bundle output
+  bundles: number[][]; // Holds partially constructed bundle output
   timeBound: number; // Lower limit on time for inclusion in latest bundle
   changeByCell: { [cell: string]: ChangeType } | null; // Type of current bundle or null if no prev bundle
   cellOrder: string[];
@@ -256,7 +258,7 @@ function computeBundles(events: eventState[], history: History): number[][] {
      this.props.events */
 
   let initial: accumulatorObject = {
-    accumulator: [],
+    bundles: [],
     timeBound: Infinity,
     changeByCell: {},
     cellOrder: [],
@@ -266,7 +268,7 @@ function computeBundles(events: eventState[], history: History): number[][] {
     (accObj, event, index) => bundle(accObj, event, index, history),
     initial
   );
-  return result.accumulator;
+  return result.bundles;
 }
 
 function bundle(
@@ -299,14 +301,9 @@ function bundle(
       let zippedEvents = zipEventTypes(newEventTypes, accObj.changeByCell);
       if (zippedEvents) {
         // add event to current bundle
-        const newAccumulator = accObj.accumulator
-          .slice(0, -1)
-          .concat([
-            accObj.accumulator[accObj.accumulator.length - 1].concat([idx]),
-          ]);
-
+        accObj.bundles[accObj.bundles.length - 1].push(idx);
         return {
-          accumulator: newAccumulator,
+          bundles: accObj.bundles,
           timeBound: accObj.timeBound,
           changeByCell: zippedEvents,
           cellOrder: zippedCells,
@@ -317,7 +314,7 @@ function bundle(
 
   // create new bundle if one or more conditions fail
   return {
-    accumulator: accObj.accumulator.concat([[idx]]),
+    bundles: accObj.bundles.concat([[idx]]),
     timeBound: timeStamp - INTERVAL_WIDTH,
     changeByCell: newEventTypes,
     cellOrder: newCellOrder,
@@ -402,12 +399,12 @@ function getCellOrder(notebook: NodeyNotebook, e: eventState) {
   // add in removed cells too
   e.events.forEach((event) => {
     event.targetCells.forEach((cell) => {
-      if (cell.changeType === ChangeType.REMOVED) {
+      if (cell.index !== undefined) {
         let name = cell.cell;
         name = name?.substr(0, name.lastIndexOf(".") || name.length);
-        if (cell.index !== undefined && order.length > cell.index) {
-          order = order.splice(cell.index, 0, name);
-        } else order.push(name);
+        if (order.length > cell.index) {
+          order.splice(cell.index, 0, name);
+        } else order[cell.index] = name;
       }
     });
   });

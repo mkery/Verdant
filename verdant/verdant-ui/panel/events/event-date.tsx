@@ -38,9 +38,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
             {Checkpoint.formatDate(this.props.date)}
           </div>
           <div className={DATE_HEADER_COLLAPSE}>
-            <div style={{ display: this.props.isOpen ? "none" : "" }}>
-              ({this.props.events.length})
-            </div>
+            <div>({this.props.events.length})</div>
           </div>
         </div>
         <div>{this.props.isOpen ? this.makeBundles() : null}</div>
