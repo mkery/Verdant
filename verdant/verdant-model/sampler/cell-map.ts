@@ -43,11 +43,16 @@ export namespace CellMap {
 
         // for deleted cells
         targets.forEach((t) => {
-          if (t.changeType === ChangeType.REMOVED && t.index)
-            cellMap.splice(t.index, 0, {
-              name: t.cell,
-              changes: [ChangeType.REMOVED],
-            });
+          if (t.changeType === ChangeType.REMOVED && t.index) {
+            // if already in the map, just replace, if not splice in
+            if (cellMap[t.index] && cellMap[t.index].name === t.cell)
+              cellMap[t.index].changes.push(ChangeType.REMOVED);
+            else
+              cellMap.splice(t.index, 0, {
+                name: t.cell,
+                changes: [ChangeType.REMOVED],
+              });
+          }
         });
       }
     });
