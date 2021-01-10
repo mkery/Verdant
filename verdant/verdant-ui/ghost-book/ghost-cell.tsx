@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  NodeyCode,
-  NodeyCell,
-  Nodey,
-  NodeyOutput,
-} from "../../verdant-model/nodey";
+import { NodeyCell, Nodey } from "../../verdant-model/nodey";
 import { Namer } from "../../verdant-model/sampler";
 import GhostCellOutput from "./ghost-cell-output";
 import { connect } from "react-redux";
@@ -28,7 +23,6 @@ export type req_GhostCell_Props = {
   scrollTo?: () => void;
 };
 export type GhostCell_Props = {
-  output: NodeyOutput | undefined;
   nodey: NodeyCell;
   // On-click action
   clickEv: () => void;
@@ -51,7 +45,6 @@ class GhostCell extends React.Component<GhostCell_Props> {
       return null;
     }
     const active = this.props.hasFocus() ? "active" : "";
-    const displayOutput: boolean = this.props.output !== undefined; // is a code cell & has associated output
 
     return (
       <div
@@ -86,14 +79,10 @@ class GhostCell extends React.Component<GhostCell_Props> {
               />
             </div>
           </div>
-          {displayOutput ? (
-            <GhostCellOutput
-              nodey={this.props.output}
-              changed={this.props.cell.status.includes(
-                ChangeType.OUTPUT_CHANGED
-              )}
-            />
-          ) : null}
+          <GhostCellOutput
+            cell={this.props.nodey}
+            changed={this.props.cell.status.includes(ChangeType.OUTPUT_CHANGED)}
+          />
         </div>
       </div>
     );
@@ -106,20 +95,13 @@ const mapStateToProps = (
 ) => {
   const history = state.getHistory();
   const nodey = history?.store?.get(ownProps.cell.name);
-  const outputHist =
-    nodey instanceof NodeyCode ? history?.store?.getOutput(nodey) : null;
-  const notebookVer = state.ghostBook.notebook_ver;
-  const output = history?.store?.getForNotebook(outputHist, notebookVer);
 
   return {
-    history,
-    output,
     nodey,
     diff: state.ghostBook.diff,
     hasFocus: () => state.ghostBook.active_cell === ownProps.cell.name,
     scrollFocus: state.ghostBook.scroll_focus,
     inspectOn: state.artifactView.inspectOn,
-    notebookVer,
   };
 };
 

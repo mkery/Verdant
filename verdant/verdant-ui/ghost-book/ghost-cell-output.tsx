@@ -1,7 +1,12 @@
 import * as React from "react";
 import { Namer, DIFF_TYPE } from "../../verdant-model/sampler";
 import { History } from "../../verdant-model/history";
-import { NodeyOutput, Nodey } from "../../verdant-model/nodey";
+import {
+  NodeyOutput,
+  Nodey,
+  NodeyCell,
+  NodeyCodeCell,
+} from "../../verdant-model/nodey";
 import { connect } from "react-redux";
 import { verdantState, showDetailOfNode } from "../redux/";
 
@@ -12,7 +17,8 @@ type GhostCellOutput_Props = {
   showDetail: (n: Nodey) => void;
   inspectOn: boolean;
   changed: boolean;
-  nodey: NodeyOutput;
+  cell: NodeyCell;
+  output: NodeyOutput;
   notebookVer: number;
   diff: DIFF_TYPE;
 };
@@ -44,7 +50,7 @@ class GhostCellOutput extends React.Component<
   componentDidMount() {
     this._isMounted = true;
 
-    this.updateSample();
+    if (this.props.output && this.state.sample === "") this.updateSample();
   }
 
   componentWillUnmount() {
@@ -54,15 +60,18 @@ class GhostCellOutput extends React.Component<
   componentDidUpdate(priorProps: GhostCellOutput_Props) {
     if (this._isMounted)
       if (
-        this.props.notebookVer !== priorProps.notebookVer ||
+        this.props.output?.name !== priorProps.output?.name ||
         this.props.diff !== priorProps.diff
-      )
+      ) {
+        this.setState({ sample: "" });
         this.updateSample();
+      }
   }
 
   render() {
     /* Render cell output */
-    let output = this.props.nodey;
+    let output = this.props.output;
+    if (!output) return null;
 
     return (
       <div
@@ -92,34 +101,47 @@ class GhostCellOutput extends React.Component<
   private async updateSample() {
     /* Update the sample HTML if it has changed */
     let newSample = await this.getSample();
-    if (newSample && newSample.outerHTML != this.state.sample)
+
+    if (newSample && this._isMounted)
       this.setState({ sample: newSample.outerHTML });
   }
 
   private async getSample() {
-    let output = this.props.nodey;
-    if (output.raw.length > 0) {
+    let output = this.props.output;
+    if (output && output?.raw?.length > 0) {
       let notebook = this.props.notebookVer;
       if (this.props.diff === DIFF_TYPE.PRESENT_DIFF)
         notebook = this.props.history.store.currentNotebook.version;
 
-      return this.props.history.inspector.diff.renderCell(
+      let sample = await this.props.history.inspector.diff.renderCell(
         output,
         this.props.diff,
         notebook
       );
+
+      return sample;
     }
   }
 }
 
-const mapStateToProps = (state: verdantState) => {
+const mapStateToProps = (
+  state: verdantState,
+  ownProps: Partial<GhostCellOutput_Props>
+) => {
   const history = state.getHistory();
   const notebookVer = state.ghostBook.notebook_ver;
+  const outputHistory =
+    ownProps.cell instanceof NodeyCodeCell
+      ? history?.store?.getOutput(ownProps.cell)
+      : null;
+  const output = history?.store?.getForNotebook(outputHistory, notebookVer);
+
   return {
     diff: state.ghostBook.diff,
     history,
     inspectOn: state.artifactView.inspectOn,
     notebookVer,
+    output,
   };
 };
 
