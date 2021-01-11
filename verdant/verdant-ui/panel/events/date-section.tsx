@@ -2,8 +2,8 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Checkpoint } from "../../../verdant-model/checkpoint";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
-import { verdantState, dateOpen, dateClose, eventState } from "../../redux/";
-import NotebookEventDateBundle from "./event-date-bundle";
+import { verdantState, dateOpen, dateClose, eventState } from "../../redux";
+import EventBundle from "./event-bundle";
 
 /* CSS Constants */
 const DATE_HEADER = `Verdant-events-date-header`;
@@ -22,7 +22,12 @@ type NotebookDate_Props = {
   bundles: number[][];
 } & req_NotebookDate_Props;
 
-class NotebookEventDate extends React.Component<NotebookDate_Props> {
+class DateSection extends React.Component<NotebookDate_Props> {
+  constructor(props: NotebookDate_Props) {
+    super(props);
+    console.log("DATE INIT WITH", props);
+  }
+
   render() {
     return (
       <div>
@@ -54,7 +59,7 @@ class NotebookEventDate extends React.Component<NotebookDate_Props> {
   private makeBundles() {
     // Creates DateBundle for each set of dates
     return this.props.bundles.map((idx_list, i) => (
-      <NotebookEventDateBundle
+      <EventBundle
         key={i}
         bundle_id={i}
         events={[...idx_list]}
@@ -84,4 +89,4 @@ const mapStateToProps = (
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(NotebookEventDate);
+export default connect(mapStateToProps, mapDispatchToProps)(DateSection);

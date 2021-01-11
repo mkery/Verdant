@@ -185,11 +185,12 @@ export function reducer_addEvent(
   if (!date || !Checkpoint.sameDay(time, date.date)) {
     // new date
     let newEvent: eventState = { notebook: event.notebook, events: [event] };
+    let today = Date.now();
     let newDate: dateState = {
-      isOpen: false,
+      isOpen: Checkpoint.sameDay(today, time), // only open by default if today's date
       date: time,
       events: [newEvent],
-      bundles: [],
+      bundles: [[0]], // initial bundle contains just the 1 existing event
       bundleStates: [{ isOpen: false }],
     };
     dates.push(newDate);

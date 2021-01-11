@@ -3,7 +3,7 @@ import { ChangeType, Checkpoint } from "../../../verdant-model/checkpoint";
 import { CellMap, Namer } from "../../../verdant-model/sampler";
 import { History } from "../../../verdant-model/history";
 import { Nodey, NodeyCodeCell } from "../../../verdant-model/nodey";
-import { verdantState, showDetailOfNode } from "../../redux/";
+import { verdantState, showDetailOfNode } from "../../redux";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 
@@ -20,7 +20,7 @@ type EventMap_Props = {
 
 const MAP = "Verdant-events-map";
 
-class NotebookEventMap extends React.Component<
+class MiniMap extends React.Component<
   EventMap_Props,
   { cellMap: CellMap.map }
 > {
@@ -106,4 +106,4 @@ const mapDispatchToProps = (dispatch: any) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(NotebookEventMap);
+export default connect(mapStateToProps, mapDispatchToProps)(MiniMap);

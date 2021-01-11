@@ -1,15 +1,10 @@
 import * as React from "react";
 import NotebookEvent from "./event";
 import { connect } from "react-redux";
-import {
-  verdantState,
-  bundleClose,
-  bundleOpen,
-  eventState,
-} from "../../redux/";
+import { verdantState, bundleClose, bundleOpen, eventState } from "../../redux";
 import NotebookEventLabel from "./event-label";
 import { Checkpoint } from "../../../verdant-model/checkpoint";
-import NotebookEventMap from "./event-map";
+import MiniMap from "./mini-map";
 import { Namer } from "../../../verdant-model/sampler";
 import { History } from "../../../verdant-model/history";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
@@ -21,7 +16,7 @@ const BUNDLE_MULTI_FOOTER_LINE = `${BUNDLE_MULTI_FOOTER}-line`;
 const BUNDLE_MULTI_FOOTER_SPACER = `${BUNDLE_MULTI_FOOTER}-spacer`;
 
 type req_DateBundle_Props = {
-  events: number[]; // Indices of events prop of NotebookEventDate
+  events: number[]; // Indices of events prop of DateSection
   date_id: number;
   bundle_id: number; // Index of bundle in date
 };
@@ -36,7 +31,7 @@ type DateBundle_Props = {
   history: History;
 } & req_DateBundle_Props;
 
-class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
+class EventBundle extends React.Component<DateBundle_Props> {
   render() {
     if (this.props.events.length === 1) return this.renderSingle();
     return this.renderBundle();
@@ -133,7 +128,7 @@ class NotebookEventDateBundle extends React.Component<DateBundle_Props> {
               ${Namer.getNotebookVersionLabel(lastNotebook)}`}
         </div>
         <div className="Verdant-events-event-row-map">
-          <NotebookEventMap checkpoints={this.props.checkpoints} />
+          <MiniMap checkpoints={this.props.checkpoints} />
         </div>
       </div>
     );
@@ -204,7 +199,4 @@ const mapStateToProps = (
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(NotebookEventDateBundle);
+export default connect(mapStateToProps, mapDispatchToProps)(EventBundle);

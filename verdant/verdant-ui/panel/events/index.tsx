@@ -1,5 +1,5 @@
 import * as React from "react";
-import NotebookEventDate from "./event-date";
+import DateSection from "./date-section";
 import { connect } from "react-redux";
 import { verdantState, dateState } from "../../redux";
 
@@ -35,7 +35,7 @@ class EventColumn extends React.Component<
         <div className={PANEL}>
           {this.state.dates.map((_, index) => {
             let reverse = this.state.dates.length - 1 - index;
-            return <NotebookEventDate key={reverse} date_id={reverse} />;
+            return <DateSection key={reverse} date_id={reverse} />;
           })}
         </div>
       );
