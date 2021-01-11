@@ -11,8 +11,6 @@ type timeLabel = {
 };
 
 type req_EventLabel_Props = {
-  event_id: number | null;
-  date_id: number;
   events?: Checkpoint[];
 };
 type EventLabel_Props = {
@@ -90,21 +88,10 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: req_EventLabel_Props
 ) => {
-  if (ownProps.event_id !== null) {
-    // regular case
-    let eventList =
-      state.eventView.dates[ownProps.date_id].events[ownProps.event_id];
-    return {
-      events: eventList.events,
-      eventCount: eventList.events.length,
-    };
-  } else {
-    // null case, for bundle labels
-    return {
-      events: ownProps.events ? ownProps.events : [],
-      eventCount: ownProps.events ? ownProps.events.length : 0,
-    };
-  }
+  return {
+    events: ownProps.events ? ownProps.events : [],
+    eventCount: ownProps.events ? ownProps.events.length : 0,
+  };
 };
 
 export default connect(mapStateToProps)(NotebookEventLabel);

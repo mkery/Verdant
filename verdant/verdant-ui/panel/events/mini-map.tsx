@@ -13,8 +13,8 @@ type react_EventMap_Props = {
 
 type EventMap_Props = {
   // given by redux store
+  event_id?: number;
   history: History;
-  eventCount: number;
   showDetail: (n: Nodey) => void;
 } & react_EventMap_Props;
 
@@ -43,8 +43,18 @@ class MiniMap extends React.Component<
     this._isMounted = false;
   }
 
-  componentDidUpdate(oldProps) {
-    if (this._isMounted && oldProps.eventCount !== this.props.eventCount) {
+  componentDidUpdate(oldProps: EventMap_Props) {
+    /*
+     * Check to update:
+     * In a bundle has the number of checkpoints changed?
+     * Has the id of the checkpoint tied to this map changed?
+     * Has this checkpoint gotten new changes since we last rendered the map?
+     */
+    if (
+      this._isMounted &&
+      (oldProps.checkpoints.length !== this.props.checkpoints.length ||
+        this.props.checkpoints[0]?.id !== oldProps.checkpoints[0]?.id)
+    ) {
       let checkpoints = this.props.checkpoints;
       let cellMap = CellMap.build(checkpoints, this.props.history);
       this.setState({ cellMap });
@@ -90,13 +100,9 @@ class MiniMap extends React.Component<
   }
 }
 
-const mapStateToProps = (
-  state: verdantState,
-  ownProps: react_EventMap_Props
-) => {
+const mapStateToProps = (state: verdantState) => {
   return {
     history: state.getHistory(),
-    eventCount: ownProps.checkpoints.length,
   };
 };
 

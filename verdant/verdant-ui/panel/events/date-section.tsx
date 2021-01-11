@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Checkpoint } from "../../../verdant-model/checkpoint";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
-import { verdantState, dateOpen, dateClose, eventState } from "../../redux";
+import { verdantState, dateOpen, dateClose } from "../../redux";
 import EventBundle from "./event-bundle";
 
 /* CSS Constants */
@@ -15,7 +15,7 @@ type req_NotebookDate_Props = { date_id: number };
 type NotebookDate_Props = {
   // provided by redux store
   date: number;
-  events: eventState[];
+  events: Checkpoint[];
   isOpen: boolean;
   open: (d: number) => void;
   close: (d: number) => void;
@@ -25,7 +25,6 @@ type NotebookDate_Props = {
 class DateSection extends React.Component<NotebookDate_Props> {
   constructor(props: NotebookDate_Props) {
     super(props);
-    console.log("DATE INIT WITH", props);
   }
 
   render() {
@@ -62,7 +61,7 @@ class DateSection extends React.Component<NotebookDate_Props> {
       <EventBundle
         key={i}
         bundle_id={i}
-        events={[...idx_list]}
+        event_indicies={[...idx_list]}
         date_id={this.props.date_id}
       />
     ));

@@ -2,18 +2,18 @@ import * as React from "react";
 import { connect } from "react-redux";
 import NotebookEventLabel from "./event-label";
 import MiniMap from "./mini-map";
-import { eventState, verdantState } from "../../redux/";
+import { verdantState } from "../../redux/";
 import { NodeyNotebook } from "../../../verdant-model/nodey";
 import { Namer } from "../../../verdant-model/sampler";
+import { Checkpoint } from "verdant/verdant-model/checkpoint";
 
 type react_NotebookEvent_Props = {
-  date_id: number;
-  event_id: number;
+  checkpoint: Checkpoint;
 };
 
 type NotebookEvent_Props = {
   // provided by redux store
-  events: eventState;
+  checkpoint: Checkpoint;
   notebook: NodeyNotebook;
   openGhostBook: () => void;
   currentGhostBook: () => boolean;
@@ -25,10 +25,7 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
     return (
       <div className={`Verdant-events-event${ghostOpen ? " ghostOpen" : ""}`}>
         <div className="Verdant-events-event-stamp">
-          <NotebookEventLabel
-            date_id={this.props.date_id}
-            event_id={this.props.event_id}
-          />
+          <NotebookEventLabel events={[this.props.checkpoint]} />
         </div>
         <div
           className="Verdant-events-event-row-index verdant-link"
@@ -37,7 +34,7 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
           {Namer.getNotebookVersionLabel(this.props.notebook)}
         </div>
         <div className="Verdant-events-event-row-map">
-          <MiniMap checkpoints={this.props.events.events} />
+          <MiniMap checkpoints={[this.props.checkpoint]} />
         </div>
       </div>
     );
@@ -48,15 +45,14 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: react_NotebookEvent_Props
 ) => {
-  const events =
-    state.eventView.dates[ownProps.date_id].events[ownProps.event_id];
-  const notebook = state.getHistory().store.getNotebook(events.notebook);
+  const notebook = state
+    .getHistory()
+    .store.getNotebook(ownProps.checkpoint.notebook);
   return {
     openGhostBook: () =>
-      notebook ? state.openGhostBook(events.notebook) : null,
+      notebook ? state.openGhostBook(ownProps.checkpoint.notebook) : null,
     notebook,
     currentGhostBook: () => notebook?.version === state.ghostBook.notebook_ver,
-    events,
   };
 };
 

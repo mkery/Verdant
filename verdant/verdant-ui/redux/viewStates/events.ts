@@ -60,11 +60,6 @@ export const bundleClose = (date: number, bundle: number) => {
   };
 };
 
-export type eventState = {
-  notebook: number;
-  events: Checkpoint[];
-};
-
 export type bundleState = {
   isOpen: boolean;
 };
@@ -72,7 +67,7 @@ export type bundleState = {
 export type dateState = {
   isOpen: boolean;
   date: number;
-  events: eventState[];
+  events: Checkpoint[];
   bundles: number[][];
   bundleStates: bundleState[];
 };
@@ -103,6 +98,7 @@ export const eventReducer = (
         };
       else return eventView;
     case UPDATE_CHECKPOINT:
+      // TODO check if we need to update the mini map
       if (action.currentEvent != eventView.currentEvent) {
         return {
           // update both event map and current event with new event
@@ -176,15 +172,14 @@ export const eventReducer = (
 };
 
 export function reducer_addEvent(
-  event: Checkpoint,
+  newEvent: Checkpoint,
   dates: dateState[],
   history: History
 ): dateState[] {
-  let time = event.timestamp;
-  let date = dates[dates.length - 1];
-  if (!date || !Checkpoint.sameDay(time, date.date)) {
+  let time = newEvent.timestamp;
+  let currentDate = dates[dates.length - 1];
+  if (!currentDate || !Checkpoint.sameDay(time, currentDate.date)) {
     // new date
-    let newEvent: eventState = { notebook: event.notebook, events: [event] };
     let today = Date.now();
     let newDate: dateState = {
       isOpen: Checkpoint.sameDay(today, time), // only open by default if today's date
@@ -195,24 +190,13 @@ export function reducer_addEvent(
     };
     dates.push(newDate);
   } else {
-    // existing date
-    let lastEvent: eventState = date.events[date.events.length - 1];
-    // existing notebook for this date
-    if (lastEvent && lastEvent.notebook === event.notebook) {
-      lastEvent.events.push(event);
-    } else {
-      // new notebook for this date
-      let newEvent: eventState = {
-        notebook: event.notebook,
-        events: [event],
-      };
-      date.events.push(newEvent);
-      // keep bundleStates as long as event list
-      date.bundleStates.push({ isOpen: false });
-    }
+    currentDate.events.push(newEvent);
+    // keep bundleStates as long as event list
+    currentDate.bundleStates.push({ isOpen: false });
+
     // update bundles
-    if (date.isOpen) {
-      date.bundles = computeBundles(date.events, history); // TODO massively inefficient :(
+    if (currentDate.isOpen) {
+      currentDate.bundles = computeBundles(currentDate.events, history); // TODO massively inefficient :(
     }
   }
 
@@ -252,7 +236,7 @@ type accumulatorObject = {
 };
 const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
 
-function computeBundles(events: eventState[], history: History): number[][] {
+function computeBundles(events: Checkpoint[], history: History): number[][] {
   /* Helper method for makeBundles.
      Computes list of bundled indices based on timestamp, ordered such that
      flattening the outer list leads to a reversed list of the indices of
@@ -274,14 +258,14 @@ function computeBundles(events: eventState[], history: History): number[][] {
 
 function bundle(
   accObj: accumulatorObject,
-  e: eventState,
+  e: Checkpoint,
   idx: number,
   history: History
 ): accumulatorObject {
   /* Helper method for computeBundles.
      Function to use in reducing over bundles in computeBundles. */
   // Compute properties of current element
-  let timeStamp = e.events[0].timestamp;
+  let timeStamp = e.timestamp;
   let newEventTypes = getEventTypes(e);
   let newNotebook = history?.store?.getNotebook(e.notebook);
   let newCellOrder = getCellOrder(newNotebook, e);
@@ -322,13 +306,9 @@ function bundle(
   };
 }
 
-function getEventTypes(e: eventState): { [key: string]: ChangeType } {
+function getEventTypes(e: Checkpoint): { [key: string]: ChangeType } {
   let newEventTypes: { [key: string]: ChangeType } = {};
-  e.events.forEach((event) =>
-    event.targetCells.forEach(
-      (cell) => (newEventTypes[cell.cell] = cell.changeType)
-    )
-  );
+  e.targetCells.forEach((cell) => (newEventTypes[cell.cell] = cell.changeType));
   return newEventTypes;
 }
 
@@ -390,7 +370,7 @@ function zipCellOrder(A: string[], B: string[]) {
   return compatible ? zipped : null;
 }
 
-function getCellOrder(notebook: NodeyNotebook, e: eventState) {
+function getCellOrder(notebook: NodeyNotebook, e: Checkpoint) {
   if (!notebook) return []; // error state
   let order = notebook?.cells?.map((cell) => {
     let name = cell.substr(0, cell.lastIndexOf(".") || cell.length);
@@ -398,16 +378,14 @@ function getCellOrder(notebook: NodeyNotebook, e: eventState) {
   });
 
   // add in removed cells too
-  e.events.forEach((event) => {
-    event.targetCells.forEach((cell) => {
-      if (cell.index !== undefined) {
-        let name = cell.cell;
-        name = name?.substr(0, name.lastIndexOf(".") || name.length);
-        if (order.length > cell.index) {
-          order.splice(cell.index, 0, name);
-        } else order[cell.index] = name;
-      }
-    });
+  e.targetCells.forEach((cell) => {
+    if (cell.index !== undefined) {
+      let name = cell.cell;
+      name = name?.substr(0, name.lastIndexOf(".") || name.length);
+      if (order.length > cell.index) {
+        order.splice(cell.index, 0, name);
+      } else order[cell.index] = name;
+    }
   });
 
   return order;
