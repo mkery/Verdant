@@ -42,7 +42,7 @@ class DateSection extends React.Component<NotebookDate_Props> {
             {Checkpoint.formatDate(this.props.date)}
           </div>
           <div className={DATE_HEADER_COLLAPSE}>
-            <div>({this.props.events.length})</div>
+            <div>({this.props.events?.length})</div>
           </div>
         </div>
         <div>{this.props.isOpen ? this.makeBundles() : null}</div>
@@ -79,12 +79,12 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: req_NotebookDate_Props
 ) => {
-  let dateState = state.eventView.dates[ownProps.date_id];
+  let dateState = state.eventView?.dates[ownProps.date_id];
   return {
-    date: dateState.date,
-    events: dateState.events,
-    isOpen: dateState.isOpen,
-    bundles: dateState.bundles,
+    date: dateState?.date,
+    events: dateState?.events,
+    isOpen: dateState?.isOpen,
+    bundles: dateState?.bundles,
   };
 };
 

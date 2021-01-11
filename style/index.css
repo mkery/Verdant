@@ -88,20 +88,15 @@
   border-radius: var(--jp-border-radius);
 }
 
-#v-VerdantPanel,
-#v-VerdantPanel-tabs {
-  display: inline-block;
-  background: var(--jp-layout-color1);
-  overflow: visible;
+.v-Verdant-sidePanel {
+  display: flex;
+  flex-direction: column;
+  min-width: var(--jp-sidebar-min-width);
   color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
   /* This is needed so that all font sizing of children done in ems is
    * relative to this base size */
   font-size: var(--jp-ui-font-size1);
-}
-
-#v-VerdantPanel-tabs .p-TabBar-content {
-  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
-  width: 100%;
 }
 
 #v-VerdantPanel header {
@@ -116,46 +111,4 @@
   padding-left: 12px;
   text-transform: uppercase;
   display: inline-flex;
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tab {
-  height: var(--jp-private-verdant-manager-tab-height);
-  padding: 0px 12px;
-  border: none;
-  position: relative;
-  overflow: visible;
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tab:hover:not(.jp-mod-active) {
-  background: var(--jp-layout-color2);
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tab:first-child {
-  margin-left: 0;
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tab.jp-mod-active {
-  color: white;
-  background: var(--jp-brand-color1);
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tabIcon,
-#v-VerdantPanel-tabs .p-TabBar-tabLabel {
-  display: inline-block;
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tabCloseIcon {
-  visibility: hidden;
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tabLabel {
-  line-height: var(--jp-private-verdant-manager-tab-height);
-  padding-left: 4px;
-}
-
-#v-VerdantPanel-tabs .p-TabBar-tab .p-TabBar-tabIcon {
-  width: 14px;
-  background-position: left center;
-  background-repeat: no-repeat;
-  margin-right: 2px;
 }
