@@ -180,7 +180,7 @@ const mapStateToProps = (
 
   return {
     isOpen:
-      state.eventView.dates[ownProps.date_id].bundleStates[ownProps.bundle_id]
+      state.eventView.dates[ownProps.date_id].bundles[ownProps.bundle_id]
         .isOpen,
     checkpoints: checkpoints,
     history: state.getHistory(),

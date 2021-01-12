@@ -1,7 +1,7 @@
 import { History } from "../../../verdant-model/history";
-import { ChangeType, Checkpoint } from "../../../verdant-model/checkpoint";
+import { Checkpoint } from "../../../verdant-model/checkpoint";
 import { verdantState } from "../state";
-import { NodeyNotebook } from "verdant/verdant-model/nodey";
+import { Bundles } from "./event-bundles";
 
 export const INIT_EVENT_MAP = "INIT_EVENT_MAP";
 export const UPDATE_CHECKPOINT = "UPDATE_CHECKPOINT";
@@ -60,16 +60,11 @@ export const bundleClose = (date: number, bundle: number) => {
   };
 };
 
-export type bundleState = {
-  isOpen: boolean;
-};
-
 export type dateState = {
   isOpen: boolean;
   date: number;
   events: Checkpoint[];
-  bundles: number[][];
-  bundleStates: bundleState[];
+  bundles: Bundles.bundleState[];
 };
 
 /* main state */
@@ -126,7 +121,7 @@ export const eventReducer = (
         isOpen: action.open,
       };
       if (action.open === true && updatedElement.bundles.length < 1)
-        updatedElement.bundles = computeBundles(
+        updatedElement.bundles = Bundles.computeBundles(
           updatedElement.events,
           state.getHistory()
         );
@@ -152,9 +147,9 @@ export const eventReducer = (
         ],
       };
     case BUNDLE_EXPAND:
-      const bundleStates = eventView.dates[action.date].bundleStates;
+      const bundleStates = eventView.dates[action.date].bundles;
       bundleStates[action.bundle_id].isOpen = action.open;
-      const updatedBundleDate = {
+      const updatedDate = {
         ...eventView.dates[action.date],
         bundleStates: bundleStates,
       };
@@ -162,7 +157,7 @@ export const eventReducer = (
         ...eventView,
         dates: [
           ...eventView.dates.slice(0, action.date),
-          updatedBundleDate,
+          updatedDate,
           ...eventView.dates.slice(action.date + 1),
         ],
       };
@@ -173,11 +168,13 @@ export const eventReducer = (
 
 export function reducer_addEvent(
   newEvent: Checkpoint,
-  dates: dateState[],
+  date_list: dateState[],
   history: History
 ): dateState[] {
   let time = newEvent.timestamp;
-  let currentDate = dates[dates.length - 1];
+  let currentDate = date_list[date_list.length - 1];
+  let date: dateState;
+  let idx: number;
   if (!currentDate || !Checkpoint.sameDay(time, currentDate.date)) {
     // new date
     let today = Date.now();
@@ -185,22 +182,25 @@ export function reducer_addEvent(
       isOpen: Checkpoint.sameDay(today, time), // only open by default if today's date
       date: time,
       events: [newEvent],
-      bundles: [[0]], // initial bundle contains just the 1 existing event
-      bundleStates: [{ isOpen: false }],
+      bundles: [],
     };
-    dates.push(newDate);
+    date_list.push(newDate);
+    date = newDate;
+    idx = 0;
   } else {
-    currentDate.events.push(newEvent);
-    // keep bundleStates as long as event list
-    currentDate.bundleStates.push({ isOpen: false });
-
-    // update bundles
-    if (currentDate.isOpen) {
-      currentDate.bundles = computeBundles(currentDate.events, history); // TODO massively inefficient :(
+    // to avoid duplicates, first verify that this event has not already been added
+    let latest = currentDate.events[currentDate.events.length - 1];
+    if (latest.id !== newEvent.id) {
+      idx = currentDate.events.push(newEvent) - 1;
+      date = currentDate;
     }
   }
 
-  return dates;
+  // now add newEvent to bundles of the chosen date
+  if (date?.isOpen)
+    date.bundles = Bundles.bundleEvent(idx, date.events, date.bundles, history);
+
+  return date_list;
 }
 
 function reducer_initEventMap(state: verdantState) {
@@ -209,184 +209,10 @@ function reducer_initEventMap(state: verdantState) {
     .getHistory()
     .checkpoints.all()
     .forEach((event) => reducer_addEvent(event, dates, state.getHistory()));
-
-  // Set all dates to closed except the most recent
-  dates.forEach((d) => (d.isOpen = false));
-
-  // initialize the most recent event
-  dates[dates.length - 1].isOpen = true;
-  dates[dates.length - 1].bundles = computeBundles(
-    dates[dates.length - 1].events,
-    state.getHistory()
-  );
-
   return dates;
 }
 
 function getInitialEvent(history: History): Checkpoint {
   let checkpoints = history.checkpoints.all();
   return checkpoints[checkpoints.length - 1];
-}
-
-type accumulatorObject = {
-  bundles: number[][]; // Holds partially constructed bundle output
-  timeBound: number; // Lower limit on time for inclusion in latest bundle
-  changeByCell: { [cell: string]: ChangeType } | null; // Type of current bundle or null if no prev bundle
-  cellOrder: string[];
-};
-const INTERVAL_WIDTH = 300000; // Max bundle time interval in milliseconds
-
-function computeBundles(events: Checkpoint[], history: History): number[][] {
-  /* Helper method for makeBundles.
-     Computes list of bundled indices based on timestamp, ordered such that
-     flattening the outer list leads to a reversed list of the indices of
-     this.props.events */
-
-  let initial: accumulatorObject = {
-    bundles: [],
-    timeBound: Infinity,
-    changeByCell: {},
-    cellOrder: [],
-  };
-
-  let result: accumulatorObject = events.reduceRight(
-    (accObj, event, index) => bundle(accObj, event, index, history),
-    initial
-  );
-  return result.bundles;
-}
-
-function bundle(
-  accObj: accumulatorObject,
-  e: Checkpoint,
-  idx: number,
-  history: History
-): accumulatorObject {
-  /* Helper method for computeBundles.
-     Function to use in reducing over bundles in computeBundles. */
-  // Compute properties of current element
-  let timeStamp = e.timestamp;
-  let newEventTypes = getEventTypes(e);
-  let newNotebook = history?.store?.getNotebook(e.notebook);
-  let newCellOrder = getCellOrder(newNotebook, e);
-
-  /*
-   * CONDITIONS TO BUNDLE EVENTS
-   * 1. occur within the same time bound
-   * 2. notebooks A and B don't have conflicting cells at the same index
-   * 3. no events have conflicting events for the same cell
-   */
-
-  // 1. occur within the same time bound
-  if (timeStamp > accObj.timeBound) {
-    //2. notebooks A and B don't have conflicting cells at the same index
-    let zippedCells = zipCellOrder(newCellOrder, accObj.cellOrder);
-    if (zippedCells) {
-      // 3. no events have conflicting events for the same cell
-      let zippedEvents = zipEventTypes(newEventTypes, accObj.changeByCell);
-      if (zippedEvents) {
-        // add event to current bundle
-        accObj.bundles[accObj.bundles.length - 1].push(idx);
-        return {
-          bundles: accObj.bundles,
-          timeBound: accObj.timeBound,
-          changeByCell: zippedEvents,
-          cellOrder: zippedCells,
-        };
-      }
-    }
-  }
-
-  // create new bundle if one or more conditions fail
-  return {
-    bundles: accObj.bundles.concat([[idx]]),
-    timeBound: timeStamp - INTERVAL_WIDTH,
-    changeByCell: newEventTypes,
-    cellOrder: newCellOrder,
-  };
-}
-
-function getEventTypes(e: Checkpoint): { [key: string]: ChangeType } {
-  let newEventTypes: { [key: string]: ChangeType } = {};
-  e.targetCells.forEach((cell) => (newEventTypes[cell.cell] = cell.changeType));
-  return newEventTypes;
-}
-
-function zipEventTypes(
-  A: { [key: string]: ChangeType },
-  B: { [key: string]: ChangeType }
-): { [key: string]: ChangeType } | null {
-  let keys_A = Object.keys(A);
-  let keys_B = Object.keys(B);
-
-  // get the simplified artifact name of each cell version
-  let art_A = keys_A.map((cell) =>
-    cell?.substr(0, cell.lastIndexOf(".") || cell.length)
-  );
-  let art_B = keys_B.map((cell) =>
-    cell?.substr(0, cell.lastIndexOf(".") || cell.length)
-  );
-
-  // first check if any conflicting changes on the same
-  // artifact
-  let zipped = {};
-  let compatible = art_A.every((art, index) => {
-    let index_b = art_B.indexOf(art);
-
-    if (index_b > -1) {
-      if (B[keys_B[index_b]] === A[keys_A[index]]) {
-        return true;
-      }
-      return false;
-    } else {
-      zipped[keys_A[index]] = A[keys_A[index]];
-      return true;
-    }
-  });
-
-  if (compatible) {
-    keys_B.forEach((cell) => (zipped[cell] = B[cell]));
-  } else {
-    zipped = null;
-  }
-
-  return zipped;
-}
-
-function zipCellOrder(A: string[], B: string[]) {
-  let smaller = B;
-  let larger = A;
-  if (A.length < B.length) {
-    smaller = A;
-    larger = B;
-  }
-
-  let zipped = A;
-  let compatible = smaller.every((cell, index) => cell === larger[index]);
-  if (compatible && larger.length > smaller.length) {
-    zipped = zipped.concat(larger.slice(smaller.length));
-  }
-
-  return compatible ? zipped : null;
-}
-
-function getCellOrder(notebook: NodeyNotebook, e: Checkpoint) {
-  if (!notebook) return []; // error state
-  let order = notebook?.cells?.map((cell) => {
-    let name = cell.substr(0, cell.lastIndexOf(".") || cell.length);
-    return name;
-  });
-
-  // add in removed cells too
-  e.targetCells.forEach((cell) => {
-    if (cell.index !== undefined) {
-      let name = cell.cell;
-      name = name?.substr(0, name.lastIndexOf(".") || name.length);
-      if (order.length > cell.index) {
-        order.splice(cell.index, 0, name);
-      } else order[cell.index] = name;
-    }
-  });
-
-  return order;
 }

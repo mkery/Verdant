@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Checkpoint } from "../../../verdant-model/checkpoint";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
-import { verdantState, dateOpen, dateClose } from "../../redux";
+import { verdantState, dateOpen, dateClose, Bundles } from "../../redux";
 import EventBundle from "./event-bundle";
 
 /* CSS Constants */
@@ -19,7 +19,7 @@ type NotebookDate_Props = {
   isOpen: boolean;
   open: (d: number) => void;
   close: (d: number) => void;
-  bundles: number[][];
+  bundles: Bundles.bundleState[];
 } & req_NotebookDate_Props;
 
 class DateSection extends React.Component<NotebookDate_Props> {
@@ -56,12 +56,12 @@ class DateSection extends React.Component<NotebookDate_Props> {
   }
 
   private makeBundles() {
-    // Creates DateBundle for each set of dates
-    return this.props.bundles.map((idx_list, i) => (
+    // Creates bundle for each set of checkpoints
+    return this.props.bundles.map((bundle, i) => (
       <EventBundle
         key={i}
         bundle_id={i}
-        event_indicies={[...idx_list]}
+        event_indicies={bundle.bundleEvents}
         date_id={this.props.date_id}
       />
     ));
