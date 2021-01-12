@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChangeType, Checkpoint } from "../../../verdant-model/checkpoint";
+import { ChangeType } from "../../../verdant-model/checkpoint";
 import { CellMap, Namer } from "../../../verdant-model/sampler";
 import { History } from "../../../verdant-model/history";
 import { Nodey, NodeyCodeCell } from "../../../verdant-model/nodey";
@@ -7,62 +7,17 @@ import { verdantState, showDetailOfNode } from "../../redux";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 
-type react_EventMap_Props = {
-  checkpoints: Checkpoint[];
-};
-
 type EventMap_Props = {
-  // given by redux store
-  event_id?: number;
+  cellMap: CellMap.map;
   history: History;
   showDetail: (n: Nodey) => void;
-} & react_EventMap_Props;
+};
 
 const MAP = "Verdant-events-map";
 
-class MiniMap extends React.Component<
-  EventMap_Props,
-  { cellMap: CellMap.map }
-> {
-  private _isMounted;
-
-  constructor(props) {
-    super(props);
-    let checkpoints = this.props.checkpoints;
-    let cellMap = CellMap.build(checkpoints, this.props.history);
-    this.state = {
-      cellMap,
-    };
-  }
-
-  componentDidMount() {
-    this._isMounted = true;
-  }
-
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-
-  componentDidUpdate(oldProps: EventMap_Props) {
-    /*
-     * Check to update:
-     * In a bundle has the number of checkpoints changed?
-     * Has the id of the checkpoint tied to this map changed?
-     * Has this checkpoint gotten new changes since we last rendered the map?
-     */
-    if (
-      this._isMounted &&
-      (oldProps.checkpoints.length !== this.props.checkpoints.length ||
-        this.props.checkpoints[0]?.id !== oldProps.checkpoints[0]?.id)
-    ) {
-      let checkpoints = this.props.checkpoints;
-      let cellMap = CellMap.build(checkpoints, this.props.history);
-      this.setState({ cellMap });
-    }
-  }
-
+class MiniMap extends React.Component<EventMap_Props> {
   showMap() {
-    return this.state.cellMap.map((cell, index) => {
+    return this.props.cellMap.map((cell, index) => {
       if (cell.changes.length > 0) {
         let tics: JSX.Element[] = [];
         cell.changes.forEach((kind, j_index) => {

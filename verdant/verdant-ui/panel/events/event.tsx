@@ -4,11 +4,12 @@ import NotebookEventLabel from "./event-label";
 import MiniMap from "./mini-map";
 import { verdantState } from "../../redux/";
 import { NodeyNotebook } from "../../../verdant-model/nodey";
-import { Namer } from "../../../verdant-model/sampler";
+import { CellMap, Namer } from "../../../verdant-model/sampler";
 import { Checkpoint } from "verdant/verdant-model/checkpoint";
 
 type react_NotebookEvent_Props = {
   checkpoint: Checkpoint;
+  cellMap: CellMap.map;
 };
 
 type NotebookEvent_Props = {
@@ -34,7 +35,7 @@ class NotebookEvent extends React.Component<NotebookEvent_Props> {
           {Namer.getNotebookVersionLabel(this.props.notebook)}
         </div>
         <div className="Verdant-events-event-row-map">
-          <MiniMap checkpoints={[this.props.checkpoint]} />
+          <MiniMap cellMap={this.props.cellMap} />
         </div>
       </div>
     );

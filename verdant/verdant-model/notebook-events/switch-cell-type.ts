@@ -27,7 +27,7 @@ export class SwitchCellType extends NotebookEvent {
     verCell.view = this.cell;
 
     // make sure cell is added to notebook model
-    this.history.stage.commitCellTypeChanged(
+    this.checkpoint = this.history.stage.commitCellTypeChanged(
       oldNodey,
       newNodey,
       this.checkpoint

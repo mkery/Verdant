@@ -80,6 +80,58 @@ export namespace Bundles {
     return bundle_list;
   }
 
+  export function updateBundleForEvent(
+    event_idx: number,
+    event_list: Checkpoint[],
+    bundle_list: bundleState[],
+    history: History
+  ) {
+    let event = event_list[event_idx];
+
+    // first find the bundle that contains this event
+    let bundle_idx = bundle_list.findIndex((bundle) =>
+      bundle.bundleEvents.includes(event_idx)
+    );
+
+    if (bundle_idx > -1) {
+      let targetCells = calcTargetCellNotebookIndex(event, history);
+      let bundle = bundle_list[bundle_idx];
+      let zippedTargets = { ...targetCells };
+
+      // check that this event still works with its current bundle
+      let compatible = bundle.bundleEvents.every((ev) => {
+        let bundled_event = event_list[ev];
+        // skip this one
+        if (bundled_event && event_idx !== ev) {
+          let targets = calcTargetCellNotebookIndex(bundled_event, history);
+          zippedTargets = zipTargets(zippedTargets, targets);
+          return zippedTargets !== undefined;
+        } else return true; // compatible with yourself
+      });
+
+      if (compatible) {
+        bundle.targetCells_notebookIndex = zippedTargets;
+        bundle_list[bundle_idx] = bundle;
+      }
+      // gotta kick out of this bundle
+      else {
+        // first get rid of this bundle since it no longer works
+        if (bundle_idx === 0) bundle_list.shift();
+        else bundle_list.splice(bundle_idx, 1);
+
+        // recalculate all the bundles this one on, yuck
+        for (
+          let i = bundle.bundleEvents[bundle.bundleEvents.length - 1];
+          i < event_list.length;
+          i++
+        ) {
+          bundle_list = bundleEvent(i, event_list, bundle_list, history);
+        }
+      }
+    }
+    return bundle_list;
+  }
+
   // returns a combination of A and B if they are compatible and undefined otherwise
   function zipTargets(
     A: { [cell: string]: number },

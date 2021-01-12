@@ -16,11 +16,12 @@ export class HistoryStage {
     this.open_commits = [];
   }
 
-  public async commit(checkpoint: Checkpoint): Promise<void> {
+  public async commit(checkpoint: Checkpoint): Promise<Checkpoint> {
     let c = this.getCommit(checkpoint);
     // if commit was *actually* verified to be needed, it will record new versions
     await c.commit();
     this.closeCommit(c);
+    return c.checkpoint;
   }
 
   public markAsPossiblyEdited(nodey: Nodey, checkpoint: Checkpoint): void {
@@ -32,36 +33,43 @@ export class HistoryStage {
     added: NodeyCell,
     index: number,
     checkpoint: Checkpoint
-  ): void {
+  ): Checkpoint {
     let c = this.getCommit(checkpoint);
     c.addCell(added, index);
     this.closeCommit(c);
+    return c.checkpoint;
   }
 
-  public commitCellDeleted(deleted: NodeyCell, checkpoint: Checkpoint): void {
+  public commitCellDeleted(
+    deleted: NodeyCell,
+    checkpoint: Checkpoint
+  ): Checkpoint {
     let c = this.getCommit(checkpoint);
     c.deleteCell(deleted);
     this.closeCommit(c);
+    return c.checkpoint;
   }
 
   public commitCellMoved(
     moved: NodeyCell,
     newPos: number,
     checkpoint: Checkpoint
-  ): void {
+  ): Checkpoint {
     let c = this.getCommit(checkpoint);
     c.moveCell(moved, newPos);
     this.closeCommit(c);
+    return c.checkpoint;
   }
 
   public commitCellTypeChanged(
     oldCell: NodeyCell,
     newCell: NodeyCell,
     checkpoint: Checkpoint
-  ): void {
+  ): Checkpoint {
     let c = this.getCommit(checkpoint);
     c.changeCellType(oldCell, newCell);
     this.closeCommit(c);
+    return c.checkpoint;
   }
 
   private getCommit(checkpoint: Checkpoint) {

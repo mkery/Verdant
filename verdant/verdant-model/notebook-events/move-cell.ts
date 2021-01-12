@@ -25,7 +25,7 @@ export class MoveCell extends NotebookEvent {
 
     // make sure cell is moved in the model
     if (this.cell.model)
-      this.history.stage.commitCellMoved(
+      this.checkpoint = this.history.stage.commitCellMoved(
         this.cell.model,
         this.newPos,
         this.checkpoint

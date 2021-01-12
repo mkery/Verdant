@@ -3,11 +3,11 @@ import NotebookEvent from "./event";
 import { connect } from "react-redux";
 import { verdantState, bundleClose, bundleOpen } from "../../redux";
 import NotebookEventLabel from "./event-label";
-import { Checkpoint } from "../../../verdant-model/checkpoint";
 import MiniMap from "./mini-map";
-import { Namer } from "../../../verdant-model/sampler";
+import { CellMap, Namer } from "../../../verdant-model/sampler";
 import { History } from "../../../verdant-model/history";
 import { ChevronRightIcon, ChevronDownIcon } from "../../icons";
+import { Checkpoint } from "verdant/verdant-model/checkpoint";
 
 /* CSS Constants */
 const BUNDLE_MULTI_BODY = `Verdant-events-bundle-multi-body`;
@@ -15,24 +15,60 @@ const BUNDLE_MULTI_FOOTER = `Verdant-events-bundle-multi-footer`;
 const BUNDLE_MULTI_FOOTER_LINE = `${BUNDLE_MULTI_FOOTER}-line`;
 const BUNDLE_MULTI_FOOTER_SPACER = `${BUNDLE_MULTI_FOOTER}-spacer`;
 
-type req_DateBundle_Props = {
-  event_indicies: number[]; // Indices of events prop of DateSection
+type req_Bundle_Props = {
   date_id: number;
   bundle_id: number; // Index of bundle in date
 };
 
-type DateBundle_Props = {
+type Bundle_Props = {
   // provided by redux store
   isOpen: boolean;
   open: (d: number, b: number) => void;
   close: (d: number, b: number) => void;
+  changeCount: number;
   checkpoints: Checkpoint[];
   history: History;
-} & req_DateBundle_Props;
+} & req_Bundle_Props;
 
-class EventBundle extends React.Component<DateBundle_Props> {
+type Bundle_State = {
+  cellMap: CellMap.map;
+};
+
+class EventBundle extends React.Component<Bundle_Props, Bundle_State> {
+  private _isMounted;
+
+  constructor(props: Bundle_Props) {
+    super(props);
+
+    let cellMap = CellMap.build(this.props.checkpoints, this.props.history);
+    this.state = {
+      cellMap,
+    };
+  }
+
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  componentDidUpdate(oldProps: Bundle_Props) {
+    if (
+      this._isMounted &&
+      (this.props.bundle_id !== oldProps.bundle_id ||
+        this.props.checkpoints[0]?.id !== oldProps.checkpoints[0]?.id ||
+        this.props.changeCount !== oldProps.changeCount)
+    ) {
+      // update cell map
+      let cellMap = CellMap.build(this.props.checkpoints, this.props.history);
+      this.setState({ cellMap });
+    }
+  }
+
   render() {
-    if (this.props.event_indicies.length === 1) return this.renderSingle();
+    if (this.props.checkpoints.length === 1) return this.renderSingle();
     return this.renderBundle();
   }
 
@@ -40,7 +76,10 @@ class EventBundle extends React.Component<DateBundle_Props> {
     /* Render a single event (no bundle) */
     return (
       <div className="Verdant-events-bundle-single">
-        <NotebookEvent checkpoint={this.props.checkpoints[0]} />
+        <NotebookEvent
+          checkpoint={this.props.checkpoints[0]}
+          cellMap={this.state.cellMap}
+        />
       </div>
     );
   }
@@ -118,7 +157,7 @@ class EventBundle extends React.Component<DateBundle_Props> {
               ${Namer.getNotebookVersionLabel(lastNotebook)}`}
         </div>
         <div className="Verdant-events-event-row-map">
-          <MiniMap checkpoints={this.props.checkpoints} />
+          <MiniMap cellMap={this.state.cellMap} />
         </div>
       </div>
     );
@@ -145,9 +184,16 @@ class EventBundle extends React.Component<DateBundle_Props> {
     /* Render the individual events of the body of the bundle */
     return (
       <div className={BUNDLE_MULTI_BODY}>
-        {this.props.checkpoints.map((checkpoint, index) => (
-          <NotebookEvent key={index} checkpoint={checkpoint} />
-        ))}
+        {this.props.checkpoints.map((checkpoint, index) => {
+          let cellMap = CellMap.build(checkpoint, this.props.history);
+          return (
+            <NotebookEvent
+              key={index}
+              checkpoint={checkpoint}
+              cellMap={cellMap}
+            />
+          );
+        })}
       </div>
     );
   }
@@ -170,20 +216,20 @@ const mapDispatchToProps = (dispatch: any) => {
   };
 };
 
-const mapStateToProps = (
-  state: verdantState,
-  ownProps: req_DateBundle_Props
-) => {
-  const checkpoints = ownProps.event_indicies.map(
-    (e) => state.eventView.dates[ownProps.date_id].events[e]
+const mapStateToProps = (state: verdantState, ownProps: req_Bundle_Props) => {
+  const history = state.getHistory();
+  const bundle =
+    state.eventView.dates[ownProps.date_id].bundles[ownProps.bundle_id];
+  const checkpoints = bundle?.bundleEvents?.map(
+    (ev) => state.eventView.dates[ownProps.date_id].events[ev]
   );
+  const changeCount = Object.keys(bundle.targetCells_notebookIndex).length;
 
   return {
-    isOpen:
-      state.eventView.dates[ownProps.date_id].bundles[ownProps.bundle_id]
-        .isOpen,
-    checkpoints: checkpoints,
-    history: state.getHistory(),
+    isOpen: bundle?.isOpen,
+    changeCount,
+    history,
+    checkpoints,
   };
 };
 

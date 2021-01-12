@@ -93,7 +93,6 @@ export const eventReducer = (
         };
       else return eventView;
     case UPDATE_CHECKPOINT:
-      // TODO check if we need to update the mini map
       if (action.currentEvent != eventView.currentEvent) {
         return {
           // update both event map and current event with new event
@@ -105,7 +104,22 @@ export const eventReducer = (
             state.getHistory()
           ),
         };
-      } else return eventView;
+      } else {
+        // check if we need to update the mini map/bundle for currentEvent
+        let latestDate = eventView.dates[eventView.dates.length - 1];
+        if (latestDate) {
+          let latest = latestDate.events.length - 1;
+          let bundles = Bundles.updateBundleForEvent(
+            latest,
+            latestDate.events,
+            latestDate.bundles,
+            state.getHistory()
+          );
+          eventView.dates[eventView.dates.length - 1].bundles = bundles;
+        }
+
+        return eventView;
+      }
     case ADD_EVENT:
       return {
         ...eventView,

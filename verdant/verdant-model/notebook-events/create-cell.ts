@@ -30,7 +30,11 @@ export class CreateCell extends NotebookEvent {
     this.notebook.cells.splice(this.cell_index, 0, newCell);
 
     // update the notebook nodey
-    this.history.stage.commitCellAdded(nodey, this.cell_index, this.checkpoint);
+    this.checkpoint = this.history.stage.commitCellAdded(
+      nodey,
+      this.cell_index,
+      this.checkpoint
+    );
     log("CELL CREATED", newCell, this.notebook.cells);
   }
 }

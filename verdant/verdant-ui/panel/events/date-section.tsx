@@ -57,13 +57,8 @@ class DateSection extends React.Component<NotebookDate_Props> {
 
   private makeBundles() {
     // Creates bundle for each set of checkpoints
-    return this.props.bundles.map((bundle, i) => (
-      <EventBundle
-        key={i}
-        bundle_id={i}
-        event_indicies={bundle.bundleEvents}
-        date_id={this.props.date_id}
-      />
+    return this.props.bundles.map((_, i) => (
+      <EventBundle key={i} bundle_id={i} date_id={this.props.date_id} />
     ));
   }
 }
