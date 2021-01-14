@@ -26,17 +26,11 @@ For design discussion and the research behind this check out our [paper](https:/
 
 ## Install
 
+`jupyter labextension install verdant-history`
+
+## Develop
+
 For a development install, do the following in the repository directory:
-
-(_These first server extension steps are optional because AST parsing is currently (temporarily!) disabled in Verdant_)
-```bash
-pip install lilgit-parser
-jupyter serverextension enable --py lilgit_parser
-jupyter serverextension list
-```
-This should ensure that the server-extension parser part of Verdant is installed. 
-
-Next:
 
 ```bash
 yarn
