@@ -5,6 +5,7 @@ import { IObservableJSON } from "@jupyterlab/observables";
 import { Cell, CodeCell, MarkdownCell, ICellModel } from "@jupyterlab/cells";
 
 import { PromiseDelegate } from "@lumino/coreutils";
+import { Signal } from "@lumino/signaling";
 
 import { log } from "../notebook";
 
@@ -27,6 +28,10 @@ export class NotebookListen {
     this._notebookPanel = notebookPanel;
     this.verNotebook = verNotebook;
     this.init();
+  }
+
+  dispose() {
+    Signal.clearData(this);
   }
 
   private _notebook: Notebook; //the currently active notebook Verdant is working on

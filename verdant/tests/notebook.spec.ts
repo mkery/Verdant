@@ -12,6 +12,7 @@ import { AST } from "../verdant-model/analysis/ast";
 
 import * as utils from "./jupyterlab_utils";
 import { VerNotebook } from "../verdant-model/notebook";
+import { ContentsManager } from "@jupyterlab/services";
 
 const server = new JupyterServer();
 
@@ -47,7 +48,8 @@ describe("Creating a mock Jupyter Notebook", () => {
   describe("new RenderBaby", () => {
     it("should create a RenderBaby", () => {
       const renderMime = (NBTestUtils.defaultRenderMime() as unknown) as RenderMimeRegistry;
-      const fileManager = new FileManager(null, true);
+      const contentsManager = new ContentsManager();
+      const fileManager = new FileManager(null, contentsManager, true);
       const renderBabe = new RenderBaby(
         renderMime,
         renderMime.latexTypesetter,
@@ -56,6 +58,7 @@ describe("Creating a mock Jupyter Notebook", () => {
       );
 
       expect(renderBabe).toBeInstanceOf(RenderBaby);
+      contentsManager.dispose();
     });
   });
 
@@ -63,7 +66,8 @@ describe("Creating a mock Jupyter Notebook", () => {
     it("should create a Verdant Notebook", () => {
       // create mock I/O utils
       const renderMime = (NBTestUtils.defaultRenderMime() as unknown) as RenderMimeRegistry;
-      const fileManager = new FileManager(null, true);
+      const contentsManager = new ContentsManager();
+      const fileManager = new FileManager(null, contentsManager, true);
       const renderBaby = new RenderBaby(
         renderMime,
         renderMime.latexTypesetter,
@@ -88,6 +92,8 @@ describe("Creating a mock Jupyter Notebook", () => {
       // finally create ver notebook
       const verNotebook = new VerNotebook(history, analysis, panel);
       expect(verNotebook).toBeInstanceOf(VerNotebook);
+
+      contentsManager.dispose();
     });
   });
 });

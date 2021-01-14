@@ -14,6 +14,7 @@ import {
 import { Nodey } from "../verdant-model/nodey";
 import { VerdantLog } from "./logger";
 import { NotebookEvent } from "../verdant-model/notebook-events";
+import { Signal } from "@lumino/signaling";
 
 export class VerdantNotebook extends VerNotebook {
   private store: Store;
@@ -44,6 +45,12 @@ export class VerdantNotebook extends VerNotebook {
         this.store.dispatch(showDetailOfNode(nodey));
       });
     });
+  }
+
+  public dispose() {
+    // clear any event listener connections on shutdown
+    Signal.clearData(this);
+    this.view.dispose();
   }
 
   public async handleNotebookEvent(event: NotebookEvent) {

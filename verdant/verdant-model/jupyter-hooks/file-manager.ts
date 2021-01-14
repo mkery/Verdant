@@ -17,10 +17,16 @@ export class FileManager {
   readonly docManager: IDocumentManager;
   private _activeNotebook: VerNotebook;
   private test_mode: boolean;
+  private contentsManager: ContentsManager;
 
-  constructor(docManager: IDocumentManager, test = false) {
+  constructor(
+    docManager: IDocumentManager,
+    contentsMananger: ContentsManager,
+    test = false
+  ) {
     this.docManager = docManager;
     this.test_mode = test;
+    this.contentsManager = contentsMananger;
   }
 
   public set activeNotebook(notebook: VerNotebook) {
@@ -42,20 +48,18 @@ export class FileManager {
           name;
         //log("goal path is ", path)
 
-        var saveModel = new HistorySaveModel(
-          name,
-          path,
-          "today",
-          "today",
-          JSON.stringify(this._activeNotebook.history.toJSON(), null, 1)
-        );
-        //log("Model to save is", saveModel)
-
-        let contents = new ContentsManager();
-        contents
-          .save(path, saveModel)
+        this.contentsManager
+          .save(path, {
+            type: "file",
+            format: "text",
+            content: JSON.stringify(
+              this._activeNotebook.history.toJSON(),
+              null,
+              1
+            ),
+          })
           .then(() => {
-            log("Model written to file", saveModel);
+            log("Model written to file", path);
             accept();
           })
           .catch((rej) => {
@@ -82,8 +86,7 @@ export class FileManager {
           "/" +
           notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
           name;
-        let contents = new ContentsManager();
-        contents
+        this.contentsManager
           .get(path)
           .then((res) => {
             log("Found a model ", res);
@@ -123,18 +126,12 @@ export class FileManager {
         notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
         name;
 
-      // create save model
-      var saveModel = new HistorySaveModel(
-        name,
-        path,
-        "today",
-        "today",
-        model.toString()
-      );
-
-      let contents = new ContentsManager();
-      contents
-        .save(path, saveModel)
+      this.contentsManager
+        .save(path, {
+          type: "file",
+          format: "text",
+          content: model.toString(),
+        })
         .then(() => {
           log("GhostBook written to file", name);
         })
@@ -155,9 +152,8 @@ export class FileManager {
 
     if (path) {
       path += "/" + output.offsite;
-      let contents = new ContentsManager();
       try {
-        fileDat = await contents.get(path);
+        fileDat = await this.contentsManager.get(path);
       } catch (error) {
         // file is missing, that's ok.
       }
@@ -187,16 +183,13 @@ export class FileManager {
     var path = this.getOutputPath();
     if (path !== undefined) {
       path += "/" + filename;
-      var saveModel = new HistorySaveModel(
-        filename,
-        path,
-        "today",
-        "today",
-        data
-      );
-      let contents = new ContentsManager();
+
       await this.makeOutputFolder();
-      contents.save(path, saveModel);
+      this.contentsManager.save(path, {
+        type: "file",
+        format: "text",
+        content: data,
+      });
     } else
       console.error(
         "Failed to find a valid path to save output history to!",
@@ -214,8 +207,7 @@ export class FileManager {
     let path = this.getOutputPath();
     if (path) {
       let name = path.substring(2);
-      let contents = new ContentsManager();
-      return contents.save(path, {
+      return this.contentsManager.save(path, {
         path,
         name,
         type: "directory",
@@ -223,33 +215,6 @@ export class FileManager {
     } else {
       console.error("Failed to make output folder to store output history in.");
     }
-  }
-}
-
-export class HistorySaveModel implements Contents.IModel {
-  readonly type: Contents.ContentType = "file";
-  readonly writable: boolean = true;
-  readonly mimetype: string = "application/json";
-  readonly format: Contents.FileFormat = "text";
-
-  readonly name: string;
-  readonly path: string;
-  readonly created: string;
-  readonly last_modified: string;
-  readonly content: any;
-
-  constructor(
-    name: string,
-    path: string,
-    createDate: string,
-    modDate: string,
-    content: any
-  ) {
-    this.name = name;
-    this.path = path;
-    this.created = createDate;
-    this.last_modified = modDate;
-    this.content = content;
   }
 }
 

@@ -33,6 +33,11 @@ export class VerdantUI extends ReactWidget {
     this.title.caption = "Verdant Log";
   }
 
+  dispose() {
+    this.activeInstance?.notebook?.dispose();
+    super.dispose();
+  }
+
   protected render() {
     if (this.activeInstance)
       return <VerdantPanel store={this.activeInstance.store} />;

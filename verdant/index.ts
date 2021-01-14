@@ -21,6 +21,8 @@ import { FileManager } from "./verdant-model/jupyter-hooks/file-manager";
 
 import * as renderers from "@jupyterlab/rendermime";
 
+import { Signal } from "@lumino/signaling";
+
 /*
  * Load styles for all components
  */
@@ -56,7 +58,10 @@ const extension: JupyterFrontEndPlugin<void> = {
         app.commandLinker.connectNode(node, "docmanager:open", { path: path });
       },
     };
-    const fileManager = new FileManager(docManager);
+    const fileManager = new FileManager(
+      docManager,
+      app.serviceManager.contents
+    );
     const renderBaby = new RenderBaby(
       rendermime,
       latexTypesetter,
@@ -88,6 +93,12 @@ const extension: JupyterFrontEndPlugin<void> = {
     (app.shell as LabShell).activeChanged.connect(() =>
       updateVerdantView(app, manager)
     );
+
+    // Connect signal to shutdown everything
+    (app.shell as LabShell).disposed.connect(() => {
+      manager.dispose();
+      Signal.clearData(this);
+    });
 
     // Populate Verdant if a notebook is open
     updateVerdantView(app, manager);
@@ -142,7 +153,8 @@ function __shutDownInstance(
           return widg.sessionContext.path === path;
       });
       if (!openNotebook) {
-        manager.instances.splice(index, 1);
+        let rem = manager.instances.splice(index, 1);
+        rem.forEach((inst) => inst.notebook.dispose());
       }
     }, 120000);
 

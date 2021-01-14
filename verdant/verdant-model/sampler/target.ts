@@ -24,6 +24,10 @@ export class Target {
     this.history = history;
   }
 
+  dispose() {
+    Signal.clearData(this);
+  }
+
   get notebook() {
     return this.history.notebook;
   }

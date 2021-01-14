@@ -63,6 +63,11 @@ export class VerdantInstanceManager {
     this.__activeInstance = undefined;
   }
 
+  public dispose() {
+    this.instances.forEach((inst) => inst?.notebook?.dispose());
+    this.instances = [];
+  }
+
   public get activeInstance() {
     return this.__activeInstance;
   }
