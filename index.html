@@ -4,31 +4,40 @@
     <meta charset="UTF-8" />
     <title>Verdant</title>
     <link rel="shortcut icon" href="icon.ico" type="image/vnd.microsoft.icon" />
-    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@200;400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap"
       rel="stylesheet"
     />
-<link href="https://fonts.googleapis.com/css2?family=Bungee+Hairline&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee+Hairline&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./tutorial/index.css" type="text/css" />
   </head>
   <body>
-    <div id="nav"><span
-      ><img
-        src="./tutorial/images/GitHub-Mark-Light-64px.png"
-        class="githubIcon"
-        alt="GitHub Icon"
-    /></span><a href="https://github.com/mkery/Verdant"
-    ><code>github.com/mkery/Verdant</code></a></div>
+    <div id="nav">
+      <span
+        ><img
+          src="./tutorial/images/GitHub-Mark-64px.png"
+          class="githubIcon"
+          alt="GitHub Icon" /></span
+      ><a href="https://github.com/mkery/Verdant"
+        ><code>github.com/mkery/Verdant</code></a
+      >
+    </div>
     <div id="header">
       <h1>Verdant</h1>
       <p>
         A version control tool for
         <a href="https://jupyterlab.readthedocs.io/en/stable/">JupyterLab</a>
-        that automatically records the history of your experimentation while you work.🪴
+        that automatically records the history of your experimentation while you
+        work.🪴
       </p>
+      <div id="install">
+        To install: <code>jupyter labextension install verdant-history</code> 🪴
+      </div>
     </div>
-
     <div id="content">
       <div class="row">
         <div class="col">
@@ -49,38 +58,68 @@
         <div class="col">
           <img
             class="verdant-screenshot"
-            src="./tutorial/images/verdant-activity.png"
+            src="./tutorial/images/Screenshots/activity-map-overview.png"
           />
         </div>
         <div class="col description">
           <p>
-            🌿 In the <b>activity pane</b>, a minimap of your notebook live update
-            to reflect your changes by date and time.
+            🌿 In the <b>activity pane</b>, a stream of activity live updates to
+            reflect your changes by date and time.
           </p>
         </div>
       </div>
-   
-    </div>
+      <div class="center-row">
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            src="./tutorial/images/Screenshots/minimap-detail.png"
+          />
+        </div>
+        <p class="caption">
+          The <b>minimap</b> shows a tick for every cell in your notebook. The
+          bold ticks indicate where a change happened.
+        </p>
+      </div>
       <div class="row">
         <div class="col">
           <img
             class="verdant-screenshot"
-            src="./tutorial/images/verdant-artifact.png"
+            src="./tutorial/images/Screenshots/ghost-book.png"
           />
         </div>
         <div class="col description">
           <p>
-            The <b>artifact pane</b>, summarizes the available revisions of each
-            cell and output.
+            🌿 Click on any row in the <b>activity pane</b> to open up a full
+            view of your notebook version at that point in time in a
+            <b>ghost book</b>. A <b>ghost book</b>
+            is a readonly view of your notebook version with diff highlighting
+            to show what content was changed in that version.
+          </p>
+          <p>
+            You can also diff to compare your <b>ghost book</b> side-by-side
+            with your current working notebook.
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <img
+            class="verdant-screenshot"
+            src="./tutorial/images/Screenshots/search.png"
+          />
+        </div>
+        <div class="col description">
+          <p>
+            🌿 Search for anything from past code, output, and markdown history.
           </p>
         </div>
       </div>
     </div>
-    <footer>
-      <a href="https://github.com/mkery/Verdant">Verdant</a> is licensed under
-      the MIT License and is maintained by
-      <a href="https://marybethkery.com/">Mary Beth Kery</a> at Carnegie Mellon
-      University <3
-    </footer>
   </body>
+  <footer>
+    <a href="https://github.com/mkery/Verdant">Verdant</a> is licensed under the
+    MIT License and is maintained by
+    <a href="https://marybethkery.com/">Mary Beth Kery</a> at Carnegie Mellon
+    University <3
+  </footer>
 </html>

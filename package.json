@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "hhttps://github.com/mkery/Verdant",
+  "homepage": "https://github.com/mkery/Verdant",
   "bugs": {
-    "url": "hhttps://github.com/mkery/Verdant/issues"
+    "url": "https://github.com/mkery/Verdant/issues"
   },
   "license": "BSD-3-Clause",
   "author": "Mary Beth Kery",

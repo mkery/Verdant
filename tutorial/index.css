@@ -1,5 +1,5 @@
 html {
-  background-color: #000e21;
+  background-color: #e6ffe5;
 }
 
 body {
@@ -10,11 +10,9 @@ body {
   margin: 0px;
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 300;
-  font-size: 14pt;
-  background-color: #000e21;
-  background-image: linear-gradient(314deg, #1f3d0a 0%, #000e21 74%);
-
-  color: whitesmoke;
+  font-size: 13pt;
+  background: linear-gradient(to bottom, #fbfbef 0%, #d2ffc2 100%);
+  color: #222222;
 }
 
 a {
@@ -28,7 +26,7 @@ h1 {
   font-family: "Bungee Hairline", cursive;
   font-size: 40pt;
   margin: 10px;
-  color: darkslategrey;
+  color: darkslategray;
 }
 
 h2,
@@ -49,7 +47,6 @@ footer {
   padding: 10px;
   text-align: center;
   font-size: small;
-  background-color: #000e21;
 }
 
 #nav {
@@ -79,6 +76,11 @@ footer {
 
 #content {
   flex: 1 1 auto;
+  margin-bottom: 4em;
+}
+
+#install {
+  margin-top: 20px;
 }
 
 .row {
@@ -95,16 +97,33 @@ footer {
   flex-direction: column;
 }
 
+.center-row {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 30px 20px;
+  text-align: center;
+}
+
 .logIcon {
   width: 1.5em;
   margin: 0px 4px;
 }
 
 .verdant-screenshot {
-  width: 60vw;
+  max-width: 60vw;
+  flex: 1 1 auto;
 }
 
 .description {
   justify-content: center;
   padding: 20px;
+}
+
+.caption {
+  margin: auto;
+  text-align: left;
+  margin-top: 4px;
+  width: 60%;
 }
