@@ -185,6 +185,16 @@ export function reducer_addEvent(
   date_list: dateState[],
   history: History
 ): dateState[] {
+  /*
+   * first if event is obviously corrupt, ignore it!
+   */
+  if (
+    newEvent.notebook === undefined ||
+    newEvent.id === undefined ||
+    newEvent.targetCells?.length < 1
+  )
+    return;
+
   let time = newEvent.timestamp;
   let currentDate = date_list[date_list.length - 1];
   let date: dateState;

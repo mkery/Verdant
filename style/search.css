@@ -185,4 +185,6 @@
   margin: 2px 10px;
   border: 1px solid var(--jp-content-link-color);
   border-radius: var(--jp-border-radius);
+  max-height: 50vh;
+  overflow: scroll;
 }

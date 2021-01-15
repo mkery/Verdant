@@ -31,6 +31,7 @@
   flex-wrap: wrap;
   padding-top: 0.25em;
   padding-left: 6px;
+  overflow: visible;
 }
 
 .v-Verdant-GhostBook-versionSwitch-label {

@@ -114,6 +114,8 @@
 
 .Verdant-events-event-stamp {
   flex: 0 0 5em; /* to prevent weird date text cropping */
+  min-width: 5em;
+  max-width: 5em;
 }
 
 .Verdant-events-event-row-index {
@@ -148,13 +150,11 @@
   flex: 1 1 auto;
   vertical-align: baseline;
   padding-left: var(--jp-cell-padding);
-  padding-right: var(--jp-cell-padding);
 }
 
 .Verdant-events-map-cell {
   display: inline-block;
   width: 1px;
-  background-color: var(--jp-content-font-color3);
   margin: 2px 1px;
   height: 1em;
 }
@@ -167,11 +167,11 @@
 .Verdant-events-map-cell.target {
   width: 2px;
   margin-left: 0px;
-  height: 1.5em;
+  margin-right: 1px;
   display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  margin-top: -1px;
+  height: 1.5em;
+  position: absolute;
+  margin-top: -0.125em;
 }
 
 /*
@@ -183,31 +183,38 @@
   SAME = "n/a",
   TYPE_CHANGED = "type changed",
 */
-.Verdant-events-map-cell.target .tic {
+.Verdant-events-map-cell.target.tic {
   flex: 1 1 auto;
   border-radius: 5px;
 }
 
-.Verdant-events-map-cell.target .tic.added {
+.Verdant-events-map-cell.target.tic.added {
   background-color: var(--verdant-cell-add-color1);
 }
 
-.Verdant-events-map-cell.target .tic.removed {
+.Verdant-events-map-cell.target.tic.removed {
   background-color: var(--verdant-cell-remove-color1);
 }
 
-.Verdant-events-map-cell.target .tic.edited {
+.Verdant-events-map-cell.target.tic.edited {
   background-color: var(--verdant-cell-change-color2);
 }
 
-.Verdant-events-map-cell.target .tic.moved {
+.Verdant-events-map-cell.target.tic.moved {
   background-color: peru;
 }
 
-.Verdant-events-map-cell.target .tic.type_changed {
+.Verdant-events-map-cell.target.tic.type_changed {
   background-color: cadetblue;
 }
 
-.Verdant-events-map-cell.target .tic.no_change {
-  background-color: #d0c8d2;
+.Verdant-events-map-cell.target.tic.output_changed {
+  background-color: #b6aeb8;
+}
+
+.Verdant-events-map-background {
+  background: var(--jp-border-color3);
+  display: inline-block;
+  height: 1.25em;
+  position: relative;
 }
