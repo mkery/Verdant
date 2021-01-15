@@ -13,9 +13,6 @@ import {
 } from "../icons";
 import { Namer } from "../../verdant-model/sampler";
 
-/* CSS Constants */
-const JP_TOOLBAR = "jp-Toolbar";
-
 interface GhostToolbar_Props {
   history: History;
   ver: number;
@@ -47,7 +44,7 @@ class Toolbar extends React.Component<
     if (this.props.ver === -1) return null;
     return (
       <div className="v-Verdant-GhostBook-header">
-        <div className={`v-Verdant-GhostBook-header-row ${JP_TOOLBAR}`}>
+        <div className="v-Verdant-GhostBook-header-row">
           {this.showVersionSwitch()}
           {this.showTimestamp()}
           {this.showDiffOptions()}
@@ -125,8 +122,10 @@ class Toolbar extends React.Component<
               <div
                 key={index}
                 className="v-Verdant-GhostBook-diffOptions-option"
-                onClick={() => {
+                onClick={(ev) => {
+                  ev.stopPropagation();
                   this.props.setDiff(index);
+                  return false;
                 }}
               >
                 {option}
