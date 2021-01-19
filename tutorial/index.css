@@ -88,13 +88,14 @@ footer {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-  margin: 10px 20px;
+  margin: 10px 10%;
 }
 
 .col {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .center-row {
@@ -105,6 +106,9 @@ footer {
   margin: 30px 20px;
   text-align: center;
 }
+.center-row .verdant-screenshot {
+  max-width: 50%;
+}
 
 .logIcon {
   width: 1.5em;
@@ -112,18 +116,18 @@ footer {
 }
 
 .verdant-screenshot {
-  max-width: 60vw;
-  flex: 1 1 auto;
+  max-width: 100%;
 }
 
 .description {
   justify-content: center;
   padding: 20px;
+  min-width: 25vw;
 }
 
 .caption {
   margin: auto;
-  text-align: left;
+  text-align: center;
   margin-top: 4px;
-  width: 60%;
+  max-width: 60%;
 }
