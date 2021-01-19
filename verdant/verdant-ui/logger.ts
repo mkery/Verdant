@@ -39,6 +39,7 @@ export class VerdantLog {
     };
     this.log("Redux state: ", JSON.stringify(record));
     this.log("Dispatching redux action: ", JSON.stringify(action));
+    //console.log("Redux", JSON.stringify(action), store);
   }
 
   getReduxLogger() {
@@ -60,7 +61,7 @@ export class VerdantLog {
   }
 
   loadLog() {
-    if (this.notebook) {
+    if (RECORD && this.notebook) {
       return new Promise((accept) => {
         const name = this.getFile();
         let path = this.getPath();

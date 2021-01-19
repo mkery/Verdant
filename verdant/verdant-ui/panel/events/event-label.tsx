@@ -1,7 +1,5 @@
 import * as React from "react";
 import { Checkpoint } from "../../../verdant-model/checkpoint";
-import { connect } from "react-redux";
-import { verdantState } from "../../redux/";
 
 const LABEL = "Verdant-events-label";
 
@@ -15,7 +13,6 @@ type req_EventLabel_Props = {
 };
 type EventLabel_Props = {
   events: Checkpoint[];
-  eventCount: number;
 } & req_EventLabel_Props;
 type EventLabel_State = {
   times: timeLabel[];
@@ -30,7 +27,7 @@ class NotebookEventLabel extends React.Component<
   constructor(props: EventLabel_Props) {
     super(props);
     let times: timeLabel[] = [];
-    this.props.events.map((ev) => this.addEvent(ev, times));
+    this.props.events?.map((ev) => this.addEvent(ev, times));
     this.state = {
       times,
     };
@@ -49,9 +46,12 @@ class NotebookEventLabel extends React.Component<
   }
 
   componentDidUpdate(prevProps) {
-    if (this._isMounted && this.props.eventCount !== prevProps.eventCount) {
+    if (
+      this._isMounted &&
+      this.props.events?.length !== prevProps.events?.length
+    ) {
       let times: timeLabel[] = [];
-      this.props.events.map((ev) => this.addEvent(ev, times));
+      this.props.events?.map((ev) => this.addEvent(ev, times));
       this.setState({ times: times });
     }
   }
@@ -84,14 +84,4 @@ class NotebookEventLabel extends React.Component<
   }
 }
 
-const mapStateToProps = (
-  state: verdantState,
-  ownProps: req_EventLabel_Props
-) => {
-  return {
-    events: ownProps.events ? ownProps.events : [],
-    eventCount: ownProps.events ? ownProps.events.length : 0,
-  };
-};
-
-export default connect(mapStateToProps)(NotebookEventLabel);
+export default NotebookEventLabel;

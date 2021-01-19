@@ -39,6 +39,8 @@
   position: relative;
   width: 100%;
   border-bottom: 1px solid var(--jp-border-color2);
+  max-height: 50vh;
+  overflow: hidden;
 }
 .v-VerdantPanel-Summary-table-row:hover,
 .v-VerdantPanel-Summary-table-row.c:hover {

@@ -1,12 +1,13 @@
 import { History } from "../../../verdant-model/history";
-import { Checkpoint } from "../../../verdant-model/checkpoint";
+import { CellRunData, Checkpoint } from "../../../verdant-model/checkpoint";
+import { NodeyNotebook } from "verdant/verdant-model/nodey";
 
 export namespace Bundles {
   /*
    * - isOpen indicates if the bundle is open in thw activity pane UI
    * - bundleEvents contains the indices of checkpoints in dateState.events
    * that should be bundled together
-   * - targetCells_notebookIndex is the cached data about what happens in this
+   * - bundleTargets is the cached data about what happens in this
    * bundle that gives us enough information to quickly update the bundle and
    * tell if the minimap for this bundle needs updating (needed if a checkpoint updates
    * its target cells)
@@ -14,11 +15,11 @@ export namespace Bundles {
   export type bundleState = {
     isOpen: boolean;
     bundleEvents: number[];
-    targetCells_notebookIndex: { [cell: string]: number };
+    bundleTargets: CellRunData[];
   };
 
   export const bundleInitialState = (): bundleState => {
-    return { isOpen: false, bundleEvents: [], targetCells_notebookIndex: {} };
+    return { isOpen: false, bundleEvents: [], bundleTargets: [] };
   };
 
   /*
@@ -57,12 +58,12 @@ export namespace Bundles {
         // 2+3) check compatibility of events
         let zippedTargets = zipTargets(
           newTargetCells,
-          latestBundle.targetCells_notebookIndex
+          latestBundle.bundleTargets
         );
         if (zippedTargets) {
           // OK to combine to latest bundle
           latestBundle.bundleEvents.unshift(event_idx);
-          latestBundle.targetCells_notebookIndex = zippedTargets;
+          latestBundle.bundleTargets = zippedTargets;
           bundle_list[0] = latestBundle;
           return bundle_list;
         }
@@ -73,7 +74,7 @@ export namespace Bundles {
     let newBundle: bundleState = {
       isOpen: false,
       bundleEvents: [event_idx],
-      targetCells_notebookIndex: newTargetCells,
+      bundleTargets: newTargetCells,
     };
     bundle_list.unshift(newBundle);
 
@@ -110,7 +111,7 @@ export namespace Bundles {
       });
 
       if (compatible) {
-        bundle.targetCells_notebookIndex = zippedTargets;
+        bundle.bundleTargets = zippedTargets;
         bundle_list[bundle_idx] = bundle;
       }
       // gotta kick out of this bundle
@@ -134,45 +135,53 @@ export namespace Bundles {
 
   // returns a combination of A and B if they are compatible and undefined otherwise
   function zipTargets(
-    A: { [cell: string]: number },
-    B: { [cell: string]: number }
-  ): { [cell: string]: number } | undefined {
-    let cells_A = Object.keys(A);
-    let zipped = { ...B };
+    A: CellRunData[],
+    B: CellRunData[]
+  ): CellRunData[] | undefined {
+    let zipped = A;
 
-    // A and B can't both contain changes to the same cell
-    let success = cells_A.every((cell) => {
-      if (B[cell] === undefined) {
-        zipped[cell] = A[cell];
-        return true;
-      }
-      return false;
+    // A and B can't contain competing changes to the same cell
+    // A and B can't have different cells assigned to the same index
+    let success = B.every((datB) => {
+      let match = A.findIndex(
+        (datA) =>
+          sameArtifact(datA.cell, datB.cell) || datA.index === datB.index
+      );
+      if (match > -1) {
+        // must be compatible on all dimensions
+        return (
+          sameArtifact(A[match].cell, datB.cell) &&
+          A[match].changeType === datB.changeType &&
+          A[match].index === datB.index
+        );
+      } else zipped.push(datB);
+      return true;
     });
 
-    if (success) {
-      // A and B can't have different cells assigned to the same index
-      let vals = Object.values(zipped);
-      let no_dups = vals.every((v, index) => vals.indexOf(v, index + 1) < 0);
-
-      if (no_dups) return zipped;
-    }
-
-    return;
+    return success ? zipped : undefined;
   }
 
-  function calcTargetCellNotebookIndex(event: Checkpoint, history: History) {
-    let targetCells_notebookIndex: { [cell: string]: number } = {};
+  function calcTargetCellNotebookIndex(
+    event: Checkpoint,
+    history: History
+  ): CellRunData[] {
     const notebook_ver = event?.notebook;
+    let notebook: NodeyNotebook;
     if (notebook_ver !== undefined) {
-      const notebook = history?.store?.getNotebook(notebook_ver);
-      if (notebook) {
-        event?.targetCells?.forEach((target) => {
-          let idx = notebook.cells?.indexOf(target.cell);
-          if (target.index !== undefined) idx = target.index; // get index of deleted cells too
-          targetCells_notebookIndex[target.cell] = idx;
-        });
-      }
+      event.targetCells.forEach((runDat, i) => {
+        if (runDat.index === undefined) {
+          if (!notebook) notebook = history?.store?.getNotebook(notebook_ver);
+          let index = notebook?.cells?.indexOf(runDat.cell);
+          if (index !== undefined) event.targetCells[i].index = index;
+        }
+      });
     }
-    return targetCells_notebookIndex;
+    return event.targetCells;
   }
+}
+
+function sameArtifact(nameA: string, nameB: string) {
+  let artA = nameA.substring(0, nameA.lastIndexOf("."));
+  let artB = nameB.substring(0, nameB.lastIndexOf("."));
+  return artA === artB;
 }

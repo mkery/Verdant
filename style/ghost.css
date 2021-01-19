@@ -29,8 +29,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-wrap: wrap;
+  padding: 2px;
   padding-top: 0.25em;
   padding-left: 6px;
+  overflow: visible;
+  border-bottom: var(--jp-border-width) solid var(--jp-toolbar-border-color);
+  box-shadow: var(--jp-toolbar-box-shadow);
+  background: var(--jp-toolbar-background);
+  min-height: var(--jp-toolbar-micro-height);
 }
 
 .v-Verdant-GhostBook-versionSwitch-label {

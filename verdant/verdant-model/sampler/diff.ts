@@ -153,7 +153,7 @@ export class Diff {
        */
       if (relativeToNotebook !== undefined) {
         let notebook = this.history?.store.getNotebookOf(nodey);
-        if (notebook.version < relativeToNotebook) {
+        if (!notebook || notebook?.version < relativeToNotebook) {
           priorNodey = undefined;
           diffKind = DIFF_TYPE.NO_DIFF;
         }
