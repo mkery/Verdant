@@ -3,15 +3,15 @@
 
 🌱🌿🌱 Verdant is a JupyterLab extension that automatically records history of all experiments you run in a Jupyter notebook, and stores them in a tidy .ipyhistory JSON file designed to be work alongside and compliment any other version control you use, like SVN or Git. Verdant also visualizes history of individual cells, code snippets, markdown, and outputs for you, for quick checks and references as you work.
 
-[[Demo preview video]](https://www.youtube.com/watch?v=4v_mHIJdZq0&t=4s) [![Verdant demo](https://github.com/mkery/Verdant/blob/master/design/verdant_run.jpg?raw=true)](https://www.youtube.com/watch?v=4v_mHIJdZq0&t=4s)
-Figure description: 
-> The history tab opens the sidebar for Verdant containing three tabs: Activity (A), Artifacts (B), and Search
-(C). The Activity tab, shown open here, displays a list of events. A date (D) can be opened or collapsed to see what
-happened that day. Each row shows a version of the notebook (e.g. version #53) with a text description and visual minimap.
-Thee minimap shows cells added in green (see G) and deleted in red (F). In (E), a cell was edited and run (in blue), and the
-following cells were run but remained the same (in grey). The user can open any version (e.g., #53, H) in a ghost
-notebook tab for quick reference.
+![Farmers Market Finder Demo](tutorial/images/Screenshots/out.gif)
+Figure alt text: 
+> The history tab opens the sidebar for Verdant containing three tabs: Activity, Artifacts, and Search. In the currently open Artifacts tab,
+> the user click on a large button titled "Version Inspector". Once clicked, the inspector is active, and now when the user mouses over different
+> parts of their notebook, cells and output highlight blue. The use mouses over a code cell and clicks it. The inspector opens up a full history of 
+> that code cell with diff highlighting in the side bar of Verdant.
 
+
+[[Full demo on YouTube]](https://www.youtube.com/watch?v=4v_mHIJdZq0&t=4s)
 
 For design discussion and the research behind this check out our [paper](https://marybethkery.com/projects/Verdant/Towards_effective_foraging_by_data_scientists.pdf):
 
