@@ -45,7 +45,11 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
   }
 
   componentDidUpdate(prevProps: Version_Props) {
-    if (this._isMounted && this.props.nodey.name != prevProps.nodey.name)
+    if (
+      this._isMounted &&
+      this.props?.nodey &&
+      this.props?.nodey?.name !== prevProps?.nodey?.name
+    )
       this.getSample();
   }
 

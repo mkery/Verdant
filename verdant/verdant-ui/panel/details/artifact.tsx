@@ -18,7 +18,10 @@ class Artifact extends React.Component<Artifact_Props> {
     let elems: JSX.Element[] = [];
 
     // show a single column simple artifact without dependencies
-    if (!this.props.nodey_dependents) {
+    if (
+      !this.props.nodey_dependents ||
+      this.props.nodey_dependents.length < 1
+    ) {
       for (let i = this.props.nodey_versions.length - 1; i > -1; i--) {
         elems.push(
           <VersionDetail

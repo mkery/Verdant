@@ -8,20 +8,8 @@ class InspectButton extends React.Component<{
   off: () => void;
   on: () => void;
 }> {
-  private _isMounted = false;
-
-  componentDidMount() {
-    this._isMounted = true;
-  }
-
   componentWillUnmount() {
-    this._isMounted = false;
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this._isMounted && !this.props.active && prevProps.active) {
-      this.props.off();
-    }
+    this.props.off();
   }
 
   render() {
@@ -30,9 +18,11 @@ class InspectButton extends React.Component<{
         className={`v-VerdantPanel-inspectorButton ${
           this.props.active ? "active" : ""
         }`}
-        onClick={() => {
+        onClick={(ev) => {
+          ev.stopPropagation();
           if (this.props.active) this.props.off();
           else this.props.on();
+          return false;
         }}
       >
         <div className="v-VerdantPanel-inspectorButton-label">
@@ -45,7 +35,9 @@ class InspectButton extends React.Component<{
 }
 
 const mapDispatchToProps = (dispatch: any) => {
-  const ev = () => dispatch(inspectOff());
+  const ev = () => {
+    dispatch(inspectOff());
+  };
   return {
     on: () => {
       dispatch(inspectOn());

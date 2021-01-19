@@ -316,7 +316,7 @@ export class HistoryStore {
   }
 
   public getNotebookOf(relativeTo: Nodey): NodeyNotebook | undefined {
-    let created = relativeTo.created;
+    let created = relativeTo?.created;
     if (created !== undefined) {
       // error case if undefined
       let event = this.history.checkpoints.get(created);
