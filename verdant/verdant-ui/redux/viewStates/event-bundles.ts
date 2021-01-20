@@ -95,9 +95,12 @@ export namespace Bundles {
     );
 
     if (bundle_idx > -1) {
-      let targetCells = calcTargetCellNotebookIndex(event, history);
+      let targetCells: CellRunData[] = calcTargetCellNotebookIndex(
+        event,
+        history
+      );
       let bundle = bundle_list[bundle_idx];
-      let zippedTargets = { ...targetCells };
+      let zippedTargets: CellRunData[] = targetCells;
 
       // check that this event still works with its current bundle
       let compatible = bundle.bundleEvents.every((ev) => {
@@ -143,11 +146,11 @@ export namespace Bundles {
     // A and B can't contain competing changes to the same cell
     // A and B can't have different cells assigned to the same index
     let success = B.every((datB) => {
-      let match = A.findIndex(
+      let match = A?.findIndex(
         (datA) =>
           sameArtifact(datA.cell, datB.cell) || datA.index === datB.index
       );
-      if (match > -1) {
+      if (match !== undefined && match > -1) {
         // must be compatible on all dimensions
         return (
           sameArtifact(A[match].cell, datB.cell) &&
