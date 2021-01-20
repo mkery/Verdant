@@ -71,7 +71,7 @@ class GhostCell extends React.Component<GhostCell_Props> {
             <div className={`${CELL_CONTENT} ${active}`}>
               <div
                 className={`${CELL} ${
-                  this.props.nodey.typeChar === "c" ? "code" : "markdown"
+                  this.props?.nodey?.typeChar === "c" ? "code" : "markdown"
                 }  ${active}`}
                 dangerouslySetInnerHTML={{
                   __html: this.props.cell.sample.outerHTML,

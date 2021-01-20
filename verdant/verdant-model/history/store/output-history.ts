@@ -1,7 +1,7 @@
 import { NodeHistory } from "./node-history";
 import { NodeyOutput } from "../../nodey";
 import { FileManager } from "../../jupyter-hooks/file-manager";
-import { IOutput, IUnrecognizedOutput } from "@jupyterlab/nbformat";
+import * as nbformat from "@jupyterlab/nbformat";
 
 /*
  * Goal is to store image or larger output externally in a folder without
@@ -35,8 +35,8 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
   }
 
   public static async isSame(
-    A: NodeyOutput | IOutput[] = [],
-    B: NodeyOutput | IOutput[] = [],
+    A: NodeyOutput | nbformat.IOutput[] = [],
+    B: NodeyOutput | nbformat.IOutput[] = [],
     fileManager: FileManager
   ) {
     let outList_a = A instanceof NodeyOutput ? A.raw : A;
@@ -98,12 +98,31 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
     );
   }
 
+  // returns true if this output is only errors
+  public static checkForAllErrors(output: nbformat.IOutput[]): boolean {
+    if (output.length < 1) return false; // not anything here
+
+    // must have at least 1 non-error
+    let nonError = output?.find((out: nbformat.IOutput) => {
+      // check for error type
+      if (nbformat.isError(out)) return false;
+
+      // check for warnings
+      if (nbformat.isStream(out))
+        return (out as nbformat.IStream)?.name !== "stderr";
+
+      // not an error
+      return true;
+    });
+    return nonError === undefined;
+  }
+
   private sendImageToFile(
     ver: number,
     index: number,
     out,
     imageTag: string
-  ): IUnrecognizedOutput {
+  ): nbformat.IUnrecognizedOutput {
     let fileType = imageTag.split("/")[1]; // e.g. png
     let data = out.data[imageTag];
     let filename = `output_${this.versions[0].id}_${ver}_${index}.${fileType}`;

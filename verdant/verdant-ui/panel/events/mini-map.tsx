@@ -24,7 +24,11 @@ class MiniMap extends React.Component<EventMap_Props> {
     const tick_width = 3;
     let width = `${this.props.notebook_length * tick_width}px`;
     return (
-      <div className="Verdant-events-map-background" style={{ width }}>
+      <div
+        className="Verdant-events-map-background"
+        style={{ width }}
+        data-tip={`${this.props.notebook_length} cells in this notebook`}
+      >
         {this.props.targets.map((dat, j_index) => {
           let left = `${dat.index * tick_width}px`;
           let color = dat.changeType.replace(/ /g, "_");
@@ -41,11 +45,10 @@ class MiniMap extends React.Component<EventMap_Props> {
                 const nodey = this.props.history.store?.get(dat?.cell);
                 if (nodey) this.props.showDetail(nodey);
               }}
-            >
-              <ReactTooltip />
-            </div>
+            ></div>
           );
         })}
+        <ReactTooltip />
       </div>
     );
   }

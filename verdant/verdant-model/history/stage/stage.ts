@@ -109,16 +109,21 @@ export class Stage {
     // get prior output if any
     let oldOutput = cell?.output;
 
-    // compare to see if output has changed
-    let same = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
+    // first, don't record this output if it is completely errors
+    let onlyErrors = OutputHistory.checkForAllErrors(raw);
 
-    if (!same) {
-      // make instructions for a new Output in staging
-      if (!this.staged_codeCell[nodey.artifactName]) {
-        this.staged_codeCell[nodey.artifactName] = {};
-        this.staged_total.push(nodey);
+    if (!onlyErrors) {
+      // compare to see if output has changed
+      let same = await OutputHistory.isSame(oldOutput, raw, this.fileManager);
+
+      if (!same) {
+        // make instructions for a new Output in staging
+        if (!this.staged_codeCell[nodey.artifactName]) {
+          this.staged_codeCell[nodey.artifactName] = {};
+          this.staged_total.push(nodey);
+        }
+        this.staged_codeCell[nodey.artifactName]["output"] = raw;
       }
-      this.staged_codeCell[nodey.artifactName]["output"] = raw;
     }
   }
 

@@ -15,6 +15,18 @@ import { FileManager } from "../../jupyter-hooks/file-manager";
 
 import { History, NodeHistory, OutputHistory, CodeHistory } from "..";
 
+const VISUAL_KEYWORDS = [
+  "plot",
+  "hist",
+  "chart",
+  "histogram",
+  "image",
+  "matplotlib",
+  "graphs",
+  "diagram",
+  "map",
+];
+
 export class HistoryStore {
   readonly fileManager: FileManager;
   readonly history: History;
@@ -251,12 +263,25 @@ export class HistoryStore {
    * Returns a list of output artifacts, each with a list
    * of all the versions of that artifact that match the query
    */
+
   public findOutput(query: string): [NodeyOutput[][], number] {
     let results: NodeyOutput[][] = [];
     let resultCount = 0;
     let text = query.toLowerCase().split(" ");
+    const FIND_IMAGES = text.some((word) => VISUAL_KEYWORDS.includes(word))
+      ? true
+      : false;
     this._outputStore.forEach((history) => {
       let matches = history.filter((output) => {
+        // search for (any) image
+        if (FIND_IMAGES) {
+          const isImage = output?.raw?.some((out) =>
+            OutputHistory.isOffsite(out)
+          );
+          if (isImage) return true;
+        }
+
+        // search text
         let sourceText = this.history.inspector.nodeToText(output) || "";
         if (
           text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
