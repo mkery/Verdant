@@ -3,7 +3,9 @@
 
 🌱🌿🌱 Verdant is a JupyterLab extension that automatically records history of all experiments you run in a Jupyter notebook, and stores them in a tidy .ipyhistory JSON file designed to be work alongside and compliment any other version control you use, like SVN or Git. Verdant also visualizes history of individual cells, code snippets, markdown, and outputs for you, for quick checks and references as you work.
 
-![Farmers Market Finder Demo](tutorial/images/Screenshots/out.gif)
+[Thoughts? We're super interested in making Verdant serve data scientists well. --> Feedback Survey](https://forms.gle/cdqdV1LzwStzk2Qy7)
+
+![Demo Screenshot](tutorial/images/Screenshots/out.gif)
 Figure alt text: 
 > The history tab opens the sidebar for Verdant containing three tabs: Activity, Artifacts, and Search. In the currently open Artifacts tab,
 > the user click on a large button titled "Version Inspector". Once clicked, the inspector is active, and now when the user mouses over different
