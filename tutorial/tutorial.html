@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verdant</title>
+    <link rel="shortcut icon" href="icon.ico" type="image/vnd.microsoft.icon" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee+Hairline&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./index.css" type="text/css" />
+  </head>
+  <body>
+    <div id="nav">
+      <span
+        ><img
+          src="./images/GitHub-Mark-64px.png"
+          class="githubIcon"
+          alt="GitHub Icon" /></span
+      ><a href="https://github.com/mkery/Verdant"
+        ><code>github.com/mkery/Verdant</code></a
+      >
+    </div>
+    <div id="header">
+      <h1>Verdant</h1>
+      <p>
+        A version control tool for
+        <a href="https://jupyterlab.readthedocs.io/en/stable/">JupyterLab</a>
+        that automatically records the history of your experimentation while you
+        work.🪴
+      </p>
+      <div id="install">
+        To install: <code>jupyter labextension install verdant-history</code> or
+        search <code>verdant-history</code> under the extension manager tab in
+        JupyterLab 🪴
+      </div>
+    </div>
+    <div id="page-nav">
+      <div class="page-nav-title"><a href="../index.html">Overview</a></div>
+      <div class="page-nav-title selected">Getting Started Tutorial</div>
+    </div>
+    <div id="content">
+      <div class="step intro">
+        Welcome! The goal of this getting started tutorial is to give you some
+        hands-on practice understanding the edit history of a Jupyter notebook
+        using Verdant.
+      </div>
+      <div class="step">
+        <h2>Setup & Materials</h2>
+        <p>
+          For this tutorial you'll need Verdant installed in JupyterLab. We'll
+          use a notebook <code>houses_kc.ipynb</code> and its Verdant history
+          file <code>houses_kc.ipyhistory</code>. Verdant stores output images,
+          like plots or charts, in a seperate folder
+          <code>houses_kc_output</code>. All of these materials can be
+          downloaded as a zip file from the
+          <a>GitHub repository tutorial folder</a>.
+        </p>
+        <p>
+          In <code>houses_kc.ipynb</code> the author has been at work predicting
+          housing prices in the Seattle area of the United States. In this
+          tutorial, we'll use history to uncover different details of the
+          analysis and the author's modeling choices.
+        </p>
+        <p>
+          If everything has loaded OK, you should see
+          <b>Verdant's tree log icon</b> at the left. Click the log to open up
+          Verdant. You should see an activity pane like below.
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 50em"
+            src="./images/Screenshots/Tutorial-Housing/setup2.png"
+          />
+        </div>
+      </div>
+      <div class="step">
+        <h2>1. Get an overview of what has been done so far</h2>
+        <p>
+          The dataset in this analysis has a fair number of features to describe
+          each property, from number of bathrooms to whether the house has a
+          waterfront view. However, per the markdown shown below, the author of
+          <code>houses_kc.ipynb</code> seems to have picked just a single
+          feature <code>sqft_living</code> for their first model.
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 50em"
+            src="./images/Screenshots/Tutorial-Housing/overview_step1.png"
+          />
+        </div>
+        <p>
+          Did the author explore any of the other features? One good way to get
+          an overview is to take a peek at how this notebook has evolved over
+          time. Using the <b>activity pane</b> (shown below) scroll down to the
+          earliest version of the notebook. We can see from this that the author
+          created 109 versions of the notebook over the span of about 1 hour.
+          The <b>minimap</b> with the colorful ticks next to each version row
+          shows us how the author started with just 1 cell and added, edited,
+          and deleted cells over time.
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 50em"
+            src="./images/Screenshots/Tutorial-Housing/overview_step2.png"
+          />
+        </div>
+        <p>
+          Now try clicking on a version, like <b>v37</b> (shown below) to open
+          the full notebook at that version as a <b>ghost notebook</b>:
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 50em"
+            src="./images/Screenshots/Tutorial-Housing/overview_step3.png"
+          />
+        </div>
+        <p>
+          The diff notation in the <b>ghost notebook</b> highlights what content
+          was added (green), deleted (red), or edited (blue) in this version.
+        </p>
+      </div>
+      <div class="step">
+        <h2>2. See how the data features have been visualized</h2>
+        <p>
+          One way to figure this out is to head to the search tab of Verdant and
+          type in "plot"
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 20em"
+            src="./images/Screenshots/Tutorial-Housing/search_step1.png"
+          />
+        </div>
+      </div>
+      <div class="step">
+        <h2>3. Track model improvements</h2>
+        <p>using inspector and artifact detail view</p>
+      </div>
+    </div>
+    <footer>
+      <a href="https://github.com/mkery/Verdant">Verdant</a> is licensed under
+      the MIT License and is maintained by
+      <a href="https://marybethkery.com/">Mary Beth Kery</a> at Carnegie Mellon
+      University <3
+    </footer>
+  </body>
+</html>
