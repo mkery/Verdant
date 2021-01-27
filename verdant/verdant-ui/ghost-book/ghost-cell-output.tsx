@@ -128,16 +128,21 @@ const mapStateToProps = (
   state: verdantState,
   ownProps: Partial<GhostCellOutput_Props>
 ) => {
+  const diff = state.ghostBook.diff;
   const history = state.getHistory();
   const notebookVer = state.ghostBook.notebook_ver;
   const outputHistory =
     ownProps.cell instanceof NodeyCodeCell
       ? history?.store?.getOutput(ownProps.cell)
       : null;
-  const output = history?.store?.getForNotebook(outputHistory, notebookVer);
+  let output = history?.store?.getForNotebook(outputHistory, notebookVer);
+
+  // special case for comparing to the present if there was no output in the past
+  if (!output && diff === DIFF_TYPE.PRESENT_DIFF)
+    output = outputHistory?.latest;
 
   return {
-    diff: state.ghostBook.diff,
+    diff,
     history,
     inspectOn: state.artifactView.inspectOn,
     notebookVer,

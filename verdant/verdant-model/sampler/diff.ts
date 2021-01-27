@@ -89,7 +89,7 @@ export class Diff {
     );
   }
 
-  async renderCell(
+  public async renderCell(
     nodey: Nodey,
     diffKind: DIFF_TYPE = DIFF_TYPE.NO_DIFF,
     relativeToNotebook?: number
@@ -140,6 +140,10 @@ export class Diff {
     // now get text of prior nodey
     let nodeyHistory = this.history.store?.getHistoryOf(nodey);
     let priorNodey = undefined;
+    let cellParent = undefined;
+    if (nodey instanceof NodeyOutput) {
+      cellParent = this.history.store?.get(nodey.parent);
+    }
 
     if (diffKind === DIFF_TYPE.CHANGE_DIFF) {
       priorNodey = nodeyHistory?.getVersion(nodey.version - 1);
@@ -154,10 +158,27 @@ export class Diff {
         if (!notebook || notebook?.version < relativeToNotebook) {
           priorNodey = undefined;
           diffKind = DIFF_TYPE.NO_DIFF;
+        } else {
+          if (!priorNodey && cellParent) {
+            let rel = this.history?.store.getNotebook(relativeToNotebook);
+            priorNodey = this.history?.store?.getOutputForNotebook(
+              cellParent,
+              rel
+            );
+          }
         }
       }
     } else if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
-      priorNodey = nodeyHistory?.latest;
+      if (cellParent) {
+        // output
+        let curr = this.history?.store.currentNotebook;
+        let latestParent = this.history.store.getHistoryOf(cellParent)
+          ?.latest as NodeyCode;
+        priorNodey = this.history?.store?.getOutputForNotebook(
+          latestParent,
+          curr
+        );
+      } else priorNodey = nodeyHistory?.latest;
     }
 
     return [priorNodey, diffKind];
@@ -290,36 +311,42 @@ export class Diff {
   async diffOutput(
     nodey: NodeyOutput,
     elem: HTMLElement,
-    diffKind: number = DIFF_TYPE.NO_DIFF,
+    diffKind: number,
     relativeToNotebook?: number
   ) {
-    /*const [priorNodey, fixedDiffType] = this.getPrior(
+    let [priorNodey, fixedDiffType] = this.getPrior(
       nodey,
       diffKind,
       relativeToNotebook
-    );*/
+    );
 
-    //if (fixedDiffType === DIFF_TYPE.NO_DIFF)
-    await this.sampler.renderOutput(nodey, elem);
-    /*else {
-      await Promise.all(
-        nodey.raw.map(async (raw, index) => {
-          const plaintext = this.renderBaby.plaintextOutput(raw);
-          if (plaintext) {
-            // now get text of prior nodey
-            let oldText = ""; // default to no string if no prior nodey
-            if (priorNodey && priorNodey instanceof NodeyOutput)
-              oldText = this.renderBaby.plaintextOutput(priorNodey.raw[index]);
+    if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
+      // swap old and new, since "old" is actually the present notebook
+      let temp = priorNodey as NodeyOutput;
+      priorNodey = nodey;
+      nodey = temp;
+    }
 
-            elem = this.diffText(oldText, plaintext, elem);
-          } else {
-            // no plaintext, just render
-            const part = await this.renderBaby.renderOutputRaw(raw);
-            elem.appendChild(part.node);
-          }
-        })
-      );
-    }*/
+    if (
+      fixedDiffType === DIFF_TYPE.NO_DIFF ||
+      priorNodey?.version === nodey?.version
+    )
+      await this.sampler.renderOutput(nodey, elem);
+    else {
+      // just show side by side
+      let old = document.createElement("div");
+      old.classList.add("v-Verdant-output-sideBySide");
+      old.classList.add(CHANGE_REMOVED_CLASS);
+      if (priorNodey)
+        await this.sampler.renderOutput(priorNodey as NodeyOutput, old);
+      elem.appendChild(old);
+
+      let newOut = document.createElement("div");
+      newOut.classList.add("v-Verdant-output-sideBySide");
+      newOut.classList.add(CHANGE_ADDED_CLASS);
+      await this.sampler.renderOutput(nodey, newOut);
+      elem.appendChild(newOut);
+    }
 
     return elem;
   }
