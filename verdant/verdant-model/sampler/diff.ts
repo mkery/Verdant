@@ -64,8 +64,8 @@ export class Diff {
       );
       cellMap = CellMap.build(checkpoints, this.history);
     } else if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
-      relativeToNotebook = this.history.store.currentNotebook?.version;
       let currentNotebook = this.history.store.currentNotebook;
+      relativeToNotebook = currentNotebook?.version;
       cellMap = this.zipNotebooks(focusedNotebook, currentNotebook);
     } else if (diffKind === DIFF_TYPE.NO_DIFF) {
       cellMap = focusedNotebook.cells.map((name) => {
@@ -81,11 +81,9 @@ export class Diff {
         const name = value.name;
         const status = value.changes;
         let cell = this.history.store.get(name);
-        const sample = await this.renderCell(
-          cell,
-          diffKind,
-          relativeToNotebook
-        );
+        let diff = diffKind;
+        if (status.includes(ChangeType.REMOVED)) diff = DIFF_TYPE.NO_DIFF;
+        const sample = await this.renderCell(cell, diff, relativeToNotebook);
         return { sample, status, name };
       })
     );
@@ -183,6 +181,11 @@ export class Diff {
       return this.sampler.plainCode(elem, newText);
     }
 
+    if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
+      // swap old and new, since "old" is actually the present notebook
+      return this.diffText(newText, oldText, elem);
+    }
+
     return this.diffText(oldText, newText, elem);
   }
 
@@ -240,6 +243,13 @@ export class Diff {
       relativeToNotebook
     );
     diffKind = fixedDiffKind;
+
+    if (diffKind === DIFF_TYPE.PRESENT_DIFF) {
+      // swap old and new, since "old" is actually the present notebook
+      let temp = oldText;
+      oldText = newText;
+      newText = temp;
+    }
 
     // If no diff necessary, use plain markdown
     if (diffKind === DIFF_TYPE.NO_DIFF)
@@ -367,7 +377,7 @@ export class Diff {
             }
           }
 
-          cellMap.push({ name: cellB, changes: [status] });
+          cellMap.push({ name: cellA, changes: [status] });
           indexA++;
           indexB++;
         });

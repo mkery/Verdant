@@ -117,7 +117,7 @@ export class HistoryStore {
     let [, , verVal] = name.split(".");
     let ver = verVal ? parseInt(verVal) : undefined;
     let nodeHist = this.getHistoryOf(name);
-    if (ver) return nodeHist?.getVersion(ver);
+    if (ver !== undefined) return nodeHist?.getVersion(ver);
     return nodeHist?.latest;
   }
 
