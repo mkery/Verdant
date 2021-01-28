@@ -145,7 +145,7 @@ export class Sampler {
     /* Inserts code data to elem */
 
     // Split new text into lines
-    newText.split("\n").forEach((line) => {
+    newText?.split("\n").forEach((line) => {
       // Append a div with line contents to elem
       let div = document.createElement("div");
       div.innerHTML = line;

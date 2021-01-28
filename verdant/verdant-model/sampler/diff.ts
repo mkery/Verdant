@@ -327,10 +327,7 @@ export class Diff {
       nodey = temp;
     }
 
-    if (
-      fixedDiffType === DIFF_TYPE.NO_DIFF ||
-      priorNodey?.version === nodey?.version
-    )
+    if (fixedDiffType === DIFF_TYPE.NO_DIFF || priorNodey?.name === nodey?.name)
       await this.sampler.renderOutput(nodey, elem);
     else {
       // just show side by side

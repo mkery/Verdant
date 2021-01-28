@@ -64,6 +64,8 @@ export class RenderBaby {
           ? (data["text/plain"] as string)
           : undefined;
         return plaintext;
+      } else if (raw?.text) {
+        return raw.text.toString();
       }
     }
   }

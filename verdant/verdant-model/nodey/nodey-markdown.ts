@@ -35,6 +35,8 @@ export namespace NodeyMarkdown {
     markdown?: string;
   }
 
+  export const typeChar = "m";
+
   export function fromJSON(dat: NodeyMarkdown.SERIALIZE): NodeyMarkdown {
     return new NodeyMarkdown({
       parent: dat.parent,
