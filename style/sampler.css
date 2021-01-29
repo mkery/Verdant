@@ -123,6 +123,7 @@
   color: red;
   text-decoration: line-through;
   display: inline-block;
+  background-color: var(--verdant-cell-remove-color0);
 }
 
 .v-VerdantPanel-sample-searchResult {

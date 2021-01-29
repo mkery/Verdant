@@ -1,5 +1,5 @@
 html {
-  background-color: #e6ffe5;
+  background-color: #d2ffc2;
 }
 
 body {
@@ -11,7 +11,6 @@ body {
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 300;
   font-size: 13pt;
-  background: linear-gradient(to bottom, #fbfbef 0%, #d2ffc2 100%);
   color: #222222;
 }
 
@@ -53,6 +52,7 @@ footer {
   text-align: right;
   padding: 8px;
   font-size: 12pt;
+  background: #fbfbef;
 }
 
 #nav img {
@@ -67,7 +67,9 @@ footer {
   padding-bottom: 60px;
   padding-top: 60pt;
   z-index: 3;
-  margin: 0px 20vw;
+  padding-right: 20vw;
+  background: linear-gradient(to bottom, #fbfbef 0%, #d2ffc2 100%);
+  padding-left: 20vw;
 }
 
 #header p {
@@ -76,11 +78,41 @@ footer {
 
 #content {
   flex: 1 1 auto;
-  margin-bottom: 4em;
+  padding-bottom: 4em;
+  background: white;
+  border-top: 1px solid darkslateblue;
+  border-bottom: 1px solid darkslateblue;
+}
+#content a {
+  font-family: unset;
+  color: darkslateblue;
+  padding: 0px;
+  background: unset;
+  text-decoration: underline;
 }
 
 #install {
   margin-top: 20px;
+}
+
+#page-nav {
+  display: flex;
+  flex-direction: row;
+  margin: auto;
+  padding: 0.5em 0px;
+  margin-bottom: 0.5em;
+  text-align: center;
+  border: 1px solid darkslateblue;
+  border-radius: 8px;
+  border-width: 2px;
+  background: #f4fff5;
+}
+#page-nav a {
+  font-family: unset;
+  color: unset;
+  padding: 0px;
+  background: unset;
+  text-decoration: none;
 }
 
 .row {
@@ -130,4 +162,63 @@ footer {
   text-align: center;
   margin-top: 4px;
   max-width: 60%;
+}
+
+.page-nav-title {
+  padding: 0px 1em;
+  border-right: 1px solid darkslateblue;
+  user-select: none;
+}
+.page-nav-title:hover {
+  text-decoration: underline;
+}
+.page-nav-title:last-child {
+  border-right: 0px solid transparent;
+}
+.page-nav-title.selected {
+  font-weight: bold;
+  color: darkslateblue;
+}
+.page-nav-title.selected:hover {
+  text-decoration: none;
+}
+
+.step {
+  text-align: left;
+  margin: 1em 10%;
+  margin-bottom: 40px;
+}
+.step.intro {
+  margin: 50px 20%;
+  text-align: center;
+  font-weight: bold;
+}
+
+.step h2 {
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.QA {
+  margin: auto;
+  padding: 2em;
+  width: calc(100% - 4em);
+  text-align: center;
+}
+
+.question {
+  font-style: italic;
+  margin: auto;
+  margin-bottom: 6px;
+  width: 80%;
+}
+
+.answer {
+  background-color: black;
+  margin: 0px 1em;
+  color: black;
+  padding: 8px;
 }

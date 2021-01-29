@@ -14,18 +14,13 @@ import { log } from "../../notebook";
 import { FileManager } from "../../jupyter-hooks/file-manager";
 
 import { History, NodeHistory, OutputHistory, CodeHistory } from "..";
+import { Search } from "./search";
 
-const VISUAL_KEYWORDS = [
-  "plot",
-  "hist",
-  "chart",
-  "histogram",
-  "image",
-  "matplotlib",
-  "graphs",
-  "diagram",
-  "map",
-];
+export type searchResult = {
+  label: string;
+  count: number;
+  results: Nodey[][];
+};
 
 export class HistoryStore {
   readonly fileManager: FileManager;
@@ -117,7 +112,7 @@ export class HistoryStore {
     let [, , verVal] = name.split(".");
     let ver = verVal ? parseInt(verVal) : undefined;
     let nodeHist = this.getHistoryOf(name);
-    if (ver) return nodeHist?.getVersion(ver);
+    if (ver !== undefined) return nodeHist?.getVersion(ver);
     return nodeHist?.latest;
   }
 
@@ -192,6 +187,19 @@ export class HistoryStore {
     }
   }
 
+  /*
+   * Search
+   */
+  public search(query: string): searchResult[] {
+    return Search.search(
+      query,
+      this.history.inspector,
+      this._markdownStore,
+      this._codeCellStore,
+      this._outputStore
+    );
+  }
+
   /**
    * newNodey and oldNodey are nodeys with two seperate histories.
    * This function creates a back pointer between the first version
@@ -207,95 +215,6 @@ export class HistoryStore {
         " and ",
         oldNodey
       );
-  }
-
-  /*
-   * Returns a list of Markdown artifacts, each with a list
-   * of all the versions of that artifact that match the query
-   */
-  public findMarkdown(query: string): [NodeyMarkdown[][], number] {
-    let results: NodeyMarkdown[][] = [];
-    let resultCount = 0;
-    let text = query.toLowerCase().split(" ");
-    this._markdownStore.forEach((history) => {
-      let match = history.filter((item) => {
-        if (!item.markdown) return false;
-        let matchesText = text.some(
-          (keyword) => item.markdown.toLowerCase().indexOf(keyword) > -1
-        );
-        return matchesText;
-      });
-      if (match.length > 0) {
-        results.push(match);
-        resultCount += match.length;
-      }
-    });
-    return [results, resultCount];
-  }
-
-  /*
-   * Returns a list of code artifacts, each with a list
-   * of all the versions of that artifact that match the query
-   */
-  public findCode(query: string): [NodeyCode[][], number] {
-    let results: NodeyCode[][] = [];
-    let resultCount = 0;
-    let text = query.toLowerCase().split(" ");
-    this._codeCellStore.forEach((history) => {
-      let matches = history.filter((cell) => {
-        let sourceText = this.history.inspector.nodeToText(cell) || "";
-        if (
-          text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
-        ) {
-          return true;
-        }
-        return false;
-      });
-      if (matches.length > 0) {
-        results.push(matches);
-        resultCount += matches.length;
-      }
-    });
-    return [results, resultCount];
-  }
-
-  /*
-   * Returns a list of output artifacts, each with a list
-   * of all the versions of that artifact that match the query
-   */
-
-  public findOutput(query: string): [NodeyOutput[][], number] {
-    let results: NodeyOutput[][] = [];
-    let resultCount = 0;
-    let text = query.toLowerCase().split(" ");
-    const FIND_IMAGES = text.some((word) => VISUAL_KEYWORDS.includes(word))
-      ? true
-      : false;
-    this._outputStore.forEach((history) => {
-      let matches = history.filter((output) => {
-        // search for (any) image
-        if (FIND_IMAGES) {
-          const isImage = output?.raw?.some((out) =>
-            OutputHistory.isOffsite(out)
-          );
-          if (isImage) return true;
-        }
-
-        // search text
-        let sourceText = this.history.inspector.nodeToText(output) || "";
-        if (
-          text.some((keyword) => sourceText.toLowerCase().indexOf(keyword) > -1)
-        ) {
-          return true;
-        }
-        return false;
-      });
-      if (matches.length > 0) {
-        results.push(matches);
-        resultCount += matches.length;
-      }
-    });
-    return [results, resultCount];
   }
 
   private _getStoreFor(nodey: Nodey): NodeHistory<Nodey>[] | undefined {

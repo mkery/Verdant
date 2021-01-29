@@ -1,41 +1,16 @@
 import * as React from "react";
-import { History } from "../../../verdant-model/history";
+import { searchResult } from "../../../verdant-model/history";
 import SearchBar from "./search-bar";
 import ResultsSection from "./results-section";
-import { verdantState, searchResults, setResults, closeAll } from "../../redux";
+import { verdantState } from "../../redux";
 import { connect } from "react-redux";
 
 type Search_Props = {
-  history: History;
-  search_query: string | null;
-  results: searchResults;
+  results: searchResult[];
   openResults: string[];
-  set_results: (results: searchResults) => void;
-  close_all: () => void;
 };
 
 class Search extends React.Component<Search_Props> {
-  private _isMounted = false;
-
-  componentDidMount() {
-    this._isMounted = true;
-  }
-
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-
-  componentDidUpdate(priorProps: Search_Props) {
-    if (
-      this._isMounted &&
-      priorProps.search_query !== this.props.search_query
-    ) {
-      this.props.set_results([]);
-      this.props.close_all();
-      this.search();
-    }
-  }
-
   render() {
     return (
       <div className="v-VerdantPanel-search">
@@ -43,22 +18,6 @@ class Search extends React.Component<Search_Props> {
         <div className="v-VerdantPanel-searchContent">{this.showResults()}</div>
       </div>
     );
-  }
-
-  search() {
-    let query = this.props.search_query;
-    if (query && query.length > 0) {
-      let [markdown, mCount] = this.props.history.store.findMarkdown(query);
-      let [code, cCount] = this.props.history.store.findCode(query);
-      let [output, oCount] = this.props.history.store.findOutput(query);
-
-      // finally set search results
-      this.props.set_results([
-        { label: "code cell", count: cCount, results: code },
-        { label: "markdown cell", count: mCount, results: markdown },
-        { label: "output", count: oCount, results: output },
-      ]);
-    }
   }
 
   showResults() {
@@ -78,22 +37,11 @@ class Search extends React.Component<Search_Props> {
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => {
-  return {
-    set_results: (results: searchResults) => {
-      dispatch(setResults(results));
-    },
-    close_all: () => dispatch(closeAll()),
-  };
-};
-
 const mapStateToProps = (state: verdantState) => {
   return {
-    search_query: state.search.searchQuery,
-    history: state.getHistory(),
     openResults: state.search.openResults,
     results: state.search.searchResults,
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Search);
+export default connect(mapStateToProps)(Search);

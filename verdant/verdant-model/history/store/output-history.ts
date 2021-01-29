@@ -59,9 +59,9 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
         let b = outList_b[index];
 
         // Important! ignore the execution count, only compare
-        // the data field of the output
-        let raw_a = JSON.stringify(a.data);
-        let raw_b = JSON.stringify(b.data);
+        // the data (or text) field of the output
+        let raw_a = a.data ? JSON.stringify(a.data) : JSON.stringify(a.text);
+        let raw_b = b.data ? JSON.stringify(b.data) : JSON.stringify(b.text);
 
         // retrieve from storage if needed
         if (OutputHistory.isOffsite(a)) {

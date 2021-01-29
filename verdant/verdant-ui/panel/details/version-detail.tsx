@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Nodey } from "../../../verdant-model/nodey";
+import { Nodey, NodeyOutput } from "../../../verdant-model/nodey";
 import { History } from "../../../verdant-model/history";
 import { DIFF_TYPE } from "../../../verdant-model/sampler";
 import VersionHeader from "./version-header";
@@ -79,7 +79,9 @@ class VersionDetail extends React.Component<Version_Props, { sample: string }> {
     await this.props.history.ready;
     let s: HTMLElement = await this.props.history.inspector.diff.renderCell(
       this.props.nodey,
-      DIFF_TYPE.CHANGE_DIFF
+      this.props.nodey instanceof NodeyOutput
+        ? DIFF_TYPE.NO_DIFF
+        : DIFF_TYPE.CHANGE_DIFF
     );
     this.setState({ sample: s.outerHTML });
   }

@@ -187,7 +187,7 @@ export class FileManager {
       await this.makeOutputFolder();
       this.contentsManager.save(path, {
         type: "file",
-        format: "text",
+        format: "base64",
         content: data,
       });
     } else

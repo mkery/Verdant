@@ -85,6 +85,8 @@ export namespace NodeyCode {
     return new NodeyCode({ type: "EMPTY", content: [] });
   };
 
+  export const typeChar = "c";
+
   export type Options = {
     type?: string;
     content?: (SyntaxToken | string)[];

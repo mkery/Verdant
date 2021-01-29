@@ -125,6 +125,7 @@ class Toolbar extends React.Component<
                 onClick={(ev) => {
                   ev.stopPropagation();
                   this.props.setDiff(index);
+                  this.setState({ dropdown_open: false });
                   return false;
                 }}
               >
