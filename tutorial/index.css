@@ -201,3 +201,24 @@ footer {
 .center {
   text-align: center;
 }
+
+.QA {
+  margin: auto;
+  padding: 2em;
+  width: calc(100% - 4em);
+  text-align: center;
+}
+
+.question {
+  font-style: italic;
+  margin: auto;
+  margin-bottom: 6px;
+  width: 80%;
+}
+
+.answer {
+  background-color: black;
+  margin: 0px 1em;
+  color: black;
+  padding: 8px;
+}

@@ -65,10 +65,6 @@ export const searchReducer = (
 
 function search(query: string, history: History) {
   query = query?.trim();
-  if (query && query.length > 0) {
-    let res = history?.store?.search(query);
-    console.log("results are", res);
-    return res;
-  }
+  if (query && query.length > 0) return history?.store?.search(query);
   return [];
 }

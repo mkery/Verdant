@@ -87,7 +87,7 @@ export namespace Namer {
 
   export function describeChange(nodey: NodeyCell, changes: ChangeType[]) {
     if (changes[0] === ChangeType.OUTPUT_CHANGED)
-      return `${Namer.getCellVersionTitle(nodey)}'s ${changes.join(", ")}`;
-    return `${Namer.getCellVersionTitle(nodey)} was ${changes.join(", ")}`;
+      return `${Namer.getCellTitle(nodey)}'s ${changes.join(", ")}`;
+    return `${Namer.getCellTitle(nodey)} was ${changes.join(", ")}`;
   }
 }
