@@ -205,15 +205,104 @@
           <p class="question">
             Question: How many versions exist for C4 (Code Cell 4)?
           </p>
-          <p class="answer">33</p>
+          <p class="answer">11</p>
+        </div>
+        <p>
+          Scroll the table down to the output of code cell 14 (C14). In the
+          preview of this output, we can see that this cell of the notebook
+          prints out model metrics.
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 30em"
+            src="./images/Screenshots/Tutorial-Housing/artifact_step2.png"
+          />
+        </div>
+        <p>Click on the output to see all of its versions:</p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 45em"
+            src="./images/Screenshots/Tutorial-Housing/artifact_step3.png"
+          />
+        </div>
+        <p>
+          Welcome to the <b>detail view</b>! The detail view will show you every
+          version that has ever been created of a specific thing. While in this
+          view, clicking on a link like Notebook v128 will open up the
+          <b>ghost notebook</b> to help you see a specific version in context of
+          the full notebook version.
+        </p>
+        <div class="QA">
+          <p class="question">
+            Question: Using the detail view for the
+            <b>output of code cell 14</b>, what was the <i>lowest</i> value of
+            <code>Coefficient of determination</code> the author got?
+          </p>
+          <p class="answer">0.29</p>
+        </div>
+        <p>
+          Now, taking a look at the current Jupyter notebook, we can see that
+          the author actually has two different models in their notebook. Next
+          let's take a look at the history of metrics for the second model.
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 45em"
+            src="./images/Screenshots/Tutorial-Housing/artifact_step4.png"
+          />
+        </div>
+        <p>
+          A different way of finding history in Verdant is to use the
+          <b>version inspector</b>.
+        </p>
+        <p>
+          Click on the <b>Version Inspector</b> button to activate the
+          inspector. Then click on the final output in the current notebook to
+          see its history. With the inspector, you can get the history of
+          <b>anything</b> from the current notebook just by clicking on it.
+          After using the inspector to click on the last output of the notebook,
+          you should now be seeing metrics of the output of code cell 22:
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 20em"
+            src="./images/Screenshots/Tutorial-Housing/artifact_step5.png"
+          />
+        </div>
+        <div class="QA">
+          <p class="question">
+            Question: Using the detail view for the
+            <b>output of code cell 22</b>, what was the <i>highest</i> value of
+            <code>Coefficient of determination</code> the author got?
+          </p>
+          <p class="answer">0.69</p>
+        </div>
+        <p>
+          Finally, sometimes you'll want to retrieve the history of a cell or
+          output that was <b>deleted</b> i.e. it no longer exists in the current
+          Jupyter notebook. To find history of anything by keyword,
+          <i>including</i> the history of previously deleted cells, use the
+          <b>history search</b> tab of Verdant:
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 18em"
+            src="./images/Screenshots/Tutorial-Housing/search_metrics.png"
+          />
         </div>
       </div>
       <div class="step">
-        <h2>3. Review data visualizations</h2>
+        <h2>3. Finding images, charts & visualizations</h2>
         <p>
-          There are several ways to get an overview of past data visualizations
-          in Verdant. One way to figure this out is to head over to the search
-          tab of Verdant and type in "plot".
+          A few ending words on how to find charts and images in history. The
+          <b>history search</b> has a few special keywords, such that if you
+          search for "plot" or "image" or "chart", the search will return
+          <i>all</i> images a notebook has ever produced:
         </p>
         <div class="center">
           <img
@@ -222,6 +311,59 @@
             src="./images/Screenshots/Tutorial-Housing/search_step1.png"
           />
         </div>
+        <p>
+          Verdant actually stores all images a notebook produces in a
+          auto-generated folder titled {name of your notebook}_output such as
+          <code>houses_kc_output</code>. Open that folder in your normal
+          computer file browser to see all the images. If you decide to delete
+          images stored in this folder they will just show up with a missing
+          image symbol in Verdant:
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 20em"
+            src="./images/Screenshots/Tutorial-Housing/missing_image.png"
+          />
+        </div>
+        <p>
+          Meanwhile if you want to <i>reproduce</i> an image you find in the
+          output folder, simply copy the name of the file (shown below in Mac OS
+          Finder):
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="width: 40em"
+            src="./images/Screenshots/Tutorial-Housing/reverse_search_step1.png"
+          />
+        </div>
+        <p>
+          Be sure to type <b>=</b> before the name to let the history search
+          know you're searching for an exact artifact by name:
+        </p>
+        <div class="center">
+          <img
+            class="verdant-screenshot"
+            style="height: 30em"
+            src="./images/Screenshots/Tutorial-Housing/reverse_search_step2.png"
+          />
+        </div>
+        <div class="QA">
+          <p class="question">
+            Question: One final question to put it all together. How many
+            versions of code cell 17's output exist?
+          </p>
+          <p class="answer">6</p>
+        </div>
+        <p>
+          You did it. Happy coding! If you encounter any issues with Verdant, we
+          always appreciate
+          <a href="https://forms.gle/cdqdV1LzwStzk2Qy7">feedback</a> or a issue
+          report in the
+          <a href="https://github.com/mkery/Verdant/issues">repo</a>. Many
+          thanks from our team at Carnegie Mellon University. <3
+        </p>
       </div>
     </div>
     <footer>
