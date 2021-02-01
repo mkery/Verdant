@@ -24,8 +24,11 @@ For design discussion and the research behind this check out our [paper](https:/
 
 ## Prerequisites
 
-* Verdant works with > JupyterLab 3.0 (current latest version)
-  * to install or update your JupyterLab to 3.0: `pip install jupyterlab==3` or `conda install -c conda-forge jupyterlab=3`
+Verdant works with > JupyterLab 3.0 (current latest version). To install or update your JupyterLab to 3.0: 
+
+with pip: `pip install jupyterlab==3` 
+
+with conda: `conda install -c conda-forge jupyterlab=3`
 
 ## Install
 
