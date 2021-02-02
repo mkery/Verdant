@@ -22,17 +22,16 @@ For design discussion and the research behind this check out our [paper](https:/
 > Past Analysis Choices. In Proceedings of ACM SIGCHI, Glasgow, UK, May
 > 2019 (CHI’19), 11 pages. DOI: 10.475/123 4
 
-## Prerequisites
-
-Verdant works with > JupyterLab 3.0 (current latest version). To install or update your JupyterLab to 3.0: 
-
-with pip: `pip install jupyterlab==3` 
-
-with conda: `conda install -c conda-forge jupyterlab=3`
-
 ## Install
-
-`jupyter labextension install verdant-history`
+1. __Jupyterlab__: Verdant works with > JupyterLab 3 (latest version). To install or update your JupyterLab: 
+  * with pip: `pip install jupyterlab -U` 
+  * with conda: `conda install -c conda-forge jupyterlab`
+  * to check version: `jupyter lab --version`
+2. __NodeJs__: Jupyterlab needs node to configure and install extensions.
+  * to check if you have node installed `node --version`
+  * to install: [Official NodeJS installers](https://nodejs.org/en/download/)
+3. `jupyter labextension install verdant-history`
+4. If all has gone well, you'll see Verdant's log with a leaf icon in the left pane of Jupyterlab!
 
 ## Develop
 
