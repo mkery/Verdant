@@ -27,11 +27,14 @@ For design discussion and the research behind this check out our [paper](https:/
   * with pip: `pip install jupyterlab -U` 
   * with conda: `conda install -c conda-forge jupyterlab`
   * to check version: `jupyter lab --version`
-2. __NodeJs__: Jupyterlab needs node to configure and install extensions.
+2. __NodeJs__: Jupyterlab needs node to configure and install extensions, not just Verdant
   * to check if you have node installed `node --version`
   * to install: [Official NodeJS installers](https://nodejs.org/en/download/)
-3. `jupyter labextension install verdant-history`
-4. If all has gone well, you'll see Verdant's log with a leaf icon in the left pane of Jupyterlab!
+3. __Verdant__:
+  * command line `jupyter labextension install verdant-history`
+  * OR open Jupyterlab with `jupyter lab .` and find Verdant in the extensions menu (side panel icon button with the puzzle piece) by searching `verdant`
+4. :tada: If all has gone well, you'll see Verdant's log with a leaf icon in the left pane of Jupyterlab! :tada:
+  * if not, please file an issue with what error you're getting and we'll fix it promptly
 
 ## Develop
 
