@@ -27,6 +27,7 @@ For design discussion and the research behind this check out our [paper](https:/
   * with pip: `pip install jupyterlab -U` 
   * with conda: `conda install -c conda-forge jupyterlab`
   * to check version: `jupyter lab --version`
+  * _for windows users!_: due to a bug with lab extensions in earlier 3.0 releases, be sure you have >= `3.0.7` of JupyterLab
 2. __NodeJs__: Jupyterlab needs node to configure and install extensions, not just Verdant
   * to check if you have node installed `node --version`
   * to install: [Official NodeJS installers](https://nodejs.org/en/download/)
