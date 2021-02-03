@@ -22,13 +22,20 @@ For design discussion and the research behind this check out our [paper](https:/
 > Past Analysis Choices. In Proceedings of ACM SIGCHI, Glasgow, UK, May
 > 2019 (CHI’19), 11 pages. DOI: 10.475/123 4
 
-## Prerequisites
-
-* JupyterLab
-
 ## Install
-
-`jupyter labextension install verdant-history`
+1. __Jupyterlab__: Verdant works with > JupyterLab 3 (latest version). To install or update your JupyterLab: 
+  * with pip: `pip install jupyterlab -U` 
+  * with conda: `conda install -c conda-forge jupyterlab`
+  * to check version: `jupyter lab --version`
+  * _for windows users!_: due to a bug with lab extensions in earlier 3.0 releases, be sure you have >= `3.0.7` of JupyterLab
+2. __NodeJs__: Jupyterlab needs node to configure and install extensions, not just Verdant
+  * to check if you have node installed `node --version`
+  * to install: [Official NodeJS installers](https://nodejs.org/en/download/)
+3. __Verdant__:
+  * command line `jupyter labextension install verdant-history`
+  * OR open Jupyterlab with `jupyter lab .` and find Verdant in the extensions menu (side panel icon button with the puzzle piece) by searching `verdant`
+4. :tada: If all has gone well, you'll see Verdant's log with a leaf icon in the left pane of Jupyterlab! :tada:
+  * if not, please file an issue with what error you're getting and we'll fix it promptly
 
 ## Develop
 
