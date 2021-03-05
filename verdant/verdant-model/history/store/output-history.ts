@@ -60,17 +60,21 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
 
         // Important! ignore the execution count, only compare
         // the data (or text) field of the output
-        let raw_a = a.data ? JSON.stringify(a.data) : JSON.stringify(a.text);
-        let raw_b = b.data ? JSON.stringify(b.data) : JSON.stringify(b.text);
+        let raw_a = a.data ? a.data : a.text;
+        let raw_b = b.data ? b.data : b.text;
+
+        // if HTML format, get the raw text to compare
+        if (raw_a["text/plain"]) raw_a = raw_a["text/plain"];
+        if (raw_b["text/plain"]) raw_b = raw_b["text/plain"];
 
         // retrieve from storage if needed
         if (OutputHistory.isOffsite(a)) {
           a = await fileManager.getOutput(a);
-          if (a) raw_a = JSON.stringify(a);
+          if (a) raw_a = a;
         }
         if (b instanceof NodeyOutput && OutputHistory.isOffsite(b)) {
           b = await fileManager.getOutput(b);
-          if (b) raw_b = JSON.stringify(b);
+          if (b) raw_b = a;
         }
 
         // get image tags if images, assuming other metadata doesn't matter
@@ -79,7 +83,18 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
         let image_b = OutputHistory.isImage(b);
         if (image_b && b?.data) raw_b = b.data[image_b] || raw_b;
 
-        return raw_a === raw_b;
+        /*
+         * TODO
+         * images pulled from an offsite file have extra header data (?) which makes
+         * their raw data larger and not match a fresh output. So we need special
+         * tactics to compare images
+         */
+
+        // finally stringify data to compare it
+        const str_a = JSON.stringify(raw_a);
+        const str_b = JSON.stringify(raw_b);
+
+        return str_a === str_b;
       });
     }
   }

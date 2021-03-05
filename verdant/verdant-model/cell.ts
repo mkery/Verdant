@@ -41,7 +41,8 @@ export class VerCell {
    * Gets the Nodey representation of this cell
    */
   public get model(): NodeyCell | undefined {
-    return this.notebook?.history?.store.getLatestOf(this.modelName);
+    if (this.modelName)
+      return this.notebook?.history?.store.getLatestOf(this.modelName);
   }
 
   /**

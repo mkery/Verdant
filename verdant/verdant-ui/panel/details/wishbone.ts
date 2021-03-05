@@ -97,7 +97,7 @@ namespace Private {
     }
     if (area instanceof CodeCell) {
       // mask on prompt area
-      let prompt = area.inputArea.promptNode;
+      let prompt = area.inputArea.node;
       prompt.appendChild(mask);
       addElemEvents(mask, nodey, inspector);
 
