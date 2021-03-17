@@ -4,6 +4,7 @@ import {
   NodeyCode,
   NodeyRawCell,
   NodeyCell,
+  Nodey,
 } from "../../nodey";
 import { History } from "../history";
 import { OutputHistory } from "../store";
@@ -31,7 +32,7 @@ export class Stage {
    * is recorded by the cell name, which is the base artifact name of the cell
    * such as C5 or M4
    */
-  private staged_total = [];
+  private staged_total: Nodey[] = [];
   private staged_codeCell: {} = {};
   private staged_markdown: { [cellName: string]: { markdown: string } } = {};
   private staged_rawCell: { [cellName: string]: { literal: string } } = {};
@@ -41,7 +42,7 @@ export class Stage {
     this.fileManager = fileManager;
   }
 
-  public getAllStaged() {
+  public getAllStaged(): Nodey[] {
     return this.staged_total;
   }
 
@@ -74,6 +75,8 @@ export class Stage {
         }
       })
     );
+    // empty after all have been considered
+    this.dirty_nodey = [];
   }
 
   public isEdited() {

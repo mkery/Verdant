@@ -20,11 +20,28 @@ type NotebookDate_Props = {
   open: (d: number) => void;
   close: (d: number) => void;
   bundles: Bundles.bundleState[];
+  bundleCount: number;
 } & req_NotebookDate_Props;
 
-class DateSection extends React.Component<NotebookDate_Props> {
+class DateSection extends React.Component<NotebookDate_Props, any> {
+  private _isMounted = false;
+
   constructor(props: NotebookDate_Props) {
     super(props);
+    this.state = { bundles: props.bundles };
+  }
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this._isMounted && this.props.bundleCount !== prevProps.bundleCount) {
+      this.setState({ bundles: this.props.bundles });
+    }
   }
 
   render() {
@@ -57,7 +74,7 @@ class DateSection extends React.Component<NotebookDate_Props> {
 
   private makeBundles() {
     // Creates bundle for each set of checkpoints
-    return this.props.bundles.map((_, i) => (
+    return this.state.bundles.map((_, i) => (
       <EventBundle key={i} bundle_id={i} date_id={this.props.date_id} />
     ));
   }
@@ -80,6 +97,7 @@ const mapStateToProps = (
     events: dateState?.events,
     isOpen: dateState?.isOpen,
     bundles: dateState?.bundles,
+    bundleCount: dateState.bundles.length,
   };
 };
 

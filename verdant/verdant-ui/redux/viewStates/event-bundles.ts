@@ -46,7 +46,7 @@ export namespace Bundles {
     bundle_list: bundleState[],
     history: History
   ) {
-    const newEvent = event_list[event_idx];
+    const newEvent = Checkpoint.fromJSON(event_list[event_idx].toJSON()); // verify immutability
     const newTargetCells = calcTargetCellNotebookIndex(newEvent, history);
     const latestBundle = bundle_list[0];
     if (latestBundle) {
@@ -87,7 +87,7 @@ export namespace Bundles {
     bundle_list: bundleState[],
     history: History
   ) {
-    let event = event_list[event_idx];
+    let event = Checkpoint.fromJSON(event_list[event_idx].toJSON()); // verify immutability
 
     // first find the bundle that contains this event
     let bundle_idx = bundle_list.findIndex((bundle) =>
@@ -141,7 +141,7 @@ export namespace Bundles {
     A: CellRunData[],
     B: CellRunData[]
   ): CellRunData[] | undefined {
-    let zipped = A;
+    let zipped = [...A];
 
     // A and B can't contain competing changes to the same cell
     // A and B can't have different cells assigned to the same index

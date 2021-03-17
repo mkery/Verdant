@@ -32,6 +32,7 @@ type Bundle_Props = {
 
 class EventBundle extends React.Component<Bundle_Props> {
   render() {
+    if (!this.props.checkpoints) return null;
     if (this.props.checkpoints.length === 1) return this.renderSingle();
     return this.renderBundle();
   }
@@ -177,11 +178,11 @@ const mapStateToProps = (state: verdantState, ownProps: req_Bundle_Props) => {
   const history = state.getHistory();
   const bundle =
     state.eventView.dates[ownProps.date_id].bundles[ownProps.bundle_id];
-  const targets = bundle.bundleTargets;
+  const targets = bundle?.bundleTargets;
   const checkpoints = bundle?.bundleEvents?.map(
     (ev) => state.eventView.dates[ownProps.date_id].events[ev]
   );
-  const changeCount = Object.keys(bundle.bundleTargets).length;
+  const changeCount = bundle ? Object.keys(bundle?.bundleTargets).length : -1;
 
   return {
     isOpen: bundle?.isOpen,

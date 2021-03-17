@@ -33,7 +33,7 @@ export abstract class NotebookEvent {
     return ev;
   }
 
-  abstract async modelUpdate();
+  async modelUpdate() {}
 
   endEvent(): void {}
 }

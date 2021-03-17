@@ -97,15 +97,17 @@ export class Commit {
   }
 
   public moveCell(moved: NodeyCell, newPos: number) {
+    // get position
+    let name = moved.name;
+    let index = this.notebook.cells.indexOf(name);
+
     // first see if this commit can be combined with a prior one
-    const merged = this.attemptMergeWithPriorCheckpoint([moved]);
+    const merged = this.attemptMergeWithPriorCheckpoint([moved], [index]);
 
     // moving a cell is an event that changes notebook version
     if (!this.notebook) this.createNotebookVersion();
 
     // move cell in the notebook
-    let name = moved.name;
-    let index = this.notebook.cells.indexOf(name);
     if (index > -1) this.notebook.cells.splice(index, 1); // delete the pointer
     this.notebook.cells.splice(newPos, 0, name); // re-add in correct place
 
@@ -122,8 +124,15 @@ export class Commit {
   }
 
   public changeCellType(oldCell: NodeyCell, newCell: NodeyCell) {
+    // get position
+    let name = oldCell.name;
+    let index = this.notebook.cells.indexOf(name);
+
     // first see if this commit can be combined with a prior one
-    const merged = this.attemptMergeWithPriorCheckpoint([oldCell, newCell]);
+    const merged = this.attemptMergeWithPriorCheckpoint(
+      [oldCell, newCell],
+      [index]
+    );
 
     // changing a cell type is an event that changes notebook version
     if (!this.notebook) this.createNotebookVersion();
@@ -152,10 +161,16 @@ export class Commit {
   public async commit(): Promise<void> {
     await this.stage.stage();
     if (this.stage.isEdited()) {
+      const allStaged = this.stage.getAllStaged();
+      // get indices
+      let oldNotebook = this.history.store.currentNotebook;
+      let indices = allStaged.map((s) => {
+        const name = s.name;
+        return oldNotebook.cells.indexOf(name);
+      });
+
       // first see if this commit can be combined with a prior one
-      const merged = this.attemptMergeWithPriorCheckpoint(
-        this.stage.getAllStaged()
-      );
+      const merged = this.attemptMergeWithPriorCheckpoint(allStaged, indices);
 
       // if there are real edits, make sure we have a new notebook
       if (!this.notebook) this.createNotebookVersion();
@@ -171,7 +186,6 @@ export class Commit {
     this.notebook.cells = this.notebook.cells.map((c) => {
       let cell = this.history.store.get(c);
       let instructions = cell ? this.stage.getStaging(cell) : null;
-
       if (instructions) {
         let newCell;
         if (cell instanceof NodeyCodeCell)
@@ -190,7 +204,7 @@ export class Commit {
 
   private attemptMergeWithPriorCheckpoint(
     targetedCells: Nodey[],
-    indicies?: number[]
+    indicies: number[]
   ): boolean {
     /*
      * We will try to add new changes to an existing notebook version if
