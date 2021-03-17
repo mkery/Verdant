@@ -1,8 +1,13 @@
 import { Notebook } from "@jupyterlab/notebook";
 import { History } from "../history";
-import { Cell } from "@jupyterlab/cells";
+import { Cell, CodeCell, MarkdownCell, RawCell } from "@jupyterlab/cells";
 import { Checkpoint, ChangeType, CellRunData } from "../checkpoint";
-import { NodeyNotebook } from "../nodey";
+import {
+  NodeyCodeCell,
+  NodeyNotebook,
+  NodeyMarkdown,
+  NodeyRawCell,
+} from "../nodey";
 import { ASTCreate } from "./ast-create";
 
 export class AST {
@@ -55,27 +60,74 @@ export class AST {
   }
 
   public async hotStartNotebook(
-    notebook: NodeyNotebook,
+    notebook_history: NodeyNotebook,
     notebook_view: Notebook,
     checkpoint: Checkpoint
   ): Promise<NodeyNotebook> {
-    // TODO
-    /*
-    // get cells for the purpose of matching
-    let newCells = notebook_view.widgets.map((item) => {
-      if (item instanceof Cell) {
-        let kind = "raw";
-        let text = item.model.value.text;
-        if (item instanceof CodeCell) kind = "code";
-        else if (item instanceof MarkdownCell) kind = "markdown";
-        return { kind, text };
+    // just match up exact matches
+    let toMatch = [];
+    let matchCount = 0;
+    notebook_history.cells.forEach((name: string) => {
+      let nodey = this.history.store.get(name);
+
+      let match = notebook_view.widgets.findIndex((w) => {
+        if (w instanceof MarkdownCell && nodey instanceof NodeyMarkdown)
+          return nodey.markdown === w.model.value.text;
+        if (w instanceof RawCell && nodey instanceof NodeyRawCell)
+          return nodey.literal === w.editor.model.value.text;
+        if (w instanceof CodeCell && nodey instanceof NodeyCodeCell)
+          return nodey.literal === w.editor.model.value.text;
+        return false;
+      });
+      if (match > -1 && !toMatch[match]) {
+        toMatch[match] = nodey;
+        matchCount++;
       }
-    });*/
+    });
 
-    //console.log(notebook_view, notebook, checkpoint);
+    // other cells exist
+    if (matchCount !== notebook_view.widgets.length) {
+      let changedCells: CellRunData[] = [];
+      let newNotebook = this.createNotebookVersion(checkpoint);
 
-    // TODO TODO TODO
+      // create all other cells
+      for (let i = 0; i < notebook_view.widgets.length; i++) {
+        let nodey = toMatch[i];
+        if (!nodey) {
+          // create new cell for unknown cell
+          nodey = await this.create.fromCell(
+            notebook_view.widgets[i],
+            checkpoint
+          );
+          changedCells.push({
+            cell: nodey.name,
+            changeType: ChangeType.ADDED,
+          });
+        }
+        newNotebook.cells[i] = nodey.name;
+        nodey.parent = newNotebook.name;
+      }
 
-    return notebook;
+      // return updated notebook
+      checkpoint.targetCells.push(...changedCells);
+      this.history.checkpoints.add(checkpoint);
+      return newNotebook;
+    } else {
+      // everything is exactly the same
+      return notebook_history;
+    }
+  }
+
+  private createNotebookVersion(checkpoint) {
+    let oldNotebook = this.history.store.currentNotebook;
+    let newNotebook = new NodeyNotebook({
+      id: oldNotebook?.id,
+      created: checkpoint.id,
+      cells: oldNotebook?.cells.slice(0) || [],
+    });
+    let notebookHist = this.history.store.getHistoryOf(oldNotebook);
+    notebookHist?.addVersion(newNotebook);
+    checkpoint.notebook = newNotebook?.version;
+    return newNotebook;
   }
 }

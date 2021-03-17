@@ -134,8 +134,19 @@ export class NotebookListen {
       //waaat can get execution signals from other notebooks
       if (args.notebook.id === this._notebook.id) {
         const cell = args.cell;
-        let runEvent = new RunCell(this.verNotebook, cell.model);
-        this.verNotebook.handleNotebookEvent(runEvent);
+        // error handling: verify that we've seen this cell before
+        let verCell = this.verNotebook.getCell(cell.model);
+        if (verCell) {
+          let runEvent = new RunCell(this.verNotebook, verCell.model);
+          this.verNotebook.handleNotebookEvent(runEvent);
+        } else {
+          // error case! this cell is missing from our model
+          let index = this.notebook.widgets.findIndex(
+            (w) => w instanceof Cell && w.model.id === cell.model.id
+          );
+          if (index > -1) this._addNewCells(index, [cell.model]);
+          else console.error("Error: cannot at cell to the model ", cell);
+        }
       }
     });
   }

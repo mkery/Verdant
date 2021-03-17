@@ -60,12 +60,12 @@ export class OutputHistory extends NodeHistory<NodeyOutput> {
 
         // Important! ignore the execution count, only compare
         // the data (or text) field of the output
-        let raw_a = a.data ? a.data : a.text;
-        let raw_b = b.data ? b.data : b.text;
+        let raw_a = a.data ? a.data : a.text ? a.text : a;
+        let raw_b = b.data ? b.data : b.text ? b.text : b;
 
         // if HTML format, get the raw text to compare
-        if (raw_a["text/plain"]) raw_a = raw_a["text/plain"];
-        if (raw_b["text/plain"]) raw_b = raw_b["text/plain"];
+        if (raw_a && raw_a["text/plain"]) raw_a = raw_a["text/plain"];
+        if (raw_b && raw_b["text/plain"]) raw_b = raw_b["text/plain"];
 
         // retrieve from storage if needed
         if (OutputHistory.isOffsite(a)) {

@@ -1,22 +1,19 @@
-import { ICellModel } from "@jupyterlab/cells";
 import { NotebookEvent } from ".";
+import { NodeyCell } from "../nodey";
 import { VerNotebook } from "../notebook";
 
 export class RunCell extends NotebookEvent {
-  cellModel: ICellModel;
+  nodey: NodeyCell;
 
-  constructor(notebook: VerNotebook, cellModel: ICellModel) {
+  constructor(notebook: VerNotebook, nodey: NodeyCell) {
     super(notebook);
-    this.cellModel = cellModel;
+    this.nodey = nodey;
   }
 
   async modelUpdate() {
-    // now repair the cell against the prior version
-    let cell = this.notebook.getCell(this.cellModel);
-
-    if (cell && cell.model) {
+    if (this.nodey) {
       // commit the notebook if the cell has changed
-      this.history.stage.markAsPossiblyEdited(cell.model, this.checkpoint);
+      this.history.stage.markAsPossiblyEdited(this.nodey, this.checkpoint);
       this.checkpoint = await this.history.stage.commit(this.checkpoint);
     }
   }

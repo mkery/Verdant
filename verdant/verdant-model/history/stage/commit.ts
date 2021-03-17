@@ -253,7 +253,7 @@ export class Commit {
     return pass;
   }
 
-  private createNotebookVersion() {
+  public createNotebookVersion() {
     let oldNotebook = this.history.store.currentNotebook;
     let newNotebook = new NodeyNotebook({
       id: oldNotebook?.id,
