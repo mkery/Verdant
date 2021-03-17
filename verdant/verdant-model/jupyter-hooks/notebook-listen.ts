@@ -130,22 +130,31 @@ export class NotebookListen {
       this.focusCell(cell);
     });
 
-    NotebookActions.executed.connect((_, args) => {
+    NotebookActions.executed.connect(async (_, args) => {
       //waaat can get execution signals from other notebooks
       if (args.notebook.id === this._notebook.id) {
         const cell = args.cell;
-        // error handling: verify that we've seen this cell before
         let verCell = this.verNotebook.getCell(cell.model);
-        if (verCell) {
+        if (verCell && verCell.model) {
           let runEvent = new RunCell(this.verNotebook, verCell.model);
           this.verNotebook.handleNotebookEvent(runEvent);
         } else {
-          // error case! this cell is missing from our model
+          // error case, this cell is missing a history model!
+          // to fix create a new cell nodey and checkpoint to record this event
           let index = this.notebook.widgets.findIndex(
-            (w) => w instanceof Cell && w.model.id === cell.model.id
+            (w) => w.model.id === cell.model.id
           );
-          if (index > -1) this._addNewCells(index, [cell.model]);
-          else console.error("Error: cannot at cell to the model ", cell);
+          let checkpoint = this.verNotebook.history.checkpoints.generateCheckpoint();
+          let nodey = await this.verNotebook.ast.create.fromCell(
+            cell,
+            checkpoint
+          );
+          verCell.setModel(nodey.name);
+          this.verNotebook.history.stage.commitCellAdded(
+            nodey,
+            index,
+            checkpoint
+          );
         }
       }
     });
