@@ -2,7 +2,7 @@ import { VerNotebook } from "../verdant-model/notebook";
 import { Store } from "redux";
 import { Contents, ContentsManager } from "@jupyterlab/services";
 
-const DEBUG = false;
+const DEBUG = true;
 const RECORD = false;
 
 export class VerdantLog {

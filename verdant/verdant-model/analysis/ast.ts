@@ -7,8 +7,10 @@ import {
   NodeyNotebook,
   NodeyMarkdown,
   NodeyRawCell,
+  Nodey,
 } from "../nodey";
 import { ASTCreate } from "./ast-create";
+import { log } from "../notebook";
 
 export class AST {
   readonly history: History;
@@ -69,19 +71,17 @@ export class AST {
     let matchCount = 0;
     notebook_history.cells.forEach((name: string) => {
       let nodey = this.history.store.get(name);
+      let oldText = this.getText(nodey);
 
-      let match = notebook_view.widgets.findIndex((w) => {
-        if (w instanceof MarkdownCell && nodey instanceof NodeyMarkdown)
-          return nodey.markdown === w.model.value.text;
-        if (w instanceof RawCell && nodey instanceof NodeyRawCell)
-          return nodey.literal === w.editor.model.value.text;
-        if (w instanceof CodeCell && nodey instanceof NodeyCodeCell)
-          return nodey.literal === w.editor.model.value.text;
-        return false;
+      let match = notebook_view.widgets.findIndex((cell, index) => {
+        let newText = this.getText(cell);
+        return oldText === newText && !toMatch[index];
       });
       if (match > -1 && !toMatch[match]) {
         toMatch[match] = nodey;
         matchCount++;
+      } else {
+        log("Could not match old cell", nodey);
       }
     });
 
@@ -129,5 +129,16 @@ export class AST {
     notebookHist?.addVersion(newNotebook);
     checkpoint.notebook = newNotebook?.version;
     return newNotebook;
+  }
+
+  private getText(n: Nodey | Cell) {
+    if (n instanceof NodeyCodeCell) return n.literal || "";
+    if (n instanceof NodeyMarkdown) return n.markdown || "";
+    if (n instanceof NodeyRawCell) return n.literal || "";
+
+    if (n instanceof CodeCell || n instanceof RawCell)
+      return n.editor.model.value.text || "";
+    if (n instanceof MarkdownCell) return n.model.value.text || "";
+    return "";
   }
 }

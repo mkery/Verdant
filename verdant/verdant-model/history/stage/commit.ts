@@ -12,6 +12,7 @@ import {
 import { History } from "../history";
 import { CodeHistory } from "../store";
 import { Stage } from "./stage";
+import { jsn } from "../../notebook";
 
 export class Commit {
   readonly history: History;
@@ -99,7 +100,8 @@ export class Commit {
   public moveCell(moved: NodeyCell, newPos: number) {
     // get position
     let name = moved.name;
-    let index = this.notebook.cells.indexOf(name);
+    let oldNotebook = this.history.store.currentNotebook;
+    let index = oldNotebook.cells.indexOf(name);
 
     // first see if this commit can be combined with a prior one
     const merged = this.attemptMergeWithPriorCheckpoint([moved], [index]);
@@ -126,7 +128,8 @@ export class Commit {
   public changeCellType(oldCell: NodeyCell, newCell: NodeyCell) {
     // get position
     let name = oldCell.name;
-    let index = this.notebook.cells.indexOf(name);
+    let oldNotebook = this.history.store.currentNotebook;
+    let index = oldNotebook.cells.indexOf(name);
 
     // first see if this commit can be combined with a prior one
     const merged = this.attemptMergeWithPriorCheckpoint(
@@ -158,8 +161,8 @@ export class Commit {
   }
 
   // returns true if there are changes such that a new commit is recorded
-  public async commit(): Promise<void> {
-    await this.stage.stage();
+  public async commit(options: jsn): Promise<void> {
+    await this.stage.stage(options);
     if (this.stage.isEdited()) {
       const allStaged = this.stage.getAllStaged();
       // get indices

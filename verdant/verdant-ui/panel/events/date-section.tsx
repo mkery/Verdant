@@ -97,7 +97,7 @@ const mapStateToProps = (
     events: dateState?.events,
     isOpen: dateState?.isOpen,
     bundles: dateState?.bundles,
-    bundleCount: dateState.bundles.length,
+    bundleCount: dateState?.bundles?.length || 0,
   };
 };
 

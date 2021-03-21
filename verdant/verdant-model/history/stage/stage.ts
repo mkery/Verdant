@@ -10,6 +10,7 @@ import { History } from "../history";
 import { OutputHistory } from "../store";
 import { IOutput } from "@jupyterlab/nbformat";
 import { FileManager } from "../../jupyter-hooks/file-manager";
+import { jsn } from "../../notebook";
 
 /*
  * Stage is responsible for figuring out which *potentially* changed nodey
@@ -55,7 +56,7 @@ export class Stage {
       return this.staged_rawCell[cell.artifactName];
   }
 
-  public async stage() {
+  public async stage(options: jsn = {}) {
     // create staging lists
     await Promise.all(
       this.dirty_nodey.map(async (name: string) => {
@@ -67,7 +68,9 @@ export class Stage {
           if (nodey instanceof NodeyCodeCell) nodeyCell = nodey;
           else nodeyCell = this.history.store.getCellParent(nodey);
           this.checkCodeCellNodey(nodeyCell);
-          await this.checkOutputNodey(nodeyCell);
+
+          // HACK see image on-save issue
+          if (!options["ignore_output"]) await this.checkOutputNodey(nodeyCell);
         } else if (nodey instanceof NodeyMarkdown) {
           this.checkMarkdownNodey(nodey);
         } else if (nodey instanceof NodeyRawCell) {

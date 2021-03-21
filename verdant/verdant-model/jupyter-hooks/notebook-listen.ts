@@ -12,6 +12,7 @@ import { log } from "../notebook";
 import { IObservableList } from "@jupyterlab/observables";
 
 import { VerNotebook } from "../notebook";
+import { VerCell } from "../cell";
 import {
   SaveNotebook,
   CreateCell,
@@ -140,6 +141,7 @@ export class NotebookListen {
           this.verNotebook.handleNotebookEvent(runEvent);
         } else {
           // error case, this cell is missing a history model!
+
           // to fix create a new cell nodey and checkpoint to record this event
           let index = this.notebook.widgets.findIndex(
             (w) => w.model.id === cell.model.id
@@ -149,7 +151,14 @@ export class NotebookListen {
             cell,
             checkpoint
           );
-          verCell.setModel(nodey.name);
+          if (!verCell) {
+            // create ver cell if that's missing too
+            this.verNotebook.cells.splice(
+              index,
+              0,
+              new VerCell(this.verNotebook, cell, nodey.name)
+            );
+          } else verCell.setModel(nodey.name);
           this.verNotebook.history.stage.commitCellAdded(
             nodey,
             index,

@@ -2,7 +2,7 @@ import { Nodey, NodeyCell } from "../../nodey";
 import { History } from "..";
 import { Checkpoint } from "../../checkpoint";
 import { Commit } from "./commit";
-import { log } from "../../notebook";
+import { log, jsn } from "../../notebook";
 import { FileManager } from "../../jupyter-hooks/file-manager";
 
 export class HistoryStage {
@@ -16,10 +16,13 @@ export class HistoryStage {
     this.open_commits = [];
   }
 
-  public async commit(checkpoint: Checkpoint): Promise<Checkpoint> {
+  public async commit(
+    checkpoint: Checkpoint,
+    options: jsn = {}
+  ): Promise<Checkpoint> {
     let c = this.getCommit(checkpoint);
     // if commit was *actually* verified to be needed, it will record new versions
-    await c.commit();
+    await c.commit(options);
     this.closeCommit(c);
     return c.checkpoint;
   }

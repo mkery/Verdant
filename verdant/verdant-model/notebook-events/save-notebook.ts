@@ -2,9 +2,18 @@ import { NotebookEvent } from ".";
 
 export class SaveNotebook extends NotebookEvent {
   async modelUpdate() {
-    // don't do anything. checking for new versions on auto save seems to be collecting
-    // junk versions which don't add anything. If it is possible to decern an intentional
-    // user save, that would be appropriate to update the model then.
+    // look through cells for potential unsaved changes
+    this.notebook.cells.forEach((cell) => {
+      if (cell.model) {
+        this.history.stage.markAsPossiblyEdited(cell.model, this.checkpoint);
+      }
+    });
+
+    // !!! HACK: avoiding saving duplicate images assuming if it hasn't been
+    // run it can't be a new output
+    this.checkpoint = await this.history.stage.commit(this.checkpoint, {
+      ignore_output: true,
+    });
   }
 
   endEvent() {

@@ -199,7 +199,9 @@ export class FileManager {
 
   private getOutputPath(): string | undefined {
     let name = this._activeNotebook.name;
-    if (name) return "./" + name.substring(0, name.indexOf(".")) + "_output";
+    let notebookPath = this._activeNotebook.path;
+    let path = notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1);
+    if (name) return path + name.substring(0, name.indexOf(".")) + "_output";
   }
 
   private makeOutputFolder() {
