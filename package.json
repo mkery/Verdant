@@ -1,6 +1,6 @@
 {
   "name": "verdant-history",
-  "version": "1.1.6-b",
+  "version": "1.1.7",
   "description": "a local versioning logging tool for jupyterlab notebooks",
   "keywords": [
     "jupyter",
