@@ -212,10 +212,10 @@ export class Diff {
 
   diffText(oldText: string, newText: string, elem: HTMLElement) {
     // Split new text into lines
-    let newLines = newText.split("\n");
+    let newLines = (newText || "").split("\n");
 
     // Split old text into lines
-    let oldLines = oldText.split("\n");
+    let oldLines = (oldText || "").split("\n");
 
     // Loop over lines and append diffs to elem
     const maxLength = Math.max(newLines.length, oldLines.length);

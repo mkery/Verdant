@@ -60,10 +60,14 @@ export class VerNotebook {
   }
 
   public async handleNotebookEvent(event: NotebookEvent) {
-    await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
-    let ev = event.runEvent();
-    this.eventQueue.push(ev);
-    return ev;
+    try {
+      await Promise.all(this.eventQueue).then(() => (this.eventQueue = []));
+      let ev = event.runEvent();
+      this.eventQueue.push(ev);
+      return ev;
+    } catch (error) {
+      console.error("Verdant: Error on event ", event, error);
+    }
   }
 
   get model(): NodeyNotebook | undefined {

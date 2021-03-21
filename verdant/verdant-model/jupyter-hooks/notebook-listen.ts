@@ -141,29 +141,36 @@ export class NotebookListen {
           this.verNotebook.handleNotebookEvent(runEvent);
         } else {
           // error case, this cell is missing a history model!
-
-          // to fix create a new cell nodey and checkpoint to record this event
-          let index = this.notebook.widgets.findIndex(
-            (w) => w.model.id === cell.model.id
-          );
-          let checkpoint = this.verNotebook.history.checkpoints.generateCheckpoint();
-          let nodey = await this.verNotebook.ast.create.fromCell(
-            cell,
-            checkpoint
-          );
-          if (!verCell) {
-            // create ver cell if that's missing too
-            this.verNotebook.cells.splice(
-              index,
-              0,
-              new VerCell(this.verNotebook, cell, nodey.name)
+          try {
+            // to fix create a new cell nodey and checkpoint to record this event
+            let index = this.notebook.widgets.findIndex(
+              (w) => w.model.id === cell.model.id
             );
-          } else verCell.setModel(nodey.name);
-          this.verNotebook.history.stage.commitCellAdded(
-            nodey,
-            index,
-            checkpoint
-          );
+            let checkpoint = this.verNotebook.history.checkpoints.generateCheckpoint();
+            let nodey = await this.verNotebook.ast.create.fromCell(
+              cell,
+              checkpoint
+            );
+            if (!verCell) {
+              // create ver cell if that's missing too
+              this.verNotebook.cells.splice(
+                index,
+                0,
+                new VerCell(this.verNotebook, cell, nodey.name)
+              );
+            } else verCell.setModel(nodey.name);
+            this.verNotebook.history.stage.commitCellAdded(
+              nodey,
+              index,
+              checkpoint
+            );
+          } catch (error) {
+            console.error(
+              "Verdant: Error with mysterious cell run: ",
+              cell,
+              error
+            );
+          }
         }
       }
     });

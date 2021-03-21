@@ -22,7 +22,11 @@ export class HistoryStage {
   ): Promise<Checkpoint> {
     let c = this.getCommit(checkpoint);
     // if commit was *actually* verified to be needed, it will record new versions
-    await c.commit(options);
+    try {
+      await c.commit(options);
+    } catch (error) {
+      console.error("Verdant: Error in making commit: ", error);
+    }
     this.closeCommit(c);
     return c.checkpoint;
   }

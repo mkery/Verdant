@@ -55,7 +55,7 @@ export class VerdantNotebook extends VerNotebook {
 
   public async handleNotebookEvent(event: NotebookEvent) {
     let checkpoint = await super.handleNotebookEvent(event);
-    if (checkpoint.notebook) {
+    if (checkpoint?.notebook) {
       // check that the checkpoint was recorded
       this.store.dispatch(updateCheckpoint(checkpoint));
       let eventType = event.constructor.name;
