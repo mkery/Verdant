@@ -82,4 +82,14 @@ export class HistoryCheckpoints {
       return item.toJSON();
     });
   }
+
+  public slice(fromTime: number, toTime: number): Checkpoint[] {
+    let slice: Checkpoint[] = [];
+    let i = this.timeTable[fromTime];
+    let j = this.timeTable[toTime];
+    if (i !== undefined && j !== undefined) {
+      slice = this.checkpointList.slice(i, j) || [];
+    }
+    return slice;
+  }
 }

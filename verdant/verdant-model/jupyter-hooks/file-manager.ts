@@ -109,31 +109,45 @@ export class FileManager {
   public async saveGhostBook(history: History, notebook: NodeyNotebook) {
     if (this.test_mode) return;
     let model = await GhostToNotebookConverter.convert(history, notebook);
-    console.log("SAVE GHOST BOOK", notebook, model);
+    let historyData = history.slice(0, notebook.version);
 
     // prepare the path and file name
     var notebookPath = this._activeNotebook.path;
     if (notebookPath) {
-      var name = PathExt.basename(notebookPath);
-      name =
-        name.substring(0, name.indexOf(".")) +
+      let basename = PathExt.basename(notebookPath);
+      basename =
+        basename.substring(0, basename.indexOf(".")) +
         "-v" +
-        (notebook.version + 1) +
-        ".ipynb";
-      //log("name is", name)
-      var path =
-        "/" +
-        notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1) +
-        name;
+        (notebook.version + 1);
+      let historyName = basename + ".ipyhistory";
+      let notebookName = basename + ".ipynb";
+      let path =
+        "/" + notebookPath.substring(0, notebookPath.lastIndexOf("/") + 1);
 
+      // save notebook
       this.contentsManager
-        .save(path, {
+        .save(path + notebookName, {
           type: "file",
           format: "text",
           content: model.toString(),
         })
         .then(() => {
-          log("GhostBook written to file", name);
+          log("GhostBook written to file", notebookName);
+        })
+        .catch((rej) => {
+          //here when you reject the promise if the filesave fails
+          console.error(rej);
+        });
+
+      // save history too
+      this.contentsManager
+        .save(path + historyName, {
+          type: "file",
+          format: "text",
+          content: JSON.stringify(historyData, null, 1),
+        })
+        .then(() => {
+          log("GhostBook history written to file", historyName);
         })
         .catch((rej) => {
           //here when you reject the promise if the filesave fails

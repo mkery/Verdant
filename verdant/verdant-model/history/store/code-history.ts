@@ -27,11 +27,6 @@ export class CodeHistory extends NodeHistory<NodeyCode> {
     return Array.from(Object.values(this.output_histories));
   }
 
-  toJSON(): CodeHistory.SERIALIZE {
-    let jsn = super.toJSON();
-    return { output_histories: this.output_histories, ...jsn };
-  }
-
   fromJSON(
     jsn: CodeHistory.SERIALIZE,
     factory: (dat: Nodey.SERIALIZE) => NodeyCode,
@@ -39,6 +34,12 @@ export class CodeHistory extends NodeHistory<NodeyCode> {
   ) {
     super.fromJSON(jsn, factory, id);
     this.output_histories = jsn.output_histories;
+  }
+
+  // helper method
+  protected serialize(vers: NodeyCode[]): CodeHistory.SERIALIZE {
+    let data = super.serialize(vers);
+    return { output_histories: this.output_histories, ...data };
   }
 }
 

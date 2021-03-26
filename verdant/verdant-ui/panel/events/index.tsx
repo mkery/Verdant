@@ -25,7 +25,7 @@ class EventColumn extends React.Component<
 
   componentDidUpdate(priorProps: EventColumn_Props) {
     if (this.props.currentDate !== priorProps.currentDate) {
-      this.setState({ dates: this.props.dates });
+      this.setState({ dates: this.props.dates || [] });
     }
   }
 
@@ -47,7 +47,7 @@ const mapStateToProps = (state: verdantState) => {
   return {
     ready: state.eventView.ready,
     dates: state.eventView.dates,
-    currentDate: state.eventView.dates.length - 1,
+    currentDate: state.eventView?.dates?.length - 1 || -1,
   };
 };
 

@@ -149,8 +149,8 @@ export class Stage {
   private checkRawCellNodey(nodey: NodeyRawCell) {
     let cell = this.history.notebook.getCellByNode(nodey);
     let newText = cell?.getText() || "";
-    let oldText = nodey.literal;
-    if (oldText != newText) {
+    let oldText = nodey.literal || "";
+    if (oldText !== newText) {
       // store instructions for a new version of nodey in staging
       if (!this.staged_rawCell[nodey.artifactName]) {
         this.staged_rawCell[nodey.artifactName] = { literal: newText };

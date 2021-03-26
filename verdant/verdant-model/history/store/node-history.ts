@@ -65,10 +65,7 @@ export class NodeHistory<T extends Nodey> {
   }
 
   toJSON(): NodeHistory.SERIALIZE {
-    let data: Nodey.SERIALIZE[] = this.versions.map((node) => node.toJSON());
-    if (this.originPointer)
-      data[data.length - 1].origin = this.originPointer.origin;
-    return { artifact_name: this.name || "", versions: data };
+    return this.serialize(this.versions);
   }
 
   fromJSON(
@@ -88,6 +85,34 @@ export class NodeHistory<T extends Nodey> {
         return nodey;
       }
     );
+  }
+
+  sliceByTime(fromTime: number, toTime: number): NodeHistory.SERIALIZE {
+    let slice: T[] = [];
+    // get the first index of versions that happen on or after fromTime
+    let i = this.versions.findIndex((nodey) => {
+      return nodey.created >= fromTime && nodey.created < toTime;
+    });
+    let nodey: T = this.versions[i]; // check each nodey to see if it is within time
+    while (nodey && nodey.created >= fromTime && nodey.created < toTime) {
+      slice.push(nodey);
+      i++;
+      nodey = this.versions[i];
+    }
+    return this.serialize(slice);
+  }
+
+  sliceByVer(fromVer: number, toVer: number): NodeHistory.SERIALIZE {
+    let slice = this.versions.slice(fromVer, toVer);
+    return this.serialize(slice);
+  }
+
+  // helper method
+  protected serialize(vers: T[]): NodeHistory.SERIALIZE {
+    let data: Nodey.SERIALIZE[] = vers.map((node) => node.toJSON());
+    if (this.originPointer && data.length > 0)
+      data[data.length - 1].origin = this.originPointer.origin;
+    return { artifact_name: this.name || "", versions: data };
   }
 }
 

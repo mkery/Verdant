@@ -354,6 +354,53 @@ export class HistoryStore {
       0 // all notebooks have an id of 0, it's a singleton
     );
   }
+
+  /*
+   * Returns the equivalent of toJSON() for a slice of history
+   * starting at fromVer and ending (non-inclusive) at toVer
+   * versions of the whole notebook.
+   *
+   * returns null if given an invalid fromVer/toVer pair
+   */
+  public slice(fromVer: number, toVer: number): HistoryStore.SERIALIZE | null {
+    if (fromVer > toVer) return null; // error case
+    const fromTime = this.getNotebook(fromVer)?.created;
+    const toTime = this.getNotebook(toVer)?.created;
+    if (!fromTime || !toTime) return null; // error case
+
+    // slice all available histories
+    let notebookList: NodeHistory.SERIALIZE = this._notebookHistory.sliceByVer(
+      fromVer,
+      toVer
+    );
+    let codeCells = this.sliceStore(this._codeCellStore, fromTime, toTime);
+    let markdownCells = this.sliceStore(this._markdownStore, fromTime, toTime);
+    let rawCells = this.sliceStore(this._rawCellStore, fromTime, toTime);
+    let output = this.sliceStore(this._outputStore, fromTime, toTime);
+
+    return {
+      notebook: notebookList,
+      codeCells,
+      markdownCells,
+      rawCells,
+      snippets: [],
+      output,
+    };
+  }
+
+  // helper method
+  private sliceStore(
+    store: NodeHistory<Nodey>[],
+    fromTime: number,
+    toTime: number
+  ): NodeHistory.SERIALIZE[] {
+    let slice = [];
+    store.forEach((history: NodeHistory<Nodey>) => {
+      let data = history.sliceByTime(fromTime, toTime);
+      if (data && data.versions.length > 0) slice.push(data);
+    });
+    return slice;
+  }
 }
 
 export namespace HistoryStore {
