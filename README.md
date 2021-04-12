@@ -15,7 +15,7 @@ Figure alt text:
 
 [[Full demo on YouTube]](https://www.youtube.com/watch?v=4v_mHIJdZq0&t=4s)
 
-For design discussion and the research behind this check out our [paper](https://marybethkery.com/projects/Verdant/Towards_effective_foraging_by_data_scientists.pdf):
+For design discussion and the research behind this check out our [paper](https://marybethkery.com/projects/Verdant/paper092-Kery-CHI2019.pdf):
 
 > Mary Beth Kery, Bonnie E. John, Patrick O’Flaherty, Amber Horvath, and
 > Brad A. Myers. 2019. Towards Effective Foraging by Data Scientists to Find
