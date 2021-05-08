@@ -21,7 +21,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "hhttps://github.com/mkery/Verdant.git"
+    "url": "https://github.com/mkery/Verdant.git"
   },
   "scripts": {
     "build": "tsc && jupyter lab build",
